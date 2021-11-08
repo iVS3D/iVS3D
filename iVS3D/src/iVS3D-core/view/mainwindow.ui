@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1024</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>intelligent Video Sampler 3D</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="../resources.qrc">
+    <normaloff>:/icons/ivs3dIcon</normaloff>:/icons/ivs3dIcon</iconset>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <item>
+     <widget class="QPushButton" name="pushButton">
+      <property name="text">
+       <string>PushButton</string>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1024</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <addaction name="actionOpen_Project"/>
+    <addaction name="actionSave_Project"/>
+    <addaction name="actionSave_Project_As"/>
+    <addaction name="separator"/>
+    <addaction name="actionOpen_Input"/>
+    <addaction name="actionOpen_Input_Video"/>
+   </widget>
+   <widget class="QMenu" name="menuSettings">
+    <property name="title">
+     <string>Settings</string>
+    </property>
+    <addaction name="actionSet_Reconstructiontool_Path"/>
+    <addaction name="actionSet_Input_Path"/>
+    <addaction name="separator"/>
+    <addaction name="actionChange_layout_style"/>
+    <addaction name="actionuse_DarkStyle"/>
+    <addaction name="actionUse_CUDA"/>
+    <addaction name="actionCreate_log_file"/>
+   </widget>
+   <widget class="QMenu" name="menuAbout">
+    <property name="title">
+     <string>About</string>
+    </property>
+    <addaction name="actionInfo"/>
+    <addaction name="actionHelp"/>
+    <addaction name="actionLicence"/>
+   </widget>
+   <addaction name="menuFile"/>
+   <addaction name="menuSettings"/>
+   <addaction name="menuAbout"/>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <action name="actionOpen_Project">
+   <property name="text">
+    <string>Open Project</string>
+   </property>
+  </action>
+  <action name="actionSave_Project">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Save Project</string>
+   </property>
+  </action>
+  <action name="actionSave_Project_As">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Save Project As ...</string>
+   </property>
+  </action>
+  <action name="actionOpen_Input">
+   <property name="text">
+    <string>Open Input Folder</string>
+   </property>
+  </action>
+  <action name="actionSet_Reconstructiontool_Path">
+   <property name="text">
+    <string>Manage reconstruction tools </string>
+   </property>
+  </action>
+  <action name="actionSet_Input_Path">
+   <property name="text">
+    <string>Set input Path</string>
+   </property>
+  </action>
+  <action name="actionChange_layout_style">
+   <property name="text">
+    <string>Change layout style</string>
+   </property>
+  </action>
+  <action name="actionInfo">
+   <property name="text">
+    <string>Info</string>
+   </property>
+  </action>
+  <action name="actionOpen_Input_Video">
+   <property name="text">
+    <string>Open Input Video</string>
+   </property>
+  </action>
+  <action name="actionuse_DarkStyle">
+   <property name="text">
+    <string>Use DarkStyle</string>
+   </property>
+  </action>
+  <action name="actionHelp">
+   <property name="text">
+    <string>Help</string>
+   </property>
+  </action>
+  <action name="actionUse_CUDA">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Use CUDA</string>
+   </property>
+  </action>
+  <action name="actionLicence">
+   <property name="text">
+    <string>Licence</string>
+   </property>
+  </action>
+  <action name="actionStartAutoExec">
+   <property name="text">
+    <string>Start automatic execution</string>
+   </property>
+   <property name="toolTip">
+    <string>Start automatic execution</string>
+   </property>
+  </action>
+  <action name="actionSetupAutoExec">
+   <property name="text">
+    <string>Setup automatic execution</string>
+   </property>
+  </action>
+  <action name="actionCreate_log_file">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Create log file</string>
+   </property>
+  </action>
+ </widget>
+ <resources>
+  <include location="../resources.qrc"/>
+ </resources>
+ <connections/>
+</ui>

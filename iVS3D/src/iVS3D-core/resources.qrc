@@ -1,0 +1,25 @@
+<RCC>
+    <qresource prefix="/icons">
+        <file alias="trashIconW">resources/trashIconWhite.png</file>
+        <file alias="trashIconB">resources/trashIconBlack.png</file>
+        <file alias="settingsIconW">resources/SettingsIconWhite.png</file>
+        <file alias="settingsIconB">resources/SettingsIconBlack.png</file>
+        <file alias="ivs3dIcon">resources/GUI_ICON_IVS3D_1.png</file>
+        <file alias="openFolderIconB">resources/openfolder_black.png</file>
+        <file alias="openFolderIconW">resources/openfolder_white.png</file>
+        <file alias="openVideoIconB">resources/openvideo_black.png</file>
+        <file alias="openVideoIconW">resources/openvideo_white.png</file>
+        <file alias="fastForwardIconB">resources/ic_fast_forward_black.png</file>
+        <file alias="fastForwardIconW">resources/ic_fast_forward_white.png</file>
+        <file alias="fastRewindIconB">resources/ic_fast_rewind_black.png</file>
+        <file alias="fastRewindIconW">resources/ic_fast_rewind_white.png</file>
+        <file alias="pauseIconB">resources/ic_pause_black.png</file>
+        <file alias="pauseIconW">resources/ic_pause_white.png</file>
+        <file alias="playIconB">resources/ic_play_arrow_black.png</file>
+        <file alias="playIconW">resources/ic_play_arrow_white.png</file>
+        <file alias="nextIconB">resources/ic_skip_next_black.png</file>
+        <file alias="nextIconW">resources/ic_skip_next_white.png</file>
+        <file alias="prevIconB">resources/ic_skip_previous_black.png</file>
+        <file alias="prevIconW">resources/ic_skip_previous_white.png</file>
+    </qresource>
+</RCC>

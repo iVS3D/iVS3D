@@ -1,0 +1,11 @@
+{
+    "ApplicationSettings": {
+        "darkStyle": false,
+        "layout": true,
+        "pluginPath": "",
+        "reconstructSoftware": {
+        },
+        "standardInputPath": "",
+        "useCuda": true
+    }
+}

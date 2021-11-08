@@ -1,0 +1,33 @@
+with_cuda{
+    message(USING OPENCV WITH CUDA)
+
+# path to OpenCV 4.5.0 with CUDA dlls
+#
+#ADD PATH TO OPENCV WITH CUDA HERE (IF USED)
+#
+    include(C:\OpenCV\opencv-4.5.0-msvc2015-cuda-install\opencv-4.5.0-msvc2015-cuda.pri)
+    OPENCV_BIN_PATH = $$OPENCV_LIB_PATH/../bin
+    OPENCV_BIN_FILES = *.dll
+
+#path to CUDA 10.1 with cuDNN 8.0.5 (Default path, if CUDA is added to PATH)
+    CUDA_BIN_PATH = $$(CUDA_PATH_V10_1)/bin
+    CUDA_BIN_FILES = *.dll
+} else {
+    message(USING OPENCV WITHOUT CUDA)
+
+#path to OpenCV 4.5.0 without CUDA dlls
+#
+#ADD PATH TO OPENCV WITHOUT CUDA HERE
+#
+    include(C:\OpenCV\opencv_4.5.0_msvc2015_x86_64\opencv_4.5.0_msvc2015_x86_64.pri)
+    OPENCV_BIN_PATH = $$OPENCV_LIB_PATH/../bin
+    OPENCV_BIN_FILES = *.dll
+}
+
+#path to MSVC2015 dlls (These are default paths)
+MSVC_BIN_PATH = $$(windir)/System32
+MSVC_BIN_FILES += \
+    msvcp_win.dll \
+    msvcp140.dll \
+    vcruntime140.dll \
+    vcruntime140_1.dll
