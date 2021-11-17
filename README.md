@@ -88,7 +88,7 @@ Projects tab and select Build under Build & Run.
 - under the general tab change the build directory to your desired output folder
 - under build steps add ```"CONFIG+=with_dependencies"``` as additional argument to the qmake step. This will copy all necessary .dlls
 - add a new build step, select make and add ```install``` as make argument. Make sure you have two make steps, the first one without additional arguments!
-- add a new build step, select Custom Process Step and enter windeploy.exe as command. As arguments enter ```%{buildDir}\src\iVS3D-core\release\iVS3D-core.exe```
+- add a new build step, select Custom Process Step and enter windeployqt.exe as command. As arguments enter ```%{buildDir}\src\iVS3D-core\release\iVS3D-core.exe```
 - add a new build step, select make and add ```clean``` as make argument
 
 Now you can deploy iVS3D by clicking the hammer icon in the bottom left corner. The iVS3D-core.exe within ```iVS3D/src/iVS3D-core```
@@ -121,7 +121,7 @@ To build with CUDA support simply add  ```"CONFIG+=with_cuda"``` as an qmake arg
 
 To create the test build add ```"CONFIG+=test"``` as an qmake argument to your build configuration. 
 Now you can run the tests within the Test Result tab in Qt Creator.
-HINT: some tests require test resources, those can be downloaded from _todo_ and need to be added in a folder
+HINT: some tests require test resources which need to be added in a folder
 testresources under ```iVS3D/tests```. Without these resources some tests will fail.
 
 [Link to our test data]
@@ -134,6 +134,16 @@ testresources under ```iVS3D/tests```. Without these resources some tests will f
 ## Licence
 
 see [Licences.txt](Licences.txt)
+
+## Authors
+
+Patrick Binder, Daniel Brommer, Lennart Ruck, Dominik Wüst, Dominic Zahn
+
+Fraunhofer IOSB, Karlsruhe
+
+Supervisor: Max Hermann & Thomas Pollok
+
+Created as part of PSE at the Karlsruhe Institut of Technlogy in the winter term 2020/21
 
 [//]: # (These are reference links used in the body of this note and get stripped out when the markdown processor does its job. There is no need to format nicely because it shouldn't be seen. Thanks SO - http://stackoverflow.com/questions/4823468/store-comments-in-markdown-syntax)
 
