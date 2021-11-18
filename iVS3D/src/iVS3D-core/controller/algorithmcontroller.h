@@ -118,6 +118,6 @@ private:
     PluginType m_pluginType;
 
     // plugin runtime
-    std::chrono::steady_clock::time_point m_startTime;
+    std::chrono::system_clock::time_point m_startTime;
 };
 #endif // ALGORITHMCONTROLLER_H

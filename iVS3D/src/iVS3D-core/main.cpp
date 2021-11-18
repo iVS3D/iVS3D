@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
 
     int num = argc;
     if (num < 2) {
-        FreeConsole();
+        //FreeConsole();
         QApplication a( argc, argv );
         Controller mainController;
         qApp->setProperty(stringContainer::UIIdentifier, true);

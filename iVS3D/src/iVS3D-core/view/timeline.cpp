@@ -134,7 +134,7 @@ void Timeline::setFrames(const std::vector<uint> &keyframes, uint frameCount)
 
 uint Timeline::selectedFrame()
 {
-    float selected = round((float)m_marker->getRelPosition() / m_marker->getStepSize() + m_zoomTimeline->getFirstIndex());
+    float selected = std::round((float)m_marker->getRelPosition() / m_marker->getStepSize() + m_zoomTimeline->getFirstIndex());
 
     // prevent marker from moving to a out of bounds frame
     if (selected < m_zoomTimeline->getFirstIndex()) {

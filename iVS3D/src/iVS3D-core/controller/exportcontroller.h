@@ -22,7 +22,7 @@
 
 #include <QDebug>
 
-#include "Windows.h"
+//#include "Windows.h"
 
 // --- default resolutions in dropbox ---
 #define RESOLUTION_LIST "2560 x 1440 (QHD)|1920 x 1080 (FHD)|1280 x 720 (HD)|1280 x 1024 (HD*)|640 x 480"
@@ -184,7 +184,7 @@ private:
     //Key is name of the project, value is path to export
     QMap<QString, QString> m_currentExports;
     // export runtime
-    std::chrono::steady_clock::time_point m_startTime;
+    std::chrono::system_clock::time_point m_startTime;
 };
 
 #endif // EXPORTCONTROLLER_H

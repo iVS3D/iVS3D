@@ -831,7 +831,7 @@ bool ExportController::createShortcutplusBatch(QString reconstructDir, QString s
     QStringList reconstructDirList = reconstructDir.split("/");
     QString exportDirReverse = "";
     QStringList exportDirList = exportDir.split("/");
-    for (int i = 0; i < max(reconstructDirList.length(), exportDirList.length()); i++) {
+    for (int i = 0; i < std::max(reconstructDirList.length(), exportDirList.length()); i++) {
         if (i < reconstructDirList.length()) {
             reconstructDirReverse.append(reconstructDirList[i]);
             if (i < reconstructDirList.length() - 1) {

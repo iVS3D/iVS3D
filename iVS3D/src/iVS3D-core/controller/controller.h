@@ -157,7 +157,7 @@ private:
     void onFailedOpen();
 
     // plugin runtime
-    std::chrono::steady_clock::time_point m_startTime;
+    std::chrono::system_clock::time_point m_startTime;
 
     AutomaticExecSettings* m_autoSettings;
 };

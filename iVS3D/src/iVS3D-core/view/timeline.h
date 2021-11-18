@@ -9,6 +9,7 @@
 #include "slideablelabel.h"
 #include "timelinelabel.h"
 #include "ui_timeline.h"
+#include <cmath>
 
 
 namespace Ui {

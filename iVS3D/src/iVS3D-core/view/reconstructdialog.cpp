@@ -1,5 +1,5 @@
-#include "ReconstructDialog.h"
-#include "ui_ReconstructDialog.h"
+#include "reconstructdialog.h"
+#include "ui_reconstructdialog.h"
 
 ReconstructDialog::ReconstructDialog(QWidget *parent)  :
     QDialog(parent),

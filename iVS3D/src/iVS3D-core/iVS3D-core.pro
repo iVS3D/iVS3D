@@ -77,9 +77,7 @@ SOURCES += \
     model/imagereader.cpp \
     model/videoreader.cpp \
     model/exportthread.cpp \
-    model/imagereader.cpp \
     model/jsonEnum.cpp \
-    model/videoreader.cpp \
     model/projectmanager.cpp \
     model/applicationsettings.cpp \
     model/modelalgorithm.cpp \
