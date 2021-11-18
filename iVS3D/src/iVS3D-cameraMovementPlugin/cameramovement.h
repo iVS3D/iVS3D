@@ -58,7 +58,7 @@
  *
  * @date 2021/02/15
  */
-class CameraMovement : public QObject, IAlgorithm
+class CameraMovement : public IAlgorithm
 {
     Q_OBJECT
     Q_PLUGIN_METADATA(IID "pse.iVS3D.IAlgorithm")   // implement interface as plugin, use the iid as identifier

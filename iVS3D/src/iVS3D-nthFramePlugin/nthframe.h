@@ -43,7 +43,7 @@
  *
  * @date 2021/02/14
  */
-class NthFrame : public QObject, IAlgorithm
+class NthFrame : public IAlgorithm
 {
     Q_OBJECT
     Q_PLUGIN_METADATA(IID "pse.iVS3D.IAlgorithm") // implement interface as plugin, use the iid as identifier

@@ -122,7 +122,7 @@ void CameraMovement::calcOptFlowSingle(std::vector<uint> &keyframes, Reader *rea
         if (m_bufferMat.size() != 0)
             bufferMovement = m_bufferMat.ref<double>(sharpImages[prevKeyframeIndex], sharpImages[i]);
         double newMovement;
-        std::chrono::time_point<std::chrono::steady_clock, std::chrono::duration<long long, std::ratio<1, 1000000000>>> afterLoad, afterFarneback;
+        std::chrono::time_point<std::chrono::system_clock, std::chrono::duration<long long, std::ratio<1, 1000000000>>> afterLoad, afterFarneback;
         if (bufferMovement <= 0.0) {
             // load next image
             cv::cvtColor(reader->getPic(sharpImages[i]), currGrey, cv::COLOR_BGR2GRAY);

@@ -96,12 +96,8 @@ void TransformManager::loadPlugins(){
                 pluginsDir.cdUp();
             pluginsDir.cdUp();
         }
-    #elif defined(Q_OS_MAC)
-        if (pluginsDir.dirName() == "MacOS") {
+    #elif defined(Q_OS_LINUX)
             pluginsDir.cdUp();
-            pluginsDir.cdUp();
-            pluginsDir.cdUp();
-        }
     #endif
     bool foundPlugin = pluginsDir.cd("plugins");
     if (!foundPlugin) {

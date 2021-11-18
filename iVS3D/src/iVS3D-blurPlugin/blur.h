@@ -48,7 +48,7 @@
  * @date 2021/02/19
  */
 
-class Blur : public QObject, IAlgorithm
+class Blur : public IAlgorithm
 {
     Q_OBJECT
     Q_PLUGIN_METADATA(IID "pse.iVS3D.IAlgorithm") // implement interface as plugin, use the iid as identifier
