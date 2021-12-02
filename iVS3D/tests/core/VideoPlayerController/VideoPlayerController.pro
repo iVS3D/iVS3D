@@ -43,7 +43,6 @@ HEADERS += \
     $$IVS_SRC_PATH/iVS3D-core/model/projectmanager.h \
     $$IVS_SRC_PATH/iVS3D-core/model/logmanager.h \
     $$IVS_SRC_PATH/iVS3D-core/model/concurrentreader.h \
-    $$IVS_SRC_PATH/iVS3D-core/model/projectmanager.h \
     $$IVS_SRC_PATH/iVS3D-core/model/algorithmthread.h \
     $$IVS_SRC_PATH/iVS3D-core/model/progressable.h \
     $$IVS_SRC_PATH/iVS3D-core/model/progressdisplay.h \
@@ -80,7 +79,6 @@ SOURCES += \
     $$IVS_SRC_PATH/iVS3D-core/model/projectmanager.cpp \
     $$IVS_SRC_PATH/iVS3D-core/model/logmanager.cpp \
     $$IVS_SRC_PATH/iVS3D-core/model/concurrentreader.cpp \
-    $$IVS_SRC_PATH/iVS3D-core/model/projectmanager.cpp \
     $$IVS_SRC_PATH/iVS3D-core/model/algorithmthread.cpp \
     $$IVS_SRC_PATH/iVS3D-core/model/progressable.cpp \
     $$IVS_SRC_PATH/iVS3D-core/model/progressdisplay.cpp \

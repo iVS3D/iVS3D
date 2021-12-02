@@ -65,7 +65,7 @@ void Controller::slot_openInputFolder()
         msgBox.exec();
         return;
     }
-    QString folderPath = QFileDialog::getExistingDirectory(m_mainWindow, "Choose Folder", ApplicationSettings::instance().getStandardInputPath());
+    QString folderPath = QFileDialog::getExistingDirectory(m_mainWindow, "Choose Folder", ApplicationSettings::instance().getStandardInputPath(), QFileDialog::DontUseNativeDialog);
     if (folderPath == nullptr) {
         emit sig_hasStatusMessage("Input canceled");
         return;
@@ -82,7 +82,8 @@ void Controller::slot_openInputVideo()
         msgBox.exec();
         return;
     }
-    QString folderPath = QFileDialog::getOpenFileName(m_mainWindow, "Choose Video", ApplicationSettings::instance().getStandardInputPath(), "*.mp4 *.mov *.avi");
+    QString selectedFilter = "";
+    QString folderPath = QFileDialog::getOpenFileName(m_mainWindow, "Choose Video", ApplicationSettings::instance().getStandardInputPath(), "*.mp4 *.mov *.avi", &selectedFilter, QFileDialog::DontUseNativeDialog);
     if (folderPath == nullptr) {
         emit sig_hasStatusMessage("Input canceled");
         return;

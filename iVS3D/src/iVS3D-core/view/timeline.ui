@@ -184,7 +184,7 @@
   <customwidget>
    <class>TimelineLabel</class>
    <extends>QLabel</extends>
-   <header>timelinelabel.h</header>
+   <header>view/timelinelabel.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

@@ -6,8 +6,8 @@
 #include <QShortcut>
 #include <QKeySequence>
 #include <QScreen>
-#include "slideablelabel.h"
-#include "timelinelabel.h"
+#include "view/slideablelabel.h"
+#include "view/timelinelabel.h"
 #include "ui_timeline.h"
 #include <cmath>
 
