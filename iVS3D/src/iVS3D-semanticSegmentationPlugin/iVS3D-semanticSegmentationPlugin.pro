@@ -45,7 +45,9 @@ CONFIG(debug, debug|release){
     VARIANT = release
 }
 
-model_files.path = $$OUT_PWD/../iVS3D-core/$$VARIANT/models/SemanticSegmentation
+
+win32: model_files.path = $$OUT_PWD/../iVS3D-core/$$VARIANT/models/SemanticSegmentation
+else:unix: model_files.path = $$OUT_PWD/../iVS3D-core/models/SemanticSegmentation
 model_files.files = copy_to_install_dir/models/SemanticSegmentation/*
 
 INSTALLS += model_files
