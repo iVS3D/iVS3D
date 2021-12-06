@@ -21,6 +21,7 @@
 #include <QTextStream>
 
 #include <QDebug>
+#include <QElapsedTimer>
 
 //#include "Windows.h"
 
@@ -184,7 +185,7 @@ private:
     //Key is name of the project, value is path to export
     QMap<QString, QString> m_currentExports;
     // export runtime
-    std::chrono::system_clock::time_point m_startTime;
+    QElapsedTimer m_timer;
 };
 
 #endif // EXPORTCONTROLLER_H

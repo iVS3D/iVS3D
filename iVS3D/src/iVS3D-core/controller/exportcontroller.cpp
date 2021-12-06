@@ -281,7 +281,8 @@ void ExportController::slot_export()
     qDebug() << "path " << m_path;
     qDebug() << "outputName " << outputName;
     emit sig_exportStarted();
-    m_startTime = std::chrono::high_resolution_clock::now();
+    m_timer = QElapsedTimer();
+    m_timer.start();
     if (m_path.endsWith("/images")) {
         m_path.chop(7); //remove /images at the end
     }
@@ -336,8 +337,7 @@ void ExportController::slot_resolutionChange(const QString &res)
 void ExportController::slot_exportAborted()
 {
     qDebug() << "exportAborted";
-    auto endTime = std::chrono::high_resolution_clock::now();
-    auto duration_ms = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - m_startTime).count();
+    auto duration_ms = m_timer.elapsed();
     emit sig_hasStatusMessage("Export aborted after " + QString::number(duration_ms) + "ms");
     // disconnect GUI to export executor
     disconnect(m_exportExec, &ExportExecutor::sig_exportAborted, this, &ExportController::slot_exportAborted);
@@ -365,8 +365,7 @@ void ExportController::slot_exportFinished(int result)
         return;
     }
 
-    auto endTime = std::chrono::high_resolution_clock::now();
-    auto duration_ms = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - m_startTime).count();
+    auto duration_ms = m_timer.elapsed();
     emit sig_hasStatusMessage("Export finished after " + QString::number(duration_ms) + "ms");
 
     // now we have an export, so enable reconstruct

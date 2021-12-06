@@ -70,7 +70,8 @@ void Controller::slot_openInputFolder()
         emit sig_hasStatusMessage("Input canceled");
         return;
     }
-    m_startTime = std::chrono::high_resolution_clock::now();
+    m_timer = QElapsedTimer();
+    m_timer.start();
     createOpenMessage(m_dataManager->open(folderPath));
 }
 
@@ -95,7 +96,8 @@ void Controller::slot_openInputVideo()
     m_openExec = new OpenExecutor(folderPath, m_dataManager);
     connect(m_openExec, &OpenExecutor::sig_finished, this, &Controller::slot_openFinished);
 
-    m_startTime = std::chrono::high_resolution_clock::now();
+    m_timer = QElapsedTimer();
+    m_timer.start();
     m_openExec->open();
 }
 
@@ -124,7 +126,8 @@ void Controller::slot_openVideoDragAndDrop(QString filePath)
         m_isImporting = true;
         m_openExec = new OpenExecutor(filePath, m_dataManager);
         connect(m_openExec, &OpenExecutor::sig_finished, this, &Controller::slot_openFinished);
-        m_startTime = std::chrono::high_resolution_clock::now();
+        m_timer = QElapsedTimer();
+        m_timer.start();
         m_openExec->open();
     }
 }
@@ -147,7 +150,8 @@ void Controller::slot_openProject()
         m_openExec = new OpenExecutor(folderPath, m_dataManager);
         connect(m_openExec, &OpenExecutor::sig_finished, this, &Controller::slot_openFinished);
 
-        m_startTime = std::chrono::high_resolution_clock::now();
+        m_timer = QElapsedTimer();
+        m_timer.start();
         m_openExec->open();
     }
     else {
@@ -253,14 +257,12 @@ void Controller::slot_exportFinished()
 void Controller::createOpenMessage(int numPics)
 {
     if (numPics <= 0) {
-        auto endTime = std::chrono::high_resolution_clock::now();
-        auto duration_ms = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - m_startTime).count();
+        auto duration_ms = m_timer.elapsed();
         emit sig_hasStatusMessage("Import failed after " + QString::number(duration_ms) + "ms");
         onFailedOpen();
     }
     else {
-        auto endTime = std::chrono::high_resolution_clock::now();
-        auto duration_ms = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - m_startTime).count();
+        auto duration_ms = m_timer.elapsed();
         emit sig_hasStatusMessage("Import of " + QString::number(numPics) + " images finished after " + QString::number(duration_ms) + "ms");
         onSuccessfulOpen();
     }

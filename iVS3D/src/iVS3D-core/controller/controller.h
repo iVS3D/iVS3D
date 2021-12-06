@@ -31,6 +31,7 @@
 #include <QDialog>
 #include <QDebug>
 #include <QMessageBox>
+#include <QElapsedTimer>
 
 
 /**
@@ -157,7 +158,7 @@ private:
     void onFailedOpen();
 
     // plugin runtime
-    std::chrono::system_clock::time_point m_startTime;
+    QElapsedTimer m_timer;
 
     AutomaticExecSettings* m_autoSettings;
 };

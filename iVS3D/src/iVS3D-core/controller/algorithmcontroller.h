@@ -6,6 +6,7 @@
 #include <QFutureWatcher>
 #include <vector>
 #include <QTimer>
+#include <QElapsedTimer>
 
 #include "model/DataManager.h"
 #include "model/algorithmexecutor.h"
@@ -118,6 +119,6 @@ private:
     PluginType m_pluginType;
 
     // plugin runtime
-    std::chrono::system_clock::time_point m_startTime;
+    QElapsedTimer m_timer;
 };
 #endif // ALGORITHMCONTROLLER_H

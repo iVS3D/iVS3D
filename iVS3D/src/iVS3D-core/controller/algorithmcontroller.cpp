@@ -84,15 +84,15 @@ void AlgorithmController::slot_startAlgorithm(bool onlyKeyframes, bool useBounds
     connect(m_algExec, &AlgorithmExecutor::sig_progress, m_algorithmProgressDialog, &ProgressDialog::slot_displayProgress);
 
     // display progress dialog and start algorithm
-    m_startTime = std::chrono::high_resolution_clock::now();
+    m_timer = QElapsedTimer();
+    m_timer.start();
     m_algorithmProgressDialog->show();
     m_algExec->startSampling(m_pluginIdx, onlyKeyframes, useBounds);
 }
 
 void AlgorithmController::slot_algorithmAborted()
 {
-    auto endTime = std::chrono::high_resolution_clock::now();
-    auto duration_ms = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - m_startTime).count();
+    auto duration_ms = m_timer.elapsed();
     emit sig_hasStatusMessage(AlgorithmManager::instance().getAlgorithmList()[m_pluginIdx] + " aborted after " + QString::number(duration_ms) + "ms");
     m_algorithmProgressDialog->close();
 }
@@ -113,8 +113,7 @@ void AlgorithmController::startNextTransform()
 
 void AlgorithmController::slot_algorithmFinished()
 {
-    auto endTime = std::chrono::high_resolution_clock::now();
-    auto duration_ms = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - m_startTime).count();
+    auto duration_ms = m_timer.elapsed();
     emit sig_hasStatusMessage(AlgorithmManager::instance().getAlgorithmList()[m_pluginIdx] + " finished after " + QString::number(duration_ms) + "ms");
     m_algorithmProgressDialog->close();
 }

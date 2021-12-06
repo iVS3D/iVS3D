@@ -115,23 +115,24 @@ void CameraMovement::calcOptFlowSingle(std::vector<uint> &keyframes, Reader *rea
     double noKeyframeMovement = 0;
 
     for (uint i = 0; i < sharpImages.size(); i++) {
-        auto start = std::chrono::high_resolution_clock::now();
+        QElapsedTimer timer;
+        timer.start();
 
         // check if the current camera movement between the selected images was already calculated
         double bufferMovement = 0.0;
         if (m_bufferMat.size() != 0)
             bufferMovement = m_bufferMat.ref<double>(sharpImages[prevKeyframeIndex], sharpImages[i]);
         double newMovement;
-        std::chrono::time_point<std::chrono::system_clock, std::chrono::duration<long long, std::ratio<1, 1000000000>>> afterLoad, afterFarneback;
+        long long afterLoad, afterFarneback;
         if (bufferMovement <= 0.0) {
             // load next image
             cv::cvtColor(reader->getPic(sharpImages[i]), currGrey, cv::COLOR_BGR2GRAY);
-            afterLoad = std::chrono::high_resolution_clock::now();
+            afterLoad = timer.elapsed();
 
             // calculate optical flow
             cv::Mat flow(prevGrey.size(),CV_32FC2);
             farn->calculateFlow(prevGrey, currGrey, flow);
-            afterFarneback = std::chrono::high_resolution_clock::now();
+            afterFarneback = timer.elapsed();
 
             // calculate movement between sharpImages[prevKeyframeIndex] and sharpImages[i]
             newMovement = averageFlow(flow, 1);
@@ -147,11 +148,11 @@ void CameraMovement::calcOptFlowSingle(std::vector<uint> &keyframes, Reader *rea
         double movement = newMovement + noKeyframeMovement;
         averageMovement += newMovement;
         movementCalcs++;
-        auto afterAvrg = std::chrono::high_resolution_clock::now();
+        long long afterAvrg = timer.elapsed();
 
-        auto durationLoadMs = std::chrono::duration_cast<std::chrono::milliseconds>(afterLoad - start).count();
-        auto durationFarnebackMs = std::chrono::duration_cast<std::chrono::milliseconds>(afterFarneback - afterLoad).count();
-        auto durationAvrgMs = std::chrono::duration_cast<std::chrono::milliseconds>(afterAvrg - afterFarneback).count();
+        auto durationLoadMs = afterLoad;
+        auto durationFarnebackMs = afterFarneback - afterLoad;
+        auto durationAvrgMs = afterAvrg - afterFarneback;
         std::cout << std::left << std::setw(10) << sharpImages[i] << std::setw(10) << sharpImages[prevKeyframeIndex] << std::setw(10) << durationLoadMs << std::setw(10) << durationFarnebackMs << std::setw(10) << durationAvrgMs << std::setw(10) << movement << std::setw(10)<< newMovement << "\n";
 
         // send new progress update

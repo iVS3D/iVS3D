@@ -21,6 +21,7 @@
 #include <QLabel>
 #include <QDoubleSpinBox>
 #include <QDebug>
+#include <QElapsedTimer>
 #include <iostream>
 #include <iomanip>
 #include <opencv2/core/mat.hpp>
