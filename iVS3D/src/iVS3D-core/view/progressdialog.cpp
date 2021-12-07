@@ -13,7 +13,7 @@ ProgressDialog::ProgressDialog(QWidget *parent, bool showAbort) :
         ui->bt_cancel->setVisible(false);
     }
     setSizeGripEnabled(false);
-    adjustSize();
+    //adjustSize();
     setWindowFlags(windowFlags() & ~Qt::WindowCloseButtonHint);
 }
 
@@ -36,7 +36,7 @@ void ProgressDialog::slot_displayProgress(int progress, QString currentOperation
 
     // change text
     ui->label_currOperation->setText(currentOperation);
-    adjustSize();
+    //adjustSize();
 }
 
 void ProgressDialog::slot_displayMessage(QString message)
