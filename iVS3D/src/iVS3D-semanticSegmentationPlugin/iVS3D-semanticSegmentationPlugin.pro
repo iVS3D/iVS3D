@@ -21,11 +21,6 @@ HEADERS += \
     settingswidget.h \
     cvmat_qmetadata.h
 
-unix {
-    target.path = /usr/lib
-    INSTALLS += target
-}
-
 win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../iVS3D-pluginInterface/lib/ -lITransform
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../iVS3D-pluginInterface/lib/ -lITransform
 else:unix: LIBS += -L$$PWD/../iVS3D-pluginInterface/lib/ -lITransform

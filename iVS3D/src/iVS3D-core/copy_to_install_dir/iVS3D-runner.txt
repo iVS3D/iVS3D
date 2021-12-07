@@ -1,0 +1,54 @@
+#!/bin/bash
+
+helpFunction()
+{
+   echo ""
+   echo "Usage: $0 --in path --auto path "
+   echo -e "\t--in Path to images"
+   echo -e "\t--auto Path to automatic execution file"
+   exit 1 # Exit script after printing help
+}
+
+
+# Call getopt to validate the provided input. 
+options=$(getopt -o '' --long in:,auto: -- "$@")
+[ $? -eq 0 ] || { 
+    helpFunction
+}
+eval set -- "$options"
+while true; do
+    case "$1" in
+    --in)
+        shift; # The arg is next in position args
+        in=$1
+        ;;
+    --auto)
+        shift; # The arg is next in position args
+        auto=$1
+        ;;
+    --)
+        shift
+        break
+        ;;
+    esac
+    shift
+done
+
+
+# Print helpFunction in case only one parameter is used
+if [ "${in:+A}" != "${auto:+A}" ];
+then
+   echo "Booth arguments or none need to be set";
+   helpFunction
+fi
+
+# Begin script in case all parameters are correct
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:./
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/dominik/Documents/opencv_4.5.0_gcc7.5.0_ubuntu1804_x64/opencv_4.5.0_gcc7.5.0_ubuntu1804_x64/lib
+if [ -z "$in" ] 
+then
+   ./iVS3D-core
+else
+   ./iVS3D-core -in $in -auto $auto
+fi 
+

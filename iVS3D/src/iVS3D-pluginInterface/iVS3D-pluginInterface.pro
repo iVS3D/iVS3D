@@ -20,10 +20,7 @@ HEADERS += \
     itransform.h \
     cvmat_qmetadata.h
 
-unix {
-    target.path = /usr/lib
-    INSTALLS += target
-}
+
 
 DESTDIR = $$PWD/lib
 
@@ -34,8 +31,14 @@ CONFIG(debug, debug|release){
 } else {
     VARIANT = release
 }
-
-model_files.path = $$OUT_PWD/../iVS3D-core/$$VARIANT
-model_files.files = $$PWD/lib/ITransform.dll
+win32{
+    model_files.path = $$OUT_PWD/../iVS3D-core/$$VARIANT
+    model_files.files = $$PWD/lib/ITransform.dll
+} else:unix {
+    model_files.path = $$OUT_PWD/../iVS3D-core
+    model_files.files = $$PWD/lib/libITransform.so
+}
 
 INSTALLS += model_files
+
+

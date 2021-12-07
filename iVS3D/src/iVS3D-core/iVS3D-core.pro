@@ -202,7 +202,8 @@ CONFIG(debug, debug|release){
     VARIANT = release
 }
 
-colmap_files.path = $$OUT_PWD/$$VARIANT/colmap
+win32:colmap_files.path = $$OUT_PWD/$$VARIANT/colmap
+else:unix:colmap_files.path = $$OUT_PWD/colmap
 colmap_files.files = copy_to_install_dir/colmap/*
 INSTALLS += colmap_files
 
@@ -239,4 +240,10 @@ with_dependencies{
         else:warning(OPENCV FILE MISSING: $$OPENCV_BIN_PATH/$${file})
     }
     INSTALLS += opencv_dlls
+}
+
+unix{
+    linuxRunner_files.path = $$OUT_PWD
+    linuxRunner_files.files = copy_to_install_dir/iVS3D-runner.sh
+    INSTALLS += linuxRunner_files
 }
