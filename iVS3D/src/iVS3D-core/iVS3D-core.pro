@@ -242,12 +242,9 @@ with_dependencies{
     INSTALLS += opencv_dlls
 }
 
+#create a shell script to setup runtime environment for iVS3D-core and start of the application
 unix{
     runner_code = $$cat(copy_to_install_dir/iVS3D-runner.txt, blob)
-    new_runner = $$replace(runner_code,%OPEN_CV_PATH%,$$OPENCV_LIB_PATH)
-    write_file($$OUT_PWD/iVS3D-runner.so, new_runner)
-
-#    linuxRunner_files.path = $$OUT_PWD
-#    linuxRunner_files.files = copy_to_install_dir/iVS3D-runner.sh
-#    INSTALLS += linuxRunner_files
+    new_runner = $$replace(runner_code,%OPEN_CV_PATH%,$$OCV4_PATH/lib)
+    write_file($$OUT_PWD/iVS3D-runner.sh, new_runner)
 }
