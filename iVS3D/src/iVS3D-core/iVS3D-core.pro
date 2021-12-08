@@ -247,4 +247,6 @@ unix{
     runner_code = $$cat(copy_to_install_dir/iVS3D-runner.txt, blob)
     new_runner = $$replace(runner_code,%OPEN_CV_PATH%,$$OCV4_PATH/lib)
     write_file($$OUT_PWD/iVS3D-runner.sh, new_runner)
+    system(chmod 777 $$OUT_PWD/iVS3D-runner.sh)
+
 }
