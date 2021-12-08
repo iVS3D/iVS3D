@@ -87,7 +87,8 @@ void AutomaticExecSettings::slot_removedPlugin(int row)
 
 void AutomaticExecSettings::slot_saveConfiguration()
 {
-    QString savePath = QFileDialog::QFileDialog::getSaveFileName (m_autoWidget, "Save configuration", ApplicationSettings::instance().getStandardInputPath(), "*.json");
+    QString selectedFilter = "";
+    QString savePath = QFileDialog::QFileDialog::getSaveFileName (m_autoWidget, "Save configuration", ApplicationSettings::instance().getStandardInputPath(), "*.json", &selectedFilter, QFileDialog::DontUseNativeDialog);
     if (savePath == nullptr) {
         return;
     }
@@ -96,7 +97,8 @@ void AutomaticExecSettings::slot_saveConfiguration()
 
 void AutomaticExecSettings::slot_loadConfiguration()
 {
-    QString savePath = QFileDialog::getOpenFileName(m_autoWidget, "Choose configuration", ApplicationSettings::instance().getStandardInputPath(), "*.json");
+    QString selectedFilter = "";
+    QString savePath = QFileDialog::getOpenFileName(m_autoWidget, "Choose configuration", ApplicationSettings::instance().getStandardInputPath(), "*.json", &selectedFilter, QFileDialog::DontUseNativeDialog);
     if (savePath == nullptr) {
         return;
     }
@@ -116,7 +118,9 @@ void AutomaticExecSettings::savePluginList(QString path)
         fullSave.insert(QString::number(i), current);
         i++;
     }
-
+    if (path.right(5).toLower() != ".json") {
+        path.append(".json");
+    }
     QFile file(path);
     QJsonDocument doc(fullSave);
     if (!file.open(QFile::WriteOnly | QFile::Text | QFile::Truncate)) {

@@ -103,7 +103,7 @@ std::vector<bool> ExportWidget::getSelectedITransforms()
 
 void ExportWidget::on_pushButton_browse_clicked()
 {
-    QString newPath = QFileDialog::getExistingDirectory(this,"choose output folder", ui->lineEdit->text());
+    QString newPath = QFileDialog::getExistingDirectory(this,"choose output folder", ui->lineEdit->text(), QFileDialog::DontUseNativeDialog);
     if(!newPath.isEmpty()){
         ui->lineEdit->setText(newPath);
     }
