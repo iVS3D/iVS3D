@@ -40,7 +40,7 @@ void TerminalInteraction::slot_displayProgress(int progress, QString currentProg
         std::cout << " ";
     }
 
-    std::cout << "\r";
+    std::cout << "\r" << std::flush;
 
     m_eraseIsActive = true;
     m_lengthToErase = currentProgress.size() + m_suffixLength;
