@@ -243,7 +243,11 @@ with_dependencies{
 }
 
 unix{
-    linuxRunner_files.path = $$OUT_PWD
-    linuxRunner_files.files = copy_to_install_dir/iVS3D-runner.sh
-    INSTALLS += linuxRunner_files
+    runner_code = $$cat(copy_to_install_dir/iVS3D-runner.txt, blob)
+    new_runner = $$replace(runner_code,%OPEN_CV_PATH%,$$OPENCV_LIB_PATH)
+    write_file($$OUT_PWD/iVS3D-runner.so, new_runner)
+
+#    linuxRunner_files.path = $$OUT_PWD
+#    linuxRunner_files.files = copy_to_install_dir/iVS3D-runner.sh
+#    INSTALLS += linuxRunner_files
 }

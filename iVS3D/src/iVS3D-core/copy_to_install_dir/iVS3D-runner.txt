@@ -44,7 +44,7 @@ fi
 
 # Begin script in case all parameters are correct
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:./
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/dominik/Documents/opencv_4.5.0_gcc7.5.0_ubuntu1804_x64/opencv_4.5.0_gcc7.5.0_ubuntu1804_x64/lib
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:%OPEN_CV_PATH%
 if [ -z "$in" ] 
 then
    ./iVS3D-core
