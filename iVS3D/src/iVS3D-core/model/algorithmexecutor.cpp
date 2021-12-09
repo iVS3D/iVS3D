@@ -11,6 +11,11 @@ int AlgorithmExecutor::startSampling(int pluginIdx, bool onlyKeyframes, bool use
     // gather data that is needed for sampling
     ALGO_DATA preparedData = prepareAlgoStart(pluginIdx, onlyKeyframes, useBounds);
 
+    if (preparedData.images.size() == 0) {
+       slot_abort();
+       return -1;
+    }
+
     m_sampleThread = new SampleThread(this, preparedData.mip->getReader(), preparedData.images, &m_stopped, m_pluginIndex, preparedData.bufferData, preparedData.useCuda);
     //Use a direct Connection when no ui is used
     if (qApp->property(stringContainer::UIIdentifier).toBool()) {
@@ -44,6 +49,10 @@ int AlgorithmExecutor::startGenerateSettings(int pluginIdx, bool onlyKeyframes, 
 
 void AlgorithmExecutor::slot_abort()
 {
+    if (!m_currentThread) {
+        emit sig_algorithmAborted();
+        return;
+    }
     disconnect(m_currentThread, &QThread::finished, this, &AlgorithmExecutor::slot_pluginFinished);
     m_stopped = true;
     m_currentThread->wait();
