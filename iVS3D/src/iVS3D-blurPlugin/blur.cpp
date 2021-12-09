@@ -123,7 +123,7 @@ QMap<QString, QVariant> Blur::generateSettings(Progressable *receiver, QMap<QStr
     (void) receiver;
     (void) useCuda;
     (void) stopped;
-    return QMap<QString, QVariant>();
+    return getSettings();
 }
 
 QMap<QString, QVariant> Blur::getSettings()
@@ -313,12 +313,6 @@ std::vector<uint> Blur::sampleAllImages(Reader *reader,  Progressable *receiver,
             windowEnd++;
         }
     }
-    QString message = "Blur extracted " + QString::number(sharpImages.size()) + " images";
-    QMetaObject::invokeMethod(
-                receiver,
-                "slot_displayMessage",
-                Qt::DirectConnection,
-                Q_ARG(QString, message));
     return sharpImages;
 }
 

@@ -58,6 +58,7 @@ int noUIController::exec()
         return 0;
     }
 
+    m_terminal->slot_displayMessage("\n### Start Computation ###\n");
     //Ignore boundaries
     QPoint boundaries = QPoint(0, numberImages - 1);
     m_dataManager->getModelInputPictures()->setBoundaries(boundaries);

@@ -157,7 +157,7 @@ void CameraMovement::calcOptFlowSingle(std::vector<uint> &keyframes, Reader *rea
 
         // send new progress update
         int progress = i * 100 / (int)sharpImages.size();
-        QString currentProgress = "calculate movement between the frames " + QString::number(sharpImages[prevKeyframeIndex]) + " and " + QString::number(sharpImages[i]);
+        QString currentProgress = "Calculate movement between the frames " + QString::number(sharpImages[prevKeyframeIndex]) + " and " + QString::number(sharpImages[i]);
         QMetaObject::invokeMethod(
                     receiver,
                     "slot_makeProgress",
@@ -303,7 +303,7 @@ QMap<QString, QVariant> CameraMovement::generateSettings(Progressable *receiver,
                     "slot_makeProgress",
                     Qt::DirectConnection,
                     Q_ARG(int, progress),
-                    Q_ARG(QString, "generating settings for CameraMovement"));
+                    Q_ARG(QString, "Generating settings for CameraMovement"));
         // generate vector of pictures which are used for calibration
         uint nPic = rand() % m_reader->getPicCount();
         if (std::find(calibratedPictures.begin(), calibratedPictures.end(), nPic) != calibratedPictures.end()) {

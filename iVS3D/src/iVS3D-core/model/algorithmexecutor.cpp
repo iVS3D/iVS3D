@@ -77,6 +77,19 @@ void AlgorithmExecutor::slot_pluginFinished()
     } else if (m_currentThread == m_settingsThread) {
         // if generateSettings finished
         QMap<QString, QVariant> generatedSettings = m_settingsThread->getOutput();
+        QString pluginName = AlgorithmManager::instance().getPluginNameToIndex(m_pluginIndex);
+        QString name("Generated settings for " + pluginName + " - ");
+        QMapIterator<QString, QVariant> iter(generatedSettings);
+        while(iter.hasNext()) {
+           iter.next();
+           QString identifier = iter.key() + " = " + iter.value().toString() + "; ";
+           if (iter.value().toString() == "") {
+               continue;
+           }
+           name.append(identifier);
+        }
+        name.chop(2);
+        slot_displayMessage(name);
         AlgorithmManager::instance().setSettings(m_pluginIndex, generatedSettings);
     }
 
