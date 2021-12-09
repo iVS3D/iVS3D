@@ -23,7 +23,7 @@ void TerminalInteraction::slot_displayMessage(QString message)
         for (uint i = message.length(); i < m_lengthToErase; i++) {
             std::cout << " ";
         }
-        m_lengthToErase = message.length();
+        m_lengthToErase = 0;
         m_eraseIsActive = false;
     }
     std::cout << std::endl;

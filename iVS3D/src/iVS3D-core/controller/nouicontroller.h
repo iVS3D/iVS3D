@@ -4,6 +4,7 @@
 #include <QObject>
 #include <stdio.h>
 #include <iostream>
+#include <QElapsedTimer>
 
 #include "applicationsettings.h"
 #include "transformmanager.h"

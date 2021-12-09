@@ -78,18 +78,16 @@ void AlgorithmExecutor::slot_pluginFinished()
         // if generateSettings finished
         QMap<QString, QVariant> generatedSettings = m_settingsThread->getOutput();
         QString pluginName = AlgorithmManager::instance().getPluginNameToIndex(m_pluginIndex);
-        QString name("Generated settings for " + pluginName + " - ");
+        QString message("Generated settings for " + pluginName + ": ");
+        slot_displayMessage(message);
         QMapIterator<QString, QVariant> iter(generatedSettings);
         while(iter.hasNext()) {
            iter.next();
-           QString identifier = iter.key() + " = " + iter.value().toString() + "; ";
-           if (iter.value().toString() == "") {
-               continue;
-           }
-           name.append(identifier);
+           QString setting = "     " + iter.key() + " = " + iter.value().toString();
+           slot_displayMessage(setting);
         }
-        name.chop(2);
-        slot_displayMessage(name);
+
+
         AlgorithmManager::instance().setSettings(m_pluginIndex, generatedSettings);
     }
 

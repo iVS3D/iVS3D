@@ -30,6 +30,9 @@ int noUIController::exec()
 
     TransformManager::instance().enableCuda(useCuda);
 
+    QElapsedTimer timer;
+    timer.start();
+
     m_dataManager = new DataManager;
     m_terminal->slot_displayMessage("Start import");
     m_dataManager->open(m_inputPath);
@@ -75,9 +78,11 @@ int noUIController::exec()
     int keyframeCount = m_dataManager->getModelInputPictures()->getKeyframeCount();
     m_terminal->slot_displayMessage("Sampled " + QString::number(keyframeCount) + " keyframes");
 
+    m_terminal->slot_displayMessage("\n### Finished Computation ###\n");
+    m_terminal->slot_displayMessage("Finished in " + QString::number(timer.elapsed()/1000) + "s");
+
     QCoreApplication::quit();
     return 0;
-
 }
 
 
