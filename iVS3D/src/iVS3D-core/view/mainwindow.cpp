@@ -37,7 +37,7 @@ MainWindow::MainWindow(QWidget *parent, bool dark, int cuda, bool createLog, boo
 
     // initialize the layout of GUI elements
     m_videoplayer->addWidgetToLayout(m_timeline); // timeline is part of videoplayer-layout
-
+/*
     m_horizontalLayout = horizontal;
     m_vpSplitter = new QSplitter(Qt::Vertical, this);
     m_vpSplitter->addWidget(m_videoplayer);
@@ -54,6 +54,58 @@ MainWindow::MainWindow(QWidget *parent, bool dark, int cuda, bool createLog, boo
     } else {
         setVerticalLayout();
     }
+*/
+    setCentralWidget(m_videoplayer);
+    setDockNestingEnabled(true);
+    QDockWidget *dock;
+
+    dock = new QDockWidget(tr("Input"), this);
+    dock->setObjectName("Input");
+    dock->setAllowedAreas(
+                Qt::BottomDockWidgetArea |
+                Qt::TopDockWidgetArea |
+                Qt::LeftDockWidgetArea |
+                Qt::RightDockWidgetArea);
+    dock->setWidget(m_inputWidget);
+    addDockWidget(Qt::BottomDockWidgetArea, dock);
+    ui->menuView->addAction(dock->toggleViewAction());
+
+    QDockWidget *d2 = dock;
+    dock = new QDockWidget(tr("Batch processing"), this);
+    dock->setObjectName("Batch");
+    dock->setAllowedAreas(
+                Qt::BottomDockWidgetArea |
+                Qt::TopDockWidgetArea |
+                Qt::LeftDockWidgetArea |
+                Qt::RightDockWidgetArea);
+    dock->setWidget(m_autoWidget);
+    addDockWidget(Qt::BottomDockWidgetArea, dock);
+    ui->menuView->addAction(dock->toggleViewAction());
+    splitDockWidget(d2,dock,Qt::Vertical);
+
+    dock = new QDockWidget(tr("Sampling"), this);
+    dock->setObjectName("Sampling");
+    dock->setAllowedAreas(
+                Qt::BottomDockWidgetArea |
+                Qt::TopDockWidgetArea |
+                Qt::LeftDockWidgetArea |
+                Qt::RightDockWidgetArea);
+    dock->setWidget(m_samplingWidget);
+    addDockWidget(Qt::BottomDockWidgetArea, dock);
+    ui->menuView->addAction(dock->toggleViewAction());
+
+    dock = new QDockWidget(tr("Output"), this);
+    dock->setObjectName("Output");
+    dock->setAllowedAreas(
+                Qt::BottomDockWidgetArea |
+                Qt::TopDockWidgetArea |
+                Qt::LeftDockWidgetArea |
+                Qt::RightDockWidgetArea);
+    dock->setWidget(m_outputWidget);
+    addDockWidget(Qt::BottomDockWidgetArea, dock);
+    ui->menuView->addAction(dock->toggleViewAction());
+
+    readSettings();
 
     // connect input widget
     connect(m_inputWidget, &InfoWidget::sig_openFolderPressed, this, &MainWindow::on_actionOpen_Input_triggered);
@@ -109,8 +161,23 @@ MainWindow::~MainWindow()
     delete m_inputWidget;
     delete m_samplingWidget;
     delete m_outputWidget;
+}
 
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+    QSettings settings("Fraunhofer", "iVS3D");
+    settings.setValue("geometry", saveGeometry());
+    settings.setValue("windowState", saveState());
+    QMainWindow::closeEvent(event);
+}
 
+void MainWindow::readSettings()
+{
+    QSettings settings("Fraunhofer", "iVS3D");
+    if(!settings.value("geometry").isNull()){
+        restoreGeometry(settings.value("geometry").toByteArray());
+        restoreState(settings.value("windowState").toByteArray());
+    }
 }
 
 
@@ -129,7 +196,7 @@ void MainWindow::showProjectTitle(const QString &title)
     this->setWindowTitle(m_appName + " [" + title + "]");
 }
 
-
+/*
 void MainWindow::setHorizontalLayout()
 {
     m_vpSplitter->setOrientation(Qt::Vertical);
@@ -145,7 +212,7 @@ void MainWindow::setVerticalLayout()
     m_infoSplitter->setOrientation(Qt::Vertical);
     adjustSize();
 }
-
+*/
 
 void MainWindow::slot_displayStatusMessage(QString message)
 {
@@ -226,14 +293,14 @@ void MainWindow::on_actionSet_Input_Path_triggered()
 
 void MainWindow::on_actionChange_layout_style_triggered()
 {
-    m_horizontalLayout = !m_horizontalLayout;
+    /*m_horizontalLayout = !m_horizontalLayout;
     if (m_horizontalLayout) {
         setHorizontalLayout();
     }
     else {
         setVerticalLayout();
     }
-    emit sig_changeLayoutStyle(m_horizontalLayout);
+    emit sig_changeLayoutStyle(m_horizontalLayout);*/
 }
 
 void MainWindow::on_actionInfo_triggered()
