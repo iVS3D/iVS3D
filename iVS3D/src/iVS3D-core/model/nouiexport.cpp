@@ -5,7 +5,14 @@ noUIExport::noUIExport(QMap<QString, QVariant> exportSettings, DataManager* dm)
     m_logFile = LogManager::instance().createLogFile(stringContainer::Export, false);
     m_logFile->setSettings(exportSettings);
 
-    m_path = exportSettings.find(stringContainer::OutputPath).value().toString();
+    //Overwrite export path from settings file if its provided via command line arguments
+    if (qApp->property(stringContainer::OverwriteExport).toString().compare("") != 0) {
+        m_path = qApp->property(stringContainer::OverwriteExport).toString();
+    }
+    else {
+        m_path = exportSettings.find(stringContainer::OutputPath).value().toString();
+    }
+
 
     QString resolution = exportSettings.find(stringContainer::Resolution).value().toString();
     m_resolution = parseResolution(resolution);

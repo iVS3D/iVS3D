@@ -19,6 +19,7 @@ struct stringContainer
     static const QString dirLogFile;
     // Identifier for UI flag
     static const char* UIIdentifier;
+    static const char* OverwriteExport;
     // Identifier for the settings maps
     static const QString OutputPath;
     static const QString Resolution;

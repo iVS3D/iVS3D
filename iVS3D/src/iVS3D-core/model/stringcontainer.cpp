@@ -4,6 +4,7 @@
 const QString stringContainer::dirLogFile = "logs";
 // Identifier for UI flag
 const char* stringContainer::UIIdentifier = "UI";
+const char* stringContainer::OverwriteExport = "OverwriteExport";
 // Identifier for the settings maps
 const QString stringContainer::OutputPath = "Output path";
 const QString stringContainer::Resolution = "Resolution";
