@@ -33,7 +33,7 @@
 
 #define DELIMITER_COORDINATE "|"
 #define DELIMITER_ENTITY ","
-#define BUFFER_NAME "MovementValues"
+#define BUFFER_NAME "CameraMovementValues"
 #define PLUGIN_NAME "Camera Movement Detection"
 #define MOVEMENTTHRESHOLD_DESCRIPTION "Defines the camera movement, which has to be between two keyframes in order for them to be picked. (How big it is depends on the resolution.)"
 #define RESETDELTA_DESCRIPTION "Won't directly compare two pictures that are further apart than <resetDelta>."
@@ -120,7 +120,6 @@ public:
      * @brief setter for plugin's settings
      * @param QMap with the settings
      */
-
     virtual void setSettings(QMap<QString, QVariant> settings) override;
 
     /**

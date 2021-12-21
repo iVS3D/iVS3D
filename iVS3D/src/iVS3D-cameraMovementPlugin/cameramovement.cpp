@@ -35,7 +35,7 @@ std::vector<uint> CameraMovement::sampleImages(const std::vector<unsigned int> &
     try {
         calcOptFlowSingle(keyframes,m_reader,imageList,receiver,stopped);
     }  catch (cv::Exception &cvExcep) {
-        qDebug() << QString::fromStdString((std::string)cvExcep.msg);
+        std::cout << cvExcep.msg << std::endl;
     }
     m_logFile->stopTimer();
     QMetaObject::invokeMethod(
@@ -407,7 +407,7 @@ void CameraMovement::createSettingsWidget(QWidget *parent)
     movementThresholdDes->setStyleSheet(DESCRIPTION_STYLE);
     movementThresholdDes->setWordWrap(true);
 
-    // movement threshold description
+    // reset delta description
     QLabel *resetDeltaDes = new QLabel(RESETDELTA_DESCRIPTION);
     resetDeltaDes->setStyleSheet(DESCRIPTION_STYLE);
     resetDeltaDes->setWordWrap(true);
