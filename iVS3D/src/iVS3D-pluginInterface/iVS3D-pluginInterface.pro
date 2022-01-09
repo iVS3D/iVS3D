@@ -20,7 +20,11 @@ HEADERS += \
     itransform.h \
     cvmat_qmetadata.h
 
-
+unix {
+ !include( ../../setrpath.pri) {
+   message("Cannot find setrpath.pri!")
+ }
+}
 
 DESTDIR = $$PWD/lib
 

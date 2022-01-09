@@ -106,3 +106,4 @@ doc/latex
 
 ### allowed files ###
 !*resourceloader.pri
+!*setrpath.pri

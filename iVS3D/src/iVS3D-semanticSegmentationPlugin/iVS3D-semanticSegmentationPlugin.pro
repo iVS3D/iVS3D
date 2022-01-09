@@ -47,3 +47,8 @@ model_files.files = copy_to_install_dir/models/SemanticSegmentation/*
 
 INSTALLS += model_files
 
+unix {
+ !include( ../../setrpath.pri) {
+   message("Cannot find setrpath.pri!")
+ }
+}

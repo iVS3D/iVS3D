@@ -44,3 +44,9 @@ TARGET = $$qtLibraryTarget(cameramovementplugin)
 DESTDIR = ../plugins
 
 FORMS +=
+
+unix {
+ !include( ../../setrpath.pri) {
+   message("Cannot find setrpath.pri!")
+ }
+}
