@@ -9,7 +9,7 @@ noUIController::noUIController(QStringList arguments)
     parser.addHelpOption();
     QCommandLineOption inputPath(QStringList() << "i" << "in", "Load input from <path>.", "path");
     QCommandLineOption autoPath(QStringList() << "a" << "auto", "Load settings from <path>.", "path");
-    QCommandLineOption outputPath(QStringList() << "o" << "out", "Save result to <path>  -  OPTIONAL (will overwrite path in the auto settings file).", "path");
+    QCommandLineOption outputPath(QStringList() << "o" << "out", "Save result to <path>.", "path");
     parser.addOption(autoPath);
     parser.addOption(inputPath);
     parser.addOption(outputPath);
@@ -23,17 +23,17 @@ noUIController::noUIController(QStringList arguments)
 int noUIController::exec()
 {
     //Check if input and auto fiel are provided
-    if (m_autoPath.compare("") == 0 || m_inputPath.compare("") == 0 ) {
-        m_terminal->slot_displayMessage("Auto settings file (-a) AND input (-i) need to be provided.");
+    if (m_autoPath.compare("") == 0 || m_inputPath.compare("") == 0 || m_outputPath.compare("") == 0) {
+        m_terminal->slot_displayMessage("Auto settings file (-a), input (-i) and output (-o) need to be provided.");
         QCoreApplication::quit();
         return 0;
     }
-    //Check if export will be overwritten
-    bool overwriteExport = m_autoPath.compare("") != 0;
-
-    if (overwriteExport) {
+//    //Check if export will be overwritten
+//    bool overwriteExport = m_autoPath.compare("") != 0;
+//
+//    if (overwriteExport) {
         qApp->setProperty(stringContainer::OverwriteExport, m_outputPath);
-    }
+//    }
 
     //Setup cuda
     bool useCuda = false;
@@ -67,9 +67,9 @@ int noUIController::exec()
     for (QString name : plugins) {
         m_terminal->slot_displayMessage(name);
         //Print when export path will be overwritten
-        if (name.left(stringContainer::Export.size()).compare(stringContainer::Export) == 0 && overwriteExport) {
-            m_terminal->slot_displayMessage("\nEXPORT PATH WILL BE OVERWRITTEN WITH " + m_outputPath);
-        }
+//        if (name.left(stringContainer::Export.size()).compare(stringContainer::Export) == 0 && overwriteExport) {
+//            m_terminal->slot_displayMessage("\nEXPORT PATH WILL BE OVERWRITTEN WITH " + m_outputPath);
+//        }
     }
     //Check for valid settings file
     if(plugins.size() <= 0) {

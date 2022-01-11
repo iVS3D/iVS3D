@@ -56,7 +56,7 @@ ExportController::~ExportController()
 QMap<QString, QVariant> ExportController::getOutputSettings()
 {
     QMap<QString, QVariant> settings;
-    settings.insert(stringContainer::OutputPath, m_path);
+    //settings.insert(stringContainer::OutputPath, m_path);
 
     QString resolution = QString::number(m_resolution.x()) + stringContainer::ROISpliter + QString::number(m_resolution.y());
     settings.insert(stringContainer::Resolution, resolution);
@@ -82,8 +82,10 @@ QMap<QString, QVariant> ExportController::getOutputSettings()
 
 void ExportController::setOutputSettings(QMap<QString, QVariant> settings)
 {
-    m_path = settings.find(stringContainer::OutputPath).value().toString();
-    m_outputWidget->setOutputPath(m_path);
+    if(settings.contains(stringContainer::OutputPath)){
+        m_path = settings.find(stringContainer::OutputPath).value().toString();
+        m_outputWidget->setOutputPath(m_path);
+    }
 
     QString resolution = settings.find(stringContainer::Resolution).value().toString();
     m_resolution = parseResolution(resolution);
