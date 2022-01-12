@@ -8,6 +8,7 @@
 #include "jsonEnum.h"
 #include "delayedcopyreader.h"
 #include "concurrentreader.h"
+#include "metadatamanager.h"
 
 #include <QObject>
 #include <QPoint>
@@ -173,6 +174,8 @@ public:
      * @param boundaries The new boundaries
      */
     void setBoundaries(QPoint boundaries);
+
+    void loadMetaData();
 
 signals:
     /**

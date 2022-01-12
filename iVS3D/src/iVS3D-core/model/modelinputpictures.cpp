@@ -26,6 +26,8 @@ ModelInputPictures::ModelInputPictures(QString inputPath)
 		setResolution();
         m_inputPath = inputPath;
     }
+
+    loadMetaData();
 }
 
 
@@ -203,6 +205,12 @@ void ModelInputPictures::setBoundaries(QPoint boundaries)
 {
 
     m_boundaries = boundaries;
+}
+
+void ModelInputPictures::loadMetaData()
+{
+    MetaDataManager m = MetaDataManager::instance();
+    m.initMetaData(QStringList("testPath"), m_reader);
 }
 
 std::vector<unsigned int> ModelInputPictures::getAllKeyframes()
