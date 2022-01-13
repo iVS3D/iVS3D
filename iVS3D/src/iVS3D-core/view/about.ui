@@ -35,7 +35,7 @@
       <item>
        <widget class="QLabel" name="label">
         <property name="text">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Version 1.0&lt;/p&gt;&lt;p&gt;Patrick Binder, Daniel Brommer, Lennart Ruck, Dominik Wüst, Dominic Zahn&lt;/p&gt;&lt;p&gt;Fraunhofer IOSB, Karlsruhe&lt;/p&gt;&lt;p&gt;Supervisor: Max Hermann &amp;amp; Thomas Pollok&lt;/p&gt;&lt;p&gt;(Created as part of PSE at the Karlsruhe Institut of Technlogy in the winter term 2020/21)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Version 1.2&lt;/p&gt;&lt;p&gt;Patrick Binder, Daniel Brommer, Lennart Ruck, Dominik Wüst, Dominic Zahn&lt;/p&gt;&lt;p&gt;Fraunhofer IOSB, Karlsruhe&lt;/p&gt;&lt;p&gt;Supervisor: Max Hermann &amp;amp; Thomas Pollok&lt;/p&gt;&lt;p&gt;(Created as part of PSE at the Karlsruhe Institut of Technlogy in the winter term 2020/21)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="wordWrap">
          <bool>true</bool>
