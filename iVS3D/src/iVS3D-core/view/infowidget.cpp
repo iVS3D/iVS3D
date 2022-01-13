@@ -13,7 +13,7 @@ InfoWidget::InfoWidget(QWidget *parent, QString title, bool dark) :
     ui(new Ui::InfoWidget)
 {
     ui->setupUi(this);
-    ui->groupBox->setTitle(title);
+    //ui->groupBox->setTitle(title);
     ui->toolButton_folder->setIcon(QIcon(dark ? ":/icons/openFolderIconW" : ":/icons/openFolderIconB"));
     ui->toolButton_video->setIcon( QIcon(dark ? ":/icons/openVideoIconW"  : ":/icons/openVideoIconB"));
 }

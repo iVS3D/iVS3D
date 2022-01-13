@@ -15,7 +15,7 @@ SamplingWidget::SamplingWidget(QWidget *parent, QString title, QStringList algor
     ui->scrollAreaWidgetContents->layout()->addWidget(m_algoSettings);
 
     // set widget title
-    ui->groupBox->setTitle(title);
+    //ui->groupBox->setTitle(title);
 
     // add algorithms
     ui->comboBoxAlgo->addItems(algorithmList);

@@ -16,13 +16,14 @@
 #include <QApplication>
 #include <QSplitter>
 #include <QMimeData>
+#include <QDockWidget>
 
 #include "view/videoplayer.h"
 #include "view/timeline.h"
 #include "view/infowidget.h"
 #include "view/samplingwidget.h"
 #include "view/automaticwidget.h"
-#include "view/inputautomaticwidget.h"
+//#include "view/inputautomaticwidget.h"
 #include "view/outputwidget.h"
 #include "view/helpdialog.h"
 #include "view/about.h"
@@ -221,15 +222,17 @@ private:
     OutputWidget *m_outputWidget;
     Timeline *m_timeline;
     AutomaticWidget *m_autoWidget;
-    bool m_horizontalLayout;
-    QSplitter *m_vpSplitter;
-    QSplitter *m_infoSplitter;
+    //bool m_horizontalLayout;
+    //QSplitter *m_vpSplitter;
+    //QSplitter *m_infoSplitter;
     const QString m_appName = "intelligent Video Sampler 3D";
 
-    void setHorizontalLayout();
-    void setVerticalLayout();
+    //void setHorizontalLayout();
+    //void setVerticalLayout();
     std::vector<uint> generateKeyframes(uint totalFrames, uint keyframeCount);
-    void dropEvent(QDropEvent *event);
-    void dragEnterEvent(QDragEnterEvent *event);
+    void dropEvent(QDropEvent *event) override;
+    void dragEnterEvent(QDragEnterEvent *event) override;
+    void readSettings();
+    void closeEvent(QCloseEvent *event) override;
 };
 #endif // MAINWINDOW_H
