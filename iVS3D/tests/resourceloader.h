@@ -39,11 +39,20 @@ void requireResource(QString res){
         QString testResources = QString(TEST_RESOURCES);
         QDir testResDir = QDir(testResources);
         testResDir.cdUp();
+#ifdef Q_OS_WIN
         QString batPath = testResDir.path() + "/drf.bat";
-        qDebug() << batPath;
         process.start(batPath);
         process.waitForFinished();
         qDebug() << "Finished downloading.";
+#elif defined(Q_OS_LINUX)
+        process.setProcessChannelMode(QProcess::ForwardedChannels );
+        QString shPath = testResDir.path() + "/drf.sh";
+        qDebug() << shPath;
+        process.setWorkingDirectory(testResDir.path());
+        process.start(shPath, QStringList() << "&");
+        process.waitForFinished();
+        qDebug() << "Finished downloading.";
+#endif
         expandVideo();
     }
 }
