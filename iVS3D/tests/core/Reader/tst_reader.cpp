@@ -50,9 +50,9 @@ void tst_reader::initTestCase()
 {
     requireResource(m_resources + "/video.mp4");
     requireResource(m_resources + "/image.png");
-    for(int i = 1; i<=217; i++){
-        requireResource(m_resources + "/images/image (" + QString::number(i) + ").png");
-    }
+    //for(int i = 1; i<=217; i++){
+    //    requireResource(m_resources + "/images/image (" + QString::number(i) + ").png");
+    //}
 }
 
 void tst_reader::cleanupTestCase()
@@ -213,7 +213,7 @@ void tst_reader::test_GetPic()
 {
     srand(time(NULL));
 
-    int randomFrame = rand() % 217;
+    int randomFrame = rand() % 61;
 
     VideoReader* v = new VideoReader(m_resources + "/video.mp4");
     cv::Mat frame = v->getPic(randomFrame);

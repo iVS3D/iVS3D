@@ -101,7 +101,7 @@ void tst_openExecutor::test_openVideo()
     QVERIFY2(m_dataManager->getModelInputPictures() != nullptr, "no ModelInputPictures was created");
     ModelInputPictures *mip = m_dataManager->getModelInputPictures();
 
-    QCOMPARE(mip->getPicCount(), (uint)217);
+    QCOMPARE(mip->getPicCount(), (uint)61);
     QCOMPARE(mip->getInputResolution(), QPoint(1080, 1920));
 }
 

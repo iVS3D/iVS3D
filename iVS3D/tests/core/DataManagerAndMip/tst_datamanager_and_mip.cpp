@@ -74,7 +74,7 @@ void tst_datamanager_and_mip::initTestCase()
     requireResource(path);
     int numPics = dm->open(path);
     mip = dm->getModelInputPictures();
-    QCOMPARE(numPics, 217);  //Verify correct number of Frames imported in DataManger
+    QCOMPARE(numPics, 61);  //Verify correct number of Frames imported in DataManger
 }
 
 

@@ -61,7 +61,7 @@ void tst_projectmanager::loadTestVideo()
     requireResource(testVideoPath);
     m_testMIP = new ModelInputPictures(testVideoPath);
     QVERIFY(m_testMIP != nullptr);
-    QCOMPARE(m_testMIP->getPicCount(), (uint)217);
+    QCOMPARE(m_testMIP->getPicCount(), (uint)61);
 }
 
 void tst_projectmanager::initTestCase()
@@ -189,7 +189,7 @@ void tst_projectmanager::test_loadProject()
     QVERIFY(0 == QString::compare(m_testPM->getProjectName(), m_projectName, Qt::CaseSensitive));
     QVERIFY(0 == QString::compare(m_testPM->getProjectPath(), m_projectPath, Qt::CaseSensitive));
 
-    QVERIFY(m_testMIP->getPicCount() == 217);
+    QVERIFY(m_testMIP->getPicCount() == 61);
     QVERIFY(m_testMIP->getKeyframeCount() == 0);
     QVERIFY(m_testMIP->getInputResolution() == QPoint(1080, 1920));
 
