@@ -137,7 +137,7 @@ private:
     void showNoBtns();
 };
 
-#define HIDE_WIDGET(W) ui->horizontalLayout_3->removeWidget(W); W->setVisible(false);
-#define SHOW_WIDGET(W) ui->horizontalLayout_3->addWidget(W); W->setVisible(true);
+#define HIDE_WIDGET(W) ui->gridLayout->removeWidget(W); W->setVisible(false);
+#define SHOW_WIDGET(W) ui->gridLayout->addWidget(W,2,2); W->setVisible(true);
 
 #endif // SAMPLINGWIDGET_H

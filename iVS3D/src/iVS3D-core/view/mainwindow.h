@@ -17,6 +17,7 @@
 #include <QSplitter>
 #include <QMimeData>
 #include <QDockWidget>
+#include <QFrame>
 
 #include "view/videoplayer.h"
 #include "view/timeline.h"

@@ -135,15 +135,15 @@ void SamplingWidget::on_addAuto_clicked()
 void SamplingWidget::showSamplingBtns()
 {
     HIDE_WIDGET(m_cbPreviewTransform)
-    SHOW_WIDGET(ui->label_2)
-    SHOW_WIDGET(ui->comboBox)
+    ui->label_2->setVisible(true);
+    ui->comboBox->setVisible(true);
     SHOW_WIDGET(ui->pushButton)
 }
 
 void SamplingWidget::showTransformBtns()
 {
-    HIDE_WIDGET(ui->comboBox)
-    HIDE_WIDGET(ui->label_2)
+    ui->label_2->setVisible(false);
+    ui->comboBox->setVisible(false);
     HIDE_WIDGET(ui->pushButton)
     SHOW_WIDGET(m_cbPreviewTransform)
 }

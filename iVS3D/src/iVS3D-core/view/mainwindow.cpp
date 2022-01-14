@@ -4,6 +4,7 @@
 
 #include <QDesktopWidget>
 #include <QLayout>
+#include <QHBoxLayout>
 #include <QApplication>
 #include <QSplitter>
 #include "view/about.h"
@@ -58,6 +59,19 @@ MainWindow::MainWindow(QWidget *parent, bool dark, int cuda, bool createLog, boo
     setCentralWidget(m_videoplayer);
     setDockNestingEnabled(true);
     QDockWidget *dock;
+    auto addFrame = [] (QWidget *w){
+        QLayout *l = new QHBoxLayout();
+        l->addWidget(w);
+        QFrame *f = new QFrame();
+        f->setFrameShape(QFrame::Box);
+        //QPalette* palette = new QPalette();
+        //palette->setColor(QPalette::Foreground,QColor(0,0,0,50));
+        //f->setPalette(*palette);
+        f->setObjectName("myObject");
+        f->setStyleSheet("#myObject { border: 1px solid rgba(0,0,0,0.3); }");
+        f->setLayout(l);
+        return f;
+    };
 
     dock = new QDockWidget(tr("Input"), this);
     dock->setObjectName("Input");
@@ -66,7 +80,8 @@ MainWindow::MainWindow(QWidget *parent, bool dark, int cuda, bool createLog, boo
                 Qt::TopDockWidgetArea |
                 Qt::LeftDockWidgetArea |
                 Qt::RightDockWidgetArea);
-    dock->setWidget(m_inputWidget);
+
+    dock->setWidget(addFrame(m_inputWidget));
     addDockWidget(Qt::BottomDockWidgetArea, dock);
     ui->menuView->addAction(dock->toggleViewAction());
 
@@ -78,7 +93,7 @@ MainWindow::MainWindow(QWidget *parent, bool dark, int cuda, bool createLog, boo
                 Qt::TopDockWidgetArea |
                 Qt::LeftDockWidgetArea |
                 Qt::RightDockWidgetArea);
-    dock->setWidget(m_autoWidget);
+    dock->setWidget(addFrame(m_autoWidget));
     addDockWidget(Qt::BottomDockWidgetArea, dock);
     ui->menuView->addAction(dock->toggleViewAction());
     splitDockWidget(d2,dock,Qt::Vertical);
@@ -90,7 +105,7 @@ MainWindow::MainWindow(QWidget *parent, bool dark, int cuda, bool createLog, boo
                 Qt::TopDockWidgetArea |
                 Qt::LeftDockWidgetArea |
                 Qt::RightDockWidgetArea);
-    dock->setWidget(m_samplingWidget);
+    dock->setWidget(addFrame(m_samplingWidget));
     addDockWidget(Qt::BottomDockWidgetArea, dock);
     ui->menuView->addAction(dock->toggleViewAction());
 
@@ -101,7 +116,7 @@ MainWindow::MainWindow(QWidget *parent, bool dark, int cuda, bool createLog, boo
                 Qt::TopDockWidgetArea |
                 Qt::LeftDockWidgetArea |
                 Qt::RightDockWidgetArea);
-    dock->setWidget(m_outputWidget);
+    dock->setWidget(addFrame(m_outputWidget));
     addDockWidget(Qt::BottomDockWidgetArea, dock);
     ui->menuView->addAction(dock->toggleViewAction());
 

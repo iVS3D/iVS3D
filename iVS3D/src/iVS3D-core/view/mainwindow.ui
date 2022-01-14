@@ -49,7 +49,7 @@
      <x>0</x>
      <y>0</y>
      <width>1024</width>
-     <height>26</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -70,7 +70,6 @@
     <addaction name="actionSet_Reconstructiontool_Path"/>
     <addaction name="actionSet_Input_Path"/>
     <addaction name="separator"/>
-    <addaction name="actionChange_layout_style"/>
     <addaction name="actionuse_DarkStyle"/>
     <addaction name="actionUse_CUDA"/>
     <addaction name="actionCreate_log_file"/>
