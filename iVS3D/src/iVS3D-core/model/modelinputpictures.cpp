@@ -14,6 +14,7 @@ void ModelInputPictures::setResolution() {
 
 ModelInputPictures::ModelInputPictures(QString inputPath)
 {
+    MetaDataManager::instance().resetData();
     std::string path = inputPath.toUtf8().constData();
     if(cv::utils::fs::isDirectory(path)) {
         m_reader = new ImageReader(inputPath);
@@ -27,7 +28,6 @@ ModelInputPictures::ModelInputPictures(QString inputPath)
         m_inputPath = inputPath;
     }
 
-    loadMetaData();
 }
 
 
@@ -68,10 +68,7 @@ void ModelInputPictures::removeKeyframe(unsigned int index) {
 const cv::Mat* ModelInputPictures::getPic(unsigned int index){
     m_currentMat = m_reader->getPic(index);
     return &m_currentMat;
-    /*if (index <= m_inputPics.size() - 1) {
-      return &this->m_inputPics.at(index);
-    }
-    return nullptr;*/
+
 }
 
 
@@ -102,28 +99,7 @@ unsigned int ModelInputPictures::getPreviousKeyframe(unsigned int index, unsigne
     if(m_keyframes.size() == 0){
         return index;
     }
-    //std::vector<unsigned int>::iterator it = std::lower_bound(this->m_keyframes.begin(), this->m_keyframes.end()-1, index);
 
-    //if(!isKeyframe(index)){
-    //    stepsize--;
-    //}
-
-    //if index is keyframe the previous keyframe is needed
-    //if (isKeyframe(index)) {
-    //    if(it > m_keyframes.begin()){
-    //        --it;
-    //        stepsize--;
-    //    }
-    //    else {
-    //        return *it;
-    //    }
-    //}
-
-    //while(stepsize>0 && it > m_keyframes.begin()){
-    //    it--;
-    //    stepsize--;
-    //}
-    //return *it;
 
     for(int i = 0; i<(int)m_keyframes.size();i++){
         if(m_keyframes[i] >= index){
@@ -207,10 +183,12 @@ void ModelInputPictures::setBoundaries(QPoint boundaries)
     m_boundaries = boundaries;
 }
 
-void ModelInputPictures::loadMetaData()
+int ModelInputPictures::loadMetaData(QStringList paths)
 {
     MetaDataManager m = MetaDataManager::instance();
-    m.initMetaData(QStringList("testPath"), m_reader);
+    m.initMetaData(paths, m_reader);
+    QList<QVariant> t = m.loadAllMetaData()[0]->getAllMetaData();
+    return m.availableMetaData().size();
 }
 
 std::vector<unsigned int> ModelInputPictures::getAllKeyframes()

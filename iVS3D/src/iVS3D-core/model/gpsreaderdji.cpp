@@ -7,6 +7,12 @@ GPSReaderDJI::GPSReaderDJI()
 
 }
 
+GPSReaderDJI::~GPSReaderDJI()
+{
+    m_GPSvalues.clear();
+    m_GPSvaluesInterpolated.clear();
+}
+
 QString GPSReaderDJI::getName()
 {
     return m_name;

@@ -20,6 +20,10 @@ class MetaDataReader
 {
 public:
     /**
+     * @brief ~MetaDataReader Destructor
+     */
+    virtual ~MetaDataReader() = default;
+    /**
      * @brief getName Returns name of meta data
      * @return Name of meta data
      */

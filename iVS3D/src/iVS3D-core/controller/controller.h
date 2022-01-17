@@ -119,6 +119,10 @@ public slots:
      * @param useCuda @a true if create log file is marked
      */
     void slot_changeCreateLogFile(bool createLog);
+    /**
+     * @brief slot_openMetaData Slot is called when Meta Data should be loaded
+     */
+    void slot_openMetaData();
 
 signals:
     /**

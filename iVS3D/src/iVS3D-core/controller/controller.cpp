@@ -46,6 +46,7 @@ Controller::Controller()
     connect(m_mainWindow, &MainWindow::sig_changeLayoutStyle, this, &Controller::slot_changeLayoutStyle);
     connect(m_mainWindow, &MainWindow::sig_changeUseCuda, this, &Controller::slot_changeUseCuda);
     connect(m_mainWindow, &MainWindow::sig_changeCreateLogFile, this, &Controller::slot_changeCreateLogFile);
+    connect(m_mainWindow, &MainWindow::sig_openMetaData, this, &Controller::slot_openMetaData);
 
     connect(this, &Controller::sig_hasStatusMessage, m_mainWindow, &MainWindow::slot_displayStatusMessage);
 
@@ -225,6 +226,19 @@ void Controller::slot_changeCreateLogFile(bool createLog)
     emit sig_hasStatusMessage(msg);
 }
 
+void Controller::slot_openMetaData()
+{
+    QString filePath = QFileDialog::getOpenFileName(m_mainWindow, "Choose Meta Data", ApplicationSettings::instance().getStandardInputPath(), "*.srt");
+    if (filePath == nullptr) {
+        emit sig_hasStatusMessage("Input canceled");
+        return;
+    }
+    int n = m_dataManager->getModelInputPictures()->loadMetaData(QStringList(filePath));
+    QString msg = "Loaded " + QString::number(n) + " meta data feature" + QString(n > 1 ? "s" : "");
+    emit sig_hasStatusMessage(msg);
+
+}
+
 void Controller::slot_openFinished(int result)
 {
     disconnect(m_openExec, &OpenExecutor::sig_finished, this, &Controller::slot_openFinished);
@@ -311,6 +325,7 @@ void Controller::onFailedOpen()
     m_mainWindow->enableSaveProject(false);
     QMap<QString, QString> info;
     m_mainWindow->getInputWidget()->setInfo(info);
+    m_mainWindow->enableOpenMetaData(false);
     // remove old controllers if existing
     if(m_videoPlayerController)
     {
@@ -404,6 +419,7 @@ void Controller::onSuccessfulOpen()
 
     setInputWidgetInfo(); // initialize input widget with information about new input data
     m_mainWindow->getSamplingWidget()->setAlgorithm(0);
+    m_mainWindow->enableOpenMetaData(true);
 }
 
 

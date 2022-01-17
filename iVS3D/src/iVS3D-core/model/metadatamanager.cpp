@@ -49,6 +49,15 @@ QStringList MetaDataManager::getPaths()
     return m_uniquePaths;
 }
 
+void MetaDataManager::resetData()
+{
+    m_uniquePaths.clear();
+    for (MetaDataReader* m : m_parsedMetaReader) {
+        delete m;
+    }
+    m_parsedMetaReader.clear();
+}
+
 bool MetaDataManager::reg(std::string name, AbstractBuilder builder)
 {
     return m_availablerReader.insert(std::make_pair(name,builder)).second;

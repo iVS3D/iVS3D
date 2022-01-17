@@ -174,8 +174,12 @@ public:
      * @param boundaries The new boundaries
      */
     void setBoundaries(QPoint boundaries);
-
-    void loadMetaData();
+    /**
+     * @brief loadMetaData Loads the given meta data
+     * @param path Paths the the meta data to load
+     * @return how many MetaDataReader have succesfully loaded the meta data
+     */
+    int loadMetaData(QStringList paths);
 
 signals:
     /**

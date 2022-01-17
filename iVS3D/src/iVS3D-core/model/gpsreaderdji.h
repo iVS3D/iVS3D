@@ -25,6 +25,7 @@ class GPSReaderDJI : public GPSReader
 {
 public:
     GPSReaderDJI();
+    ~GPSReaderDJI();
 
     /**
      * @brief getName Returns name of meta data

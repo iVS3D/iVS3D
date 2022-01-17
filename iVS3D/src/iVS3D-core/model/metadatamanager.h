@@ -62,6 +62,8 @@ public:
      */
     QStringList getPaths() override;
 
+    void resetData();
+
     bool reg(std::string name, AbstractBuilder builder);
 
 private:

@@ -34,7 +34,7 @@
      <x>0</x>
      <y>0</y>
      <width>1024</width>
-     <height>20</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -47,6 +47,7 @@
     <addaction name="separator"/>
     <addaction name="actionOpen_Input"/>
     <addaction name="actionOpen_Input_Video"/>
+    <addaction name="actionOpen_Meta_Data"/>
    </widget>
    <widget class="QMenu" name="menuSettings">
     <property name="title">
@@ -166,6 +167,14 @@
    </property>
    <property name="text">
     <string>Create log file</string>
+   </property>
+  </action>
+  <action name="actionOpen_Meta_Data">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Open Meta Data</string>
    </property>
   </action>
  </widget>

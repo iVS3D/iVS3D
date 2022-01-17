@@ -58,6 +58,7 @@ MainWindow::MainWindow(QWidget *parent, bool dark, int cuda, bool createLog, boo
     // connect input widget
     connect(m_inputWidget, &InfoWidget::sig_openFolderPressed, this, &MainWindow::on_actionOpen_Input_triggered);
     connect(m_inputWidget, &InfoWidget::sig_openVideoPressed, this, &MainWindow::on_actionOpen_Input_Video_triggered);
+    connect(m_inputWidget, &InfoWidget::sig_openMetaPressed, this, &MainWindow::on_actionOpen_Meta_Data_triggered);
 
     //this->setHorizontalLayout();
     this->showProjectTitle();
@@ -193,6 +194,12 @@ void MainWindow::enableSaveProject(bool status)
     ui->actionSave_Project_As->setEnabled(status);
 }
 
+void MainWindow::enableOpenMetaData(bool status)
+{
+    ui->actionOpen_Meta_Data->setEnabled(status);
+    m_inputWidget->enableOpenMetaData(status);
+}
+
 
 void MainWindow::on_actionOpen_Project_triggered()
 {
@@ -315,4 +322,9 @@ void MainWindow::on_actionLicence_triggered()
 void MainWindow::on_actionCreate_log_file_triggered()
 {
     emit sig_changeCreateLogFile(ui->actionCreate_log_file->isChecked());
+}
+
+void MainWindow::on_actionOpen_Meta_Data_triggered()
+{
+    emit sig_openMetaData();
 }
