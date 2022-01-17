@@ -2,7 +2,6 @@
 #define METADATAREADER_H
 
 #include <QObject>
-#include "reader.h"
 
 /**
  * @interface MetaDataReader
@@ -45,7 +44,7 @@ public:
      * @param images Reader with the loaded images
      * @return @a True if meta data have been loaded @a False otherwise
      */
-    virtual bool parseData(QString path, Reader* images) = 0;
+    virtual bool parseData(QString path, int picCount, double fps) = 0;
 
 
 };

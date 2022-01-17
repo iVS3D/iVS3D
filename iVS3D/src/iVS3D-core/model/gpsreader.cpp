@@ -16,10 +16,9 @@ QList<QPointF> GPSReader::normaliseGPS(QList<QPointF> GPSvalues, double timeIter
         //If for example timeIntervall = 1 and the timestamp of the frame is 5.78, its gps value needs to interpolated with the gps values 5 and 6
         int aValue = std::floor(t / timeItervall);
         //Calculate how far the timestamp is away from the first gps value -> for above value we need to interpolate with t=0.78 betwenn value 5 and 6
-        double delatT = (t / timeItervall) - aValue;
+        double deltaT = (t / timeItervall) - aValue;
         //do the actuall interpolation
-        interpolatedGPS.append(interpolate(GPSvalues[aValue], GPSvalues[aValue+1], delatT, timeItervall));
-        qDebug() << interpolatedGPS.back();
+        interpolatedGPS.append(interpolate(GPSvalues[aValue], GPSvalues[aValue+1], deltaT, timeItervall));
     }
 
     return interpolatedGPS;

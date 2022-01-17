@@ -32,8 +32,12 @@ QList<QVariant> GPSReaderDJI::getAllMetaData()
     return values;
 }
 
-bool GPSReaderDJI::parseData(QString path, Reader *images)
+bool GPSReaderDJI::parseData(QString path, int picCount, double fps)
 {
+    //fps == -1 -> Input are images
+    if (fps == -1) {
+        return false;
+    }
     m_GPSvalues.clear();
     QFile metaFile(path);
 
@@ -53,8 +57,8 @@ bool GPSReaderDJI::parseData(QString path, Reader *images)
         }
 
     }
-    m_GPSvaluesInterpolated = normaliseGPS(m_GPSvalues, 1,images->getFPS(), images->getPicCount());
-    return m_GPSvaluesInterpolated.size() == images->getPicCount();
+    m_GPSvaluesInterpolated = normaliseGPS(m_GPSvalues, 1, fps, picCount);
+    return m_GPSvaluesInterpolated.size() == picCount;
 }
 
 

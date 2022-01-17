@@ -14,7 +14,9 @@ void ModelInputPictures::setResolution() {
 
 ModelInputPictures::ModelInputPictures(QString inputPath)
 {
-    MetaDataManager::instance().resetData();
+    if(m_metaDataManager) {
+        m_metaDataManager->resetData();
+    }
     std::string path = inputPath.toUtf8().constData();
     if(cv::utils::fs::isDirectory(path)) {
         m_reader = new ImageReader(inputPath);
@@ -27,6 +29,7 @@ ModelInputPictures::ModelInputPictures(QString inputPath)
 		setResolution();
         m_inputPath = inputPath;
     }
+
 
 }
 
@@ -185,10 +188,10 @@ void ModelInputPictures::setBoundaries(QPoint boundaries)
 
 int ModelInputPictures::loadMetaData(QStringList paths)
 {
-    MetaDataManager m = MetaDataManager::instance();
-    m.initMetaData(paths, m_reader);
-    QList<QVariant> t = m.loadAllMetaData()[0]->getAllMetaData();
-    return m.availableMetaData().size();
+    m_metaDataManager = new MetaDataManager();
+    m_metaDataManager->initMetaData(paths, m_reader);
+    m_reader->addMetaData(m_metaDataManager);
+    return m_metaDataManager->availableMetaData().size();
 }
 
 std::vector<unsigned int> ModelInputPictures::getAllKeyframes()

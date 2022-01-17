@@ -3,7 +3,7 @@
 
 #include "gpsreader.h"
 #include "metadatamanager.h"
-
+#include "reader.h"
 #include <QVariant>
 #include <QFile>
 #include <QRegularExpression>
@@ -49,7 +49,7 @@ public:
      * @param images Reader with the loaded images
      * @return @a True if meta data have been loaded @a False otherwise
      */
-    bool parseData(QString path, Reader* images);
+    bool parseData(QString path, int picCount, double fps);
 
 
 private:

@@ -86,6 +86,18 @@ public:
      */
 
     void initMultipleAccess(const std::vector<uint> &frames) override;
+
+    /**
+     * @brief addMetaData Used to add MetaData to the reader
+     * @param md The MetaData to be saved
+     */
+    void addMetaData(MetaData* md) override;
+    /**
+     * @brief getMetaData Returns the currently saved MetaData
+     * @return The currently saved MetaData
+     */
+    MetaData* getMetaData() override;
+
 private:
     Reader *m_realReader;
     Reader *m_copyReader;

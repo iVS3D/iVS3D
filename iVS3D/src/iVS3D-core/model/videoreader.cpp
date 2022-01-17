@@ -1,6 +1,5 @@
 #include "videoreader.h"
 #include <QDebug>
-
 #include <opencv2/imgcodecs.hpp>
 
 
@@ -31,6 +30,18 @@ void VideoReader::initMultipleAccess(const std::vector<uint> &frames) {
     m_lastUsedIndex = firstIndex;
 
 }
+
+void VideoReader::addMetaData(MetaData *md)
+{
+    m_md = md;
+}
+
+MetaData *VideoReader::getMetaData()
+{
+    return m_md;
+}
+
+
 
 
 cv::Mat VideoReader::getPic(unsigned int index, bool useMultipleAccess)

@@ -13,7 +13,7 @@ void MetaDataManager::initMetaData(QStringList paths, Reader* images)
     for (QString path : paths) {
         for (std::pair<std::string, AbstractBuilder> a : MetaDataManager::instance().m_availablerReader) {
             MetaDataReader* current = a.second();
-            if (current->parseData(path, images) == true) {
+            if (current->parseData(path, images->getPicCount(), images->getFPS()) == true) {
                 m_parsedMetaReader.append(current);
             }
         }

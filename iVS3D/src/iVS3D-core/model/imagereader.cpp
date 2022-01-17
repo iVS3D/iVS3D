@@ -75,6 +75,16 @@ ImageReader *ImageReader::copy()
     return ir;
 }
 
+void ImageReader::addMetaData(MetaData *md)
+{
+    m_md = md;
+}
+
+MetaData *ImageReader::getMetaData()
+{
+    return m_md;
+}
+
 ImageReader::ImageReader()
 {
 

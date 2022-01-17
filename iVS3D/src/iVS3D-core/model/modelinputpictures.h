@@ -196,6 +196,7 @@ private:
     QPoint m_inputResolution;
     cv::Mat m_currentMat;
     QPoint m_boundaries;
+    MetaDataManager* m_metaDataManager = nullptr;
 
     void setResolution();
     std::vector<unsigned int> splitString(QString string);
