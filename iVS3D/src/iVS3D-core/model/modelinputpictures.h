@@ -175,11 +175,16 @@ public:
      */
     void setBoundaries(QPoint boundaries);
     /**
-     * @brief loadMetaData Loads the given meta data
+     * @brief loadMetaData Loads the given meta data for the imported Video
      * @param path Paths the the meta data to load
      * @return how many MetaDataReader have succesfully loaded the meta data
      */
-    int loadMetaData(QStringList paths);
+    int loadMetaData(QStringList paths);    
+    /**
+     * @brief loadMetaDataImages Tries to extract meta data from the imported images
+     * @return how many MetaDataReader have succesfully loaded meta data
+     */
+    int loadMetaDataImages();
 
 signals:
     /**

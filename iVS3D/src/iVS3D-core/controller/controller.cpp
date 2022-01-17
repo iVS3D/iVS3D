@@ -228,7 +228,7 @@ void Controller::slot_changeCreateLogFile(bool createLog)
 
 void Controller::slot_openMetaData()
 {
-    QString filePath = QFileDialog::getOpenFileName(m_mainWindow, "Choose Meta Data", ApplicationSettings::instance().getStandardInputPath(), "*.srt");
+    QString filePath = QFileDialog::getOpenFileName(m_mainWindow, "Choose Meta Data", ApplicationSettings::instance().getStandardInputPath(), "*.srt *.jpeg *.jpg");
     if (filePath == nullptr) {
         emit sig_hasStatusMessage("Input canceled");
         return;
@@ -274,7 +274,21 @@ void Controller::createOpenMessage(int numPics)
     else {
         auto endTime = std::chrono::high_resolution_clock::now();
         auto duration_ms = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - m_startTime).count();
-        emit sig_hasStatusMessage("Import of " + QString::number(numPics) + " images finished after " + QString::number(duration_ms) + "ms");
+        MetaData* md =  m_dataManager->getModelInputPictures()->getReader()->getMetaData();
+        int metaDataCount = 0;
+        if (md) {
+            metaDataCount = md->loadAllMetaData().size();
+        }
+
+        if (metaDataCount != 0) {
+            emit sig_hasStatusMessage("Import of " + QString::number(numPics) + " images and "
+                                      + QString::number(metaDataCount) + " meta data feature" + QString(metaDataCount > 1 ? "s" : "")
+                                      + " finished after " + QString::number(duration_ms) + "ms");
+        }
+        else {
+            emit sig_hasStatusMessage("Import of " + QString::number(numPics) + " images finished after " + QString::number(duration_ms) + "ms");
+        }
+
         onSuccessfulOpen();
     }
 }

@@ -33,8 +33,10 @@ SOURCES += \
     model/automaticexecsettings.cpp \
     model/automaticexecutor.cpp \
     model/concurrentreader.cpp \
+    model/exif.cpp \
     model/gpsreader.cpp \
     model/gpsreaderdji.cpp \
+    model/gpsreaderexif.cpp \
     model/metadatamanager.cpp \
     model/nouiexport.cpp \
     model/progressable.cpp \
@@ -108,8 +110,10 @@ HEADERS += \
     model/automaticexecsettings.h \
     model/automaticexecutor.h \
     model/concurrentreader.h \
+    model/exif.h \
     model/gpsreader.h \
     model/gpsreaderdji.h \
+    model/gpsreaderexif.h \
     model/metadata.h \
     model/metadatamanager.h \
     model/metadatareader.h \

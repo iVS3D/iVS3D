@@ -32,7 +32,7 @@ QList<QVariant> GPSReaderDJI::getAllMetaData()
     return values;
 }
 
-bool GPSReaderDJI::parseData(QString path, int picCount, double fps)
+bool GPSReaderDJI::parseDataVideo(QString path, int picCount, double fps)
 {
     //fps == -1 -> Input are images
     if (fps == -1) {
@@ -44,6 +44,7 @@ bool GPSReaderDJI::parseData(QString path, int picCount, double fps)
     if (!metaFile.open(QIODevice::ReadOnly | QIODevice::Text))
         return false;
 
+    int matchStop = 0;
     while (!metaFile.atEnd()) {
         QRegularExpression matchInt("^[0-9]+$");
         QByteArray line = metaFile.readLine();
@@ -54,6 +55,14 @@ bool GPSReaderDJI::parseData(QString path, int picCount, double fps)
             if (!parseLine(line)) {
                 return false;
             }
+            matchStop = 0;
+        }
+        //Stop parsing if no correct line has been found 3 times
+        else {
+            if (matchStop < 4) {
+                matchStop++;
+            }
+            else return false;
         }
 
     }

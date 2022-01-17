@@ -7,17 +7,28 @@ MetaDataManager::MetaDataManager()
 
 }
 
-void MetaDataManager::initMetaData(QStringList paths, Reader* images)
+void MetaDataManager::initMetaDataVideo(QStringList paths, Reader* images)
 {
-    int i = MetaDataManager::instance().m_availablerReader.size();
     for (QString path : paths) {
         for (std::pair<std::string, AbstractBuilder> a : MetaDataManager::instance().m_availablerReader) {
             MetaDataReader* current = a.second();
-            if (current->parseData(path, images->getPicCount(), images->getFPS()) == true) {
+            if (current->parseDataVideo(path, images->getPicCount(), images->getFPS()) == true) {
                 m_parsedMetaReader.append(current);
             }
         }
     }
+}
+
+void MetaDataManager::initMetaDataImages(Reader *images)
+{
+    for (std::pair<std::string, AbstractBuilder> a : MetaDataManager::instance().m_availablerReader) {
+        MetaDataReader* current = a.second();
+        bool result = current->parseDataImage(images->getFileVector());
+        if (result == true) {
+            m_parsedMetaReader.append(current);
+        }
+    }
+
 }
 
 QStringList MetaDataManager::availableMetaData()

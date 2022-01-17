@@ -39,12 +39,20 @@ public:
      */
     virtual QList<QVariant> getAllMetaData() = 0;
     /**
-     * @brief parseData Tries to load meta data from the given file
-     * @param path Path to the meat data file
-     * @param images Reader with the loaded images
+     * @brief parseDataVideo Tries to load meta data for a video from the given file
+     * @param path Path to the meta data file
+     * @param picCount amount of images in the video
+     * @param fps fps of the video
      * @return @a True if meta data have been loaded @a False otherwise
      */
-    virtual bool parseData(QString path, int picCount, double fps) = 0;
+    virtual bool parseDataVideo(QString path, int picCount, double fps) {return false;};
+
+    /**
+     * @brief parseDataImage Tries to load meta data from the imported images (based on exif)
+     * @param paths vector containing all image paths
+     * @return @a True if meta data have been loaded @a False otherwise
+     */
+    virtual bool parseDataImage(std::vector<std::string> paths) {return false;};
 
 
 };

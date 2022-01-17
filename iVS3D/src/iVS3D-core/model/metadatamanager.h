@@ -31,11 +31,17 @@ public:
     }
 
     /**
-     * @brief initMetaData tries to load all known MetaDataReader with the meta data given by the paths
+     * @brief initMetaData tries to load all known MetaDataReader for videos with the meta data given
      * @param paths Paths to the selected meta data files
      * @param images Reader with the currently loaded images
      */
-    void initMetaData(QStringList paths, Reader* images);
+    void initMetaDataVideo(QStringList paths, Reader* images);
+
+    /**
+     * @brief initMetaData tries to load all known MetaDataReader with the meta data given by the paths
+     * @param images Reader with the currently loaded images
+     */
+    void initMetaDataImages(Reader* images);
 
     /**
      * @brief availableMetaData returns a List of the names of all MetaDataReader whichs have loaded meta data
