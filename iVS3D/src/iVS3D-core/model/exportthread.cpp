@@ -71,7 +71,7 @@ void ExportThread::run(){
         int height = m_roi.height();
         roi = cv::Rect(topLeftX, topLeftY, width, height);
         //don't use ROI if its larger then the image
-        if (imageSize.x() < roi.width || imageSize.y() < roi.height) {
+        if (m_resolution.x() < roi.width || m_resolution.y() < roi.height) {
             useRoi = false;
         }
     }

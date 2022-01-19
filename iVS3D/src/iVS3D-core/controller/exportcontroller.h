@@ -168,7 +168,7 @@ private:
      */
     bool startReconstruct();
 
-    void deletePngs(QString path);
+    void deleteExportFolder(QString path);
 
     bool createDatabaseFile(QString defaultpath, QString targetpath);
     bool createProjectFile(QString defaultpath, QString targetpath, QMap<QString, QString> projectsettings);

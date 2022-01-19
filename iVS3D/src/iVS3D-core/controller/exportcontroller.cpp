@@ -220,7 +220,7 @@ void ExportController::slot_export()
             {
                 //user wants to delete and continue
                 //Delete export images
-                deletePngs(pathWOimages);
+                deleteExportFolder(pathWOimages);
                 if (!QDir(m_path).exists()) {
                     QDir().mkpath(m_path);
                 }
@@ -671,57 +671,10 @@ bool ExportController::startReconstruct()
     return false;
 }
 
-void ExportController::deletePngs(QString path)
+void ExportController::deleteExportFolder(QString path)
 {
-    //creating some Strings to use
-    QDir dir(path);
-    QString removeDir;
-    QStringList entries;
-    QStringList iTransformNames = TransformManager::instance().getTransformList();
-
-    //entries inside the export folder, "images", "project.json" ...
-    entries = dir.entryList();
-    qDebug() << "entries: ";
-    for (int i = 0; i < entries.length(); ++i ) {
-        qDebug() << entries[i];
-        if (0 == QString::compare("images", entries[i], Qt::CaseSensitive)) {
-            //images folder!
-            removeDir = path;
-            removeDir.append("/images");
-            //entries inside images folder
-            QStringList fileList = QDir(removeDir).entryList();
-            for (int x = 0; x < fileList.length(); ++x) {
-                if (fileList[x].endsWith(".png")) {
-                    //remove all pngs inside images folder
-                    QDir(removeDir).remove(fileList[x]);
-                }
-            }
-        }
-        else {
-            for (int j = 0; j < iTransformNames.length(); ++j) {
-                if (entries[i] == iTransformNames[j]) {
-                    //iTransform folder!
-                    removeDir = path;
-                    removeDir.append("/").append(iTransformNames[j]);
-                    //entries inside iTransform folder
-                    QStringList fileList = QDir(removeDir).entryList();
-                    for (int x = 0; x < fileList.length(); ++x) {
-                        if (fileList[x].endsWith("masks")) {
-                            //remove masks folder
-                            QString masksPath = removeDir;
-                            masksPath.append("/").append("masks");
-                            QStringList maskImgList = QDir(masksPath).entryList();
-                            for (int y = 0; y < maskImgList.length(); ++y) {
-                                if (maskImgList[y].endsWith(".png")) {
-                                    QDir(masksPath).remove(maskImgList[y]);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
+    QDir toDelete(path);
+    toDelete.removeRecursively();
 }
 
 bool ExportController::createDatabaseFile(QString defaultpath, QString targetpath)
