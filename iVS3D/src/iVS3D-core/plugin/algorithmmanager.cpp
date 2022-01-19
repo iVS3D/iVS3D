@@ -84,8 +84,9 @@ void AlgorithmManager::loadPlugins(){
             pluginsDir.cdUp();
         }
     #elif defined(Q_OS_LINUX)
-
+        if (pluginsDir.dirName().toLower() == "ivs3d-core"){
          pluginsDir.cdUp();
+        }
 
     #endif
     bool foundPlugin = pluginsDir.cd("plugins");

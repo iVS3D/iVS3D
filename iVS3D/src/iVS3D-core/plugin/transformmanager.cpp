@@ -97,7 +97,9 @@ void TransformManager::loadPlugins(){
             pluginsDir.cdUp();
         }
     #elif defined(Q_OS_LINUX)
-            pluginsDir.cdUp();
+    if (pluginsDir.dirName().toLower() == "ivs3d-core"){
+     pluginsDir.cdUp();
+    }
     #endif
     bool foundPlugin = pluginsDir.cd("plugins");
     if (!foundPlugin) {
