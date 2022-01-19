@@ -24,6 +24,7 @@
 - GPU proccesing with [NVIDIA CUDA Toolkit API]
 - Use multiple plugins at once with the batch proccesing
 - Can be used in a headless mode
+- Supported Plattforms: Windows and Linux
 
 ![GUI](doc/gui.png)
 Graphical user interface which is split in five different sections. 1. Input, 2. Plugins, 3. Export,
@@ -54,9 +55,9 @@ The used compiler is [MSVC] 2015.
 
 The required dependencies can be imported using the _3rdParty.pri_ file.
 
-## Ready to use builds for Windows 10 x64
+## Ready to use builds for Windows 10 x64 and Linux
 
-We provide Windows 10 x64 builds with and without CUDA. To use the included plugin for semantic segmentation you can download the models we used in our paper:
+We provide Windows 10 x64 builds with and without CUDA as well as Linux builds with and without CUDA. To use the included plugin for semantic segmentation you can download the models we used in our paper:
 [Link to models]
 
 To use other models, they have to be in the .onnx format. In addition, the plug-in requires a file that maps the classes to specific colors.
@@ -88,8 +89,13 @@ Projects tab and select Build under Build & Run.
 - under the general tab change the build directory to your desired output folder
 - under build steps add ```"CONFIG+=with_dependencies"``` as additional argument to the qmake step. This will copy all necessary .dlls
 - add a new build step, select make and add ```install``` as make argument. Make sure you have two make steps, the first one without additional arguments!
-- add a new build step, select Custom Process Step and enter windeployqt.exe as command. As arguments enter ```%{buildDir}\src\iVS3D-core\release\iVS3D-core.exe```
 - add a new build step, select make and add ```clean``` as make argument
+
+On Windows the Qt dependencies need to be added to the build folder in order to run the programm outside of QtCreator. Therefore add the following build step:
+- add a new build step, select Custom Process Step and enter windeployqt.exe as command. As arguments enter ```%{buildDir}\src\iVS3D-core\release\iVS3D-core.exe```
+
+On Windows use the ```iVS3D-deploy.bat``` to clean up the build folder and remove unnecessary directories by adding the following as a last build step:
+- add a new build step, select Custom Process Step and enter iVS3D-deploy.bat as command. As arguments enter ```%{buildDir}```
 
 Now you can deploy iVS3D by clicking the hammer icon in the bottom left corner. The iVS3D-core.exe within ```iVS3D/src/iVS3D-core```
 can be run outside of qt creator and all necessary dlls from opencv, qt and msvc are located in the same direcototy as the iVS3D-core.exe.
@@ -121,13 +127,11 @@ To build with CUDA support simply add  ```"CONFIG+=with_cuda"``` as an qmake arg
 
 To create the test build add ```"CONFIG+=test"``` as an qmake argument to your build configuration. 
 Now you can run the tests within the Test Result tab in Qt Creator.
-HINT: some tests require test resources which need to be added in a folder
-testresources under ```iVS3D/tests```. Without these resources some tests will fail.
 
 [Link to our test data]
 
 ## Future Work
-- [ ] Support for Linux
+- [ ] Make use of provided Meta Data such as GPS Data
 - [ ] Speed up export
 - [ ] Speed up optical flow calculations
 
