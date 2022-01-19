@@ -97,6 +97,11 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>pushButton_crop</tabstop>
+  <tabstop>pushButton_abort</tabstop>
+  <tabstop>graphicsView</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>
