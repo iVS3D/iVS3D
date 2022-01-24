@@ -140,7 +140,8 @@ void Controller::slot_openProject()
         msgBox.exec();
         return;
     }
-    QString folderPath = QFileDialog::getOpenFileName(m_mainWindow, "Choose project file", ApplicationSettings::instance().getStandardInputPath(), "*.json");
+    QString selectedFilter = "";
+    QString folderPath = QFileDialog::getOpenFileName(m_mainWindow, "Choose project file", ApplicationSettings::instance().getStandardInputPath(), "*.json", &selectedFilter, QFileDialog::DontUseNativeDialog);
 
     if (folderPath != nullptr) {
 
@@ -161,7 +162,8 @@ void Controller::slot_openProject()
 
 void Controller::slot_saveProjectAs()
 {
-    QString projectPath = QFileDialog::QFileDialog::getSaveFileName (m_mainWindow, "Save project", ApplicationSettings::instance().getStandardInputPath(), "*.json");
+    QString selectedFilter = "";
+    QString projectPath = QFileDialog::QFileDialog::getSaveFileName (m_mainWindow, "Save project", ApplicationSettings::instance().getStandardInputPath(), "*.json", &selectedFilter, QFileDialog::DontUseNativeDialog);
     if (projectPath == nullptr) {
         emit sig_hasStatusMessage("Input canceled");
         return;
@@ -191,7 +193,7 @@ void Controller::slot_addReconstructPath()
 
 void Controller::slot_changeDefaultInputPath()
 {
-    QString folderPath = QFileDialog::getExistingDirectory(m_mainWindow, "Choose standard input path", ApplicationSettings::instance().getStandardInputPath());
+    QString folderPath = QFileDialog::getExistingDirectory(m_mainWindow, "Choose standard input path", ApplicationSettings::instance().getStandardInputPath(), QFileDialog::DontUseNativeDialog);
     if (folderPath == nullptr) {
         emit sig_hasStatusMessage("Input canceled");
         return;

@@ -73,10 +73,9 @@
         <x>0</x>
         <y>0</y>
         <width>385</width>
-        <height>149</height>
+        <height>143</height>
        </rect>
       </property>
-      <zorder></zorder>
      </widget>
     </widget>
    </item>
@@ -113,7 +112,7 @@
        <item>
         <widget class="QLabel" name="label_2">
          <property name="text">
-          <string>Sample on</string>
+          <string>Sample on </string>
          </property>
         </widget>
        </item>

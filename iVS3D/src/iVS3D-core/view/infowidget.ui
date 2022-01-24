@@ -52,7 +52,7 @@
         </sizepolicy>
        </property>
        <property name="text">
-        <string>Input path</string>
+        <string/>
        </property>
        <property name="alignment">
         <set>Qt::AlignBottom|Qt::AlignLeading|Qt::AlignLeft</set>
