@@ -18,8 +18,9 @@ void ConcurrentReader::slot_read(uint idx)
     m_next_idx = idx;
     if(m_timer == nullptr){
         m_timer = new QTimer;
+        m_timer->setInterval(10);
         connect(m_timer, &QTimer::timeout, this, &ConcurrentReader::slot_pull);
-        m_timer->start(0);
+        m_timer->start(10);
     }
 }
 
