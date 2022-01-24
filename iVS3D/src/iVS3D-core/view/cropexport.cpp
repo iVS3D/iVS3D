@@ -33,7 +33,7 @@ CropExport::CropExport(QWidget *parent,const cv::Mat* img, QRect roi) :
     connect(m_scene, &roiSelect::sig_mousePress, this, &CropExport::slot_mousePress);
     connect(m_scene, &roiSelect::sig_mouseMove, this, &CropExport::slot_mouseMove);
 
-    if (roi.width() > 0 && roi.height() > 0 && roi.width() < img->rows && roi.height() < img->cols) {
+    if (roi.width() > 0 && roi.height() > 0 && roi.width() <= imageSize.x() && roi.height() <= imageSize.y()) {
         setSavedROI(roi);
     }
 
@@ -59,30 +59,14 @@ QRect CropExport::getROI()
 {
     if(m_rect != nullptr) {
         //Set correct borders
-        int right = image.right();
-        int bottom = image.bottom();
-        if (start.x() < 0) {start.setX(0);}
-        if (start.y() < 0) {start.setY(0);}
-        if (end.x() < 0) {end.setX(0);}
-        if (end.y() < 0) {end.setY(0);}
-        if (start.x() > right) {start.setX(right);}
-        if (end.x() > right) {end.setX(right);}
-        if (start.y() > bottom) {start.setY(bottom);}
-        if (end.y() > bottom) {end.setY(bottom);}
-        m_rect->setRect(QRectF(start, end));
-        ui->graphicsView->show();
+        QRectF drawnROI = QRectF(start, end);
 
-        //Convert QRectF in QRect, emit sig_cropExportSize and close the Dialog
-        QPoint realStart;
-        QPoint realEnd;
-        realStart.setX(floor(start.x()));
-        realStart.setY(floor(start.y()));
-        realEnd.setX(floor(end.x()));
-        realEnd.setY(floor(end.y()));
-
-        QRect realRect = QRect(realStart, realEnd);
-
-        return realRect;
+        if (!image.intersects(drawnROI.toRect())) {
+            return QRect(0,0,0,0);
+        }
+        QRectF intersection = image.intersected(drawnROI.toRect());
+        m_rect->setRect(intersection);
+        return intersection.toRect();
 
     }
 
