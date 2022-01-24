@@ -18,6 +18,9 @@ VideoReader::~VideoReader()
 }
 
 void VideoReader::initMultipleAccess(const std::vector<uint> &frames) {
+    if (frames.size() == 0) {
+        return;
+    }
     m_currentFrames = frames;
     m_multipleAccess = true;
     m_currentMultipleIndex = 0;
