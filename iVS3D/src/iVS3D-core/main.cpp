@@ -13,6 +13,9 @@
 #include <stdio.h>
 #include <iostream>
 
+#if defined(Q_OS_WIN)
+    #include <Windows.h>
+#endif
 
 
 void ignoreMessages(QtMsgType type, const QMessageLogContext &context, const QString &msg)
@@ -33,7 +36,10 @@ int main(int argc, char *argv[])
 
     int num = argc;
     if (num < 2) {
-        //FreeConsole();
+        #if defined(Q_OS_WIN)
+            FreeConsole();
+        #endif
+
         QApplication a( argc, argv );
         Controller mainController;
         qApp->setProperty(stringContainer::UIIdentifier, true);
@@ -51,5 +57,3 @@ int main(int argc, char *argv[])
     }
 
 }
-
-

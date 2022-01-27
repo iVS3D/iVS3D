@@ -16,19 +16,13 @@ std::vector<double> BlurAlgorithm::calcFullBluriness(Reader *images, Progressabl
         if (*stopped) {
             return;
         }
-        //auto startImages = std::chrono::high_resolution_clock::now();
         cv::Mat mat;
         while (mat.empty()) {
            mat = images->getPic(n, true);
         }
-        //auto startParallel = std::chrono::high_resolution_clock::now();
         double value = parallelCalculation(mat, blurValues, n, reciever, start, picCount);
         blurValues[n] = value;
-        //auto endParallel = std::chrono::high_resolution_clock::now();
-        //std::chrono::duration<double> timeImages = startParallel - startImages;
-        //std::chrono::duration<double> timeParallel = endParallel - startParallel;
-        //qDebug() << "images: " << timeImages.count() << endl;
-        //qDebug() << "parallel: " << timeParallel.count() << endl;
+
     };
     //Define index of images
     QVector<uint> index;
@@ -38,6 +32,7 @@ std::vector<double> BlurAlgorithm::calcFullBluriness(Reader *images, Progressabl
     images->initMultipleAccess(index.toStdVector());
     //calculate blurValues on multiple threads
     QtConcurrent::blockingMap(index, getBlur);
+    qDebug() << "STOPED";
     return blurValues;
 
 }
@@ -61,3 +56,4 @@ double BlurAlgorithm::parallelCalculation(cv::Mat image, std::vector<double> blu
     }
     return singleCalculation(image);
 }
+

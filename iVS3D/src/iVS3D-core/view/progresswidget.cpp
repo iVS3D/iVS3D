@@ -37,5 +37,7 @@ void ProgressWidget::slot_displayMessage(QString message)
 
 void ProgressWidget::on_pushButton_abort_clicked()
 {
+     ui->label_currentOperation->setText("Aborting");
+     ui->progressBar->setValue(100);
     emit sig_abort();
 }
