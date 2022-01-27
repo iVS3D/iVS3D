@@ -40,12 +40,10 @@ TARGET = $$qtLibraryTarget(blurPlugin)
 DESTDIR = ../plugins
 
 
-
 FORMS +=
 
-
 unix {
- !include( ../../setrpath.pri) {
-   message("Cannot find setrpath.pri!")
- }
+# set rpath
+RPATH='\$$ORIGIN:\$$ORIGIN/../lib'
+QMAKE_LFLAGS += '-Wl,--rpath=\'$$RPATH\''
 }

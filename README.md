@@ -85,20 +85,29 @@ Open the iVS3D.pro within QtCreator. Now you can run iVS3D within Qt Creator in 
 To deploy iVS3D as a standalone executable some build steps need to bee added to your build configuration. Therefore open the
 Projects tab and select Build under Build & Run.
 
+### Steps on Windows
+
 - clone your Release configuration and choose a name for your deploy configuration
 - under the general tab change the build directory to your desired output folder
-- under build steps add ```"CONFIG+=with_dependencies"``` as additional argument to the qmake step. This will copy all necessary .dlls
+- under build steps add ```"CONFIG+=with_dependencies"``` as additional argument to the qmake step. This will copy all necessary .dlls for OpenCV to your build folder.
 - add a new build step, select make and add ```install``` as make argument. Make sure you have two make steps, the first one without additional arguments!
-- add a new build step, select make and add ```clean``` as make argument
+- add a new build step, select make and add ```clean``` as make argument. This will remove temporary files of the build process.
+- add a new build step, select Custom Process Step and enter windeployqt.exe as command. As arguments enter ```%{buildDir}\src\iVS3D-core\release\iVS3D-core.exe```. This will add the necessary .dlls for Qt to your build folder
+- add a new build step, select Custom Process Step and enter iVS3D-deploy.bat as command. As arguments enter ```%{buildDir}```. This will remove empty folders and clean up the folder structure by removing folders like release and src.
 
-On Windows the Qt dependencies need to be added to the build folder in order to run the programm outside of QtCreator. Therefore add the following build step:
-- add a new build step, select Custom Process Step and enter windeployqt.exe as command. As arguments enter ```%{buildDir}\src\iVS3D-core\release\iVS3D-core.exe```
-
-On Windows use the ```iVS3D-deploy.bat``` to clean up the build folder and remove unnecessary directories by adding the following as a last build step:
-- add a new build step, select Custom Process Step and enter iVS3D-deploy.bat as command. As arguments enter ```%{buildDir}```
-
-Now you can deploy iVS3D by clicking the hammer icon in the bottom left corner. The iVS3D-core.exe within ```iVS3D/src/iVS3D-core```
+Now you can deploy iVS3D by clicking the hammer icon in the bottom left corner. The iVS3D-core.exe
 can be run outside of qt creator and all necessary dlls from opencv, qt and msvc are located in the same direcototy as the iVS3D-core.exe.
+
+### Steps on Linux
+
+- clone your Release configuration and choose a name for your deploy configuration
+- under the general tab change the build directory to your desired output folder
+- add a new build step, select make and add ```install``` as make argument. Make sure you have two make steps, the first one without additional arguments!
+- add a new build step, select make and add ```clean``` as make argument. This will remove temporary files of the build process.
+- add a new build step, select Custom Process Step and enter iVS3D-deploy.sh as command. As arguments enter ```%{buildDir}/iVS3D-core```. Optionally you can enter the path to linuxdeployqt-executable as the second argument and the path to the linux-dependencies.txt file as a third argument. This will remove empty folders and clean up the folder structure by removing folders like release and src. linuxdeployqt adds the necessary .so files from Qt and OpenCV. Additional dependencies from the txt file are added as well.
+
+Now you can deploy iVS3D by clicking the hammer icon in the bottom left corner. The iVS3D-core executable within
+can be run outside of qt creator and all necessary .so files from opencv, qt and the system are located in the lib directory.
 
 ## Compile from source with CUDA
 

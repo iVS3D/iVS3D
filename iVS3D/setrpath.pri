@@ -1,7 +1,7 @@
 # This script computes and set the rpath according to included libraries
 
 # initialize rpath with origin
-RPATH='\$$ORIGIN'
+RPATH='\$$ORIGIN:\$$ORIGIN/lib'
 
 # split $$LIBS (seperated by whitespace) into list
 LIBS_LIST=$$split(LIBS, ' ')
@@ -23,5 +23,6 @@ for(ENTRY, LIBS_LIST) {
  }
 }
 message( )
+message($$RPATH)
 # set rpath
 QMAKE_LFLAGS += '-Wl,--rpath=\'$$RPATH\''

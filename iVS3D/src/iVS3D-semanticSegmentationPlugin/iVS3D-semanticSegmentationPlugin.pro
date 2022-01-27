@@ -48,7 +48,7 @@ model_files.files = copy_to_install_dir/models/SemanticSegmentation/*
 INSTALLS += model_files
 
 unix {
- !include( ../../setrpath.pri) {
-   message("Cannot find setrpath.pri!")
- }
+# set rpath
+RPATH='\$$ORIGIN:\$$ORIGIN/..:\$$ORIGIN/../lib'
+QMAKE_LFLAGS += '-Wl,--rpath=\'$$RPATH\''
 }
