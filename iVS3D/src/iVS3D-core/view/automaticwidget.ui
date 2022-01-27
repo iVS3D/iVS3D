@@ -46,7 +46,7 @@
      <item>
       <widget class="QPushButton" name="start">
        <property name="text">
-        <string>Start processing</string>
+        <string>Start batch processing</string>
        </property>
       </widget>
      </item>

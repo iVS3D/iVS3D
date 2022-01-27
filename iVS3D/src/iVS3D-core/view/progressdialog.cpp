@@ -45,8 +45,10 @@ void ProgressDialog::slot_displayMessage(QString message)
 }
 
 void ProgressDialog::slot_btCancel()
-{
-    emit sig_abort();
+{    
+    ui->label_currOperation->setText("Aborting");
+    ui->progressBar->setValue(100);
+    ui->bt_cancel->setEnabled(false);
     setEnabled(false);
-    QDialog::reject();
+    emit sig_abort();
 }

@@ -124,6 +124,10 @@ void AutomaticExecutor::slot_samplingFinished()
 
 void AutomaticExecutor::slot_algoAbort()
 {
+    emit sig_hasStatusMessage("Aborted batch processing");
+    if (m_algorithmProgressDialog) {
+       m_algorithmProgressDialog->close();
+    }
     m_step = 0;
 }
 

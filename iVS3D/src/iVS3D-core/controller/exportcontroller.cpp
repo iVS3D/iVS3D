@@ -32,6 +32,7 @@ ExportController::ExportController(OutputWidget *outputWidget, DataManager *data
         pathList.removeLast();
         m_path = pathList.join("/");
     }
+    m_path += "/export";
     m_outputWidget->setOutputPath(m_path);
 
 

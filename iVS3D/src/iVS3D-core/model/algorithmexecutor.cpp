@@ -57,6 +57,7 @@ void AlgorithmExecutor::slot_abort()
     m_stopped = true;
     m_currentThread->wait();
     delete m_currentThread;
+    m_currentThread = nullptr;
     emit sig_algorithmAborted();
 }
 
