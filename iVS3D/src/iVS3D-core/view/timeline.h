@@ -6,10 +6,9 @@
 #include <QShortcut>
 #include <QKeySequence>
 #include <QScreen>
-#include "view/slideablelabel.h"
-#include "view/timelinelabel.h"
+#include "slideablelabel.h"
+#include "timelinelabel.h"
 #include "ui_timeline.h"
-#include <cmath>
 
 
 namespace Ui {
@@ -38,49 +37,49 @@ public:
      */
     explicit Timeline(QWidget *parent = nullptr);
     ~Timeline();
-    
+
     /**
      * @brief updateKeyframes redraws timeline with new keyframe positions
      * @param newKeyframes keyframe list
      */
     void updateKeyframes(const std::vector<uint> &newKeyframes);
-    
+
     /**
      * @brief setFrames sets the frame
      * @param keyframes new keyframes
      * @param frameCount new keyframe count
      */
     void setFrames(const std::vector<uint> &keyframes, uint frameCount);
-    
+
     /**
      * @brief selectedFrame returns the index of the frame which is currently selected
      * @return index
      */
     uint selectedFrame();
-    
+
     /**
      * @brief selectFrame moves markers to new positions
      * @param index new frame index
      */
     void selectFrame(uint index);
-    
+
     /**
      * @brief updateHighlighterWidth redraws highlighter with new width
      */
     void updateHighlighterWidth();
-    
+
     /**
      * @brief resizeEvent redraws timeline when window resizes
      * @param ev the resize event
      */
     void resizeEvent(QResizeEvent *ev) override;
-    
+
     /**
      * @brief setEnabled en/disables the timeline
      * @param enable @a true if disable, @a false if enable
      */
     void setEnabled(bool enable);
-    
+
     /**
      * @brief getBoundaries gets the boundaries of the working set
      * @return lower and upper boundary
@@ -91,15 +90,17 @@ signals:
     void sig_selectedChanged(uint index);
 
 private slots:
-    void highlighterMoved();
-    void markerMoved();
-    void zoomChanged();
+    // triggered by SlideableLabels mouseMoved signal
+    void highlighterMoved(int xMovement);
+    void markerMoved(int xMovement);
     void sbIndexChanged(int index);
-    void startBoundaryMoved();
-    void endBoundaryMoved();
-    void slot_resetSc();
+    void boundaryMoved(int xMovement, SlideableLabel *boundaryLabel);
+    // triggered by click on Timeline
     void slot_totalTimelineClicked(QPoint pos);
     void slot_zoomTimelineClicked(QPoint pos);
+
+    void slot_resetShortcut();
+    void zoomChanged();
 
 public slots:
     /**
@@ -119,18 +120,17 @@ private:
     QDoubleSpinBox *m_zoomSpinBox = 0; // adjust width of the highlighter (=> zoom)
     QSpinBox *m_indexSpinBox = 0; // shows and changes current index
 
-    QPoint getHighlighterRange();
+    QPointF getHighlighterRange();
     void setupSpinBoxes();
     QPixmap drawMarker(uint pixWidth, uint pixHeight, uint symbolWidth, uint symbolHeigth, uint topMargin);
 
     // cropped boundaries
     QPoint m_boundaries;
-    uint calcBoundary(SlideableLabel *boundaryLabel);
     QPixmap drawBoundary(uint pixWidth, uint pixHeight, uint symbolWidth, uint topBottomMargin, bool isStart);
     void positionBoundaries(uint startPos, uint endPos);
 
     // shortcuts
-    QShortcut *m_resetSc;
+    QShortcut *m_resetShortcut;
 
     // frame data
     std::vector<uint> m_keyframes;

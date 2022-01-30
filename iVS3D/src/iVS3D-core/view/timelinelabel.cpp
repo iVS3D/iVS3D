@@ -4,29 +4,60 @@ TimelineLabel::TimelineLabel(QWidget *parent) : QLabel(parent)
 {
 }
 
-void TimelineLabel::adjustTimeline(std::vector<uint> *keyframes, uint firstIndex, uint lastIndex, bool drawTimestamps)
+void TimelineLabel::updateTimelinelabel(std::vector<uint> *keyframes, QPointF indexBounds, bool drawTimestamps)
 {
-    this->m_keyframes = keyframes;
-    this->m_firstIndex = firstIndex;
-    this->m_lastIndex = lastIndex;
-    this->m_drawTimestamps = drawTimestamps;
+    if (!keyframes) {
+        return;
+    }
+
+    m_firstIndex = ceil(indexBounds.x());
+    m_lastIndex = floor(indexBounds.y());
+    m_frameSize = indexBounds.x() <= indexBounds.y() ? (float)width() / (indexBounds.y() - indexBounds.x()) : width();
+    m_firstIndex_offset = m_frameSize * (m_firstIndex - indexBounds.x());
+    m_lastIndex_offset = m_frameSize * (indexBounds.y() - m_lastIndex);
+
+    m_keyframes = keyframes;
+    m_drawTimestamps = drawTimestamps;
 
     redraw();
 }
 
-float TimelineLabel::getFrameSize()
+float TimelineLabel::relPosToIndex(uint relativePosition)
 {
-    return (float)width() / (m_lastIndex - m_firstIndex + 1);
+    float index = m_firstIndex + (float)(relativePosition - m_firstIndex_offset) / m_frameSize;
+
+    if (index < 0)
+        return 0.f;
+    else if (index > m_lastIndex + 1)
+        return width();
+
+    return index;
+}
+
+uint TimelineLabel::indexToRelPos(float index)
+{
+    if (index < m_firstIndex) {
+        return 0;
+    }
+    if (index > m_lastIndex) {
+        return width() - 1;
+    }
+
+    int relPos = m_frameSize * (index - m_firstIndex) + m_firstIndex_offset;
+    if (relPos >= width())
+        return width() - m_lastIndex_offset;
+
+    return (uint)relPos;
 }
 
 uint TimelineLabel::getFirstIndex()
 {
-    return this->m_firstIndex;
+    return m_firstIndex;
 }
 
 uint TimelineLabel::getLastIndex()
 {
-    return this->m_lastIndex;
+    return m_lastIndex;
 }
 
 void TimelineLabel::redraw()
@@ -41,7 +72,7 @@ void TimelineLabel::mousePressEvent(QMouseEvent *ev)
 
 QPixmap TimelineLabel::drawPixmap(bool timeStamps)
 {
-    QPixmap pix = QPixmap(this->geometry().width() - this->lineWidth() - 1, this->geometry().height() - lineWidth() - 1);
+    QPixmap pix = QPixmap(geometry().width() - lineWidth() - 1, geometry().height() - lineWidth() - 1);
     pix.fill(Qt::transparent);
     // setting up paint tool
     QPainter painter(&pix);
@@ -49,8 +80,8 @@ QPixmap TimelineLabel::drawPixmap(bool timeStamps)
     pen.setWidth(1);
 
     // painting
-    uint lineHeight = this->geometry().height() * 0.70F;
-    uint lineMarginBottom = (this->geometry().height() - lineHeight) / 2;
+    uint lineHeight = geometry().height() * 0.70F;
+    uint lineMarginBottom = (geometry().height() - lineHeight) / 2;
     uint lineMarginTop = lineMarginBottom;
 
     // draw timestamps
@@ -59,8 +90,8 @@ QPixmap TimelineLabel::drawPixmap(bool timeStamps)
         painter.setPen(pen);
         QVector<QLine> stampLines;
         for (uint i = m_firstIndex; i <= m_lastIndex; i++) {
-            uint x = getFrameSize() * (i - m_firstIndex);
-            QLine line = QLine(x, this->geometry().height(), x, this->geometry().height() * 0.8);
+            uint x = indexToRelPos(i);
+            QLine line = QLine(x, geometry().height(), x, geometry().height() * 0.8);
             stampLines.push_back(line);
         }
         painter.drawLines(stampLines);
@@ -77,8 +108,7 @@ QPixmap TimelineLabel::drawPixmap(bool timeStamps)
         if (index > m_lastIndex) {
             break;
         }
-        int x = getFrameSize() * (index - m_firstIndex);
-        Q_ASSERT(x < width() && x >= 0);
+        uint x = indexToRelPos(index);
         QLine line = QLine(x, lineMarginTop, x, lineHeight + lineMarginBottom);
         keyframeLines.push_back(line);
     }

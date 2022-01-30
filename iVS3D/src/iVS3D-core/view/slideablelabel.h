@@ -74,34 +74,15 @@ public:
      */
     uint getRelPosition();
 
-    /**
-     * @brief setStepSize sets the new step size
-     * @param stepSize new step size
-     */
-    void setStepSize(float stepSize);
-
-    /**
-     * @brief getStepSize gets the step size
-     * @return the step size
-     */
-    float getStepSize();
-
-    /**
-     * @brief enableSteps en/disables moving in steps
-     * @param enable @a true if moving in steps, @a false if not
-     */
-    void enableSteps(bool enable);
-
 signals:
     /**
-     * @brief slided signals that the label has moved
+     * @brief mouseMoved signals that the mouseMoveEvent was triggered on the label and sends the x coordinate
+     * @param xMovement represents the x coordinate of the mouseMoveEvent
      */
-    void slided();
+    void mouseMoved(int xMovement);
 
 private:
     QPoint m_xIntervall = QPoint(0, 0);
-    float m_stepSize = 0;
-    bool m_stepsEnabled = false;
 };
 
 #endif // SLIDEABLELABEL_H

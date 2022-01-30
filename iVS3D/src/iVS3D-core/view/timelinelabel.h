@@ -5,6 +5,7 @@
 #include <QWidget>
 #include <QPainter>
 #include <QMouseEvent>
+#include <QDebug>
 
 /**
  * @class TimelineLabel
@@ -30,16 +31,25 @@ public:
     /**
      * @brief adjustTimeline sets atributtes and redraws TimelineLabel
      * @param keyframes new keayframes
-     * @param firstIndex new first index
-     * @param lastIndex new last index
+     * @param indexBounds represents the bounds of the timelinelabel in form of indices.
+     *        They can be represented as floads so that the first and last displayed frame has an offset to its boundarie.
      * @param drawTimestamps should timestamps be drawn
      */
-    void adjustTimeline(std::vector<uint> *keyframes, uint firstIndex, uint lastIndex, bool drawTimestamps);
+    void updateTimelinelabel(std::vector<uint> *keyframes, QPointF indexBounds, bool drawTimestamps);
+
     /**
-     * @brief getFrameSize gets size of a frame as displayed in timeline
-     * @return frame size
+     * @brief relPosToIndex returns the respective index as float number to the relative position the timelinelabel
+     * @param relativePosition on the timelinelinelabel in pixels
+     * @return index as a float number to also represent a position between two frames
      */
-    float getFrameSize();
+    float relPosToIndex(uint relativePosition);
+
+    /**
+     * @brief indexToRelPos returns the relative position which correspondes to the global index (firstIndex computation is involved in function)
+     * @param index as a float number to also represent a position between two frames
+     * @return relative position on the timelinelinelabel in pixels
+     */
+    uint indexToRelPos(float index);
 
     /**
      * @brief getFirstIndex gets the index of the first diplayed frame
@@ -71,6 +81,9 @@ private:
     std::vector<uint> *m_keyframes = nullptr;
     uint m_firstIndex = 0;
     uint m_lastIndex = 0;
+    float m_firstIndex_offset = 0.f;
+    float m_lastIndex_offset = 0.f;
+    float m_frameSize = 0.f;
     bool m_drawTimestamps = true;
 
     QPixmap drawPixmap(bool timeStamps);

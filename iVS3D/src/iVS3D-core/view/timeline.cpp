@@ -1,7 +1,5 @@
 #include "timeline.h"
 
-#include <QDebug>
-
 Timeline::Timeline(QWidget *parent) :
     QWidget(parent),
    ui(new Ui::Timeline)
@@ -14,9 +12,8 @@ Timeline::Timeline(QWidget *parent) :
     m_highlighter->setFrameStyle(QFrame::Box);
     // create marker
     m_marker = new SlideableLabel(this);
-    m_marker->setWidth(QGuiApplication::primaryScreen()->size().width() / 10);
+    m_marker->setWidth(10);
     m_marker->setFrameStyle(QFrame::NoFrame);
-    m_marker->enableSteps(true);
     QPixmap pix = drawMarker(m_marker->width() - m_marker->lineWidth(), m_marker->height() - m_marker->lineWidth() - 1, 6, m_marker->height() * 0.5, m_marker->height() * 0.1);
     m_marker->setPixmap(pix);
 
@@ -38,24 +35,24 @@ Timeline::Timeline(QWidget *parent) :
     this->m_indexSpinBox = ui->spinBox_index;
 
     // connect slideEvents to the Timeline
-    QObject::connect(this->m_highlighter, &SlideableLabel::slided, this, &Timeline::highlighterMoved);
-    QObject::connect(this->m_marker, &SlideableLabel::slided, this, &Timeline::markerMoved);
+    QObject::connect(this->m_highlighter, &SlideableLabel::mouseMoved, this, &Timeline::highlighterMoved);
+    QObject::connect(this->m_marker, &SlideableLabel::mouseMoved, this, &Timeline::markerMoved);
 
     // connect spinBoxes
     QObject::connect(m_zoomSpinBox, SIGNAL(valueChanged(double)), this, SLOT(zoomChanged()));
     QObject::connect(m_indexSpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &Timeline::sbIndexChanged);
 
     // connect slideEvents of the moving boundarie labels
-    QObject::connect(m_startBoundaryLabel, &SlideableLabel::slided, this, &Timeline::startBoundaryMoved);
-    QObject::connect(m_endBoundaryLabel, &SlideableLabel::slided, this, &Timeline::endBoundaryMoved);
+    QObject::connect(m_startBoundaryLabel, &SlideableLabel::mouseMoved, this, [=](int x){ boundaryMoved(x, m_startBoundaryLabel); });
+    QObject::connect(m_endBoundaryLabel, &SlideableLabel::mouseMoved, this, [=](int x){ boundaryMoved(x, m_endBoundaryLabel); });
 
     // connect clickEvents of the timelineLabels
     QObject::connect(m_zoomTimeline, &TimelineLabel::sig_clicked, this, &Timeline::slot_zoomTimelineClicked);
     QObject::connect(m_totalTimeline, &TimelineLabel::sig_clicked, this, &Timeline::slot_totalTimelineClicked);
 
     // setup shortcuts
-    m_resetSc = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_R), this);
-    QObject::connect(m_resetSc, &QShortcut::activated, this, &Timeline::slot_resetSc);
+    m_resetShortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_R), this);
+    QObject::connect(m_resetShortcut, &QShortcut::activated, this, &Timeline::slot_resetShortcut);
 
     // disable window
     setEnabled(false);
@@ -68,13 +65,11 @@ Timeline::~Timeline()
 
 void Timeline::updateKeyframes(const std::vector<uint> &newKeyframes)
 {
-    m_keyframes = newKeyframes;
-    m_zoomTimeline->redraw();
-    m_totalTimeline->redraw();
+    setFrames(newKeyframes, m_frameCount);
 }
 
 void Timeline::resize()
-{   
+{
     int currentImage = m_indexSpinBox->value();
     // setup highlighter
     m_highlighter->setYLevel(m_totalTimeline->parentWidget()->y());
@@ -82,9 +77,8 @@ void Timeline::resize()
     updateHighlighterWidth();
 
     // set frames for each timelineLabel
-    m_totalTimeline->adjustTimeline(&this->m_keyframes, 0, m_frameCount - 1, false);
-    QPoint frameRange = getHighlighterRange();
-    m_zoomTimeline->adjustTimeline(&this->m_keyframes, frameRange.x(), frameRange.y(), true);
+    m_totalTimeline->updateTimelinelabel(&this->m_keyframes, QPointF(0, m_frameCount - 1), false);
+    m_zoomTimeline->updateTimelinelabel(&this->m_keyframes, getHighlighterRange(), true);
 
     // setup marker
     m_marker->setYLevel(m_zoomTimeline->parentWidget()->y());
@@ -92,10 +86,8 @@ void Timeline::resize()
     uint markerMinX = m_zoomTimeline->parentWidget()->x() - m_marker->width() / 2 - m_marker->lineWidth() + 3;
     uint markerMaxX = markerMinX + m_zoomTimeline->width();
     m_marker->setIntervall(QPoint(markerMinX, markerMaxX));
-//    // set bounderies for the second time to adjust the maxX
-    markerMaxX = markerMinX + (int)(m_zoomTimeline->getFrameSize() * (m_zoomTimeline->getLastIndex() - m_zoomTimeline->getFirstIndex()));
-    m_marker->setStepSize(m_zoomTimeline->getFrameSize());
-    m_marker->enableSteps(true);
+    // set bounderies for the second time to adjust the maxX
+    markerMaxX = m_zoomTimeline->indexToRelPos(m_frameCount - 1);
     m_marker->setIntervall(QPoint(markerMinX, markerMaxX));
 
     // setup start boundary marker
@@ -122,41 +114,35 @@ void Timeline::setFrames(const std::vector<uint> &keyframes, uint frameCount)
 {
     this->m_keyframes = keyframes;
     this->m_frameCount = frameCount;
-    m_boundaries = QPoint(0, 0);
-
     resize();
 
     // reset boundaries to min and max postion
     positionBoundaries(0, m_frameCount -1);
-
     setupSpinBoxes();
 }
 
 uint Timeline::selectedFrame()
 {
-    float selected = std::round((float)m_marker->getRelPosition() / m_marker->getStepSize() + m_zoomTimeline->getFirstIndex());
-
-    // prevent marker from moving to a out of bounds frame
-    if (selected < m_zoomTimeline->getFirstIndex()) {
-        selected = m_zoomTimeline->getFirstIndex();
-    } else if (m_zoomTimeline->getLastIndex() < selected) {
-        selected = m_zoomTimeline->getLastIndex();
-    }
+    uint selected = round(m_zoomTimeline->relPosToIndex(m_marker->getRelPosition()));
     return selected;
 }
 
 void Timeline::selectFrame(uint index)
 {
     // reposition highlighter if neccessary
-    QPoint highlighterRange = getHighlighterRange();
-    if (index < (uint)highlighterRange.x() || (uint)highlighterRange.y() < index) {
-        int nHighlighterPos = m_totalTimeline->getFrameSize() * index - m_highlighter->width() / 2;
+    if (index < m_zoomTimeline->getFirstIndex() || m_zoomTimeline->getLastIndex() < index) {
+        int nHighlighterPos = m_totalTimeline->indexToRelPos(index) - m_highlighter->width() / 2;
         m_highlighter->setRelPosition(nHighlighterPos);
+        m_zoomTimeline->updateTimelinelabel(&m_keyframes, getHighlighterRange(), true);
     }
 
     // repostion marker
-    float newRelPos = m_zoomTimeline->getFrameSize() * (index - m_zoomTimeline->getFirstIndex());
+    float newRelPos = m_zoomTimeline->indexToRelPos(index);
     m_marker->setRelPosition(newRelPos);
+
+    m_indexSpinBox->blockSignals(true);
+    m_indexSpinBox->setValue(index);
+    m_indexSpinBox->blockSignals(false);
 }
 
 void Timeline::updateHighlighterWidth()
@@ -173,18 +159,7 @@ void Timeline::updateHighlighterWidth()
     // correct postioning so that the highlighter moves to the left if it would grow over the right edge
     int missPlacement = maxX_Highlighter - m_highlighter->getIntervall().y();
     m_highlighter->setRelPosition(m_highlighter->x() - missPlacement);
-
-    // adjust filling
-    QPoint highlighterRange = getHighlighterRange();
-    m_zoomTimeline->adjustTimeline(&m_keyframes, highlighterRange.x(), highlighterRange.y(), true);
-
-    // adjust Marker intervall
-    uint minX_Marker = m_marker->getIntervall().x();
-    uint maxX_Marker = minX_Marker + m_zoomTimeline->width();
-    m_marker->setStepSize(m_zoomTimeline->getFrameSize());
-    m_marker->setIntervall(QPoint(minX_Marker, maxX_Marker));
-    maxX_Marker = minX_Marker + (int)(m_zoomTimeline->getFrameSize() * (m_zoomTimeline->getLastIndex() - m_zoomTimeline->getFirstIndex()));
-    m_marker->setIntervall(QPoint(minX_Marker, maxX_Marker));
+    m_zoomTimeline->updateTimelinelabel(&m_keyframes, getHighlighterRange(), true);
 }
 
 void Timeline::resizeEvent(QResizeEvent *ev)
@@ -195,8 +170,8 @@ void Timeline::resizeEvent(QResizeEvent *ev)
         resize();
     } else {
         // default timeline
-        m_totalTimeline->adjustTimeline(&this->m_keyframes, 0, 42, false);
-        m_zoomTimeline->adjustTimeline(&this->m_keyframes, 0, 42, true);
+        m_totalTimeline->updateTimelinelabel(&this->m_keyframes, QPointF(0, 42), false);
+        m_zoomTimeline->updateTimelinelabel(&this->m_keyframes, QPointF(0, 42), true);
     }
 }
 
@@ -217,8 +192,8 @@ void Timeline::setEnabled(bool enable)
     m_endBoundaryLabel->setVisible(enable);
 
     // display grey timelines
-    m_totalTimeline->adjustTimeline(&this->m_keyframes, 0, 42, false);
-    m_zoomTimeline->adjustTimeline(&this->m_keyframes, 0, 42, true);
+    m_totalTimeline->updateTimelinelabel(&this->m_keyframes, QPointF(0, 42), false);
+    m_zoomTimeline->updateTimelinelabel(&this->m_keyframes, QPointF(0, 42), true);
 
     // set spinBox values
     m_indexSpinBox->setValue(0);
@@ -232,13 +207,16 @@ void Timeline::setEnabled(bool enable)
 
 QPoint Timeline::getBoundaries()
 {
-    return m_boundaries;
+    uint startBoundIdx = m_zoomTimeline->indexToRelPos(m_startBoundaryLabel->getRelPosition());
+    uint endBoundIdx = m_zoomTimeline->indexToRelPos(m_endBoundaryLabel->getRelPosition());
+    return QPoint(startBoundIdx, endBoundIdx);
 }
 
-QPoint Timeline::getHighlighterRange()
+QPointF Timeline::getHighlighterRange()
 {
-    uint firstIndex = (m_highlighter->geometry().x() - m_highlighter->getIntervall().x()) / m_totalTimeline->getFrameSize();
-    return QPoint(firstIndex, firstIndex + m_frameCount * ((float) m_zoomSpinBox->value() / 100));
+    float firstIndex = m_totalTimeline->relPosToIndex(m_highlighter->getRelPosition());
+    float lastIndex = m_totalTimeline->relPosToIndex(m_highlighter->getRelPosition() + m_highlighter->width());
+    return QPointF(firstIndex, lastIndex);
 }
 
 void Timeline::setupSpinBoxes()
@@ -277,17 +255,6 @@ QPixmap Timeline::drawMarker(uint pixWidth, uint pixHeight, uint symbolWidth, ui
     painter.drawPolygon(symbol, Qt::OddEvenFill);
     return pix;
 }
-
-uint Timeline::calcBoundary(SlideableLabel *boundaryLabel)
-{
-    // calculate size of one frame in the totalTimeline
-    uint selectedFrame = (boundaryLabel->getRelPosition() * m_frameCount) / m_totalTimeline->width();
-    if (selectedFrame > m_frameCount - 1)
-        return m_frameCount - 1;
-    else
-        return selectedFrame;
-}
-
 
 /*
  *
@@ -333,20 +300,19 @@ QPixmap Timeline::drawBoundary(uint pixWidth, uint pixHeight, uint symbolWidth, 
 
 void Timeline::positionBoundaries(uint startPos, uint endPos)
 {
-    Q_ASSERT(startPos < m_frameCount);
-    Q_ASSERT(endPos < m_frameCount);
-
-    // disconnect events to prevent a loop
-    QObject::disconnect(m_startBoundaryLabel, &SlideableLabel::slided, this, &Timeline::startBoundaryMoved);
-    QObject::disconnect(m_endBoundaryLabel, &SlideableLabel::slided, this, &Timeline::endBoundaryMoved);
-
-    uint relPosStart = 0;
-    uint relPosEnd = 0;
-    // protecting from division with 0
-    if (m_frameCount != 0) {
-        relPosStart = (startPos * m_totalTimeline->width()) / m_frameCount;
-        relPosEnd = (endPos * m_totalTimeline->width()) / m_frameCount;
+    // correct parameters if neccessary;
+    if (startPos < 0) {
+        startPos = 0;
     }
+    if (endPos < startPos) {
+        endPos = startPos;
+    }
+    if (startPos > endPos) {
+        startPos = endPos;
+    }
+
+    uint relPosStart = m_totalTimeline->indexToRelPos(startPos);
+    uint relPosEnd = m_totalTimeline->indexToRelPos(endPos);
 
     // postion boundary labels
     m_startBoundaryLabel->setRelPosition(relPosStart);
@@ -354,25 +320,46 @@ void Timeline::positionBoundaries(uint startPos, uint endPos)
 
     // update boundaries attribute
     m_boundaries = QPoint(startPos, endPos);
-
-    // reconnect events to prevent a loop
-    QObject::connect(m_startBoundaryLabel, &SlideableLabel::slided, this, &Timeline::startBoundaryMoved);
-    QObject::connect(m_endBoundaryLabel, &SlideableLabel::slided, this, &Timeline::endBoundaryMoved);
 }
 
-void Timeline::highlighterMoved()
+void Timeline::highlighterMoved(int xMovement)
 {
-    QPoint highlighterRange = Timeline::getHighlighterRange();
-    m_zoomTimeline->adjustTimeline(&m_keyframes, highlighterRange.x(), highlighterRange.y(), true);
-    m_marker->setStepSize(m_zoomTimeline->getFrameSize());
+    // move highlighter
+    int movedPostion = m_highlighter->getRelPosition() + xMovement - m_highlighter->width() / 2;
+    m_highlighter->setRelPosition(movedPostion);
+
+    m_zoomTimeline->updateTimelinelabel(&m_keyframes, getHighlighterRange(), true);
+
+    // reselect currently selected frame to set marker correctly
+    uint currentlySelectedIdx = selectedFrame();
+    selectFrame(currentlySelectedIdx);
 
     // only update spinBox
-    m_indexSpinBox->setValue(selectedFrame());
+    m_indexSpinBox->blockSignals(true);
+    m_indexSpinBox->setValue(currentlySelectedIdx);
+    m_indexSpinBox->blockSignals(false);
+
+    emit sig_selectedChanged(currentlySelectedIdx);
 }
 
-void Timeline::markerMoved()
+void Timeline::markerMoved(int xMovement)
 {
-    m_indexSpinBox->setValue(selectedFrame());
+    // move only in steps
+    int movedMarkerPos = m_marker->getRelPosition() + xMovement - m_marker->width() / 2;
+    if (movedMarkerPos < 0 || movedMarkerPos >= m_zoomTimeline->width()) {
+        return;
+    }
+    //      calculate new rel position with transformation to index
+    float accurateIndex = m_zoomTimeline->relPosToIndex(movedMarkerPos);
+    float roundedIndex = round(accurateIndex);
+    uint correctedRelPos = m_zoomTimeline->indexToRelPos(roundedIndex);
+    m_marker->setRelPosition(correctedRelPos);
+
+    m_indexSpinBox->blockSignals(true);
+    m_indexSpinBox->setValue(roundedIndex);
+    m_indexSpinBox->blockSignals(false);
+
+    emit sig_selectedChanged(roundedIndex);
 }
 
 void Timeline::zoomChanged()
@@ -380,7 +367,11 @@ void Timeline::zoomChanged()
     updateHighlighterWidth();
 
     // only update spinBox
+    m_indexSpinBox->blockSignals(true);
     m_indexSpinBox->setValue(selectedFrame());
+    m_indexSpinBox->blockSignals(false);
+
+    emit sig_selectedChanged(selectedFrame());
 }
 
 void Timeline::sbIndexChanged(int index)
@@ -389,37 +380,37 @@ void Timeline::sbIndexChanged(int index)
     emit sig_selectedChanged(index);
 }
 
-void Timeline::startBoundaryMoved()
+void Timeline::boundaryMoved(int xMovement, SlideableLabel *boundaryLabel)
 {
-    m_boundaries.setX(calcBoundary(m_startBoundaryLabel));
+    int movedRelPos = boundaryLabel->getRelPosition() + xMovement - boundaryLabel->width() / 2;
+    int currIndex = round(m_totalTimeline->relPosToIndex(movedRelPos));
+
+    if (boundaryLabel == m_startBoundaryLabel) {
+        m_boundaries.setX(currIndex);
+    } else if (boundaryLabel == m_endBoundaryLabel) {
+        m_boundaries.setY(currIndex);
+    }
     // prevent boundaries form crossing over each other
     if (m_boundaries.x() > m_boundaries.y()) {
         // correct last movement
         positionBoundaries(m_boundaries.y(), m_boundaries.y());
     }
+    positionBoundaries(m_boundaries.x(), m_boundaries.y());
 }
 
-void Timeline::endBoundaryMoved()
-{
-    m_boundaries.setY(calcBoundary(m_endBoundaryLabel));
-    // prevent boundaries form crossing over each other
-    if (m_boundaries.x() > m_boundaries.y()) {
-        // correct last movement
-        positionBoundaries(m_boundaries.x(), m_boundaries.x());
-    }
-}
-
-void Timeline::slot_resetSc()
+void Timeline::slot_resetShortcut()
 {
     positionBoundaries(0, m_frameCount - 1);
 }
 
 void Timeline::slot_totalTimelineClicked(QPoint pos)
 {
-    m_highlighter->setRelPosition(pos.x() - m_highlighter->width() / 2);
+    int xMovement = pos.x() - m_highlighter->getRelPosition();
+    highlighterMoved(xMovement);
 }
 
 void Timeline::slot_zoomTimelineClicked(QPoint pos)
 {
-    m_marker->setRelPosition(pos.x());
+    int xMovement = pos.x() - m_marker->getRelPosition();
+    markerMoved(xMovement);
 }

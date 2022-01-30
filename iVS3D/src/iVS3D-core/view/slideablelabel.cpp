@@ -7,15 +7,7 @@ SlideableLabel::SlideableLabel(QWidget *parent) : QLabel(parent)
 
 void SlideableLabel::mouseMoveEvent(QMouseEvent *ev)
 {
-    int newX = getRelPosition();
-    int delta = ev->x() - width() / 2;
-    if (m_stepsEnabled) {
-        newX += (int)(delta / m_stepSize) * m_stepSize;
-    } else {
-        newX += delta;
-    }
-
-    setRelPosition(newX);
+    emit mouseMoved(ev->x());
 }
 
 void SlideableLabel::setIntervall(QPoint xRange)
@@ -45,7 +37,6 @@ void SlideableLabel::setWidth(uint width)
 
 void SlideableLabel::setRelPosition(float delta)
 {
-    // calculates the new positon (uses steps if they are enabled)
     float nX = m_xIntervall.x() + delta;
 
     // check bounderies
@@ -56,25 +47,9 @@ void SlideableLabel::setRelPosition(float delta)
     }
 
     this->setGeometry(nX , geometry().y(), geometry().width(), geometry().height());
-    emit slided();
 }
 
 uint SlideableLabel::getRelPosition()
 {
     return x() - m_xIntervall.x();
-}
-
-void SlideableLabel::setStepSize(float stepSize)
-{
-    m_stepSize = stepSize;
-}
-
-float SlideableLabel::getStepSize()
-{
-    return m_stepSize;
-}
-
-void SlideableLabel::enableSteps(bool enable)
-{
-    m_stepsEnabled = enable;
 }
