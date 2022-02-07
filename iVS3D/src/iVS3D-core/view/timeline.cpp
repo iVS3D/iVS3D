@@ -123,7 +123,7 @@ void Timeline::setFrames(const std::vector<uint> &keyframes, uint frameCount)
 
 uint Timeline::selectedFrame()
 {
-    uint selected = round(m_zoomTimeline->relPosToIndex(m_marker->getRelPosition()));
+    uint selected = qRound(m_zoomTimeline->relPosToIndex(m_marker->getRelPosition()));
     return selected;
 }
 
@@ -351,7 +351,7 @@ void Timeline::markerMoved(int xMovement)
     }
     //      calculate new rel position with transformation to index
     float accurateIndex = m_zoomTimeline->relPosToIndex(movedMarkerPos);
-    float roundedIndex = round(accurateIndex);
+    float roundedIndex = qRound(accurateIndex);
     uint correctedRelPos = m_zoomTimeline->indexToRelPos(roundedIndex);
     m_marker->setRelPosition(correctedRelPos);
 
@@ -383,7 +383,7 @@ void Timeline::sbIndexChanged(int index)
 void Timeline::boundaryMoved(int xMovement, SlideableLabel *boundaryLabel)
 {
     int movedRelPos = boundaryLabel->getRelPosition() + xMovement - boundaryLabel->width() / 2;
-    int currIndex = round(m_totalTimeline->relPosToIndex(movedRelPos));
+    int currIndex = qRound(m_totalTimeline->relPosToIndex(movedRelPos));
 
     if (boundaryLabel == m_startBoundaryLabel) {
         m_boundaries.setX(currIndex);

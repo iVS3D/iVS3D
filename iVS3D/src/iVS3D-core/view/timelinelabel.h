@@ -6,6 +6,7 @@
 #include <QPainter>
 #include <QMouseEvent>
 #include <QDebug>
+#include <QtMath>
 
 /**
  * @class TimelineLabel

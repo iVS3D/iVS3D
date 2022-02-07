@@ -10,8 +10,8 @@ void TimelineLabel::updateTimelinelabel(std::vector<uint> *keyframes, QPointF in
         return;
     }
 
-    m_firstIndex = ceil(indexBounds.x());
-    m_lastIndex = floor(indexBounds.y());
+    m_firstIndex = qCeil(indexBounds.x());
+    m_lastIndex = qFloor(indexBounds.y());
     m_frameSize = indexBounds.x() <= indexBounds.y() ? (float)width() / (indexBounds.y() - indexBounds.x()) : width();
     m_firstIndex_offset = m_frameSize * (m_firstIndex - indexBounds.x());
     m_lastIndex_offset = m_frameSize * (indexBounds.y() - m_lastIndex);
