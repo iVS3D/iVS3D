@@ -5,6 +5,8 @@
 #include "jsonEnum.h"
 
 #include <QRegExp>
+#include <QRegularExpression>
+#include <QRegularExpressionMatch>
 
 namespace Ui {
 class InfoWidget;
