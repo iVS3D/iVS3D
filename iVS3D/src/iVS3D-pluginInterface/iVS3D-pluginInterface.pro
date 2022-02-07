@@ -26,23 +26,13 @@ unix {
  }
 }
 
-DESTDIR = $$PWD/lib
-
-include(../../3rdparty.pri)
-
 CONFIG(debug, debug|release){
     VARIANT = debug
 } else {
     VARIANT = release
 }
-win32{
-    model_files.path = $$OUT_PWD/../iVS3D-core/$$VARIANT
-    model_files.files = $$PWD/lib/ITransform.dll
-} else:unix {
-    model_files.path = $$OUT_PWD/../iVS3D-core
-    model_files.files = $$PWD/lib/libITransform.so
-}
 
-INSTALLS += model_files
+win32:DESTDIR = $$OUT_PWD/../iVS3D-core/$$VARIANT
+else:unix:DESTDIR = $$OUT_PWD/../iVS3D-core
 
-
+include(../../3rdparty.pri)

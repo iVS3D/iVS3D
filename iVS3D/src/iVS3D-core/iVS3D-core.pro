@@ -180,9 +180,9 @@ FORMS += \
     view/reconstructdialog.ui \
     view/emptyfolderdialog.ui
 
-win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../iVS3D-pluginInterface/lib/ -lITransform
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../iVS3D-pluginInterface/lib/ -lITransform
-else:unix: LIBS += -L$$PWD/../iVS3D-pluginInterface/lib/ -lITransform
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/release -lITransform
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/debug -lITransform
+else:unix: LIBS += -L$$OUT_PWD -lITransform
 
 INCLUDEPATH += $$PWD/../iVS3D-pluginInterface
 DEPENDPATH  += $$PWD/../iVS3D-pluginInterface
@@ -241,15 +241,6 @@ with_dependencies{
     }
     INSTALLS += opencv_dlls
 }
-
-#create a shell script to setup runtime environment for iVS3D-core and start of the application
-#unix{
-#    runner_code = $$cat(copy_to_install_dir/iVS3D-runner.txt, blob)
-#    new_runner = $$replace(runner_code,%OPEN_CV_PATH%,$$OCV4_PATH/lib)
-#    write_file($$OUT_PWD/iVS3D-runner.sh, new_runner)
-#    system(chmod 777 $$OUT_PWD/iVS3D-runner.sh)
-#
-#}
 
 unix {
  !include( ../../setrpath.pri) {

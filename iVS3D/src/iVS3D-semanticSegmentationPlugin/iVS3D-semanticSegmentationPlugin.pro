@@ -21,9 +21,9 @@ HEADERS += \
     settingswidget.h \
     cvmat_qmetadata.h
 
-win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../iVS3D-pluginInterface/lib/ -lITransform
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../iVS3D-pluginInterface/lib/ -lITransform
-else:unix: LIBS += -L$$PWD/../iVS3D-pluginInterface/lib/ -lITransform
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../iVS3D-core/release -lITransform
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../iVS3D-core/debug -lITransform
+else:unix: LIBS += -L$$OUT_PWD/../iVS3D-core -lITransform
 
 INCLUDEPATH += $$PWD/../iVS3D-pluginInterface
 DEPENDPATH  += $$PWD/../iVS3D-pluginInterface
