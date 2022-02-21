@@ -5,6 +5,7 @@
 
 #include "opencv2/cudaoptflow.hpp"
 #include "opencv2/cudaarithm.hpp"
+#include "opencv2/cudawarping.hpp"
 
 #include <QDebug>
 
@@ -44,9 +45,10 @@ public:
      * @param from is the image before the movement happens
      * @param to is the image after the movement has taken place
      * @param flow is the matrix in which the flow gets stored
+     * @param downSampleFactor defines about which factor the images will get downsampled before computation
      * @return true if the caculation was successfull
      */
-    bool calculateFlow(const cv::Mat &from, const cv::Mat &to, cv::Mat &flow) override;
+    bool calculateFlow(const cv::Mat &from, const cv::Mat &to, cv::Mat &flow, double downSampleFactor) override;
 
 private:
     cv::Ptr<cv::cuda::FarnebackOpticalFlow> m_farn;

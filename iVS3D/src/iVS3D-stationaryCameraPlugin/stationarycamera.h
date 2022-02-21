@@ -32,11 +32,21 @@
 // widget
 #define THRESHOLD_LABEL_TEXT "Stationary camera threshold"
 #define DESCRIPTION_THRESHOLD "If the rotation between two frames differs more than the defind percentage of the median rotation in the given frame sequence it is declared stationary."
+#define DOWNSAMPLE_LABEL_TEXT "Down sampling factor"
+#define DESCRIPTION_DOWNSAMPLE "The factor defines if input pictures are scaled down before computation. A higher factor results in a higher computation speed, but hurts accuracy."
 #define DESCRIPTION_STYLE "color: rgb(58, 58, 58); border-left: 6px solid  rgb(58, 58, 58); border-top-right-radius: 5px; border-bottom-right-radius: 5px; background-color: lightblue;"
+#define INFO_STYLE "color: rgb(58, 58, 58); border-left: 6px solid  rgb(58, 58, 58); border-top-right-radius: 5px; border-bottom-right-radius: 5px; background-color: lightGreen;"
+#define INFO_PREFIX "Images are resized to "
+#define INFO_SUFFIX " before computation."
 // buffer
 #define BUFFER_NAME "StationaryCameraMovementValues"
 // settings
 #define SETTINGS_THRESHOLD "Stationary threshold"
+#define SETTINGS_DOWNSAMPLE "Downsample factor"
+// log file
+#define LF_BUFFER "Buffer"
+#define LF_OPT_FLOW_TOTAL "Flow calculation"
+#define LF_SELECT_FRAMES "Selection of keyframes"
 
 /**
  * @class StationaryCamera
@@ -130,15 +140,30 @@ public:
 private:
     // member variables
     double m_threshold = 0.1;
+    double m_downSampleFactor = 1.0;
     Reader *m_reader = nullptr;
+    QPoint m_inputResolution = QPoint(0, 0);
+    LogFileParent *m_logFile = nullptr;
     //      widget elements
     QWidget *m_settingsWidget = nullptr;
     QDoubleSpinBox *m_thresholdSpinBox = nullptr;
+    QDoubleSpinBox *m_downSampleSpinBox = nullptr;
+    QLabel *m_infoLabel = nullptr;
     // timing variables
     long m_durationFarnebackMs = 0;
     long m_durationComputationFlowMs = 0;
+
     // functions
     void createSettingsWidget(QWidget *parent);
+    void updateInfoLabel();
+    /**
+     * @brief computeFlow uses farneback to compute a flow matrix and than condense it to a single flow value,
+     *        that represents the movement between given images
+     * @param image1 image before posible movement
+     * @param image2 image after posible movement
+     * @param farn pointer to farneback object which is either the cpu or cuda version
+     * @return a single value that represents the movent between the images
+     */
     double computeFlow(cv::Mat image1, cv::Mat image2, FarnebackOptFlow *farn);
     void recreateBuffer(QMap<QString, QVariant> buffer);
     double median(std::vector<double> &vec);

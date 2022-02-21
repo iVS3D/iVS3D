@@ -18,11 +18,20 @@ bool FarnebackOptFlowCPU::setup(int numLevels, double pyrScale, bool fastPyramid
     return m_isSetup;
 }
 
-bool FarnebackOptFlowCPU::calculateFlow(const cv::Mat &from, const cv::Mat &to, cv::Mat &flow)
+bool FarnebackOptFlowCPU::calculateFlow(const cv::Mat &from, const cv::Mat &to, cv::Mat &flow, double downSampleFactor)
 {
     if(!m_isSetup){
         return false;
     }
-    m_farn->calc(from, to, flow);
+
+    if (downSampleFactor >= 1.f) {
+        double reciprocalFactor = 1.0 / downSampleFactor;
+        cv::Mat down_from, down_to;
+        cv::resize(from, down_from, cv::Size(), reciprocalFactor, reciprocalFactor);
+        cv::resize(to, down_to, cv::Size(), reciprocalFactor, reciprocalFactor);
+        m_farn->calc(down_from, down_to, flow);
+    } else {
+        m_farn->calc(from, to, flow);
+    }
     return true;
 }

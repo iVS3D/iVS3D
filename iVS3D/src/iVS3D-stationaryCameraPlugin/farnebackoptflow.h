@@ -37,9 +37,10 @@ public:
      * @param from is the image before the movement happens
      * @param to is the image after the movement has taken place
      * @param flow is the matrix in which the flow gets stored
+     * @param downSampleFactor defines about which factor the images will get downsampled before computation
      * @return true if the caculation was successfull
      */
-    virtual bool calculateFlow(const cv::Mat &from, const cv::Mat &to, cv::Mat &flow) = 0;
+    virtual bool calculateFlow(const cv::Mat &from, const cv::Mat &to, cv::Mat &flow, double downSampleFactor) = 0;
 };
 
 #endif // FARNEBACKOPTFLOW_H

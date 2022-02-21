@@ -14,8 +14,12 @@ QWidget *StationaryCamera::getSettingsWidget(QWidget *parent)
 
 std::vector<uint> StationaryCamera::sampleImages(Reader *reader, const std::vector<unsigned int> &imageList, Progressable *receiver, volatile bool *stopped, QMap<QString, QVariant> buffer, bool useCuda, LogFileParent *logFile)
 {
+    m_logFile = logFile;
+
     auto start = std::chrono::high_resolution_clock::now();
+    m_logFile->startTimer(LF_BUFFER);
     recreateBuffer(buffer);
+    m_logFile->stopTimer();
     auto endBuffer = std::chrono::high_resolution_clock::now();
 
     // calculate flow values
@@ -35,6 +39,7 @@ std::vector<uint> StationaryCamera::sampleImages(Reader *reader, const std::vect
     // TODO Multithreading with qthreads
     cv::Mat lastGreyImage;
     bool lastImageValid = false; // shows that the last grey image wasnt gathered yet (cause could be that the last value was found in buffer)
+    m_logFile->startTimer(LF_OPT_FLOW_TOTAL);
     for (uint imageListIdx = 1; imageListIdx < imageList.size(); imageListIdx++) {
         // send new progress update
         int progress = imageListIdx * 100 / (int)imageList.size();
@@ -46,6 +51,7 @@ std::vector<uint> StationaryCamera::sampleImages(Reader *reader, const std::vect
                     Q_ARG(int, progress),
                     Q_ARG(QString, currentProgress));
         double computedFlow = 0.f;
+
         if (false) {
             // TODO check for buffered elements
 
@@ -65,15 +71,15 @@ std::vector<uint> StationaryCamera::sampleImages(Reader *reader, const std::vect
 
             auto endLoad = std::chrono::high_resolution_clock::now();
             loadDurationMs = std::chrono::duration_cast<std::chrono::milliseconds>(endLoad - startLoad).count();
-
             try {
                 computedFlow = computeFlow(lastGreyImage, currGreyImage, farn);
             }  catch (cv::Exception &cvExcep) {
-
+                std::cout << cvExcep.msg << std::endl;
             }
             lastGreyImage = currGreyImage;
             lastImageValid = true;
         }
+        m_logFile->addCustomEntry("ComputedFlow", computedFlow);
         computedFlowValues.push_back(computedFlow);
         flowWithIndex[imageList[imageListIdx]] = computedFlow;
 
@@ -93,10 +99,12 @@ std::vector<uint> StationaryCamera::sampleImages(Reader *reader, const std::vect
                      std::setw(10) << m_durationComputationFlowMs << std::setw(10) <<
                      computedFlow << std::endl;
     }
+    m_logFile->stopTimer();
 
     auto endFlowCalc = std::chrono::high_resolution_clock::now();
 
     // select all keyframes and than remove all stationary frames
+    m_logFile->startTimer(LF_SELECT_FRAMES);
     double medianFlow = median(computedFlowValues);
     std::vector<uint> selectedKeyframes;
     const double stationaryThreshold = medianFlow * m_threshold;
@@ -105,6 +113,7 @@ std::vector<uint> StationaryCamera::sampleImages(Reader *reader, const std::vect
             selectedKeyframes.push_back(frameIdx);
         }
     }
+    m_logFile->stopTimer();
 
     auto endMedian = std::chrono::high_resolution_clock::now();
 
@@ -141,6 +150,10 @@ void StationaryCamera::initialize(Reader *reader)
 {
     m_reader = reader;
     m_threshold = 0.1;
+    m_downSampleFactor = 1.0;
+    cv::Mat testPic = reader->getPic(0);
+    m_inputResolution.setX(testPic.rows);
+    m_inputResolution.setY(testPic.cols);
 }
 
 void StationaryCamera::setSettings(QMap<QString, QVariant> settings)
@@ -165,6 +178,7 @@ QMap<QString, QVariant> StationaryCamera::getSettings()
 {
     QMap<QString, QVariant> settings;
     settings.insert(SETTINGS_THRESHOLD, m_threshold);
+    settings.insert(SETTINGS_DOWNSAMPLE, m_downSampleFactor);
     return settings;
 }
 
@@ -185,25 +199,73 @@ void StationaryCamera::createSettingsWidget(QWidget *parent)
     m_thresholdSpinBox->setValue(m_threshold * 100);
     m_thresholdSpinBox->setAlignment(Qt::AlignRight);
     m_thresholdSpinBox->setSuffix("%");
-    QObject::connect(m_thresholdSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, [=](double v) {m_threshold = v / 100.f;});
+    QObject::connect(m_thresholdSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this,
+                     [=](double v) {
+                        m_threshold = v / 100.f;
+                     });
     thresholdLayout->layout()->addWidget(m_thresholdSpinBox);
 
     // threshold description
-    QLabel *stationaryThresholdDes = new QLabel(DESCRIPTION_THRESHOLD);
-    stationaryThresholdDes->setStyleSheet(DESCRIPTION_STYLE);
-    stationaryThresholdDes->setWordWrap(true);
+    QLabel *thresholdLable = new QLabel(DESCRIPTION_THRESHOLD);
+    thresholdLable->setStyleSheet(DESCRIPTION_STYLE);
+    thresholdLable->setWordWrap(true);
 
-    // create widget
+    // create downSample layout with spinBox and lable
+    QWidget *downSampleLayout = new QWidget(parent);
+    downSampleLayout->setLayout(new QHBoxLayout(parent));
+    downSampleLayout->layout()->addWidget(new QLabel(DOWNSAMPLE_LABEL_TEXT));
+    downSampleLayout->layout()->setMargin(0);
+    downSampleLayout->layout()->setSpacing(0);
+    if (m_downSampleSpinBox) {
+        delete m_downSampleSpinBox;
+    }
+    m_downSampleSpinBox = new QDoubleSpinBox(parent);
+    m_downSampleSpinBox->setMinimum(1.0);
+    m_downSampleSpinBox->setMaximum(100.0);
+    m_downSampleSpinBox->setSingleStep(0.1);
+    m_downSampleSpinBox->setValue(m_downSampleFactor);
+    m_downSampleSpinBox->setAlignment(Qt::AlignRight);
+    QObject::connect(m_downSampleSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this,
+                     [=](double v) {
+                        m_downSampleFactor = v;
+                        updateInfoLabel();
+                     });
+    downSampleLayout->layout()->addWidget(m_downSampleSpinBox);
+
+    // downSample description
+    QLabel *downSampleLable = new QLabel(DESCRIPTION_DOWNSAMPLE);
+    downSampleLable->setStyleSheet(DESCRIPTION_STYLE);
+    downSampleLable->setWordWrap(true);
+
+    // info label
+    m_infoLabel = new QLabel();
+    m_infoLabel->setStyleSheet(INFO_STYLE);
+    m_infoLabel->setWordWrap(true);
+    updateInfoLabel();
+
+    // create main widget
     m_settingsWidget = new QWidget(parent);
     m_settingsWidget->setLayout(new QVBoxLayout(parent));
     m_settingsWidget->layout()->setSpacing(0);
     m_settingsWidget->layout()->setMargin(0);
     // add elements
     m_settingsWidget->layout()->addWidget(thresholdLayout);
-    m_settingsWidget->layout()->addWidget(stationaryThresholdDes);
+    m_settingsWidget->layout()->addWidget(thresholdLable);
+    m_settingsWidget->layout()->addWidget(downSampleLayout);
+    m_settingsWidget->layout()->addWidget(downSampleLable);
+    m_settingsWidget->layout()->addWidget(m_infoLabel);
 
     m_settingsWidget->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
     m_settingsWidget->adjustSize();
+}
+
+void StationaryCamera::updateInfoLabel()
+{
+    double reciprocalFactor = 1.0 / m_downSampleFactor;
+    int resizedWidth = round((float)m_inputResolution.x() * reciprocalFactor);
+    int resizedHeight = round((float)m_inputResolution.y() * reciprocalFactor);
+    QString nText = INFO_PREFIX + QString::number(resizedHeight) + " x " + QString::number(resizedWidth) + INFO_SUFFIX;
+    m_infoLabel->setText(nText);
 }
 
 double StationaryCamera::computeFlow(cv::Mat image1, cv::Mat image2, FarnebackOptFlow *farn)
@@ -211,7 +273,7 @@ double StationaryCamera::computeFlow(cv::Mat image1, cv::Mat image2, FarnebackOp
     auto startFarneback = std::chrono::high_resolution_clock::now();
 
     cv::Mat flowMat(image1.size(), CV_32FC2);
-    farn->calculateFlow(image1, image2, flowMat);
+    farn->calculateFlow(image1, image2, flowMat, m_downSampleFactor);
 
     auto endFarneback = std::chrono::high_resolution_clock::now();
 
@@ -234,6 +296,7 @@ double StationaryCamera::computeFlow(cv::Mat image1, cv::Mat image2, FarnebackOp
 
 void StationaryCamera::recreateBuffer(QMap<QString, QVariant> buffer)
 {
+    (void) buffer;
     // TODO
 }
 

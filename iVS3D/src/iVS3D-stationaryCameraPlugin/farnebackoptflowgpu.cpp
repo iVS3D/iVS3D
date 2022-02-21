@@ -19,13 +19,25 @@ bool FarnebackOptFlowGPU::setup(int numLevels, double pyrScale, bool fastPyramid
     return m_isSetup;
 }
 
-bool FarnebackOptFlowGPU::calculateFlow(const cv::Mat &from, const cv::Mat &to, cv::Mat &flow)
+bool FarnebackOptFlowGPU::calculateFlow(const cv::Mat &from, const cv::Mat &to, cv::Mat &flow, double downSampleFactor)
 {
-    cv::cuda::GpuMat gpu_prev(from), gpu_curr(to), gpu_flow(from.size(),CV_32FC2);
-    m_farn->calc(gpu_prev, gpu_curr, gpu_flow);
-    gpu_flow.download(flow);
-    gpu_prev.release();
-    gpu_curr.release();
+    // downsample images before computation
+    cv::cuda::GpuMat gpu_from(from), gpu_to(to), gpu_flow(from.size(),CV_32FC2), gpu_down_from, gpu_down_to;
+    if (downSampleFactor >= 1.0) {
+        double reciprocalFactor = 1.0 / downSampleFactor;
+        cv::cuda::resize(gpu_from, gpu_down_from, cv::Size(), reciprocalFactor, reciprocalFactor);
+        cv::cuda::resize(gpu_to, gpu_down_to, cv::Size(), reciprocalFactor, reciprocalFactor);
+    } else {
+        gpu_down_from = gpu_from;
+        gpu_down_to = gpu_to;
+    }
+    gpu_from.release();
+    gpu_to.release();
     gpu_flow.release();
+    // apply farneback
+    m_farn->calc(gpu_down_from, gpu_down_to, gpu_flow);
+    gpu_flow.download(flow);
+    gpu_down_from.release();
+    gpu_down_to.release();
     return true;
 }
