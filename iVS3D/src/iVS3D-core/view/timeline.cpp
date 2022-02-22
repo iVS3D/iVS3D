@@ -29,10 +29,10 @@ Timeline::Timeline(QWidget *parent) :
     m_endBoundaryLabel->setFrameShape(QFrame::NoFrame);
     m_endBoundaryLabel->setPixmap(drawBoundary(m_endBoundaryLabel->width(), m_endBoundaryLabel->height(), m_startBoundaryLabel->height() / 5, m_startBoundaryLabel->height() / 5, false));
 
-    this->m_totalTimeline = ui->label_totalTimeline;
-    this->m_zoomTimeline = ui->label_zoomTimeline;
-    this->m_zoomSpinBox = ui->spinBox_zoom;
-    this->m_indexSpinBox = ui->spinBox_index;
+    m_totalTimeline = ui->label_totalTimeline;
+    m_zoomTimeline = ui->label_zoomTimeline;
+    m_zoomSpinBox = ui->spinBox_zoom;
+    m_indexSpinBox = ui->spinBox_index;
 
     // connect slideEvents to the Timeline
     QObject::connect(this->m_highlighter, &SlideableLabel::mouseMoved, this, &Timeline::highlighterMoved);
@@ -65,7 +65,8 @@ Timeline::~Timeline()
 
 void Timeline::updateKeyframes(const std::vector<uint> &newKeyframes)
 {
-    setFrames(newKeyframes, m_frameCount);
+    this->m_keyframes = newKeyframes;
+    resize();
 }
 
 void Timeline::resize()
@@ -114,10 +115,11 @@ void Timeline::setFrames(const std::vector<uint> &keyframes, uint frameCount)
 {
     this->m_keyframes = keyframes;
     this->m_frameCount = frameCount;
-    resize();
 
     // reset boundaries to min and max postion
-    positionBoundaries(0, m_frameCount -1);
+    positionBoundaries(0, m_frameCount - 1);
+
+    resize();
     setupSpinBoxes();
 }
 
@@ -191,25 +193,25 @@ void Timeline::setEnabled(bool enable)
     m_startBoundaryLabel->setVisible(enable);
     m_endBoundaryLabel->setVisible(enable);
 
-    // display grey timelines
-    m_totalTimeline->updateTimelinelabel(&this->m_keyframes, QPointF(0, 42), false);
-    m_zoomTimeline->updateTimelinelabel(&this->m_keyframes, QPointF(0, 42), true);
-
-    // set spinBox values
-    m_indexSpinBox->setValue(0);
-    m_zoomSpinBox->setValue(10);
-
     // position boundaries
     if (enable) {
         positionBoundaries(0, m_frameCount - 1);
+    }
+
+    // disabled values
+    if (!enable) {
+        // set spinBox values
+        m_indexSpinBox->setValue(0);
+        m_zoomSpinBox->setValue(10);
+        // display grey timelines
+        m_totalTimeline->updateTimelinelabel(&this->m_keyframes, QPointF(0, 42), false);
+        m_zoomTimeline->updateTimelinelabel(&this->m_keyframes, QPointF(0, 42), true);
     }
 }
 
 QPoint Timeline::getBoundaries()
 {
-    uint startBoundIdx = m_zoomTimeline->indexToRelPos(m_startBoundaryLabel->getRelPosition());
-    uint endBoundIdx = m_zoomTimeline->indexToRelPos(m_endBoundaryLabel->getRelPosition());
-    return QPoint(startBoundIdx, endBoundIdx);
+    return m_boundaries;
 }
 
 QPointF Timeline::getHighlighterRange()

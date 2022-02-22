@@ -24,8 +24,8 @@ VideoPlayerController::VideoPlayerController(QObject *parent, VideoPlayer *playe
     m_videoPlayer->setKeyframeCount(m_dataManager->getModelInputPictures()->getKeyframeCount());
 
 
-    m_timeline->setEnabled(true);
     m_timeline->setFrames(m_dataManager->getModelInputPictures()->getAllKeyframes(), m_dataManager->getModelInputPictures()->getPicCount());
+    m_timeline->setEnabled(true);
     m_timeline->selectFrame(m_imageIndex);
 
 
