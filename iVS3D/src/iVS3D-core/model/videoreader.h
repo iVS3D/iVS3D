@@ -8,6 +8,7 @@
 #include <QMutex>
 #include <QMutexLocker>
 #include "metadata.h"
+#include "algorithmmanager.h"
 
 
 /**

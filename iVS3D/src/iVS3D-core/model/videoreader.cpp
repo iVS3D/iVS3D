@@ -34,6 +34,7 @@ void VideoReader::initMultipleAccess(const std::vector<uint> &frames) {
 void VideoReader::addMetaData(MetaData *md)
 {
     m_md = md;
+    AlgorithmManager::instance().initializePlugins(this);
 }
 
 MetaData *VideoReader::getMetaData()

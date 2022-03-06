@@ -13,7 +13,7 @@
 #include <QFileInfo>
 #include <QCollator>
 
-
+#include "algorithmmanager.h"
 #include <QDebug>
 
 
