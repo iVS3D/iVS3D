@@ -104,5 +104,4 @@ private:
     bool m_multipleAccess = false;
     int m_currentMultipleIndex = 0;
 };
-
 #endif // VIDEOREADER_H

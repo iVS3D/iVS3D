@@ -45,7 +45,7 @@ HEADERS += \
     $$IVS_SRC_PATH/iVS3D-core/model/progressable.h \
     $$IVS_SRC_PATH/iVS3D-core/model/progressdisplay.h \
     $$IVS_SRC_PATH/iVS3D-nthFramePlugin/nthframe.h \
-    $$IVS_SRC_PATH/iVS3D-core/plugin/IAlgorithm.h
+    $$IVS_SRC_PATH/iVS3D-core/plugin/ialgorithm.h
 
 SOURCES += \
     $$IVS_SRC_PATH/iVS3D-nthFramePlugin/nthframe.cpp \

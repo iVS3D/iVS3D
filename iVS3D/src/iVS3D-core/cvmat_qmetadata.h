@@ -19,4 +19,6 @@ Q_DECLARE_METATYPE(QColorList)
 typedef QList<bool> QBoolList;
 Q_DECLARE_METATYPE(QBoolList)
 
+Q_DECLARE_METATYPE(std::vector<uint>)
+
 #endif // CVMAT_QMETADATA_H

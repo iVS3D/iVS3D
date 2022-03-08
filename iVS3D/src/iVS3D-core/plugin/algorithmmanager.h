@@ -15,7 +15,7 @@
 
 #include <QThread>
 
-#include "IAlgorithm.h"
+#include "ialgorithm.h"
 
 /**
  * @class AlgorithmManager
@@ -105,6 +105,8 @@ public:
      * @return Settings map
     */
     QMap<QString, QVariant> getSettings(int idx);
+
+    IAlgorithm *getAlgo(int idx);
 
 private:
     std::vector<IAlgorithm*> m_algorithmList;

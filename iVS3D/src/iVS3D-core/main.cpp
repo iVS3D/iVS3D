@@ -33,6 +33,7 @@ int main(int argc, char *argv[])
     qRegisterMetaType<QStringList>("QStringList");
     qRegisterMetaType<QColorList>("QColorList");
     qRegisterMetaType<QBoolList>("QBoolList");
+    qRegisterMetaType<std::vector<uint>>("vectorUint");
 
     int num = argc;
     if (num < 2) {

@@ -51,7 +51,7 @@ HEADERS += \
     $$IVS_SRC_PATH/iVS3D-core/model/jsonEnum.h \
     $$IVS_SRC_PATH/iVS3D-core/model/logfile.h \
     $$IVS_SRC_PATH/iVS3D-core/plugin/algorithmmanager.h \
-    $$IVS_SRC_PATH/iVS3D-core/plugin/IAlgorithm.h \
+    $$IVS_SRC_PATH/iVS3D-core/plugin/ialgorithm.h \
     $$IVS_SRC_PATH/iVS3D-core/plugin/itransformrequestdequeue.h \
     $$IVS_SRC_PATH/iVS3D-core/plugin/transformmanager.h \
     $$IVS_SRC_PATH/iVS3D-pluginInterface/itransform.h \

@@ -87,5 +87,4 @@ private:
     unsigned int m_numImages = 0;
     std::string m_folderPath;
 };
-
 #endif // IMAGEREADER_H

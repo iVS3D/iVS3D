@@ -19,9 +19,10 @@
 #include <QSizePolicy>
 #include <QDebug>
 
-#include "IAlgorithm.h"
+#include "ialgorithm.h"
 #include "reader.h"
 #include "progressable.h"
+#include "nthframe_global.h"
 
 #define DESCRIPTION_TEXT "Every Nth frame is selected as keyframe."
 #define DESCRIPTION_STYLE "color: rgb(58, 58, 58); border-left: 6px solid  rgb(58, 58, 58); border-top-right-radius: 5px; border-bottom-right-radius: 5px; background-color: lightblue;"
@@ -43,7 +44,7 @@
  *
  * @date 2021/02/14
  */
-class NthFrame : public IAlgorithm
+class NTHFRAME_EXPORT NthFrame : public IAlgorithm
 {
     Q_OBJECT
     Q_PLUGIN_METADATA(IID "pse.iVS3D.IAlgorithm") // implement interface as plugin, use the iid as identifier
@@ -54,6 +55,7 @@ public:
      * @brief NthFrame Contructor to create an instance with N initialized to 1.
      */
     NthFrame();
+    ~NthFrame();
 
     /**
      * @brief showSettings Show a SettingsDialog to the user. This allows to change the value of N.
@@ -74,7 +76,7 @@ public:
      * @param logFile can be used to protocoll progress or problems
      * @return A list of indices. Each index represents a keyframe from the given images.
      */
-    std::vector<unsigned int> sampleImages(Reader *images, const std::vector<unsigned int> &imageList, Progressable *receiver, volatile bool *stopped, QMap<QString, QVariant> buffer, bool useCuda, LogFileParent *logFile);
+    std::vector<uint> sampleImages(Reader *images, const std::vector<unsigned int> &imageList, Progressable *receiver, volatile bool *stopped, QMap<QString, QVariant> buffer, bool useCuda, LogFileParent *logFile);
 
     /**
      * @brief getName Returns a name for displaying this algorithm to the user.
@@ -133,6 +135,7 @@ private:
     void createSettingsWidget(QWidget *parent);
 
     unsigned int m_N;
+    uint m_numFrames;
     QWidget *m_settingsWidget;
     int m_fps = 30;
     QSpinBox* m_spinBox = nullptr;

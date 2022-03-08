@@ -2,11 +2,20 @@ QT += core gui
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
+TARGET = NthFrame
 
 CONFIG += c++11
 
+DEFINES += IVS3DNTHFRAMEPLUGIN_LIBRARY
+
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../iVS3D-core/release -liVS3D-pluginInterface
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../iVS3D-core/debug -liVS3D-pluginInterface
+else:unix: LIBS += -L$$OUT_PWD/../iVS3D-core -liVS3D-pluginInterface
+
+
 INCLUDEPATH += \
-    ../iVS3D-core/plugin \
+    ../iVS3D-pluginInterface \
+    ../iVS3D-core \
     ../iVS3D-core/model
 
 # You can make your code fail to compile if it uses deprecated APIs.
@@ -17,7 +26,9 @@ SOURCES += \
     nthframe.cpp
 
 HEADERS += \
-    nthframe.h
+    cvmat_qmetadata.h \
+    nthframe.h \
+    nthframe_global.h
 
 TEMPLATE = lib
 CONFIG += plugin
@@ -28,7 +39,7 @@ CONFIG += plugin
 #!isEmpty(target.path): INSTALLS += target
 
 # create .dll in plugins folder
-TARGET = $$qtLibraryTarget(nthframealgorithm)
+#TARGET = $$qtLibraryTarget(nthframealgorithm)
 DESTDIR = ../plugins
 
 include(../../3rdparty.pri)

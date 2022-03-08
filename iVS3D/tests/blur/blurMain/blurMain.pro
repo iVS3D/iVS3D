@@ -44,7 +44,7 @@ HEADERS += \
     $$IVS_SRC_PATH/iVS3D-blurPlugin/BlurAlgorithm.h \
     $$IVS_SRC_PATH/iVS3D-blurPlugin/blursobel.h \
     $$IVS_SRC_PATH/iVS3D-blurPlugin/blurlaplacian.h \
-    $$IVS_SRC_PATH/iVS3D-core/plugin/IAlgorithm.h \
+    $$IVS_SRC_PATH/iVS3D-core/plugin/ialgorithm.h \
     $$IVS_SRC_PATH/iVS3D-core/model/reader.h \
     $$IVS_SRC_PATH/iVS3D-core/model/progressable.h \
 

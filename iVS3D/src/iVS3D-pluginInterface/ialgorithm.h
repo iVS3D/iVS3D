@@ -1,11 +1,15 @@
 #ifndef IALGORITHM_H
 #define IALGORITHM_H
 
-#include <QWidget>
-#include <QtPlugin>
-#include "../model/reader.h"
-#include "../model/progressable.h"
-#include "../model/LogFileParent.h"
+#include <QObject>
+#include "opencv2/core.hpp"
+#include "cvmat_qmetadata.h"
+#include "iVS3D-pluginInterface_global.h"
+#include <QDebug>
+
+#include "reader.h"
+#include "progressable.h"
+#include "LogFileParent.h"
 
 /**
  * @interface IAlgorithm
@@ -25,9 +29,13 @@
  * @date 2021/04/14
  */
 
-class IAlgorithm : public QObject
+
+class IVS3DPLUGININTERFACE_EXPORT IAlgorithm : public QObject
 {
+    Q_OBJECT
+
 public:
+    virtual ~IAlgorithm() {}
     /**
      * @brief getSettingsWidget is provides an QWidget to display plugin specific settings to the user. The Widget is not deleted by the core application,
      * so storage management is duty of the plugin.
@@ -137,6 +145,8 @@ public:
      */
     virtual QMap<QString, QVariant> generateSettings(Progressable *receiver, QMap<QString, QVariant> buffer, bool useCuda, volatile bool* stopped) = 0;
 
+signals:
+    void updateKeyframes(std::vector<uint> keyframes);
 };
 
 Q_DECLARE_INTERFACE(IAlgorithm, "pse.iVS3D.IAlgorithm")

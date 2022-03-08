@@ -76,6 +76,11 @@ QMap<QString, QVariant> AlgorithmManager::getSettings(int idx)
     return m_algorithmList[idx]->getSettings();
 }
 
+IAlgorithm *AlgorithmManager::getAlgo(int idx)
+{
+    return m_algorithmList[idx];
+}
+
 void AlgorithmManager::loadPlugins(){
     QDir pluginsDir(QCoreApplication::applicationDirPath());
     #if defined(Q_OS_WIN)

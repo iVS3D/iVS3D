@@ -26,7 +26,7 @@
 #include <iomanip>
 #include <opencv2/core/mat.hpp>
 
-#include "IAlgorithm.h"
+#include "ialgorithm.h"
 #include "reader.h"
 #include "farnebackoptflowfactory.h"
 #include <opencv2/video.hpp>
@@ -70,6 +70,7 @@ public:
      * @brief CameraMovement Constructor sets default values for member variables
      */
     CameraMovement();
+    ~CameraMovement(){}
 
     /**
      * @brief getSettingsWidget creates a Widget, which can be used to change the algorithm parameters and returns it

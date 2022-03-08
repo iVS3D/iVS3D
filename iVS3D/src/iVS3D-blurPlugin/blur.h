@@ -20,7 +20,7 @@
 #include <QComboBox>
 #include <iostream>
 
-#include "IAlgorithm.h"
+#include "ialgorithm.h"
 #include "reader.h"
 #include <opencv2/video.hpp>
 #include "blurlaplacian.h"
@@ -59,6 +59,7 @@ public:
      * @brief Blur Constructor which creates an instance of every BlurAlgorithm and stets standard values (WindowSize = 10, LocalDeviation = 95)
      */
     Blur();
+    ~Blur(){}
     /**
      * @brief getSettingsWidget Returns the settings widget where BlurAlgorithm, WindowSizw and LocalDeviation can be set
      * @param parent Parent of the created QWidget

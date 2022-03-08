@@ -96,6 +96,7 @@ signals:
 
 private slots:
     void slot_previewStateChanged(bool enabled);
+    void slot_updateKeyframes(std::vector<uint> keyframes);
 
 private:
     enum PluginType{

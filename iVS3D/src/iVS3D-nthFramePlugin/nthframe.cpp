@@ -3,7 +3,13 @@
 NthFrame::NthFrame()
 {
     m_N = 1;    // N initialized to stepwidth 1
+    m_numFrames = 0;
     m_settingsWidget = nullptr;
+}
+
+NthFrame::~NthFrame()
+{
+
 }
 
 QWidget* NthFrame::getSettingsWidget(QWidget *parent)
@@ -15,7 +21,7 @@ QWidget* NthFrame::getSettingsWidget(QWidget *parent)
     return m_settingsWidget;
 }
 
-std::vector<unsigned int> NthFrame::sampleImages(Reader *, const std::vector<unsigned int> &imageList, Progressable *receiver, volatile bool *stopped, QMap<QString, QVariant>, bool, LogFileParent *logFile)
+std::vector<uint> NthFrame::sampleImages(Reader *, const std::vector<unsigned int> &imageList, Progressable *receiver, volatile bool *stopped, QMap<QString, QVariant>, bool, LogFileParent *logFile)
 {
     logFile->startTimer(LF_TOTAL);
 
@@ -69,6 +75,7 @@ QString NthFrame::getBufferName()
 
 void NthFrame::initialize(Reader *reader)
 {
+    m_numFrames = reader->getPicCount();
     if (reader->getFPS() == -1) {
         m_fps = 30;
     }
@@ -108,6 +115,17 @@ QMap<QString, QVariant> NthFrame::getSettings()
 void NthFrame::slot_nChanged(int n)
 {
     m_N = (unsigned int)n;
+    // allocate memory for keyframes
+    std::vector<uint> keyframes;
+    keyframes.reserve(1 + m_numFrames / m_N);
+
+    for(uint i = 0; i < m_numFrames; i += m_N){
+        // iterate every N-th sharp image
+
+        keyframes.push_back(i);    // add keyframe
+    }
+    keyframes.shrink_to_fit();
+    emit updateKeyframes(keyframes);
 }
 
 void NthFrame::createSettingsWidget(QWidget *parent)
