@@ -149,6 +149,10 @@ void ExportController::slot_export()
     LogFile *lfExport = LogManager::instance().createLogFile("Export", false);
     lfExport->setSettings(getOutputSettings());
 
+    if (m_path.endsWith("/")) {
+        m_path.chop(1);
+    }
+
     emit sig_stopPlay();
     qDebug() << "export" << m_path;
 
