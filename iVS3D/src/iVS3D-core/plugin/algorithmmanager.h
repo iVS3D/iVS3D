@@ -11,7 +11,6 @@
 #include <QDir>
 #include <QCoreApplication>
 #include <QPluginLoader>
-#include <QDebug>
 
 #include <QThread>
 

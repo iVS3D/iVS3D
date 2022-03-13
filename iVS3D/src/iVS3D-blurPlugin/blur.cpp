@@ -1,5 +1,4 @@
 #include "blur.h"
-#include <QDebug>
 
 
 

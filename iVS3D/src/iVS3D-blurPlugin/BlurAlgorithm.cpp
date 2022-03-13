@@ -32,7 +32,6 @@ std::vector<double> BlurAlgorithm::calcFullBluriness(Reader *images, Progressabl
     images->initMultipleAccess(index.toStdVector());
     //calculate blurValues on multiple threads
     QtConcurrent::blockingMap(index, getBlur);
-    qDebug() << "STOPED";
     return blurValues;
 
 }

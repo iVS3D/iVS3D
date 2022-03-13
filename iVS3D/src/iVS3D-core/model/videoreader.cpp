@@ -1,7 +1,5 @@
 #include "videoreader.h"
-#include <QDebug>
 
-#include <opencv2/imgcodecs.hpp>
 
 
 VideoReader::VideoReader(const QString &path) : m_path(path.toUtf8().constData())
@@ -111,7 +109,6 @@ bool VideoReader::isDir()
 VideoReader *VideoReader::copy()
 {
     // copy cv::VideoCapture crashes, so create new instead of copy
-    qDebug() << "Copy VIDEOREADER";
     VideoReader* reader =  new VideoReader(QString::fromStdString(m_path));
     if (m_multipleAccess) {
         reader->initMultipleAccess(m_currentFrames);

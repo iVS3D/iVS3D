@@ -13,7 +13,6 @@ InfoWidget::InfoWidget(QWidget *parent, QString title, bool dark) :
     ui(new Ui::InfoWidget)
 {
     ui->setupUi(this);
-    //ui->groupBox->setTitle(title);
     ui->toolButton_folder->setIcon(QIcon(dark ? ":/icons/openFolderIconW" : ":/icons/openFolderIconB"));
     ui->toolButton_video->setIcon( QIcon(dark ? ":/icons/openVideoIconW"  : ":/icons/openVideoIconB"));
 }
@@ -58,12 +57,10 @@ void InfoWidget::setInfo(QMap<QString, QString> info)
 
 void InfoWidget::on_toolButton_folder_clicked()
 {
-    qDebug("openfolder");
     emit sig_openFolderPressed();
 }
 
 void InfoWidget::on_toolButton_video_clicked()
 {
-    qDebug("openvideo");
     emit sig_openVideoPressed();
 }

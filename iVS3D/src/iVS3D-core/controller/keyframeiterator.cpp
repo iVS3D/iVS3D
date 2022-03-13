@@ -1,5 +1,4 @@
 #include "keyframeiterator.h"
-#include <QDebug>
 
 unsigned int KeyframeIterator::getNext(ModelInputPictures *mip, unsigned int currentIdx, unsigned int stepsize)
 {
@@ -23,12 +22,10 @@ unsigned int KeyframeIterator::getLast(ModelInputPictures *mip)
 
 bool KeyframeIterator::isFirst(ModelInputPictures *mip, unsigned int currentIdx)
 {
-    //qDebug() << "isFirst(" << QString::number(currentIdx) << ")";
     return getFirst(mip) >= currentIdx;
 }
 
 bool KeyframeIterator::isLast(ModelInputPictures *mip, unsigned int currentIdx)
 {
-    //qDebug() << "isLast(" << QString::number(currentIdx) << ")";
     return getLast(mip) <= currentIdx;
 }

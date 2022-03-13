@@ -1,14 +1,9 @@
 #ifndef BLURSOBEL_H
 #define BLURSOBEL_H
 
-#include <QObject>
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc.hpp>
-#include <QtConcurrent/QtConcurrentMap>
-#include "reader.h"
-#include "progressable.h"
 #include "BlurAlgorithm.h"
-#include "iostream"
 
 /**
  * @class BlurSobel

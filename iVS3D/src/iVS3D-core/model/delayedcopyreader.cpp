@@ -1,20 +1,17 @@
 #include "delayedcopyreader.h"
 #include "delayedcopyreader.h"
 
-#include <QDebug>
 
 DelayedCopyReader::DelayedCopyReader(Reader *reader)
 {
     m_realReader = reader;
     m_copyReader = nullptr;
-    qDebug() << "create copy reader";
 }
 
 cv::Mat DelayedCopyReader::getPic(unsigned int idx, bool)
 {
     if(!m_copyReader){
         m_copyReader = m_realReader->copy();
-        qDebug() << "copy reader now";
     }
     return m_copyReader->getPic(idx);
 }
@@ -61,7 +58,6 @@ bool DelayedCopyReader::isDir()
 
 Reader *DelayedCopyReader::copy()
 {
-    qDebug() << "copy copy???";
     return new DelayedCopyReader(m_realReader);
 }
 
@@ -86,6 +82,5 @@ void DelayedCopyReader::enableMultithreading()
 {
     if(!m_copyReader){
         m_copyReader = m_realReader->copy();
-        qDebug() << "copy reader now";
     }
 }

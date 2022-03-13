@@ -1,7 +1,7 @@
 #ifndef EXPORTEXECUTOR_H
 #define EXPORTEXECUTOR_H
 
-#include <QRect>
+
 #include <QCoreApplication>
 
 

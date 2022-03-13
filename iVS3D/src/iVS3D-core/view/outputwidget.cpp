@@ -11,13 +11,6 @@ OutputWidget::OutputWidget(QWidget *parent, QString title, QStringList transform
     m_layout->setContentsMargins(0,0,0,0);
     m_layout->addWidget(m_exportW);
 
-    //QGroupBox *box = new QGroupBox(title, this);
-    //box->setLayout(m_layout);
-
-    //setLayout(new QHBoxLayout(this));
-    //layout()->setContentsMargins(0,0,0,0);
-    //layout()->addWidget(box);
-
     setLayout(m_layout);
 
     connect(m_exportW, &ExportWidget::sig_export, this, &OutputWidget::slot_export);

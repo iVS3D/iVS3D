@@ -32,7 +32,6 @@ AutomaticExecutor::~AutomaticExecutor()
 void AutomaticExecutor::startMultipleAlgo(QList<QPair<QString, QMap<QString, QVariant>>> algoList, int step)
 {
     //Get all plugins
-//    QStringList pluginList = AlgorithmManager::instance().getAlgorithmList();
     if (algoList[step].first.compare(stringContainer::Export) == 0) {
         executeExport(algoList[step].second);
         return;

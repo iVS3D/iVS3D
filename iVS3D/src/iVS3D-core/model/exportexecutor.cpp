@@ -39,10 +39,6 @@ void ExportExecutor::slot_abort(){
 
 void ExportExecutor::slot_finished(){
     int result = m_exportThread->getResult();
-//    if(result == 0){
-//        QString projectName = m_exportPath.split("/").last();
-//        m_dataManager->createProject(projectName, m_exportPath + "-project.json");
-//    }
     closeThread();
     emit sig_exportFinished(result);
 }

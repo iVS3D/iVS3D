@@ -21,8 +21,7 @@
 #include <QJsonObject>
 #include <QVector>
 #include <QStringList>
-#include <sstream>
-//#include <filesystem>
+
 
 /**
  * @class ModelInputPictures

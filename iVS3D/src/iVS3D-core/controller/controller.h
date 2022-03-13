@@ -29,7 +29,6 @@
 #include <QWidget>
 #include <QFileDialog>
 #include <QDialog>
-#include <QDebug>
 #include <QMessageBox>
 #include <QElapsedTimer>
 

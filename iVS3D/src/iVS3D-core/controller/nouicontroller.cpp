@@ -28,12 +28,8 @@ int noUIController::exec()
         QCoreApplication::quit();
         return 0;
     }
-//    //Check if export will be overwritten
-//    bool overwriteExport = m_autoPath.compare("") != 0;
-//
-//    if (overwriteExport) {
-        qApp->setProperty(stringContainer::OverwriteExport, m_outputPath);
-//    }
+
+    qApp->setProperty(stringContainer::OverwriteExport, m_outputPath);
 
     //Setup cuda
     bool useCuda = false;
@@ -66,10 +62,6 @@ int noUIController::exec()
     m_terminal->slot_displayMessage("Loaded the following plugin settings:");
     for (QString name : plugins) {
         m_terminal->slot_displayMessage(name);
-        //Print when export path will be overwritten
-//        if (name.left(stringContainer::Export.size()).compare(stringContainer::Export) == 0 && overwriteExport) {
-//            m_terminal->slot_displayMessage("\nEXPORT PATH WILL BE OVERWRITTEN WITH " + m_outputPath);
-//        }
     }
     //Check for valid settings file
     if(plugins.size() <= 0) {

@@ -91,10 +91,8 @@ void AlgorithmManager::loadPlugins(){
     #endif
     bool foundPlugin = pluginsDir.cd("plugins");
     if (!foundPlugin) {
-        qDebug() << "No plugins found";
         return;
     }
-    qDebug() << pluginsDir.absolutePath();
     const QStringList entries = pluginsDir.entryList(QDir::Files);
     for (const QString &fileName : entries) {
         QPluginLoader pluginLoader(pluginsDir.absoluteFilePath(fileName));
@@ -103,12 +101,10 @@ void AlgorithmManager::loadPlugins(){
 
             IAlgorithm* algorithm = qobject_cast<IAlgorithm*>(plugin);
             if(algorithm){
-                qDebug() << algorithm->getName();
                 m_algorithmList.push_back(algorithm);
             } else {
                 pluginLoader.unload();
             }
         }
     }
-    qDebug() << QString::number(m_algorithmList.size());
 }

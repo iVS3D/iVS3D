@@ -16,7 +16,6 @@
 #include "controller/modelinputiteratorfactory.h"
 #include "view/reallydeletedialog.h"
 
-#include <QDebug>
 /**
  * @class VideoPlayerController
  *

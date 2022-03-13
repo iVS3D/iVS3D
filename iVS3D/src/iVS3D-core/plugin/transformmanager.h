@@ -11,7 +11,7 @@
 #include <QDir>
 #include <QCoreApplication>
 #include <QPluginLoader>
-#include <QDebug>
+
 
 /**
  * @interface TransformManager

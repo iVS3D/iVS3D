@@ -2,8 +2,6 @@
 #define NOUICONTROLLER_H
 
 #include <QObject>
-#include <stdio.h>
-#include <iostream>
 #include <QElapsedTimer>
 
 #include "applicationsettings.h"

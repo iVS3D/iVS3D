@@ -1,13 +1,8 @@
 #ifndef BLURLAPLACIAN_H
 #define BLURLAPLACIAN_H
 
-#include <QObject>
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc.hpp>
-#include <QtConcurrent/QtConcurrentMap>
-#include <iostream>
-#include "reader.h"
-#include "progressable.h"
 #include "BlurAlgorithm.h"
 
 

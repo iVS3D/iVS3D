@@ -17,7 +17,6 @@
 #include <QLabel>
 #include <QSpinBox>
 #include <QSizePolicy>
-#include <QDebug>
 
 #include "IAlgorithm.h"
 #include "reader.h"

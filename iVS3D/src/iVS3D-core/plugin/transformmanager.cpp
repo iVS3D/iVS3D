@@ -9,7 +9,6 @@ TransformManager &TransformManager::instance()
 TransformManager::TransformManager()
 {
     loadPlugins();
-    qDebug() << "creating transforms in " << QThread::currentThreadId();
     //Don't create widget in noUI mode
     if (!qApp->property(stringContainer::UIIdentifier).toBool()) {
         return;
@@ -103,10 +102,8 @@ void TransformManager::loadPlugins(){
     #endif
     bool foundPlugin = pluginsDir.cd("plugins");
     if (!foundPlugin) {
-        qDebug() << "No plugins found";
         return;
     }
-    qDebug() << pluginsDir.absolutePath();
     const QStringList entries = pluginsDir.entryList(QDir::Files);
     for (const QString &fileName : entries) {
         QPluginLoader pluginLoader(pluginsDir.absoluteFilePath(fileName));
@@ -115,12 +112,10 @@ void TransformManager::loadPlugins(){
             ITransform* algorithm = qobject_cast<ITransform*>(plugin);
             if(algorithm){
                 m_transformList.push_back(new ITransformRequestDequeue(algorithm));
-                qDebug() << algorithm->getName();
             } else {
                 pluginLoader.unload();
             }
 
         }
     }
-    qDebug() << QString::number(m_transformList.size());
 }

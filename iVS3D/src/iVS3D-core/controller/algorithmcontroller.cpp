@@ -64,7 +64,6 @@ void AlgorithmController::slot_startAlgorithm(bool onlyKeyframes, bool useBounds
     emit sig_updateBoundaries();
 
     if(m_pluginType != PluginType::Algorithm){
-        qDebug() << "selected plugin is not an IAlgorithm!";
         return;
     }
 

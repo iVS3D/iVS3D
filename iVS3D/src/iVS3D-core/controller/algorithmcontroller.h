@@ -4,7 +4,6 @@
 #include <QObject>
 #include <QtConcurrent/QtConcurrent>
 #include <QFutureWatcher>
-#include <vector>
 #include <QTimer>
 #include <QElapsedTimer>
 

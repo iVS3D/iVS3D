@@ -7,7 +7,6 @@
 #include "view/darkstyle/DarkStyle.h"
 #include "cvmat_qmetadata.h"
 
-#include <QDebug>
 #include <QFlags>
 
 #include <stdio.h>

@@ -115,12 +115,6 @@ QJsonObject LogFile::toQJSON()
     jsonTotalProcedure.insert(jsonEnum::logStopTimeIdentifier, m_globalProcedureStop);
     // procedure (logged times)
     QJsonArray jsonProcedure;
-    //      add gloabl information about internal procedures
-//    QJsonObject jsonProcedureInfo;
-//    jsonProcedureInfo.insert(jsonEnum::logGlobalStartTimeIdentifier, m_globalProcedureStart);
-//    jsonProcedureInfo.insert(jsonEnum::logGlobalStopTimeIdentifier, m_globalProcedureStop);
-//    jsonProcedureInfo.insert(jsonEnum::logGlobalElapsedTimeIdentifier, m_globalProcedureElapsed);
-//    jsonProcedure.push_back(jsonProcedureInfo);
     //      add internal procedures
     for (INTERNAL_PROCEDURE currProcedure : m_procedureList) {
         QJsonObject jsonProcedureEntry;

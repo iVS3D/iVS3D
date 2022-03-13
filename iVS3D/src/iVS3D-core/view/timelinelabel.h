@@ -5,7 +5,6 @@
 #include <QWidget>
 #include <QPainter>
 #include <QMouseEvent>
-#include <QDebug>
 #include <QtMath>
 
 /**

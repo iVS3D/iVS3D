@@ -137,7 +137,6 @@ void ExportThread::run(){
     m_logFile->stopTimer();
     m_logFile->setResultsInfo(m_keyframes);
 
-    qDebug() << "exporting: DONE";
 
     if (m_receiver) {
         m_receiver->slot_makeProgress(100, "Exporting images");
@@ -206,7 +205,6 @@ bool ExportThread::exportImages(cv::Mat image, int iTransformCopiesSize, const Q
             ImageList segmanticImgs = m_iTransformCopies[i]->transform(0, image);
 
             if (segmanticImgs.length() != iTOutputNames.length()) {
-                qDebug () << "iTransform gibt eine andere Anzahl an Bildern wie OutputNames zurück!";
                 return false;
             }
 

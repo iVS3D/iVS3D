@@ -10,7 +10,6 @@
 #include <QJsonObject>
 #include <QFile>
 #include <QJsonDocument>
-#include <QDebug>
 #include <QObject>
 
 

@@ -20,10 +20,8 @@
 #include <QSettings>
 #include <QTextStream>
 
-#include <QDebug>
 #include <QElapsedTimer>
 
-//#include "Windows.h"
 
 // --- default resolutions in dropbox ---
 #define RESOLUTION_LIST "2560 x 1440 (QHD)|1920 x 1080 (FHD)|1280 x 720 (HD)|1280 x 1024 (HD*)|640 x 480"

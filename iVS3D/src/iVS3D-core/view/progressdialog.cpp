@@ -36,7 +36,6 @@ void ProgressDialog::slot_displayProgress(int progress, QString currentOperation
 
     // change text
     ui->label_currOperation->setText(currentOperation);
-    //adjustSize();
 }
 
 void ProgressDialog::slot_displayMessage(QString message)

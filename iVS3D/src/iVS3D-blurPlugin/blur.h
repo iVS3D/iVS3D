@@ -18,7 +18,6 @@
 #include <QDoubleSpinBox>
 #include <QGridLayout>
 #include <QComboBox>
-#include <iostream>
 
 #include "IAlgorithm.h"
 #include "reader.h"

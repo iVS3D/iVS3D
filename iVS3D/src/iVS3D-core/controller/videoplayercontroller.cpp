@@ -17,7 +17,6 @@ VideoPlayerController::VideoPlayerController(QObject *parent, VideoPlayer *playe
     m_iterator = ModelInputIteratorFactory::createIterator(ModelInputIteratorFactory::Images);
     m_algoController = algoController;
 
-    qDebug() << QString::number(m_dataManager->getModelInputPictures()->getPicCount());
 
     m_videoPlayer->setEnabled(true);
     m_videoPlayer->setEnabledBackBtns(false);
@@ -90,8 +89,6 @@ VideoPlayerController::~VideoPlayerController()
     m_timeline->setEnabled(false);
     m_videoPlayer->setEnabled(false);
 
-    //QImage* defaultImage = new QImage(":/icons/ivs3dIcon.png");
-    //m_videoPlayer->showPixmap(QPixmap::fromImage(*defaultImage));
     cv::Mat mat = cv::imread(":/icons/ivs3dIcon.png");
     m_videoPlayer->showImage(&mat);
     m_videoPlayer->setKeyframe(false);
@@ -239,12 +236,10 @@ void VideoPlayerController::slot_imageProcessed(cv::Mat *preview, int id)
 void VideoPlayerController::slot_redraw()
 {
     m_imageIndexOnScreen = UINT_MAX;
-    //showImage();
 }
 
 void VideoPlayerController::slot_receiveImage(uint idx, const cv::Mat &img)
 {
-    qDebug() << "received image " << QString::number(idx);
     if(TransformManager::instance().isTransformEnabled()){
         emit sig_sendToITransform(idx,img);
     } else {
@@ -299,10 +294,6 @@ void VideoPlayerController::slot_timerNextImage()
 
 void VideoPlayerController::showImage()
 {
-    // only update screen if image changed
-    //if(m_imageIndex == m_imageIndexOnScreen){
-    //    return;
-    //}
 
     // enable / disable buttons for first / last image
     m_videoPlayer->setEnabledBackBtns(true);
@@ -313,21 +304,12 @@ void VideoPlayerController::showImage()
     if(m_iterator->isLast(m_dataManager->getModelInputPictures(), m_imageIndex)){
         m_videoPlayer->setEnabledForwardBtns(false);
     }
-/*
-    // get the image from MIP and display on VP
-    const cv::Mat* mat = m_dataManager->getModelInputPictures()->getPic(m_imageIndex);
-    cv::Mat* prev = m_algoController->getPreview((cv::Mat*)mat);
-    m_videoPlayer->showImage(prev);
 
-    // start processing the image if enabled
-    m_algoController->slot_startTransform((cv::Mat*) mat, m_imageIndex);
-*/
     // update keyframe border and timeline
     m_videoPlayer->setKeyframe(m_dataManager->getModelInputPictures()->isKeyframe(m_imageIndex));
     m_timeline->selectFrame(m_imageIndex);
 
     m_imageIndexOnScreen = m_imageIndex;
-    //qDebug() << "show image " << QString::number(m_imageIndex);
 
     emit sig_read(m_imageIndex);
 }

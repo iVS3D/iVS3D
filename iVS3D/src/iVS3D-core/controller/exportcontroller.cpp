@@ -57,7 +57,6 @@ ExportController::~ExportController()
 QMap<QString, QVariant> ExportController::getOutputSettings()
 {
     QMap<QString, QVariant> settings;
-    //settings.insert(stringContainer::OutputPath, m_path);
 
     QString resolution = QString::number(m_resolution.x()) + stringContainer::ROISpliter + QString::number(m_resolution.y());
     settings.insert(stringContainer::Resolution, resolution);
@@ -154,7 +153,7 @@ void ExportController::slot_export()
     }
 
     emit sig_stopPlay();
-    qDebug() << "export" << m_path;
+
 
     // update mip (boundaries)
     emit sig_updateBoundaries();
@@ -284,9 +283,7 @@ void ExportController::slot_export()
        m_exportExec->startExport(m_resolution, m_path, outputName, QRect(0,0,0,0), iTransformCopies, lfExport);
     }
 
-    qDebug() << "resolution " << m_resolution;
-    qDebug() << "path " << m_path;
-    qDebug() << "outputName " << outputName;
+
     emit sig_exportStarted();
     m_timer = QElapsedTimer();
     m_timer.start();
@@ -327,9 +324,6 @@ void ExportController::slot_closeCropExport(int result)
 
 void ExportController::slot_outputPathChanged(QString path)
 {
-    // validate output path here and disable export button if needed
-    // bool valid = validatepath(path);
-    // m_outputWidget->enableExport(valid);
     path.replace("\\", "/");
     m_path = path;
 }
@@ -338,12 +332,10 @@ void ExportController::slot_resolutionChange(const QString &res)
 {
     m_resolution = parseResolution(res);
     m_outputWidget->setResolutionValid(validateResolution(m_resolution));
-    qDebug() << "resolutionChange";
 }
 
 void ExportController::slot_exportAborted()
 {
-    qDebug() << "exportAborted";
     auto duration_ms = m_timer.elapsed();
     emit sig_hasStatusMessage("Export aborted after " + QString::number(duration_ms) + "ms");
     // disconnect GUI to export executor
@@ -357,8 +349,6 @@ void ExportController::slot_exportAborted()
 
 void ExportController::slot_exportFinished(int result)
 {
-    qDebug() << "exportFinished";
-
     // disconnect GUI to export executor
     disconnect(m_exportExec, &ExportExecutor::sig_exportAborted, this, &ExportController::slot_exportAborted);
     disconnect(m_exportExec, &ExportExecutor::sig_exportFinished, this, &ExportController::slot_exportFinished);
@@ -397,7 +387,6 @@ QPoint ExportController::parseResolution(QString resolutionString)
 {
     //remove spaces
     resolutionString = resolutionString.simplified();
-    //resolutionString.replace(" ", "");
     //split at x
     QStringList xSplitList = resolutionString.split(stringContainer::ROISpliter);
 
@@ -634,17 +623,13 @@ bool ExportController::startReconstruct()
         return false;
     }
 
-    qDebug().noquote() << "selected export " << exportName;
-    qDebug().noquote() << "executable name " << m_reconstructDialog->getReconstructtool();
-    qDebug().noquote() << "executable path " << executablePath;
+
     QString debugargs = cmdargs;
-    qDebug().noquote() << "executable startargs " << debugargs.toUtf8().constData();
 
     //starts process
     QProcess reconstructProcess;
     if (colmapGUI) {
         if (reconstructProcess.startDetached(executablePath)) {
-            qDebug() << "i survived";
             emit sig_hasStatusMessage("start of Reconstruction Software successful");
             return true;
         }
@@ -664,7 +649,6 @@ bool ExportController::startReconstruct()
             }
         }
         if (reconstructProcess.startDetached("explorer.exe " + exportDirReverse)) {
-            qDebug() << "i survived";
             emit sig_hasStatusMessage("start of explorer successful");
             return true;
         }
@@ -686,11 +670,9 @@ bool ExportController::createDatabaseFile(QString defaultpath, QString targetpat
 {
     if(QFile::exists(defaultpath)) {
         if (QFile::exists(targetpath)) {
-            //qDebug() << "database already exists";
             QFile::remove(targetpath);
         }
         if (QFile::copy(defaultpath, targetpath)) {
-            //qDebug() << "database successfully copied";
             return true;
         }
         else {
@@ -708,12 +690,10 @@ bool ExportController::createProjectFile(QString defaultpath, QString targetpath
     if (QFile::exists(defaultpath)) {
         //see if projectfile already exists
         if (QFile::exists(targetpath)) {
-            //qDebug() << "project already exists";
             QFile::remove(targetpath);
         }
         if (QFile::copy(defaultpath, targetpath)) {
             //project file copied to target folder successful
-            //qDebug() << "project ini successfully copied";
             //adjusting project file
             QSettings *settings = new QSettings(targetpath, QSettings::IniFormat);
             QStringList keyList = projectsettings.keys();
@@ -734,7 +714,6 @@ bool ExportController::createProjectFile(QString defaultpath, QString targetpath
             //changing project file
             QFile *projectiniFile = new QFile(targetpath);
             if (projectiniFile->open(QIODevice::ReadWrite | QIODevice::Text)) {
-                //qDebug() << "project file opened successfully";
                 QTextStream in(projectiniFile);
                 QString line = in.readLine();
                 QStringList lines;
@@ -764,16 +743,13 @@ bool ExportController::createProjectFile(QString defaultpath, QString targetpath
                     out.flush();
                 }
                 projectini->close();
-                //qDebug() << "project ini is adjusted accordingly";
                 return true;
             }
         }
         else {
-            qDebug() << "couldn't copy project file";
         }
     }
     else {
-        qDebug() << "default projectfile doesn't exist";
     }
     return false;
 }

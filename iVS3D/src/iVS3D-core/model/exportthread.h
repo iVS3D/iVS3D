@@ -6,7 +6,6 @@
 #include <opencv2/imgproc.hpp>
 
 #include <QThread>
-#include <QRect>
 #include <QFileDialog>
 #include <iostream>
 #include <QtConcurrent/QtConcurrentMap>
@@ -19,8 +18,6 @@
 #include "itransform.h"
 #include "progressable.h"
 
-//debug
-#include <QDebug>
 
 /**
  * @class ExportThread

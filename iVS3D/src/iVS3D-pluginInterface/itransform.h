@@ -5,7 +5,6 @@
 #include "opencv2/core.hpp"
 #include "cvmat_qmetadata.h"
 #include "iVS3D-pluginInterface_global.h"
-#include <QDebug>
 
 /**
  * @interface ITransform

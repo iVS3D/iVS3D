@@ -2,14 +2,9 @@
 #define APPLICATIONSETTINGS_H
 
 #include "jsonEnum.h"
-
 #include <QObject>
 #include <QMap>
-#include <QFile>
 #include <QVariant>
-#include <QJsonObject>
-#include <QJsonDocument>
-#include <QCoreApplication>
 #include <QSettings>
 
 #include "opencv2/core.hpp"

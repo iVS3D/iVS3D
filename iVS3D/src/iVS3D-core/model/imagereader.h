@@ -14,7 +14,6 @@
 #include <QCollator>
 
 
-#include <QDebug>
 
 
 /**
