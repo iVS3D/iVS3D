@@ -252,8 +252,7 @@ void Controller::slot_exportFinished()
 void Controller::createOpenMessage(int numPics)
 {
     if (numPics <= 0) {
-        auto duration_ms = m_timer.elapsed();
-        emit sig_hasStatusMessage("Import failed after " + QString::number(duration_ms) + "ms");
+        emit sig_hasStatusMessage("No images found");
         onFailedOpen();
     }
     else {

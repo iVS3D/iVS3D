@@ -73,7 +73,7 @@
         <x>0</x>
         <y>0</y>
         <width>385</width>
-        <height>143</height>
+        <height>154</height>
        </rect>
       </property>
      </widget>
@@ -89,6 +89,12 @@
      </property>
      <item row="2" column="2">
       <widget class="QPushButton" name="pushButton">
+       <property name="font">
+        <font>
+         <pointsize>10</pointsize>
+         <bold>true</bold>
+        </font>
+       </property>
        <property name="toolTip">
         <string>Start the selected sampling algorithm</string>
        </property>
