@@ -10,6 +10,7 @@
 #include <QJsonObject>
 #include <QJsonDocument>
 #include <QCoreApplication>
+#include <QSettings>
 
 #include "opencv2/core.hpp"
 #ifdef WITH_CUDA

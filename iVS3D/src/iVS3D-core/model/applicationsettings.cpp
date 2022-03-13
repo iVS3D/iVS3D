@@ -12,70 +12,34 @@ ApplicationSettings::ApplicationSettings()
 
 void ApplicationSettings::loadSettings()
 {
-    QString settingsFile = QCoreApplication::applicationDirPath() + "/settings.json";
-    QFile file(settingsFile);
-    if(!file.exists()){
-        saveSettings();
-    }
-    file.open(QIODevice::ReadOnly | QIODevice::Text);
-    QString data = file.readAll();
-    file.close();
-
-    /*if (data.compare("")) {
-        return;
-    }*/
-
-    QJsonDocument doc = QJsonDocument::fromJson(data.toUtf8());
-    QJsonObject fullObject = doc.object().find(jsonEnum::applicationSettingsIdentifier).value().toObject();
-
-
-    m_standardInputPath = fullObject.find(jsonEnum::standardInputPathIdentifier).value().toString();
-    m_darkStyle = fullObject.find(jsonEnum::darkStyleIdentifier).value().toBool();
-    m_useCuda = fullObject.find(jsonEnum::useCudaIdentifier).value().toBool();
-    m_createLogs = fullObject.find(jsonEnum::createLogsIdentifier).value().toBool();
-
-
-    QVariant reconstructVar(fullObject.find(jsonEnum::reconstructSoftwareIdentifier).value().toObject());
-    QVariantMap reconstructMap = reconstructVar.toMap();
+    QSettings settings("Fraunhofer", "iVS3D");
+    m_standardInputPath = settings.value(jsonEnum::standardInputPathIdentifier).value<QString>();
+    m_darkStyle = settings.value(jsonEnum::darkStyleIdentifier).value<bool>();
+    m_useCuda = settings.value(jsonEnum::useCudaIdentifier).value<bool>();
+    QVariantMap reconstructMap = settings.value(jsonEnum::reconstructSoftwareIdentifier).value<QVariantMap>();
     QMapIterator<QString, QVariant> mapIt(reconstructMap);
     m_reconstructPath.clear();
     while (mapIt.hasNext()) {
         mapIt.next();
         m_reconstructPath.insert(mapIt.key(), mapIt.value().toString());
     }
-
+    m_createLogs = settings.value(jsonEnum::createLogsIdentifier).value<bool>();
 }
 
 void ApplicationSettings::saveSettings()
 {
-    QJsonObject all;
-    QJsonObject settings;
-
-    QVariant standartInputPath(m_standardInputPath);
-    QVariant darkStyle(m_darkStyle);
-    QVariant useCuda(m_useCuda);
-
+    QSettings settings("Fraunhofer", "iVS3D");
+    settings.setValue(jsonEnum::standardInputPathIdentifier, m_standardInputPath);
+    settings.setValue(jsonEnum::darkStyleIdentifier, m_darkStyle);
+    settings.setValue(jsonEnum::useCudaIdentifier, m_useCuda);
     QVariantMap reconstructMap;
     QMapIterator<QString, QString> mapIt(m_reconstructPath);
     while (mapIt.hasNext()) {
         mapIt.next();
         reconstructMap.insert(mapIt.key(), mapIt.value());
     }
-
-    settings.insert(jsonEnum::standardInputPathIdentifier, QJsonValue::fromVariant(standartInputPath));
-    settings.insert(jsonEnum::darkStyleIdentifier, QJsonValue::fromVariant(darkStyle));
-    settings.insert(jsonEnum::useCudaIdentifier, QJsonValue::fromVariant(useCuda));
-    settings.insert(jsonEnum::reconstructSoftwareIdentifier, QJsonObject::fromVariantMap(reconstructMap));
-    settings.insert(jsonEnum::createLogsIdentifier, QJsonValue::fromVariant(m_createLogs));
-
-    all.insert(jsonEnum::applicationSettingsIdentifier, settings);
-
-    QString settingsFile = QCoreApplication::applicationDirPath() + "/settings.json";
-    QFile file(settingsFile);
-    QJsonDocument doc(all);
-    file.open(QFile::WriteOnly | QFile::Text | QFile::Truncate);
-    file.write(doc.toJson());
-    file.close();
+    settings.setValue(jsonEnum::reconstructSoftwareIdentifier, reconstructMap);
+    settings.setValue(jsonEnum::createLogsIdentifier, m_createLogs);
 }
 
 
