@@ -18,7 +18,6 @@ Controller::Controller()
                 ApplicationSettings::instance().getDarkStyle(),
                 useCuda,
                 ApplicationSettings::instance().getCreateLogs(),
-                ApplicationSettings::instance().getLayoutStyle(),
                 algorithms,
                 transforms
                 );
@@ -43,13 +42,13 @@ Controller::Controller()
     connect(m_mainWindow, &MainWindow::sig_changeReconstructPath, this, &Controller::slot_addReconstructPath);
     connect(m_mainWindow, &MainWindow::sig_changeDefaultInputPath, this, &Controller::slot_changeDefaultInputPath);
     connect(m_mainWindow, &MainWindow::sig_changeDarkStyle, this, &Controller::slot_changeDarkStyle);
-    connect(m_mainWindow, &MainWindow::sig_changeLayoutStyle, this, &Controller::slot_changeLayoutStyle);
     connect(m_mainWindow, &MainWindow::sig_changeUseCuda, this, &Controller::slot_changeUseCuda);
     connect(m_mainWindow, &MainWindow::sig_changeCreateLogFile, this, &Controller::slot_changeCreateLogFile);
 
     connect(this, &Controller::sig_hasStatusMessage, m_mainWindow, &MainWindow::slot_displayStatusMessage);
 
     m_mainWindow->getAutoWidget()->updateSelectedPlugins(m_autoSettings->getPluginNames());
+    m_mainWindow->show();
 }
 
 Controller::~Controller()
@@ -207,12 +206,6 @@ void Controller::slot_changeDarkStyle(bool dark)
 {
     ApplicationSettings::instance().setDarkStyle(dark);
     emit sig_hasStatusMessage("GUI changed to " + QString((dark ? "dark" : "light")) + " style -- restart to activate changes");
-}
-
-void Controller::slot_changeLayoutStyle(bool horizontal)
-{
-    ApplicationSettings::instance().setLayoutStyle(horizontal);
-    emit sig_hasStatusMessage("GUI layout changed to " + QString((horizontal ? "horizontal" : "vertical")));
 }
 
 void Controller::slot_changeUseCuda(bool useCuda)

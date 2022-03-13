@@ -24,7 +24,6 @@ const QString jsonEnum::reconstructSoftwareIdentifier = "reconstructSoftware";
 const QString jsonEnum::standardInputPathIdentifier = "standardInputPath";
 const QString jsonEnum::darkStyleIdentifier = "darkStyle";
 const QString jsonEnum::useCudaIdentifier = "useCuda";
-const QString jsonEnum::layoutIdentifier = "layout";
 const QString jsonEnum::createLogsIdentifier = "create logs";
 
 

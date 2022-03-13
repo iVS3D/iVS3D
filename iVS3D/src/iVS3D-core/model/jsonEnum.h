@@ -38,7 +38,6 @@ struct jsonEnum
     static const QString standardInputPathIdentifier;
     static const QString darkStyleIdentifier;
     static const QString useCudaIdentifier;
-    static const QString layoutIdentifier;
     static const QString createLogsIdentifier;
 
     // Identifier for LogFile

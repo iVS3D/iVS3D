@@ -106,11 +106,6 @@ public slots:
      */
     void slot_changeDarkStyle(bool dark);
     /**
-     * @brief slot_changeLayoutStyle Slot is called when 'Change layout style' is clicked.
-     * It will change the layout style bool in ApplicationSettings.
-     */
-    void slot_changeLayoutStyle(bool horizontal);
-    /**
      * @brief slot_changeUseCuda Slot is called when 'CUDA' is clicked.
      * @param useCuda @a true if CUDA is marked
      */

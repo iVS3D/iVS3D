@@ -71,16 +71,12 @@ public:
      * @param algorithmList holds identifier(names) of all loaded plugins(algorithms)
 	 * @param transformList holds identifier(names) of all loaded transform plugins
      */
-    MainWindow(QWidget *parent = nullptr, bool dark = false, int cuda = -1, bool createLog = false, bool horizontal = false, QStringList algorithmList = QStringList("no algorithm"), QStringList transformList = QStringList(""));
+    MainWindow(QWidget *parent = nullptr, bool dark = false, int cuda = -1, bool createLog = false, QStringList algorithmList = QStringList("no algorithm"), QStringList transformList = QStringList(""));
 
     /**
       * @brief delete members and disconnect connections
       */
     ~MainWindow();
-    /**
-     * @brief center centers the application on the monitor
-     */
-    void center();
     /**
      * @brief showProjectTitle used to show loaded project in the titlebar of the main-window
      *
@@ -205,7 +201,6 @@ private slots:
     void on_actionOpen_Input_triggered();
     void on_actionSet_Reconstructiontool_Path_triggered();
     void on_actionSet_Input_Path_triggered();
-    void on_actionChange_layout_style_triggered();
     void on_actionInfo_triggered();
     void on_actionOpen_Input_Video_triggered();
     void on_actionHelp_triggered();
@@ -223,13 +218,7 @@ private:
     OutputWidget *m_outputWidget;
     Timeline *m_timeline;
     AutomaticWidget *m_autoWidget;
-    //bool m_horizontalLayout;
-    //QSplitter *m_vpSplitter;
-    //QSplitter *m_infoSplitter;
     const QString m_appName = "intelligent Video Sampler 3D";
-
-    //void setHorizontalLayout();
-    //void setVerticalLayout();
     std::vector<uint> generateKeyframes(uint totalFrames, uint keyframeCount);
     void dropEvent(QDropEvent *event) override;
     void dragEnterEvent(QDragEnterEvent *event) override;

@@ -4,7 +4,6 @@
 ApplicationSettings::ApplicationSettings()
 {
     //Set default values
-    m_horizontal = true;
     m_createLogs = true;
     m_useCuda = true;
     loadSettings();
@@ -33,7 +32,6 @@ void ApplicationSettings::loadSettings()
     m_standardInputPath = fullObject.find(jsonEnum::standardInputPathIdentifier).value().toString();
     m_darkStyle = fullObject.find(jsonEnum::darkStyleIdentifier).value().toBool();
     m_useCuda = fullObject.find(jsonEnum::useCudaIdentifier).value().toBool();
-    m_horizontal = fullObject.find(jsonEnum::layoutIdentifier).value().toBool();
     m_createLogs = fullObject.find(jsonEnum::createLogsIdentifier).value().toBool();
 
 
@@ -56,7 +54,6 @@ void ApplicationSettings::saveSettings()
     QVariant standartInputPath(m_standardInputPath);
     QVariant darkStyle(m_darkStyle);
     QVariant useCuda(m_useCuda);
-    QVariant layout(m_horizontal);
 
     QVariantMap reconstructMap;
     QMapIterator<QString, QString> mapIt(m_reconstructPath);
@@ -68,7 +65,6 @@ void ApplicationSettings::saveSettings()
     settings.insert(jsonEnum::standardInputPathIdentifier, QJsonValue::fromVariant(standartInputPath));
     settings.insert(jsonEnum::darkStyleIdentifier, QJsonValue::fromVariant(darkStyle));
     settings.insert(jsonEnum::useCudaIdentifier, QJsonValue::fromVariant(useCuda));
-    settings.insert(jsonEnum::layoutIdentifier, QJsonValue::fromVariant(layout));
     settings.insert(jsonEnum::reconstructSoftwareIdentifier, QJsonObject::fromVariantMap(reconstructMap));
     settings.insert(jsonEnum::createLogsIdentifier, QJsonValue::fromVariant(m_createLogs));
 
@@ -115,11 +111,6 @@ void ApplicationSettings::setDarkStyle(bool dark)
     saveSettings();
 }
 
-void ApplicationSettings::setLayoutStyle(bool horizontal)
-{
-    m_horizontal = horizontal;
-    saveSettings();
-}
 
 void ApplicationSettings::setUseCuda(bool useCuda)
 {
@@ -150,11 +141,6 @@ bool ApplicationSettings::getDarkStyle()
 bool ApplicationSettings::getActiveStyle()
 {
     return m_activeStyle;
-}
-
-bool ApplicationSettings::getLayoutStyle()
-{
-    return m_horizontal;
 }
 
 bool ApplicationSettings::getUseCuda()

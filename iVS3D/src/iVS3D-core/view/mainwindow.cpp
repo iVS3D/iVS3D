@@ -18,7 +18,7 @@
 
 
 
-MainWindow::MainWindow(QWidget *parent, bool dark, int cuda, bool createLog, bool horizontal, QStringList algorithmList, QStringList transformList)
+MainWindow::MainWindow(QWidget *parent, bool dark, int cuda, bool createLog, QStringList algorithmList, QStringList transformList)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
@@ -38,24 +38,6 @@ MainWindow::MainWindow(QWidget *parent, bool dark, int cuda, bool createLog, boo
 
     // initialize the layout of GUI elements
     m_videoplayer->addWidgetToLayout(m_timeline); // timeline is part of videoplayer-layout
-/*
-    m_horizontalLayout = horizontal;
-    m_vpSplitter = new QSplitter(Qt::Vertical, this);
-    m_vpSplitter->addWidget(m_videoplayer);
-    m_infoSplitter = new QSplitter(Qt::Horizontal, this);
-    m_infoSplitter->setContentsMargins(10,0,10,0);
-    InputAutomaticWidget* inputAutoWidget = new InputAutomaticWidget(this, m_inputWidget, m_autoWidget);
-    m_infoSplitter->addWidget(inputAutoWidget);
-    m_infoSplitter->addWidget(m_samplingWidget);
-    m_infoSplitter->addWidget(m_outputWidget);
-    m_vpSplitter->addWidget(m_infoSplitter);
-    setCentralWidget(m_vpSplitter);
-    if(m_horizontalLayout){
-        setHorizontalLayout();
-    } else {
-        setVerticalLayout();
-    }
-*/
     setCentralWidget(m_videoplayer);
     setDockNestingEnabled(true);
     QDockWidget *dock;
@@ -126,7 +108,6 @@ MainWindow::MainWindow(QWidget *parent, bool dark, int cuda, bool createLog, boo
     connect(m_inputWidget, &InfoWidget::sig_openFolderPressed, this, &MainWindow::on_actionOpen_Input_triggered);
     connect(m_inputWidget, &InfoWidget::sig_openVideoPressed, this, &MainWindow::on_actionOpen_Input_Video_triggered);
 
-    //this->setHorizontalLayout();
     this->showProjectTitle();
 
 
@@ -164,8 +145,6 @@ MainWindow::MainWindow(QWidget *parent, bool dark, int cuda, bool createLog, boo
     setAcceptDrops(true);
     //disable automatic execution
     ui->actionStartAutoExec->setEnabled(false);
-
-    QTimer::singleShot(0, this, &MainWindow::showMaximized);
 }
 
 MainWindow::~MainWindow()
@@ -181,7 +160,7 @@ MainWindow::~MainWindow()
 void MainWindow::closeEvent(QCloseEvent *event)
 {
     QSettings settings("Fraunhofer", "iVS3D");
-    settings.setValue("geometry", saveGeometry());
+    settings.setValue("windowGeometry", QVariant(geometry()));
     settings.setValue("windowState", saveState());
     QMainWindow::closeEvent(event);
 }
@@ -189,45 +168,16 @@ void MainWindow::closeEvent(QCloseEvent *event)
 void MainWindow::readSettings()
 {
     QSettings settings("Fraunhofer", "iVS3D");
-    if(!settings.value("geometry").isNull()){
-        restoreGeometry(settings.value("geometry").toByteArray());
+    if(!settings.value("windowGeometry").isNull()){
+        setGeometry(settings.value("windowGeometry").value<QRect>());
         restoreState(settings.value("windowState").toByteArray());
     }
-}
-
-
-void MainWindow::center()
-{
-    this->setGeometry(
-        QStyle::alignedRect(
-            Qt::LeftToRight,
-            Qt::AlignCenter,
-            this->size(),
-                    qApp->desktop()->geometry()));
 }
 
 void MainWindow::showProjectTitle(const QString &title)
 {
     this->setWindowTitle(m_appName + " [" + title + "]");
 }
-
-/*
-void MainWindow::setHorizontalLayout()
-{
-    m_vpSplitter->setOrientation(Qt::Vertical);
-    m_infoSplitter->setOrientation(Qt::Horizontal);
-    adjustSize();
-}
-
-
-void MainWindow::setVerticalLayout()
-{
-
-    m_vpSplitter->setOrientation(Qt::Horizontal);
-    m_infoSplitter->setOrientation(Qt::Vertical);
-    adjustSize();
-}
-*/
 
 void MainWindow::slot_displayStatusMessage(QString message)
 {
@@ -306,18 +256,6 @@ void MainWindow::on_actionSet_Input_Path_triggered()
     emit sig_changeDefaultInputPath();
 }
 
-void MainWindow::on_actionChange_layout_style_triggered()
-{
-    /*m_horizontalLayout = !m_horizontalLayout;
-    if (m_horizontalLayout) {
-        setHorizontalLayout();
-    }
-    else {
-        setVerticalLayout();
-    }
-    emit sig_changeLayoutStyle(m_horizontalLayout);*/
-}
-
 void MainWindow::on_actionInfo_triggered()
 {
     //open About Dialog
@@ -392,7 +330,6 @@ void MainWindow::on_actionLicence_triggered()
     QDialog *licence = new LicenceDialog(this);
     licence->exec();
 }
-
 
 void MainWindow::on_actionCreate_log_file_triggered()
 {

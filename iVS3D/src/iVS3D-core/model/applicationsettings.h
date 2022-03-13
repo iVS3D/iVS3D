@@ -66,12 +66,6 @@ public:
      */
     void setDarkStyle(bool dark);
     /**
-     * @brief Sets the layoutStyle
-     *
-     * @param horizontal @True will toggle a horizontial layout
-     */
-    void setLayoutStyle(bool horizontal);
-    /**
      * @brief setUseCuda Sets use cuda boolean
      * @param useCuda @a true if cuda is used, @a false otherwise
      */
@@ -107,12 +101,6 @@ public:
      */
     bool getActiveStyle();
     /**
-     * @brief Returns if the horizontal layout is active
-     *
-     * @return @a true if horizontal layout is active
-     */
-    bool getLayoutStyle();
-    /**
      * @brief Returns if use CUDA is enabled
      * @return @a true if cuda is enabled
      */
@@ -134,7 +122,6 @@ private:
     QString m_standardInputPath;
     bool m_darkStyle;
     bool m_activeStyle;
-    bool m_horizontal;
     bool m_useCuda;
     bool m_createLogs;
     void loadSettings();
