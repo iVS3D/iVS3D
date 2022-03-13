@@ -1,7 +1,7 @@
 #ifndef PROJECTMANAGER_H
 #define PROJECTMANAGER_H
 
-#include "jsonEnum.h"
+#include "stringcontainer.h"
 #include "modelalgorithm.h"
 #include "modelinputpictures.h"
 

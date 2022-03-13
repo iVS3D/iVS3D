@@ -5,7 +5,7 @@
 #include "imagereader.h"
 #include "videoreader.h"
 #include "ISerializable.h"
-#include "jsonEnum.h"
+#include "stringcontainer.h"
 #include "delayedcopyreader.h"
 #include "concurrentreader.h"
 

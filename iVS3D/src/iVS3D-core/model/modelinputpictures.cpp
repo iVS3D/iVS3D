@@ -129,7 +129,7 @@ QVariant ModelInputPictures::toText()
     std::stringstream keyStream;
     for (uint i = 0; i < m_keyframes.size(); i++) {
         if (i != 0) {
-           keyStream << jsonEnum::jsonDelimiter.toStdString();
+           keyStream << stringContainer::jsonDelimiter.toStdString();
         }
         keyStream << m_keyframes[i];
     }
@@ -140,8 +140,8 @@ QVariant ModelInputPictures::toText()
 
     QJsonObject jsonObject;
     QJsonValue::fromVariant(inputPath);
-    jsonObject.insert(jsonEnum::keyframesIdentifier, QJsonValue::fromVariant(keyframes));
-    jsonObject.insert(jsonEnum::inputPathIdentifier, QJsonValue::fromVariant(inputPath));
+    jsonObject.insert(stringContainer::keyframesIdentifier, QJsonValue::fromVariant(keyframes));
+    jsonObject.insert(stringContainer::inputPathIdentifier, QJsonValue::fromVariant(inputPath));
     return QVariant(jsonObject);
 
 }
@@ -150,7 +150,7 @@ void ModelInputPictures::fromText(QVariant data)
 {
     QJsonObject jsonData = data.toJsonObject();
     //get import part, create new reader and set resolution
-    QJsonObject::Iterator inputPath = jsonData.find(jsonEnum::inputPathIdentifier);
+    QJsonObject::Iterator inputPath = jsonData.find(stringContainer::inputPathIdentifier);
     if (cv::utils::fs::isDirectory(inputPath.value().toString().toStdString())) {
         m_reader = new ImageReader(inputPath.value().toString());
     }
@@ -162,7 +162,7 @@ void ModelInputPictures::fromText(QVariant data)
         setResolution();
     }
     //get keyframes
-    QString keyframes = jsonData.find(jsonEnum::keyframesIdentifier).value().toString();
+    QString keyframes = jsonData.find(stringContainer::keyframesIdentifier).value().toString();
     m_keyframes = splitString(keyframes);
 
 
@@ -219,7 +219,7 @@ QPoint ModelInputPictures::getInputResolution()
 std::vector<unsigned int> ModelInputPictures::splitString(QString string) {
 
     std::vector<unsigned int> returnVector;
-    QStringList values = string.split(jsonEnum::jsonDelimiter);
+    QStringList values = string.split(stringContainer::jsonDelimiter);
     for (QString& val : values) {
         if (!val.isEmpty()) {
           returnVector.push_back(val.toUInt());

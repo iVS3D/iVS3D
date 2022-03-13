@@ -12,7 +12,7 @@
 #include <QFile>
 #include <sstream>
 
-#include "jsonEnum.h"
+#include "stringcontainer.h"
 
 #define EMPTY_TYPE ""
 #define DATE_FORMAT "dd.MM.yyyy hh:mm:ss.z"

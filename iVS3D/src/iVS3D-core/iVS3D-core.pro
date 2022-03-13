@@ -77,7 +77,6 @@ SOURCES += \
     model/imagereader.cpp \
     model/videoreader.cpp \
     model/exportthread.cpp \
-    model/jsonEnum.cpp \
     model/projectmanager.cpp \
     model/applicationsettings.cpp \
     model/modelalgorithm.cpp \
@@ -148,7 +147,6 @@ HEADERS += \
     model/exportthread.h \
     model/imagereader.h \
     model/progressable.h \
-    model/jsonEnum.h \
     model/reader.h \
     model/videoreader.h \
     model/exportexecutor.h \

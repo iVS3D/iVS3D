@@ -281,7 +281,7 @@ void Controller::setInputWidgetInfo() {
     QString y = QString::number(m_dataManager->getModelInputPictures()->getInputResolution().y());
     QString resolution = x + " x " + y;
     info.insert("Resolution  ", resolution);
-    info.insert(jsonEnum::inputPathIdentifier, m_dataManager->getModelInputPictures()->getPath());
+    info.insert(stringContainer::inputPathIdentifier, m_dataManager->getModelInputPictures()->getPath());
     Reader* currentReader = m_dataManager->getModelInputPictures()->getReader();
     if(currentReader->getFPS() != -1) {
         info.insert("FPS ", QString::number(currentReader->getFPS()));

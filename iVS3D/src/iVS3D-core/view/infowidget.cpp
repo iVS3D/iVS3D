@@ -34,7 +34,7 @@ void InfoWidget::setInfo(QMap<QString, QString> info)
     QString str = "";
     // add each entry separatly to the table
     foreach (QString key, info.keys()) {
-        if(key.compare(jsonEnum::inputPathIdentifier) == 0){
+        if(key.compare(stringContainer::inputPathIdentifier) == 0){
             QString input = "<tr><td style=\"word-wrap: break-word\" colspan=\"2\">" + info.value(key) + "</td></tr><tr><td></td></tr>";
             str = input + str;
         } else {

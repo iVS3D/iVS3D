@@ -33,16 +33,16 @@ void LogFile::setSettings(QMap<QString, QVariant> settings)
 void LogFile::setInputInfo(std::vector<uint> inputFrames)
 {
     QVariant varInpuFrames = vectorToVariant(inputFrames);
-    m_inputInfo.insert(jsonEnum::logKeyframesIdentifier, QJsonValue::fromVariant(varInpuFrames));
-    m_inputInfo.insert(jsonEnum::logKeyframeCountIdentifier, (int)inputFrames.size());
+    m_inputInfo.insert(stringContainer::logKeyframesIdentifier, QJsonValue::fromVariant(varInpuFrames));
+    m_inputInfo.insert(stringContainer::logKeyframeCountIdentifier, (int)inputFrames.size());
     emit sig_updateLog();
 }
 
 void LogFile::setResultsInfo(std::vector<uint> keyframes)
 {
     QVariant varKeyframes = vectorToVariant(keyframes);
-    m_resultInfo.insert(jsonEnum::logKeyframesIdentifier, QJsonValue::fromVariant(varKeyframes));
-    m_resultInfo.insert(jsonEnum::logKeyframeCountIdentifier, (int)keyframes.size());
+    m_resultInfo.insert(stringContainer::logKeyframesIdentifier, QJsonValue::fromVariant(varKeyframes));
+    m_resultInfo.insert(stringContainer::logKeyframeCountIdentifier, (int)keyframes.size());
     emit sig_updateLog();
 }
 
@@ -51,7 +51,7 @@ void LogFile::addCustomEntry(QString entryName, QVariant entryValue, QString typ
     QJsonObject jsonEntry;
     // set type if it was set
     if (type != EMPTY_TYPE) {
-        jsonEntry.insert(jsonEnum::logTypeIdentifier, type);
+        jsonEntry.insert(stringContainer::logTypeIdentifier, type);
     }
     // set entry value
     jsonEntry.insert(entryName, QJsonValue::fromVariant(entryValue));
@@ -110,40 +110,40 @@ QJsonObject LogFile::toQJSON()
     QJsonObject jsonSettings = QJsonObject::fromVariantMap(m_settings);
     // total procedure info
     QJsonObject jsonTotalProcedure;
-    jsonTotalProcedure.insert(jsonEnum::logElapsedTimeIdentifier, m_globalProcedureElapsed);
-    jsonTotalProcedure.insert(jsonEnum::logStartTimeIdentifier, m_globalProcedureStart);
-    jsonTotalProcedure.insert(jsonEnum::logStopTimeIdentifier, m_globalProcedureStop);
+    jsonTotalProcedure.insert(stringContainer::logElapsedTimeIdentifier, m_globalProcedureElapsed);
+    jsonTotalProcedure.insert(stringContainer::logStartTimeIdentifier, m_globalProcedureStart);
+    jsonTotalProcedure.insert(stringContainer::logStopTimeIdentifier, m_globalProcedureStop);
     // procedure (logged times)
     QJsonArray jsonProcedure;
     //      add internal procedures
     for (INTERNAL_PROCEDURE currProcedure : m_procedureList) {
         QJsonObject jsonProcedureEntry;
-        jsonProcedureEntry.insert(jsonEnum::logNameIdentifier, currProcedure.name);
-        jsonProcedureEntry.insert(jsonEnum::logElapsedTimeIdentifier, currProcedure.elapsedTime);
-        jsonProcedureEntry.insert(jsonEnum::logStartTimeIdentifier, currProcedure.startTime);
-        jsonProcedureEntry.insert(jsonEnum::logStopTimeIdentifier, currProcedure.stopTime);
+        jsonProcedureEntry.insert(stringContainer::logNameIdentifier, currProcedure.name);
+        jsonProcedureEntry.insert(stringContainer::logElapsedTimeIdentifier, currProcedure.elapsedTime);
+        jsonProcedureEntry.insert(stringContainer::logStartTimeIdentifier, currProcedure.startTime);
+        jsonProcedureEntry.insert(stringContainer::logStopTimeIdentifier, currProcedure.stopTime);
         jsonProcedure.push_back(jsonProcedureEntry);
     }
     // custom log area
     QJsonArray jsonCustom;
     for (QJsonObject currCustomEntry : m_customLog) {
         QString logTime = QDateTime::currentDateTime().toString(DATE_FORMAT);
-        currCustomEntry.insert(jsonEnum::logCreationTimeIdentifier, logTime);
+        currCustomEntry.insert(stringContainer::logCreationTimeIdentifier, logTime);
         jsonCustom.push_back(currCustomEntry);
     }
     // results
     QJsonObject jsonResults = m_resultInfo;
 
     // put all parts of the current log together
-    jsonAll.insert(jsonEnum::logNameIdentifier, m_name);
-    jsonAll.insert(jsonEnum::logCreationTimeIdentifier, getCreationTime());
-    jsonAll.insert(jsonEnum::logInputIdentifier, jsonInput);
-    jsonAll.insert(jsonEnum::logSettingsIdentifier, jsonSettings);
-    jsonAll.insert(jsonEnum::logTotalProcedureIdentifier, jsonTotalProcedure);
-    jsonAll.insert(jsonEnum::logProcedureIdentifier, jsonProcedure);
-    jsonAll.insert(jsonEnum::logCustomIdentifier, jsonCustom);
-    jsonAll.insert(jsonEnum::logResultsIdentifier, jsonResults);
-    jsonAll.insert(jsonEnum::logIsPluginIdentifier, m_isPlugin);
+    jsonAll.insert(stringContainer::logNameIdentifier, m_name);
+    jsonAll.insert(stringContainer::logCreationTimeIdentifier, getCreationTime());
+    jsonAll.insert(stringContainer::logInputIdentifier, jsonInput);
+    jsonAll.insert(stringContainer::logSettingsIdentifier, jsonSettings);
+    jsonAll.insert(stringContainer::logTotalProcedureIdentifier, jsonTotalProcedure);
+    jsonAll.insert(stringContainer::logProcedureIdentifier, jsonProcedure);
+    jsonAll.insert(stringContainer::logCustomIdentifier, jsonCustom);
+    jsonAll.insert(stringContainer::logResultsIdentifier, jsonResults);
+    jsonAll.insert(stringContainer::logIsPluginIdentifier, m_isPlugin);
 
     return jsonAll;
 }
@@ -167,7 +167,7 @@ QVariant LogFile::vectorToVariant(std::vector<uint> vector)
     std::stringstream sStream;
     for (uint i = 0; i < vector.size(); i++) {
         if (i != 0) {
-           sStream << jsonEnum::jsonDelimiter.toStdString();
+           sStream << stringContainer::jsonDelimiter.toStdString();
         }
         sStream << vector[i];
     }

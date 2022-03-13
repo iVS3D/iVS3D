@@ -13,33 +13,33 @@ ApplicationSettings::ApplicationSettings()
 void ApplicationSettings::loadSettings()
 {
     QSettings settings("Fraunhofer", "iVS3D");
-    m_standardInputPath = settings.value(jsonEnum::standardInputPathIdentifier).value<QString>();
-    m_darkStyle = settings.value(jsonEnum::darkStyleIdentifier).value<bool>();
-    m_useCuda = settings.value(jsonEnum::useCudaIdentifier).value<bool>();
-    QVariantMap reconstructMap = settings.value(jsonEnum::reconstructSoftwareIdentifier).value<QVariantMap>();
+    m_standardInputPath = settings.value(stringContainer::standardInputPathIdentifier).value<QString>();
+    m_darkStyle = settings.value(stringContainer::darkStyleIdentifier).value<bool>();
+    m_useCuda = settings.value(stringContainer::useCudaIdentifier).value<bool>();
+    QVariantMap reconstructMap = settings.value(stringContainer::reconstructSoftwareIdentifier).value<QVariantMap>();
     QMapIterator<QString, QVariant> mapIt(reconstructMap);
     m_reconstructPath.clear();
     while (mapIt.hasNext()) {
         mapIt.next();
         m_reconstructPath.insert(mapIt.key(), mapIt.value().toString());
     }
-    m_createLogs = settings.value(jsonEnum::createLogsIdentifier).value<bool>();
+    m_createLogs = settings.value(stringContainer::createLogsIdentifier).value<bool>();
 }
 
 void ApplicationSettings::saveSettings()
 {
     QSettings settings("Fraunhofer", "iVS3D");
-    settings.setValue(jsonEnum::standardInputPathIdentifier, m_standardInputPath);
-    settings.setValue(jsonEnum::darkStyleIdentifier, m_darkStyle);
-    settings.setValue(jsonEnum::useCudaIdentifier, m_useCuda);
+    settings.setValue(stringContainer::standardInputPathIdentifier, m_standardInputPath);
+    settings.setValue(stringContainer::darkStyleIdentifier, m_darkStyle);
+    settings.setValue(stringContainer::useCudaIdentifier, m_useCuda);
     QVariantMap reconstructMap;
     QMapIterator<QString, QString> mapIt(m_reconstructPath);
     while (mapIt.hasNext()) {
         mapIt.next();
         reconstructMap.insert(mapIt.key(), mapIt.value());
     }
-    settings.setValue(jsonEnum::reconstructSoftwareIdentifier, reconstructMap);
-    settings.setValue(jsonEnum::createLogsIdentifier, m_createLogs);
+    settings.setValue(stringContainer::reconstructSoftwareIdentifier, reconstructMap);
+    settings.setValue(stringContainer::createLogsIdentifier, m_createLogs);
 }
 
 

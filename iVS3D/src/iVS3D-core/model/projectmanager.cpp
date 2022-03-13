@@ -17,9 +17,9 @@ bool ProjectManager::saveProject(ModelInputPictures *mip, ModelAlgorithm *ma)
     QJsonObject all;
     QJsonObject mipJSON = mipVariant.toJsonObject();
     QJsonObject maJSON = maVariant.toJsonObject();
-    all.insert(jsonEnum::projectNameIdentifier, m_projectName);
-    all.insert(jsonEnum::mipIdentifier, mipJSON);
-    all.insert(jsonEnum::maIdentifier, maJSON);
+    all.insert(stringContainer::projectNameIdentifier, m_projectName);
+    all.insert(stringContainer::mipIdentifier, mipJSON);
+    all.insert(stringContainer::maIdentifier, maJSON);
 
 
     QFile file(m_projectPath);
@@ -79,12 +79,12 @@ bool ProjectManager::loadProject(ModelInputPictures *mip, ModelAlgorithm *ma, QS
     QJsonDocument doc = QJsonDocument::fromJson(data.toUtf8());
     QJsonObject fullObject = doc.object();
     //Get project Name
-    m_projectName = fullObject.find(jsonEnum::projectNameIdentifier).value().toString();
+    m_projectName = fullObject.find(stringContainer::projectNameIdentifier).value().toString();
     //Get the mip JsonObject and create mip with it
-    QJsonObject mipJson = fullObject.find(jsonEnum::mipIdentifier).value().toObject();
+    QJsonObject mipJson = fullObject.find(stringContainer::mipIdentifier).value().toObject();
     mip->fromText(mipJson);
     //Get the ma JsonObject and create mip with it
-    QJsonObject maVar = fullObject.find(jsonEnum::maIdentifier).value().toObject();
+    QJsonObject maVar = fullObject.find(stringContainer::maIdentifier).value().toObject();
     ma->fromText(maVar);
 
     m_projectPath = path;

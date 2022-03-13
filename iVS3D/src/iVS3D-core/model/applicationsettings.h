@@ -1,7 +1,7 @@
 #ifndef APPLICATIONSETTINGS_H
 #define APPLICATIONSETTINGS_H
 
-#include "jsonEnum.h"
+#include "stringcontainer.h"
 #include <QObject>
 #include <QMap>
 #include <QVariant>

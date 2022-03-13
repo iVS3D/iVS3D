@@ -2,7 +2,7 @@
 #define INFOWIDGET_H
 
 #include <QWidget>
-#include "jsonEnum.h"
+#include "stringcontainer.h"
 
 #include <QRegExp>
 #include <QRegularExpression>

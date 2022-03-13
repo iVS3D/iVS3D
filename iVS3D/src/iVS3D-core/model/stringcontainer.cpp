@@ -25,3 +25,50 @@ const QString stringContainer::lfImportProjectPath = "Project path";
 const QString stringContainer::lfExportProcess = "Export";
 const QString stringContainer::lfExportPreprocessing = "Preproccssing";
 const QString stringContainer::lfExportFrames = "Keyframes and Masks";
+// Identifier for project inforamtion
+const QString stringContainer::projectNameIdentifier = "Project name";
+const QString stringContainer::jsonDelimiter = ",";
+
+// Identifier for ModelInputPictures member
+const QString stringContainer::mipIdentifier = "ModelInputPictures";
+const QString stringContainer::inputPathIdentifier = "inputPath";
+const QString stringContainer::keyframesIdentifier = "keyframes";
+
+// Identifier for ModelAlgorithm
+const QString stringContainer::maIdentifier = "ModelAlgorithm";
+
+// Identifier for exportData
+const QString stringContainer::exportDataIdentifier = "ExportData";
+const QString stringContainer::keyframeCountIdentifier = "keyframeCount";
+const QString stringContainer::exportResolutionIdentifier = "exportResolution";
+const QString stringContainer::exportPathIdentifier = "exportPath";
+
+//Identifier for ApplicationSettings
+const QString stringContainer::applicationSettingsIdentifier = "ApplicationSettings";
+const QString stringContainer::reconstructSoftwareIdentifier = "reconstructSoftware";
+const QString stringContainer::standardInputPathIdentifier = "standardInputPath";
+const QString stringContainer::darkStyleIdentifier = "darkStyle";
+const QString stringContainer::useCudaIdentifier = "useCuda";
+const QString stringContainer::createLogsIdentifier = "create logs";
+
+
+// Identifier for LfogFile
+const QString stringContainer::logNameIdentifier = "Name";
+const QString stringContainer::logIsPluginIdentifier = "isPlugin";
+const QString stringContainer::logCreationTimeIdentifier = "Creation time";
+const QString stringContainer::logSettingsIdentifier = "Settings";
+//      input
+const QString stringContainer::logInputIdentifier = "Input";
+//      procedure
+const QString stringContainer::logTotalProcedureIdentifier = "All procedures";
+const QString stringContainer::logProcedureIdentifier = "Procedure";
+const QString stringContainer::logStartTimeIdentifier = "Start time";
+const QString stringContainer::logStopTimeIdentifier = "Stop time";
+const QString stringContainer::logElapsedTimeIdentifier = "Elapsed time";
+//      results
+const QString stringContainer::logResultsIdentifier = "Results";
+const QString stringContainer::logKeyframeCountIdentifier = "Keyframe count";
+const QString stringContainer::logKeyframesIdentifier = "Keyframes";
+//      custom area
+const QString stringContainer::logCustomIdentifier = "Custom";
+const QString stringContainer::logTypeIdentifier = "Type";
