@@ -21,6 +21,8 @@ HEADERS += farnebackoptflowgpu.h
 SOURCES += farnebackoptflowgpu.cpp
 }
 
+QT += concurrent
+
 SOURCES += \
     stationarycamera.cpp \
     farnebackoptflowcpu.cpp \

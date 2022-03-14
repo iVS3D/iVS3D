@@ -21,6 +21,7 @@
 #include <opencv2/core/mat.hpp>
 #include <iostream>
 #include <iomanip>
+#include <QtConcurrent/QtConcurrentMap>
 
 #include "IAlgorithm.h"
 #include "reader.h"
@@ -167,7 +168,6 @@ private:
     double computeFlow(cv::Mat image1, cv::Mat image2, FarnebackOptFlow *farn);
     void recreateBuffer(QMap<QString, QVariant> buffer);
     double median(std::vector<double> &vec);
-
 };
 
 #endif // STATIONARYCAMERA_H

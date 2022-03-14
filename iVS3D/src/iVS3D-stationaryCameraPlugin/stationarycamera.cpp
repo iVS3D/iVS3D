@@ -1,5 +1,13 @@
 #include "stationarycamera.h"
 
+// Temporary
+//#include <opencv2/cudaoptflow.hpp>
+//#include <opencv2/cudaarithm.hpp>
+//#include <opencv2/cudawarping.hpp>
+//#include <opencv2/cudaimgproc.hpp>
+#include <QThreadPool>
+//
+
 StationaryCamera::StationaryCamera()
 {
 }
@@ -16,117 +24,147 @@ std::vector<uint> StationaryCamera::sampleImages(Reader *reader, const std::vect
 {
     m_logFile = logFile;
 
-    auto start = std::chrono::high_resolution_clock::now();
     m_logFile->startTimer(LF_BUFFER);
     recreateBuffer(buffer);
     m_logFile->stopTimer();
-    auto endBuffer = std::chrono::high_resolution_clock::now();
 
-    // calculate flow values
-    //      used to calculate median of flow values
-    std::vector<double> computedFlowValues;
-    //      used for fast selection of stationary frames
-    QMap<uint, double> flowWithIndex;
-    FarnebackOptFlow *farn = FarnebackOptFlowFactory::create(useCuda ? FARNEBACK_CUDA : FARNEBACK_CPU);
-    farn->setup();
-
-    auto endSetup = std::chrono::high_resolution_clock::now();
-
-    std::cout << "\n\n<-------- COMPUTING MOVEMENT [duration in ms] ------->\n";
-    std::cout << std::left << std::setw(10) << "idx curr" << std::setw(10) << "idx prev" << std::setw(10) << "load" << std::setw(10) << "farneback" << std::setw(10) << "median" << std::setw(10) << "movement" << "\n";
-    long loadDurationMs = 0;
-
-    // TODO Multithreading with qthreads
-    cv::Mat lastGreyImage;
-    bool lastImageValid = false; // shows that the last grey image wasnt gathered yet (cause could be that the last value was found in buffer)
-    m_logFile->startTimer(LF_OPT_FLOW_TOTAL);
-    for (uint imageListIdx = 1; imageListIdx < imageList.size(); imageListIdx++) {
-        // send new progress update
-        int progress = imageListIdx * 100 / (int)imageList.size();
-        QString currentProgress = "calculate flow between the frames " + QString::number(imageList[imageListIdx - 1]) + " and " + QString::number(imageList[imageListIdx]);
+    double reciprocalFactor = 1.0 / m_downSampleFactor;
+    // cpu read version
+    std::function<cv::Mat(const uint)> func_gatherPics_Cpu =
+            [reader, reciprocalFactor, receiver](uint idx) {
+        cv::Mat readMat, downMat, greyMat;
+        while (readMat.empty()) {
+            readMat = reader->getPic(idx, true);
+        }
+        cv::resize(readMat, downMat, cv::Size(), reciprocalFactor, reciprocalFactor);
+        cv::cvtColor(downMat, greyMat, cv::COLOR_BGR2GRAY);
+        // notify for progress update
+        int progress = 0;
+        QString currentOperation = "gathering, resizing and coloring image " + QString::number(idx);
         QMetaObject::invokeMethod(
                     receiver,
                     "slot_makeProgress",
                     Qt::DirectConnection,
                     Q_ARG(int, progress),
-                    Q_ARG(QString, currentProgress));
-        double computedFlow = 0.f;
-
-        if (false) {
-            // TODO check for buffered elements
-
-            // ONLY for for timing
-            m_durationComputationFlowMs = 0;
-            m_durationFarnebackMs = 0;
-        } else {
-            auto startLoad =std::chrono::high_resolution_clock::now();
-            if (!lastImageValid) {
-                // check if a last grey image is available and if not gather it from the reader
-                cv::Mat lastImage = reader->getPic(imageList[imageListIdx - 1]);
-                cv::cvtColor(lastImage, lastGreyImage, cv::COLOR_BGR2GRAY);
-            }
-            cv::Mat currImage, currGreyImage;
-            currImage = reader->getPic(imageList[imageListIdx]);
-            cv::cvtColor(currImage, currGreyImage, cv::COLOR_BGR2GRAY);
-
-            auto endLoad = std::chrono::high_resolution_clock::now();
-            loadDurationMs = std::chrono::duration_cast<std::chrono::milliseconds>(endLoad - startLoad).count();
-            try {
-                computedFlow = computeFlow(lastGreyImage, currGreyImage, farn);
-            }  catch (cv::Exception &cvExcep) {
-                std::cout << cvExcep.msg << std::endl;
-            }
-            lastGreyImage = currGreyImage;
-            lastImageValid = true;
+                    Q_ARG(QString, currentOperation));
+        return greyMat;
+    };
+    // cuda read version
+    std::function<cv::Mat(const uint)> func_gatherPics_Cuda;
+#ifdef WITH_CUDA
+    func_gatherPics_Cuda =
+            [reader, reciprocalFactor, receiver](uint idx) {
+        cv::Mat readMat;
+        while (readMat.empty()) {
+            readMat = reader->getPic(idx, true);
         }
-        m_logFile->addCustomEntry("ComputedFlow", computedFlow);
-        computedFlowValues.push_back(computedFlow);
-        flowWithIndex[imageList[imageListIdx]] = computedFlow;
+        cv::cuda::GpuMat gpu_downMat, gpu_greyMat, gpu_readMat(readMat);
+        cv::cuda::resize(gpu_readMat, gpu_downMat, cv::Size(), reciprocalFactor, reciprocalFactor);
+        cv::cuda::cvtColor(gpu_downMat, gpu_greyMat, cv::COLOR_BGR2GRAY);
+        cv::Mat outMat;
+        gpu_greyMat.download(outMat);
+        gpu_downMat.release();
+        gpu_greyMat.release();
+        gpu_greyMat.release();
+        // notify for progress update
+        int progress = 0;
+        QString currentOperation = "gathering, resizing and coloring image " + QString::number(idx);
+        QMetaObject::invokeMethod(
+                    receiver,
+                    "slot_makeProgress",
+                    Qt::DirectConnection,
+                    Q_ARG(int, progress),
+                    Q_ARG(QString, currentOperation));
+        return outMat;
+    };
+#endif
+    std::function<cv::Mat(const uint)> func_gatherPics = func_gatherPics_Cpu;
+    if (useCuda && func_gatherPics_Cuda) {
+        func_gatherPics = func_gatherPics_Cuda;
+    } else if (func_gatherPics_Cpu) {
+        func_gatherPics = func_gatherPics_Cpu;
+    } else {
+        return {};
+    }
+    struct FLOW_PAIR {
+        uint fromIndex;
+        uint toIndex;
+        cv::Mat fromMat;
+        cv::Mat toMat;
+    };
 
-        // check fo stop
-        if (*stopped) {
-            break;
+    FarnebackOptFlow *farn = FarnebackOptFlowFactory::create(useCuda ? FARNEBACK_CUDA : FARNEBACK_CPU);
+    farn->setup();
+    std::function<double(const FLOW_PAIR)> func_farn =
+            [this, farn, receiver](FLOW_PAIR fp) {
+        QString currentOperation = "computing flow between " + QString::number(fp.fromIndex) + " and " + QString::number(fp.toIndex);
+        int progress = 0;
+        QMetaObject::invokeMethod(
+                    receiver,
+                    "slot_makeProgress",
+                    Qt::DirectConnection,
+                    Q_ARG(int, progress),
+                    Q_ARG(QString, currentOperation));
+        double flowValue = computeFlow(fp.fromMat, fp.toMat, farn);
+        std::cout << std::setw(10) << fp.fromIndex << std::setw(10) << fp.toIndex << std::setw(10) << flowValue << std::endl;
+        return flowValue;
+    };
+    // ------------------------
+    uint chunkCount = 10;
+    uint chunkSize = imageList.size() / chunkCount;
+    std::vector<double> flowValues;
+    for (uint chunkIndex = 0; chunkIndex < chunkCount; chunkIndex++) {
+
+        // gather all images of the chunk
+        m_logFile->startTimer("Gather images of chunk " + QString::number(chunkIndex));
+        auto sequenceBegin = imageList.begin();
+        std::advance(sequenceBegin, chunkSize * chunkIndex);
+        auto sequenceEnd = imageList.begin();
+        if (chunkSize * (chunkIndex + 1) < (uint)imageList.size())
+            std::advance(sequenceEnd, chunkSize * (chunkIndex + 1));
+        else
+            sequenceEnd = imageList.end();
+        std::vector<uint> chunkIndicies(sequenceBegin, sequenceEnd);
+        reader->initMultipleAccess(chunkIndicies);
+        std::vector<cv::Mat> imageMats = QtConcurrent::blockingMapped<std::vector<cv::Mat>>(sequenceBegin, sequenceEnd, func_gatherPics);
+        m_logFile->stopTimer();
+
+        // create FLOW_PAIRs for flow calculation of the current chunk
+        m_logFile->startTimer("Create flow pair of chunk " + QString::number(chunkIndex));
+        std::vector<FLOW_PAIR> flowPair;
+        uint chunkOffset = chunkIndex * chunkSize;
+        for (uint i = 0; i < chunkSize - 1; i++) {
+            FLOW_PAIR nFlowPair;
+            nFlowPair.fromIndex = imageList[chunkOffset + i];
+            nFlowPair.toIndex = imageList[chunkOffset + i + 1];
+            nFlowPair.fromMat = imageMats[i];
+            nFlowPair.toMat = imageMats[i + 1];
+            flowPair.push_back(nFlowPair);
         }
+        m_logFile->stopTimer();
 
-        // TODO safe flow values in buffer
+        QThreadPool::globalInstance()->setMaxThreadCount(1);
+        // start flow calculation for chunk SEQUENTIAL
+        m_logFile->startTimer("Calculate flow values of chunk " + QString::number(chunkIndex));
+        std::vector<double> chunkFlowValues = QtConcurrent::blockingMapped<std::vector<double>>(flowPair, func_farn);
+        flowValues.insert(flowValues.end(), chunkFlowValues.begin(), chunkFlowValues.end());
+        m_logFile->stopTimer();
+        QThreadPool::globalInstance()->setMaxThreadCount(16);
+    };
 
-        // display computation timings
-        std::cout << std::left <<
-                     std::setw(10) << imageList[imageListIdx - 1] <<
-                     std::setw(10) << imageList[imageListIdx] <<
-                     std::setw(10) << loadDurationMs <<
-                     std::setw(10) << m_durationFarnebackMs <<
-                     std::setw(10) << m_durationComputationFlowMs << std::setw(10) <<
-                     computedFlow << std::endl;
+    // select keyframes
+    m_logFile->startTimer("Keyframe selection");
+    std::vector<uint> selectedKeyframes = { imageList[0] };
+    std::vector<double> copiedFlowValues = flowValues; // median is in place and reorders vector
+    double medianFlow = median(copiedFlowValues);
+    double allowedDiffFlow = medianFlow * m_threshold;
+    for (uint flowValuesIdx = 0; flowValuesIdx < imageList.size() - 1; flowValuesIdx++) {
+        if (flowValues[flowValuesIdx] > allowedDiffFlow) {
+            selectedKeyframes.push_back(imageList[flowValuesIdx + 1]); // flow value represents flow for the next frame (if camera moved enough until next frame)
+        }
     }
     m_logFile->stopTimer();
 
-    auto endFlowCalc = std::chrono::high_resolution_clock::now();
-
-    // select all keyframes and than remove all stationary frames
-    m_logFile->startTimer(LF_SELECT_FRAMES);
-    double medianFlow = median(computedFlowValues);
-    std::vector<uint> selectedKeyframes;
-    const double stationaryThreshold = medianFlow * m_threshold;
-    for (uint frameIdx : imageList) {
-        if (flowWithIndex[frameIdx] >= stationaryThreshold) {
-            selectedKeyframes.push_back(frameIdx);
-        }
-    }
-    m_logFile->stopTimer();
-
-    auto endMedian = std::chrono::high_resolution_clock::now();
-
-    // timing summary output
-    auto durationBufferMs = std::chrono::duration_cast<std::chrono::microseconds>(endBuffer - start).count();
-    auto durationSetupMs = std::chrono::duration_cast<std::chrono::microseconds>(endSetup - endBuffer).count();
-    auto durationFlowCalcMs = std::chrono::duration_cast<std::chrono::milliseconds>(endFlowCalc - endSetup).count();
-    auto durationMedianUs =std::chrono::duration_cast<std::chrono::microseconds>(endMedian - endFlowCalc).count();
-    std::cout << "\n\n<-------- STATIONARY SUMMARY ----------------------->\n";
-    std::cout << "buffer = " << durationBufferMs << "us" << std::endl;
-    std::cout << "setup = " << durationSetupMs << "us" << std::endl;
-    std::cout << "flow calcs = " << durationFlowCalcMs << "ms" << std::endl;
-    std::cout << "median = " << durationMedianUs << "us" << std::endl;
     return selectedKeyframes;
 }
 
@@ -270,28 +308,22 @@ void StationaryCamera::updateInfoLabel()
 
 double StationaryCamera::computeFlow(cv::Mat image1, cv::Mat image2, FarnebackOptFlow *farn)
 {
-    auto startFarneback = std::chrono::high_resolution_clock::now();
-
     cv::Mat flowMat(image1.size(), CV_32FC2);
-    farn->calculateFlow(image1, image2, flowMat, m_downSampleFactor);
-
-    auto endFarneback = std::chrono::high_resolution_clock::now();
+    if(!farn->calculateFlow(image1, image2, flowMat, m_downSampleFactor)) {
+        return -1;
+    }
 
     // compute flow matrix to single value (median length of all flow vectors)
     std::vector<double> flowLengths;
     for (uint x = 0; x < (uint)flowMat.rows; x++) {
         for (uint y = 0; y < (uint)flowMat.cols; y++) {
             cv::Point2f flowVector = flowMat.at<cv::Point2f>(x, y);
-            const double length = cv::sqrt(flowVector.ddot(flowVector));
+            const double length = cv::norm(flowVector);
             flowLengths.push_back(length);
         }
     }
-
-    auto endFlowComputation = std::chrono::high_resolution_clock::now();
-    m_durationFarnebackMs = std::chrono::duration_cast<std::chrono::milliseconds>(endFarneback - startFarneback).count();
-    m_durationComputationFlowMs = std::chrono::duration_cast<std::chrono::milliseconds>(endFlowComputation - endFarneback).count();
-
-    return median(flowLengths);
+    double m = median(flowLengths);
+    return m;
 }
 
 void StationaryCamera::recreateBuffer(QMap<QString, QVariant> buffer)
