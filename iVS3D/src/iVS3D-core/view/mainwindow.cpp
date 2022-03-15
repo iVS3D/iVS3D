@@ -102,6 +102,13 @@ MainWindow::MainWindow(QWidget *parent, bool dark, int cuda, bool createLog, QSt
     addDockWidget(Qt::BottomDockWidgetArea, dock);
     ui->menuView->addAction(dock->toggleViewAction());
 
+    // store default layout state and add action to reset to this default state
+    const auto defaultDockLayout = saveState();
+    ui->menuView->addAction("Reset Layout", [this,defaultDockLayout](){
+        this->restoreState(defaultDockLayout);
+    });
+
+    // read layout and geometry from last session if available
     readSettings();
 
     // connect input widget
