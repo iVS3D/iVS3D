@@ -26,9 +26,9 @@ INCLUDEPATH += \
 
 HEADERS += \
     $$IVS_SRC_PATH/iVS3D-core/model/logfile.h \
-    $$IVS_SRC_PATH/iVS3D-core/model/jsonEnum.h \
+    $$IVS_SRC_PATH/iVS3D-core/model/stringcontainer.h \
 
 
 SOURCES += \
     $$IVS_SRC_PATH/iVS3D-core/model/logfile.cpp \
-    $$IVS_SRC_PATH/iVS3D-core/model/jsonEnum.cpp \
+    $$IVS_SRC_PATH/iVS3D-core/model/stringcontainer.cpp \

@@ -102,15 +102,15 @@ void tst_logfile::test_algoMockup()
     //      check log file
     QJsonObject jsonLf = m_lf->toQJSON();
     // name
-    QJsonValueRef tmpName = jsonLf.find(jsonEnum::logNameIdentifier).value();
+    QJsonValueRef tmpName = jsonLf.find(stringContainer::logNameIdentifier).value();
     QVERIFY2(tmpName.isString(), "Name should be a string");
     QCOMPARE(tmpName.toString(), processName);
     // input
-    QJsonObject jsonInput = jsonLf.find(jsonEnum::logInputIdentifier).value().toObject();
-    int frameCount = jsonInput.find(jsonEnum::logKeyframeCountIdentifier)->toInt();
+    QJsonObject jsonInput = jsonLf.find(stringContainer::logInputIdentifier).value().toObject();
+    int frameCount = jsonInput.find(stringContainer::logKeyframeCountIdentifier)->toInt();
     QCOMPARE(frameCount, (int)m_inputFrames.size());
     // settings
-    QJsonValueRef tmpSettings = jsonLf.find(jsonEnum::logSettingsIdentifier).value();
+    QJsonValueRef tmpSettings = jsonLf.find(stringContainer::logSettingsIdentifier).value();
     QMap<QString, QVariant> tmpSettingsMap = tmpSettings.toVariant().toMap();
     QVERIFY2(tmpSettingsMap.size() == m_settings.size(), "Number of stored settings is wrong");
     for (int i = 0; i < tmpSettingsMap.size(); i++) {
@@ -123,10 +123,10 @@ void tst_logfile::test_algoMockup()
         }
     }
     // internal processes
-    QJsonArray jsonArray = jsonLf.find(jsonEnum::logProcedureIdentifier).value().toArray();
+    QJsonArray jsonArray = jsonLf.find(stringContainer::logProcedureIdentifier).value().toArray();
     for (int i = 1; i < jsonArray.size(); i++) {
         QJsonObject jsonProcedure = jsonArray[i].toObject();
-        qint64 elapsedTime = jsonProcedure.find(jsonEnum::logElapsedTimeIdentifier)->toInt();
+        qint64 elapsedTime = jsonProcedure.find(stringContainer::logElapsedTimeIdentifier)->toInt();
         // i - 1 because the first entry of the jsonArray are the gloabl information about the internal procedures
         qint64 expectedValue = m_timeStamps[i - 1];
         bool toleranceCheck = expectedValue - TIMING_TOLERANCE < elapsedTime || elapsedTime < expectedValue + TIMING_TOLERANCE;
@@ -136,8 +136,8 @@ void tst_logfile::test_algoMockup()
         }
     }
     // result
-    QJsonObject jsonResult = jsonLf.find(jsonEnum::logResultsIdentifier).value().toObject();
-    int keyframeCount = jsonResult.find(jsonEnum::logKeyframeCountIdentifier)->toInt();
+    QJsonObject jsonResult = jsonLf.find(stringContainer::logResultsIdentifier).value().toObject();
+    int keyframeCount = jsonResult.find(stringContainer::logKeyframeCountIdentifier)->toInt();
     QCOMPARE(keyframeCount, (int)m_keyframes.size());
 
 }

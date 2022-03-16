@@ -36,7 +36,6 @@ HEADERS += \
     $$IVS_SRC_PATH/iVS3D-core/model/stringcontainer.h \
     $$IVS_SRC_PATH/iVS3D-core/model/delayedcopyreader.h \
     $$IVS_SRC_PATH/iVS3D-core/model/concurrentreader.h \
-    $$IVS_SRC_PATH/iVS3D-core/model/jsonenum.h \
     $$IVS_SRC_PATH/iVS3D-core/model/logfile.h
 
 
@@ -53,5 +52,4 @@ SOURCES += \
     $$IVS_SRC_PATH/iVS3D-core/model/stringcontainer.cpp \
     $$IVS_SRC_PATH/iVS3D-core/model/delayedcopyreader.cpp \
     $$IVS_SRC_PATH/iVS3D-core/model/concurrentreader.cpp \
-    $$IVS_SRC_PATH/iVS3D-core/model/jsonenum.cpp \
     $$IVS_SRC_PATH/iVS3D-core/model/logfile.cpp

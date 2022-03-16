@@ -40,7 +40,6 @@ SOURCES +=  itransform_stub.cpp \
             $$IVS_SRC_PATH/iVS3D-core/model/videoreader.cpp \
             $$IVS_SRC_PATH/iVS3D-core/model/delayedcopyreader.cpp \
             $$IVS_SRC_PATH/iVS3D-core/model/concurrentreader.cpp \
-            $$IVS_SRC_PATH/iVS3D-core/model/jsonenum.cpp \
             $$IVS_SRC_PATH/iVS3D-core/model/stringcontainer.cpp
 
 
@@ -56,5 +55,4 @@ HEADERS +=  itransform_stub.h \
             $$IVS_SRC_PATH/iVS3D-core/model/videoreader.h \
             $$IVS_SRC_PATH/iVS3D-core/model/delayedcopyreader.h \
             $$IVS_SRC_PATH/iVS3D-core/model/concurrentreader.h \
-            $$IVS_SRC_PATH/iVS3D-core/model/jsonenum.h \
             $$IVS_SRC_PATH/iVS3D-core/model/stringcontainer.h

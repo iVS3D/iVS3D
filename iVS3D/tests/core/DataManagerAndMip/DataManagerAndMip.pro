@@ -42,7 +42,6 @@ HEADERS += \
     $$IVS_SRC_PATH/iVS3D-core/model/imagereader.h \
     $$IVS_SRC_PATH/iVS3D-core/model/videoreader.h \
     $$IVS_SRC_PATH/iVS3D-core/model/ISerializable.h \
-    $$IVS_SRC_PATH/iVS3D-core/model/jsonEnum.h \
     $$IVS_SRC_PATH/iVS3D-core/model/delayedcopyreader.h \
     $$IVS_SRC_PATH/iVS3D-core/model/concurrentreader.h \
     $$IVS_SRC_PATH/iVS3D-core/model/logfile.h \
@@ -57,7 +56,6 @@ SOURCES += \
     $$IVS_SRC_PATH/iVS3D-core/model/logmanager.cpp \
     $$IVS_SRC_PATH/iVS3D-core/model/imagereader.cpp \
     $$IVS_SRC_PATH/iVS3D-core/model/videoreader.cpp \
-    $$IVS_SRC_PATH/iVS3D-core/model/jsonEnum.cpp \
     $$IVS_SRC_PATH/iVS3D-core/model/delayedcopyreader.cpp \
     $$IVS_SRC_PATH/iVS3D-core/model/concurrentreader.cpp \
     $$IVS_SRC_PATH/iVS3D-core/model/logfile.cpp \

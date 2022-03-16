@@ -37,7 +37,7 @@ HEADERS += \
     $$IVS_SRC_PATH/iVS3D-core/model/videoreaer.h \
     $$IVS_SRC_PATH/iVS3D-core/model/delayedcopyreader.h \
     $$IVS_SRC_PATH/iVS3D-core/model/ConcurrentReader.h \
-    $$IVS_SRC_PATH/iVS3D-core/model/jsonEnum.h \
+    $$IVS_SRC_PATH/iVS3D-core/model/stringcontainer.h \
 
 SOURCES += \
     $$IVS_SRC_PATH/iVS3D-core/controller/modelinputiteratorfactory.cpp \
@@ -48,4 +48,4 @@ SOURCES += \
     $$IVS_SRC_PATH/iVS3D-core/model/videoreader.cpp \
     $$IVS_SRC_PATH/iVS3D-core/model/delayedcopyreader.cpp \
     $$IVS_SRC_PATH/iVS3D-core/model/ConcurrentReader.cpp \
-    $$IVS_SRC_PATH/iVS3D-core/model/jsonEnum.cpp \
+    $$IVS_SRC_PATH/iVS3D-core/model/stringcontainer.cpp \
