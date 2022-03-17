@@ -7,19 +7,19 @@
     <x>0</x>
     <y>0</y>
     <width>500</width>
-    <height>500</height>
+    <height>300</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
     <width>500</width>
-    <height>500</height>
+    <height>300</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
     <width>500</width>
-    <height>500</height>
+    <height>300</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -34,8 +34,14 @@
      <layout class="QVBoxLayout" name="verticalLayout_3">
       <item>
        <widget class="QLabel" name="label">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
         <property name="text">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Version 1.2&lt;/p&gt;&lt;p&gt;Patrick Binder, Daniel Brommer, Lennart Ruck, Dominik Wüst, Dominic Zahn&lt;/p&gt;&lt;p&gt;Fraunhofer IOSB, Karlsruhe&lt;/p&gt;&lt;p&gt;Supervisor: Max Hermann &amp;amp; Thomas Pollok&lt;/p&gt;&lt;p&gt;(Created as part of PSE at the Karlsruhe Institut of Technlogy in the winter term 2020/21)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Patrick Binder, Daniel Brommer, Lennart Ruck, Dominik Wüst, Dominic Zahn&lt;/p&gt;&lt;p&gt;Fraunhofer IOSB, Karlsruhe&lt;/p&gt;&lt;p&gt;Supervisor: Max Hermann &amp;amp; Thomas Pollok&lt;/p&gt;&lt;p&gt;(Created as part of PSE at the Karlsruhe Institut of Technlogy in the winter term 2020/21)&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;For further information about iVS3D visit our &lt;a href=&quot;https://github.com/iVS3D/iVS3D&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;GitHub&lt;/span&gt;&lt;/a&gt; page.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="wordWrap">
          <bool>true</bool>
@@ -44,6 +50,33 @@
       </item>
      </layout>
     </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QLabel" name="l_date">
+       <property name="text">
+        <string>built date: tt.mm.yyyy</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="l_version">
+       <property name="text">
+        <string>vX.X.X</string>
+       </property>
+       <property name="textFormat">
+        <enum>Qt::AutoText</enum>
+       </property>
+       <property name="scaledContents">
+        <bool>false</bool>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
   </layout>
  </widget>
