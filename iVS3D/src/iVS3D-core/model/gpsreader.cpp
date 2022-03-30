@@ -1,5 +1,5 @@
 #include "gpsreader.h"
-#include <QDebug>
+
 
 
 QList<QPointF> GPSReader::normaliseGPS(QList<QPointF> GPSvalues, double timeItervall, double fps, uint imageNumber)

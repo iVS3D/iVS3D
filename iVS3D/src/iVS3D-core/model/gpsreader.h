@@ -2,7 +2,8 @@
 #define GPSREADER_H
 
 #include "metadatareader.h"
-
+#include <cmath>
+#include <QPointF>
 /**
  * @interface GPSReader
  *
