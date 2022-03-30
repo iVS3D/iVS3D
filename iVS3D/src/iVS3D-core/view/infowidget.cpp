@@ -15,6 +15,7 @@ InfoWidget::InfoWidget(QWidget *parent, QString title, bool dark) :
     ui->setupUi(this);
     ui->toolButton_folder->setIcon(QIcon(dark ? ":/icons/openFolderIconW" : ":/icons/openFolderIconB"));
     ui->toolButton_video->setIcon( QIcon(dark ? ":/icons/openVideoIconW"  : ":/icons/openVideoIconB"));
+    ui->toolButton_meta->setEnabled(false);
 }
 
 InfoWidget::~InfoWidget()
@@ -55,6 +56,11 @@ void InfoWidget::setInfo(QMap<QString, QString> info)
     ui->label->setText(tableHead);
 }
 
+void InfoWidget::enableOpenMetaData(bool status)
+{
+    ui->toolButton_meta->setEnabled(status);
+}
+
 void InfoWidget::on_toolButton_folder_clicked()
 {
     emit sig_openFolderPressed();
@@ -63,4 +69,10 @@ void InfoWidget::on_toolButton_folder_clicked()
 void InfoWidget::on_toolButton_video_clicked()
 {
     emit sig_openVideoPressed();
+}
+
+void InfoWidget::on_toolButton_meta_clicked()
+{
+    qDebug("openmeta");
+    emit sig_openMetaPressed();
 }

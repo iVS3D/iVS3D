@@ -14,9 +14,12 @@ void ModelInputPictures::setResolution() {
 
 ModelInputPictures::ModelInputPictures(QString inputPath)
 {
+    m_metaDataManager = new MetaDataManager();
     std::string path = inputPath.toUtf8().constData();
     if(cv::utils::fs::isDirectory(path)) {
         m_reader = new ImageReader(inputPath);
+        //Always try to load meta data when images are imported
+        loadMetaDataImages();
     }
     else {
         m_reader = new VideoReader(inputPath);
@@ -177,6 +180,21 @@ void ModelInputPictures::setBoundaries(QPoint boundaries)
 {
 
     m_boundaries = boundaries;
+}
+
+int ModelInputPictures::loadMetaData(QStringList paths)
+{
+    int oldMetaCount = m_metaDataManager->availableMetaData().size();
+    m_metaDataManager->initMetaDataVideo(paths, m_reader);
+    m_reader->addMetaData(m_metaDataManager);
+    return m_metaDataManager->availableMetaData().size() - oldMetaCount;
+}
+
+int ModelInputPictures::loadMetaDataImages()
+{
+    m_metaDataManager->initMetaDataImages(m_reader);
+    m_reader->addMetaData(m_metaDataManager);
+    return m_metaDataManager->availableMetaData().size();
 }
 
 std::vector<unsigned int> ModelInputPictures::getAllKeyframes()

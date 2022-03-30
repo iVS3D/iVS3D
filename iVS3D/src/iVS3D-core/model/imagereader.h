@@ -13,9 +13,6 @@
 #include <QFileInfo>
 #include <QCollator>
 
-
-
-
 /**
  * @class ImageReader
  *
@@ -79,12 +76,24 @@ public:
      * @return ImageReader that is an exact copy
      */
     ImageReader *copy() override;
+    /**
+     * @brief addMetaData Used to add MetaData to the reader
+     * @param md The MetaData to be saved
+     */
+    void addMetaData(MetaData* md) override;
+    /**
+     * @brief getMetaData Returns the currently saved MetaData
+     * @return The currently saved MetaData
+     */
+    MetaData* getMetaData() override;
 
 private:
     ImageReader();
     std::vector<std::string> m_filePaths;
     unsigned int m_numImages = 0;
     std::string m_folderPath;
+
+    MetaData* m_md = nullptr;
 };
 
 #endif // IMAGEREADER_H

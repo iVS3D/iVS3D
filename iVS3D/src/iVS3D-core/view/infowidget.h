@@ -43,13 +43,24 @@ public:
      */
     void setInfo(QMap<QString,QString> info);
 
+    /**
+     * @brief enableOpenMetaData enables "Open Meta Data" button in the widget
+     *
+     * @param status true = enable
+     */
+    void enableOpenMetaData(bool status);
+
+
+
 signals:
     void sig_openVideoPressed();
     void sig_openFolderPressed();
+    void sig_openMetaPressed();
 
 private slots:
     void on_toolButton_folder_clicked();
     void on_toolButton_video_clicked();
+    void on_toolButton_meta_clicked();
 
 protected:
     Ui::InfoWidget *ui;

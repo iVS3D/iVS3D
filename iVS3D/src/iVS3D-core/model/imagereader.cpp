@@ -75,6 +75,17 @@ ImageReader *ImageReader::copy()
     return ir;
 }
 
+void ImageReader::addMetaData(MetaData *md)
+{
+    //AlgorithmManager::instance().initializePlugins(this);
+    m_md = md;
+}
+
+MetaData *ImageReader::getMetaData()
+{
+    return m_md;
+}
+
 ImageReader::ImageReader()
 {
 

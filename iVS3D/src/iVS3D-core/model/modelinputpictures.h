@@ -8,6 +8,7 @@
 #include "stringcontainer.h"
 #include "delayedcopyreader.h"
 #include "concurrentreader.h"
+#include "metadatamanager.h"
 
 #include <QObject>
 #include <QPoint>
@@ -172,6 +173,17 @@ public:
      * @param boundaries The new boundaries
      */
     void setBoundaries(QPoint boundaries);
+    /**
+     * @brief loadMetaData Loads the given meta data for the imported Video
+     * @param path Paths the the meta data to load
+     * @return how many MetaDataReader have succesfully loaded the meta data
+     */
+    int loadMetaData(QStringList paths);    
+    /**
+     * @brief loadMetaDataImages Tries to extract meta data from the imported images
+     * @return how many MetaDataReader have succesfully loaded meta data
+     */
+    int loadMetaDataImages();
 
 signals:
     /**
@@ -188,6 +200,7 @@ private:
     QPoint m_inputResolution;
     cv::Mat m_currentMat;
     QPoint m_boundaries;
+    MetaDataManager* m_metaDataManager = nullptr;
 
     void setResolution();
     std::vector<unsigned int> splitString(QString string);

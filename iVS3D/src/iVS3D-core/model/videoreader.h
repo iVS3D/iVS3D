@@ -8,6 +8,8 @@
 #include <opencv2/imgcodecs.hpp>
 #include <QMutex>
 #include <QMutexLocker>
+#include "metadata.h"
+#include "algorithmmanager.h"
 
 
 /**
@@ -92,7 +94,17 @@ public:
      * @brief initMultipleAccess Enables the reader to make ordered access to the input, which will result in a faster access time
      * @param frames Vector containing the indices of the images which will be used in ascending order
      */
-    void initMultipleAccess(const std::vector<uint> &frames) override;
+    void initMultipleAccess(const std::vector<uint> &frames) override;    
+    /**
+     * @brief addMetaData Used to add MetaData to the reader
+     * @param md The MetaData to be saved
+     */
+    void addMetaData(MetaData* md) override;
+    /**
+     * @brief getMetaData Returns the currently saved MetaData
+     * @return The currently saved MetaData
+     */
+    MetaData* getMetaData() override;
 private:
     int m_lastUsedIndex = 0;
     std::string m_path;
@@ -104,6 +116,8 @@ private:
     std::vector<uint> m_currentFrames;
     bool m_multipleAccess = false;
     int m_currentMultipleIndex = 0;
+
+    MetaData* m_md = nullptr;
 };
 
 #endif // VIDEOREADER_H

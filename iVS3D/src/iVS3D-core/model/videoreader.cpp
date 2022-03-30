@@ -1,7 +1,5 @@
 #include "videoreader.h"
 
-
-
 VideoReader::VideoReader(const QString &path) : m_path(path.toUtf8().constData())
 {
     cv::VideoCapture prev(m_path, cv::CAP_FFMPEG);
@@ -32,6 +30,19 @@ void VideoReader::initMultipleAccess(const std::vector<uint> &frames) {
     m_lastUsedIndex = firstIndex;
 
 }
+
+void VideoReader::addMetaData(MetaData *md)
+{
+    m_md = md;
+    AlgorithmManager::instance().initializePlugins(this);
+}
+
+MetaData *VideoReader::getMetaData()
+{
+    return m_md;
+}
+
+
 
 
 cv::Mat VideoReader::getPic(unsigned int index, bool useMultipleAccess)

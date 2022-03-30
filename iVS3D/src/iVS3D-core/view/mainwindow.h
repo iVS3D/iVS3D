@@ -125,6 +125,12 @@ public:
      * @param status true = enable
      */
     void enableSaveProject(bool status);
+    /**
+     * @brief enableOpenMetaData enables "Open Meta Data" button in the menu-bar
+     *
+     * @param status true = enable
+     */
+    void enableOpenMetaData(bool status);
 
 
 
@@ -149,6 +155,10 @@ signals:
      * @brief sig_openInputVideo "Open Input Video" in menu-bar
      */
     void sig_openInputVideo();
+    /**
+     * @brief sig_openMetaData "Open Meta Data" in menu-bar
+     */
+    void sig_openMetaData();
     /**
      * @brief sig_changeDefaultInputPath "Change default input path" in menu-bar
      */
@@ -194,6 +204,7 @@ public slots:
      */
     void slot_displayStatusMessage(QString message);
 
+
 private slots:
     void on_actionOpen_Project_triggered();
     void on_actionSave_Project_triggered();
@@ -208,6 +219,7 @@ private slots:
     void on_actionUse_CUDA_triggered();
     void on_actionLicence_triggered();
     void on_actionCreate_log_file_triggered();
+    void on_actionOpen_Meta_Data_triggered();
 
 private:
     Ui::MainWindow *ui;

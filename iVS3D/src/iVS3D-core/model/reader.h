@@ -4,6 +4,7 @@
 #include <QObject>
 #include <opencv2/core.hpp>
 #include "progressable.h"
+#include "metadata.h"
 
 /**
  * @interface Reader
@@ -20,6 +21,7 @@
 class Reader
 {
 public:
+
     /**
      * @brief Returns the frame to a given index
      *
@@ -81,6 +83,17 @@ public:
      * @brief enableMultithreading This method has to be called once in the plugins to use the reader while multithreading
      */
     virtual void enableMultithreading() {}
+    /**
+     * @brief addMetaData Used to add MetaData to the reader
+     * @param md The MetaData to be saved
+     */
+    virtual void addMetaData(MetaData* md) = 0;
+    /**
+     * @brief getMetaData Returns the currently saved MetaData
+     * @return The currently saved MetaData
+     */
+    virtual MetaData* getMetaData() = 0;
+
 };
 
 #endif // READER_H

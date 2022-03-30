@@ -44,6 +44,7 @@ Controller::Controller()
     connect(m_mainWindow, &MainWindow::sig_changeDarkStyle, this, &Controller::slot_changeDarkStyle);
     connect(m_mainWindow, &MainWindow::sig_changeUseCuda, this, &Controller::slot_changeUseCuda);
     connect(m_mainWindow, &MainWindow::sig_changeCreateLogFile, this, &Controller::slot_changeCreateLogFile);
+    connect(m_mainWindow, &MainWindow::sig_openMetaData, this, &Controller::slot_openMetaData);
 
     connect(this, &Controller::sig_hasStatusMessage, m_mainWindow, &MainWindow::slot_displayStatusMessage);
 
@@ -225,6 +226,20 @@ void Controller::slot_changeCreateLogFile(bool createLog)
     emit sig_hasStatusMessage(msg);
 }
 
+void Controller::slot_openMetaData()
+{
+    QString selectedFilter = "";
+    QString filePath = QFileDialog::getOpenFileName(m_mainWindow, "Choose Meta Data", ApplicationSettings::instance().getStandardInputPath(), "*.srt *.jpeg *.jpg", &selectedFilter, QFileDialog::DontUseNativeDialog);
+    if (filePath == nullptr) {
+        emit sig_hasStatusMessage("Input canceled");
+        return;
+    }
+    int n = m_dataManager->getModelInputPictures()->loadMetaData(QStringList(filePath));
+    QString msg = "Loaded " + QString::number(n) + " meta data feature" + QString(n > 1 ? "s" : "");
+    emit sig_hasStatusMessage(msg);
+
+}
+
 void Controller::slot_openFinished(int result)
 {
     disconnect(m_openExec, &OpenExecutor::sig_finished, this, &Controller::slot_openFinished);
@@ -251,13 +266,27 @@ void Controller::slot_exportFinished()
 
 void Controller::createOpenMessage(int numPics)
 {
+    auto duration_ms = m_timer.elapsed();
     if (numPics <= 0) {
-        emit sig_hasStatusMessage("No images found");
+        emit sig_hasStatusMessage("No images found after " + QString::number(duration_ms) + "ms");
         onFailedOpen();
     }
     else {
-        auto duration_ms = m_timer.elapsed();
-        emit sig_hasStatusMessage("Import of " + QString::number(numPics) + " images finished after " + QString::number(duration_ms) + "ms");
+
+        MetaData* md =  m_dataManager->getModelInputPictures()->getReader()->getMetaData();
+        int metaDataCount = 0;
+        if (md) {
+            metaDataCount = md->loadAllMetaData().size();
+        }
+
+        if (metaDataCount != 0) {
+            emit sig_hasStatusMessage("Import of " + QString::number(numPics) + " images and "
+                                      + QString::number(metaDataCount) + " meta data feature" + QString(metaDataCount > 1 ? "s" : "")
+                                      + " finished after " + QString::number(duration_ms) + "ms");
+        }
+        else {
+            emit sig_hasStatusMessage("Import of " + QString::number(numPics) + " images finished after " + QString::number(duration_ms) + "ms");
+        }
         onSuccessfulOpen();
     }
 }
@@ -308,6 +337,7 @@ void Controller::onFailedOpen()
     m_mainWindow->enableSaveProject(false);
     QMap<QString, QString> info;
     m_mainWindow->getInputWidget()->setInfo(info);
+    m_mainWindow->enableOpenMetaData(false);
     // remove old controllers if existing
     if(m_videoPlayerController)
     {
@@ -401,6 +431,5 @@ void Controller::onSuccessfulOpen()
 
     setInputWidgetInfo(); // initialize input widget with information about new input data
     m_mainWindow->getSamplingWidget()->setAlgorithm(0);
+    m_mainWindow->enableOpenMetaData(true);
 }
-
-

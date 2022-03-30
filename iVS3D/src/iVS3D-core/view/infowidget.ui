@@ -73,6 +73,25 @@
       </spacer>
      </item>
      <item>
+      <widget class="QToolButton" name="toolButton_meta">
+       <property name="minimumSize">
+        <size>
+         <width>30</width>
+         <height>30</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>M</string>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>25</width>
+         <height>25</height>
+        </size>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QToolButton" name="toolButton_folder">
        <property name="minimumSize">
         <size>

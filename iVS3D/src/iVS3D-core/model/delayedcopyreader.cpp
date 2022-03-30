@@ -78,6 +78,23 @@ void DelayedCopyReader::initMultipleAccess(const std::vector<uint> &frames)
     m_copyReader->initMultipleAccess(frames);
 }
 
+void DelayedCopyReader::addMetaData(MetaData *md)
+{
+    if(!m_copyReader){
+        m_realReader->addMetaData(md);
+        return;
+    }
+    m_copyReader->addMetaData(md);
+}
+
+MetaData* DelayedCopyReader::getMetaData()
+{
+    if(!m_copyReader){
+        return m_realReader->getMetaData();
+    }
+    return m_copyReader->getMetaData();
+}
+
 void DelayedCopyReader::enableMultithreading()
 {
     if(!m_copyReader){
