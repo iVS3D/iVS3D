@@ -40,6 +40,7 @@ SOURCES += \
     model/settingsthread.cpp \
     model/stringcontainer.cpp \
     plugin/itransformrequestdequeue.cpp \
+    plugin/signalobject.cpp \
     plugin/transformmanager.cpp \
     plugin/algorithmmanager.cpp \
 # view package
@@ -110,6 +111,7 @@ HEADERS += \
     model/stringcontainer.h \
     plugin/algorithmmanager.h \
     plugin/itransformrequestdequeue.h \
+    plugin/signalobject.h \
     plugin/transformmanager.h \
 # view package
     view/automaticlistwidget.h \

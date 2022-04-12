@@ -125,6 +125,8 @@ public:
      */
     virtual QMap<QString, QVariant> getSettings() override;
 
+    void setSignalObject(signalObject* sig_obj) override;
+
 
 public slots:
     /**

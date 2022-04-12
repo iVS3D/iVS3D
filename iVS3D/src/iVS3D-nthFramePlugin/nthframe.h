@@ -23,6 +23,7 @@
 #include "reader.h"
 #include "progressable.h"
 #include "nthframe_global.h"
+#include "signalobject.h"
 
 #define DESCRIPTION_TEXT "Every Nth frame is selected as keyframe."
 #define DESCRIPTION_STYLE "color: rgb(58, 58, 58); border-left: 6px solid  rgb(58, 58, 58); border-top-right-radius: 5px; border-bottom-right-radius: 5px; background-color: lightblue;"
@@ -124,12 +125,16 @@ public:
      */
     virtual QMap<QString, QVariant> getSettings();
 
+    void setSignalObject(signalObject* sigObj);
+
 public slots:
     /**
      * @brief slot_nChanged updates N.
      * @param n The new value for N
      */
     void slot_nChanged(int n);
+
+    void slot_newMetaData();
 
 private:
     void createSettingsWidget(QWidget *parent);
@@ -139,6 +144,7 @@ private:
     QWidget *m_settingsWidget;
     int m_fps = 30;
     QSpinBox* m_spinBox = nullptr;
+    signalObject* m_sigObj;
 };
 
 #endif // NTHFRAME_H

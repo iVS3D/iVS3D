@@ -112,6 +112,12 @@ QMap<QString, QVariant> NthFrame::getSettings()
    return settings;
 }
 
+void NthFrame::setSignalObject(signalObject *sigObj)
+{
+    m_sigObj = sigObj;
+    QObject::connect(m_sigObj, SIGNAL(sig_newMetaData()), this, SLOT(slot_newMetaData()));
+}
+
 void NthFrame::slot_nChanged(int n)
 {
     m_N = (unsigned int)n;
@@ -126,6 +132,14 @@ void NthFrame::slot_nChanged(int n)
     }
     keyframes.shrink_to_fit();
     emit updateKeyframes(keyframes);
+}
+
+void NthFrame::slot_newMetaData()
+{
+    if (m_spinBox) {
+        m_spinBox->setValue(999);
+    }
+
 }
 
 void NthFrame::createSettingsWidget(QWidget *parent)

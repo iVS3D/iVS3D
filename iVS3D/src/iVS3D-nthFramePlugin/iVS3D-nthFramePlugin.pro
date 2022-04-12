@@ -16,7 +16,8 @@ else:unix: LIBS += -L$$OUT_PWD/../iVS3D-core -liVS3D-pluginInterface
 INCLUDEPATH += \
     ../iVS3D-pluginInterface \
     ../iVS3D-core \
-    ../iVS3D-core/model
+    ../iVS3D-core/model \
+    ../iVS3D-core/plugin
 
 # You can make your code fail to compile if it uses deprecated APIs.
 # In order to do so, uncomment the following line.

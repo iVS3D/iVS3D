@@ -135,6 +135,11 @@ QMap<QString, QVariant> Blur::getSettings()
     return settings;
 }
 
+void Blur::setSignalObject(signalObject *sig_obj)
+{
+
+}
+
 void Blur::slot_blurChanged(const QString & name)
 {
     for (BlurAlgorithm* b : m_blurAlgorithms) {

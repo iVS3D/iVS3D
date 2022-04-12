@@ -16,6 +16,7 @@
 #include <QThread>
 
 #include "ialgorithm.h"
+#include "signalobject.h"
 
 /**
  * @class AlgorithmManager
@@ -108,10 +109,13 @@ public:
 
     IAlgorithm *getAlgo(int idx);
 
+    void sigNewMetaData();
+
 private:
     std::vector<IAlgorithm*> m_algorithmList;
     AlgorithmManager();
     void loadPlugins();
+    signalObject* m_sigObj;
 };
 
 #endif // ALGORITHMMANAGER_H

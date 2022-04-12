@@ -10,6 +10,7 @@
 #include "reader.h"
 #include "progressable.h"
 #include "LogFileParent.h"
+#include "plugin\signalobject.h"
 
 /**
  * @interface IAlgorithm
@@ -144,6 +145,8 @@ public:
      * @return QMap with the settings
      */
     virtual QMap<QString, QVariant> generateSettings(Progressable *receiver, QMap<QString, QVariant> buffer, bool useCuda, volatile bool* stopped) = 0;
+
+    virtual void setSignalObject(signalObject* sigObj) = 0;
 
 signals:
     void updateKeyframes(std::vector<uint> keyframes);

@@ -350,6 +350,11 @@ QMap<QString, QVariant> CameraMovement::getSettings()
     return settings;
 }
 
+void CameraMovement::setSignalObject(signalObject *sigObj)
+{
+
+}
+
 void CameraMovement::movementThresholdChanged(QString sThreshold)
 {
     // checks validation through QDoubleValidator

@@ -1,7 +1,9 @@
 #include "algorithmmanager.h"
 
+
 AlgorithmManager::AlgorithmManager()
 {
+    m_sigObj = new signalObject();
     loadPlugins();
 }
 
@@ -81,6 +83,11 @@ IAlgorithm *AlgorithmManager::getAlgo(int idx)
     return m_algorithmList[idx];
 }
 
+void AlgorithmManager::sigNewMetaData()
+{
+    m_sigObj->newMetaData();
+}
+
 void AlgorithmManager::loadPlugins(){
     QDir pluginsDir(QCoreApplication::applicationDirPath());
     #if defined(Q_OS_WIN)
@@ -110,10 +117,10 @@ void AlgorithmManager::loadPlugins(){
             if(algorithm){
                 qDebug() << algorithm->getName();
                 m_algorithmList.push_back(algorithm);
+                algorithm->setSignalObject(m_sigObj);
             } else {
                 pluginLoader.unload();
             }
         }
     }
-    qDebug() << QString::number(m_algorithmList.size());
 }

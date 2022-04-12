@@ -151,6 +151,8 @@ public:
      */
     virtual QMap<QString, QVariant> getSettings() override;
 
+    void setSignalObject(signalObject* sigObj);
+
 private slots:
     void movementThresholdChanged(QString sThreshold);
 
