@@ -6,7 +6,7 @@ AlgorithmController::AlgorithmController(DataManager* dataManager, SamplingWidge
     m_dataManager = dataManager;
     m_pluginIdx = samplingWidget->getSelectedAlgorithm();
     m_pluginType = (samplingWidget->getSelctedType() ? PluginType::Algorithm : PluginType::Transform);
-    AlgorithmManager::instance().initializePlugins(m_dataManager->getModelInputPictures()->getReader());
+    AlgorithmManager::instance().initializePlugins(m_dataManager->getModelInputPictures()->getReader(), m_dataManager->getModelAlgorithm()->getPluginBuffer());
     samplingWidget->resetSelectedImages();
     //Save samplingSettings and connect
     m_samplingWidget = samplingWidget;

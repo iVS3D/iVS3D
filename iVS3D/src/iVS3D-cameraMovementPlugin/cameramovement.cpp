@@ -23,18 +23,17 @@ QWidget* CameraMovement::getSettingsWidget(QWidget *parent)
     return m_settingsWidget;
 }
 
-std::vector<uint> CameraMovement::sampleImages(Reader *reader, const std::vector<unsigned int> &imageList, Progressable *receiver, volatile bool *stopped, QMap<QString, QVariant> buffer, bool useCuda, LogFileParent *logFile)
+std::vector<uint> CameraMovement::sampleImages(const std::vector<unsigned int> &imageList, Progressable *receiver, volatile bool *stopped, bool useCuda, LogFileParent *logFile)
 {
     m_logFile = logFile;
     m_logFile->startTimer(LF_BUFFER);
-    recreateBufferMatrix(buffer);
     m_logFile->stopTimer();
 
     m_cuda = useCuda;
     std::vector<uint> keyframes;
     m_logFile->startTimer(LF_OPT_FLOW_TOTAL);
     try {
-        calcOptFlowSingle(keyframes,reader,imageList,receiver,stopped);
+        calcOptFlowSingle(keyframes,m_reader,imageList,receiver,stopped);
     }  catch (cv::Exception &cvExcep) {
         qDebug() << QString::fromStdString((std::string)cvExcep.msg);
     }
@@ -46,6 +45,7 @@ std::vector<uint> CameraMovement::sampleImages(Reader *reader, const std::vector
                 Q_ARG(int, 100),
                 Q_ARG(QString, "Camera movement progress"));
 
+    sendBuffer();
     return keyframes;
 }
 
@@ -54,7 +54,7 @@ QString CameraMovement::getName() const
     return PLUGIN_NAME;
 }
 
-QVariant CameraMovement::getBuffer()
+void CameraMovement::sendBuffer()
 {
     std::stringstream matStream;
     const int *size = m_bufferMat.size();
@@ -68,13 +68,12 @@ QVariant CameraMovement::getBuffer()
     }
 
     std::string matString = matStream.str();
-    return QVariant(QString::fromStdString(matString));
+    auto val = QVariant(QString::fromStdString(matString));
+    QMap<QString, QVariant> buf;
+    buf.insert(BUFFER_NAME,val);
+    emit updateBuffer(buf);
 }
 
-QString CameraMovement::getBufferName()
-{
-    return BUFFER_NAME;
-}
 
 double CameraMovement::averageFlow(cv::Mat flow, uint stepSize)
 {
@@ -241,13 +240,14 @@ void CameraMovement::stringToBufferMat(QString string)
     }
 }
 
-void CameraMovement::initialize(Reader *reader)
+void CameraMovement::initialize(Reader *reader, QMap<QString, QVariant> buffer, signalObject *)
 {
     // setup buffer matrix size
     int picCount = reader->getPicCount();
     int size[2] = {picCount, picCount};
     m_bufferMat = cv::SparseMat(2, size, CV_32F);
     m_reader = reader;
+    recreateBufferMatrix(buffer);
 
     return;
 }
@@ -273,12 +273,9 @@ void CameraMovement::setSettings(QMap<QString, QVariant> settings)
 
 }
 
-QMap<QString, QVariant> CameraMovement::generateSettings(Progressable *receiver, QMap<QString, QVariant> buffer, bool useCuda, volatile bool* stopped)
+QMap<QString, QVariant> CameraMovement::generateSettings(Progressable *receiver, bool useCuda, volatile bool* stopped)
 {
     // WARNING: All this estimations rely on the fact that the plugin is operation on the all frames not just the keyframes.
-
-    //       initalize buffer
-    recreateBufferMatrix(buffer);
 
     //       select correct farneback
     auto *farn = FarnebackOptFlowFactory::create(useCuda ? FARNEBACK_CUDA : FARNEBACK_CPU);
@@ -339,6 +336,7 @@ QMap<QString, QVariant> CameraMovement::generateSettings(Progressable *receiver,
      * that cant all be known estiminated. Its still a good approximation to an optimum.*/
     m_resetDelta = fps * 0.15f;
 
+    sendBuffer();
     return getSettings();
 }
 
@@ -348,11 +346,6 @@ QMap<QString, QVariant> CameraMovement::getSettings()
     settings.insert(RESET_DELTA, m_resetDelta);
     settings.insert(CAMERA_MOVEMENT_THRESHOLD, m_cameraThreshold);
     return settings;
-}
-
-void CameraMovement::setSignalObject(signalObject *sigObj)
-{
-
 }
 
 void CameraMovement::movementThresholdChanged(QString sThreshold)

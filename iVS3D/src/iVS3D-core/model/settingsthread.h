@@ -22,7 +22,7 @@ public:
      * @brief SettingsThread Constructor which takes all parameters used by IAlgorithm
      * @param parameters according to IAlgorithm
      */
-    SettingsThread(Progressable *receiver, Reader *reader, const std::vector<uint> &images, volatile bool *stopped, int pluginIdx, QMap<QString, QVariant> buffer, bool useCuda);
+    SettingsThread(Progressable *receiver, const std::vector<uint> &images, volatile bool *stopped, int pluginIdx, bool useCuda);
 protected:
     /**
      * @brief QThread mehtod which executes the generateSettings method of the specified plugin

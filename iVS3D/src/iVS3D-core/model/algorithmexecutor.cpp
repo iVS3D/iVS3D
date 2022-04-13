@@ -16,7 +16,7 @@ int AlgorithmExecutor::startSampling(int pluginIdx, bool onlyKeyframes, bool use
        return -1;
     }
 
-    m_sampleThread = new SampleThread(this, preparedData.mip->getReader(), preparedData.images, &m_stopped, m_pluginIndex, preparedData.bufferData, preparedData.useCuda);
+    m_sampleThread = new SampleThread(this, preparedData.images, &m_stopped, m_pluginIndex, preparedData.useCuda);
     //Use a direct Connection when no ui is used
     if (qApp->property(stringContainer::UIIdentifier).toBool()) {
         QObject::connect(m_sampleThread, &QThread::finished, this, &AlgorithmExecutor::slot_pluginFinished);
@@ -33,7 +33,7 @@ int AlgorithmExecutor::startGenerateSettings(int pluginIdx, bool onlyKeyframes, 
 {
     // gather data that is needed for generating the settings
     ALGO_DATA preparedData = prepareAlgoStart(pluginIdx, onlyKeyframes, useBounds);
-    m_settingsThread = new SettingsThread(this, preparedData.mip->getReader(), preparedData.images, &m_stopped, m_pluginIndex, preparedData.bufferData, preparedData.useCuda);
+    m_settingsThread = new SettingsThread(this, preparedData.images, &m_stopped, m_pluginIndex, preparedData.useCuda);
 
     //Use a direct Connection when no ui is used
     if (qApp->property(stringContainer::UIIdentifier).toBool()) {
@@ -71,10 +71,14 @@ void AlgorithmExecutor::slot_pluginFinished()
         QString message = AlgorithmManager::instance().getPluginNameToIndex(m_pluginIndex) + " extracted " + QString::number(keyframes.size()) + " images";
         slot_displayMessage(message);
         m_dataManager->getModelInputPictures()->updateMIP(keyframes);
-        QString bufferName = AlgorithmManager::instance().getBufferName(m_pluginIndex);
+/*
+ * TODO: update buffer in slot!!!
+ *
+ *
+ *         QString bufferName = AlgorithmManager::instance().getBufferName(m_pluginIndex);
         QString pluginName = AlgorithmManager::instance().getPluginNameToIndex(m_pluginIndex);
         QVariant buffer = m_sampleThread->getBuffer();
-        m_dataManager->getModelAlgorithm()->addPluginBuffer(pluginName, bufferName, buffer);
+        m_dataManager->getModelAlgorithm()->addPluginBuffer(pluginName, bufferName, buffer);*/
     } else if (m_currentThread == m_settingsThread) {
         // if generateSettings finished
         QMap<QString, QVariant> generatedSettings = m_settingsThread->getOutput();
@@ -129,19 +133,6 @@ ALGO_DATA AlgorithmExecutor::prepareAlgoStart(int pluginIdx, bool onlyKeyframes,
             for(unsigned int i = 0; i < preparedData.mip->getPicCount(); i++){
                 preparedData.images.push_back(i);
             }
-        }
-    }
-
-    // Read bufferData
-    QString pluginName = AlgorithmManager::instance().getPluginNameToIndex(m_pluginIndex);
-    QMap<QString, QMap<QString, QVariant>> buffer = m_dataManager->getModelAlgorithm()->getPluginBuffer();
-
-    QMapIterator<QString, QMap<QString, QVariant>> mapIt(buffer);
-    while(mapIt.hasNext()) {
-        mapIt.next();
-        if (mapIt.key().compare(pluginName) == 0) {
-            preparedData.bufferData = mapIt.value();
-            break;
         }
     }
 

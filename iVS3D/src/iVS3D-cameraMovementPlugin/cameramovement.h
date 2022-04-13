@@ -62,7 +62,7 @@
 class CameraMovement : public IAlgorithm
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "pse.iVS3D.IAlgorithm")   // implement interface as plugin, use the iid as identifier
+    Q_PLUGIN_METADATA(IID "iVS3D.IAlgorithm")   // implement interface as plugin, use the iid as identifier
     Q_INTERFACES(IAlgorithm)                        // declare this as implementation of IAlgorithm interface
 
 public:
@@ -90,7 +90,7 @@ public:
      * @param logFile poiter to the log file
      * @return A list of indices, which represent the selected keyframes.
      */
-    std::vector<uint> sampleImages(Reader *reader, const std::vector<unsigned int> &imageList, Progressable *receiver, volatile bool *stopped, QMap<QString, QVariant> buffer, bool useCuda, LogFileParent *logFile) override;
+    std::vector<uint> sampleImages(const std::vector<unsigned int> &imageList, Progressable *receiver, volatile bool *stopped, bool useCuda, LogFileParent *logFile) override;
 
     /**
      * @brief getName Returns a name for displaying this algorithm to the user.
@@ -99,22 +99,10 @@ public:
     QString getName() const override;
 
     /**
-     * @brief getBuffer Returns a buffer for storeing previously calculated Infos
-     * @return the buffer as a QVariant (empty)
-     */
-    QVariant getBuffer() override;
-
-    /**
-     * @brief getBufferName Returns the name of the buffer
-     * @return the name of the Buffer as a QString
-     */
-    QString getBufferName() override;
-
-    /**
      * @brief initialize Sets up the default value which is corresponding to video information
      * @param reader is used to get video or image information
      */
-    void initialize(Reader* reader) override;
+    void initialize(Reader* reader, QMap<QString, QVariant> buffer, signalObject *sigObj) override;
 
     /**
      * @brief setMovementThreshold Sets a new value for the movementThreshold parameter
@@ -143,7 +131,7 @@ public:
      * @param stopped is set if the algorithm should abort
      * @return QMap with the settings
      */
-    virtual QMap<QString, QVariant> generateSettings(Progressable *receiver, QMap<QString, QVariant> buffer, bool useCuda, volatile bool* stopped) override;
+    virtual QMap<QString, QVariant> generateSettings(Progressable *receiver, bool useCuda, volatile bool* stopped) override;
 
     /**
      * @brief getter for plugin's settings
@@ -192,6 +180,7 @@ private:
     void stringToBufferMat(QString string);
     void createSettingsWidget(QWidget *parent);
     void updateInfoLabel(double averageMovement);
+    void sendBuffer();
 };
 
 #endif // CAMERAMOVEMENT_H

@@ -50,7 +50,7 @@
 class Blur : public IAlgorithm
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "pse.iVS3D.IAlgorithm") // implement interface as plugin, use the iid as identifier
+    Q_PLUGIN_METADATA(IID "iVS3D.IAlgorithm") // implement interface as plugin, use the iid as identifier
     Q_INTERFACES(IAlgorithm)    // declare this as implementation of IAlgorithm interface
 
 public:
@@ -74,41 +74,31 @@ public:
      *
      * If only keyframes are used, sampleImages creates the same windows, but only for keyframes and it will selected the Image in a window with the largest blur value.
      *
-     * @param reader gives the method access to the video/image sequence, which should be used
      * @param imageList is a preselection of frames
      * @param receiver is a progressable, which displays the already made progress
      * @param stopped Pointer to a bool indication if user wants to stop the computation
-     * @param buffer is a QVariant, which holds previous computions that could be usefull for the next selection
      * @param useCuda defines if the compution should run on graphics card
      * @param logFile can be used to protocoll progress or problems
      * @return A list of indices, which represent the selected keyframes.
      */
-    std::vector<uint> sampleImages(Reader *reader, const std::vector<unsigned int> &imageList, Progressable *receiver, volatile bool *stopped, QMap<QString, QVariant> buffer, bool useCuda, LogFileParent* logFile) override;
+    std::vector<uint> sampleImages(const std::vector<unsigned int> &imageList, Progressable *receiver, volatile bool *stopped, bool useCuda, LogFileParent* logFile) override;
     /**
      * @brief getName Returns the plugin Name
      * @return "Blur"
      */
     QString getName() const override;
     /**
-     * @brief Returns the calculated buffer which is a QVariant containing the calulated Blur Values
-     * @return QVariant containing the calulated Blur Values
-     */
-    QVariant getBuffer() override;
-    /**
-     * @brief getBufferName Returns the buffer name
-     * @return Name of the used BlurAlgorithm
-     */
-    QString getBufferName() override;
-    /**
      * @brief initialize Blur doesn't use this currently
-     * @param reader
+     * @param reader the images
+     * @param buffer is a QVariant, which holds previous computions that could be usefull for the next selection
+     * @param sigObj provides signals from the core
      */
-    void initialize(Reader* reader) override;    
+    void initialize(Reader* reader, QMap<QString, QVariant> buffer, signalObject* sigObj) override;
     /**
      * @brief setter for plugin's settings
      * @param QMap with the settings
      */
-    virtual void setSettings(QMap<QString, QVariant> settings) override;
+    void setSettings(QMap<QString, QVariant> settings) override;
     /**
      * @brief generateSettings tries to generate the best settings for the current input
      * @param receiver is a progressable, which displays the already made progress
@@ -117,14 +107,12 @@ public:
      * @param stopped is set if the algorithm should abort
      * @return QMap with the settings
      */
-    virtual QMap<QString, QVariant> generateSettings(Progressable *receiver, QMap<QString, QVariant> buffer, bool useCuda, volatile bool* stopped) override;
+    QMap<QString, QVariant> generateSettings(Progressable *receiver, bool useCuda, volatile bool* stopped) override;
     /**
      * @brief getter for plugin's settings
      * @return QMap with the settings
      */
-    virtual QMap<QString, QVariant> getSettings() override;
-
-    void setSignalObject(signalObject* sig_obj) override;
+    QMap<QString, QVariant> getSettings() override;
 
 
 public slots:
@@ -147,6 +135,9 @@ public slots:
 
 private:
     QWidget *m_settingsWidget;
+    Reader *m_reader;
+    QMap<QString, QVariant> m_buffer;
+    signalObject* m_sigObj;
     QComboBox* m_comboBoxBlur  = nullptr;
     QSpinBox* m_spinBoxWS  = nullptr;
     QSpinBox* m_spinBoxLD  = nullptr;
@@ -160,6 +151,7 @@ private:
     std::vector<double> splitDoubleString(QString string);
     std::vector<uint> sampleAllImages(Reader *reader, Progressable *receiver, volatile bool *stopped, int start, int end);
     std::vector<uint> sampleKeyframes(Reader *reader, Progressable *receiver, volatile bool *stopped, std::vector<uint> sharpImages);
+    void computeBuffer();
 };
 
 #endif // BLUR_H

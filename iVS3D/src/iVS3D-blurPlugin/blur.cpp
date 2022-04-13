@@ -20,16 +20,16 @@ QWidget* Blur::getSettingsWidget(QWidget *parent)
     return m_settingsWidget;
 }
 
-std::vector<uint> Blur::sampleImages(Reader *reader, const std::vector<unsigned int> &imageList, Progressable *receiver, volatile bool *stopped, QMap<QString, QVariant> buffer, bool useCuda, LogFileParent *logFile)
+std::vector<uint> Blur::sampleImages(const std::vector<unsigned int> &imageList, Progressable *receiver, volatile bool *stopped, bool useCuda, LogFileParent *logFile)
 {
     (void) useCuda;
     m_logFile = logFile;
     m_logFile->startTimer("complete");
     m_blurValues.clear();
     //Qvariant is not empty
-    if (buffer.size() != 0) {
+    if (m_buffer.size() != 0) {
         //Get the QMap from Variant
-        QMapIterator<QString, QVariant> mapIt(buffer);
+        QMapIterator<QString, QVariant> mapIt(m_buffer);
         //Check if usedBlur is in the buffer
         while (mapIt.hasNext()) {
             mapIt.next();
@@ -42,7 +42,7 @@ std::vector<uint> Blur::sampleImages(Reader *reader, const std::vector<unsigned 
     }
     //If no buffer ist found init new blur vector and set first value to 0 to detect new blur vector
     if (m_blurValues.empty()) {
-        m_blurValues = std::vector<double>(reader->getPicCount());
+        m_blurValues = std::vector<double>(m_reader->getPicCount());
         m_blurValues[0] = 0;
     }
     //Decide if blur detection for all images or only for keyframes is needed
@@ -50,17 +50,18 @@ std::vector<uint> Blur::sampleImages(Reader *reader, const std::vector<unsigned 
     if (imageList.size() == imageList.back() - imageList[0] + 1) {
         //All images have to be sampled
         if (m_blurValues[0] == 0) {
-            m_blurValues = m_usedBlur->calcFullBluriness(reader, receiver, stopped, imageList[0], imageList.back(), m_blurValues);
+            m_blurValues = m_usedBlur->calcFullBluriness(m_reader, receiver, stopped, imageList[0], imageList.back(), m_blurValues);
         }
 
 
-        sampledImages = sampleAllImages(reader, receiver, stopped, imageList[0], imageList.back());
+        sampledImages = sampleAllImages(m_reader, receiver, stopped, imageList[0], imageList.back());
     }
     else {
-        sampledImages = sampleKeyframes(reader, receiver, stopped, imageList);
+        sampledImages = sampleKeyframes(m_reader, receiver, stopped, imageList);
     }
 
     m_logFile->stopTimer();
+    computeBuffer();
     return sampledImages;
 }
 
@@ -70,7 +71,7 @@ QString Blur::getName() const
 }
 
 
-QVariant Blur::getBuffer()
+void Blur::computeBuffer()
 {
     std::stringstream bufferStream;
     for (uint i = 0; i < m_blurValues.size(); i++) {
@@ -81,17 +82,15 @@ QVariant Blur::getBuffer()
     }
     std::string buffer = bufferStream.str();
     QVariant blurValues(QString::fromStdString(buffer));
-    return blurValues;
+    m_buffer.insert(m_usedBlur->getName(), blurValues);
+    emit updateBuffer(m_buffer);
 }
 
-QString Blur::getBufferName()
+void Blur::initialize(Reader *reader, QMap<QString, QVariant> buffer, signalObject* sig_obj)
 {
-    return m_usedBlur->getName();
-}
-
-void Blur::initialize(Reader *reader)
-{
-    (void) reader;
+    m_reader = reader;
+    m_buffer = buffer;
+    m_sigObj = sig_obj;
 }
 
 void Blur::setSettings(QMap<QString, QVariant> settings)
@@ -117,7 +116,7 @@ void Blur::setSettings(QMap<QString, QVariant> settings)
 
 }
 
-QMap<QString, QVariant> Blur::generateSettings(Progressable *receiver, QMap<QString, QVariant> buffer, bool useCuda, volatile bool* stopped)
+QMap<QString, QVariant> Blur::generateSettings(Progressable *receiver, bool useCuda, volatile bool* stopped)
 {
     (void) receiver;
     (void) useCuda;
@@ -132,11 +131,6 @@ QMap<QString, QVariant> Blur::getSettings()
     settings.insert(LOCAL_DEVIATION, m_localDeviation);
     settings.insert(WINDOW_SIZE, m_windowSize);
     return settings;
-}
-
-void Blur::setSignalObject(signalObject *sig_obj)
-{
-
 }
 
 void Blur::slot_blurChanged(const QString & name)

@@ -21,8 +21,8 @@ QWidget* AlgorithmManager::getSettingsWidget(QWidget* parent, uint idx){
     return widget;
 }
 
-std::vector<uint> AlgorithmManager::sample(Reader* images, std::vector<uint> sharpImages, Progressable* receiver, volatile bool* stopped, int idx, QMap<QString, QVariant> buffer, bool useCuda, LogFileParent *logFile){
-    return m_algorithmList[idx]->sampleImages(images, sharpImages, receiver, stopped, buffer, useCuda, logFile);
+std::vector<uint> AlgorithmManager::sample(std::vector<uint> sharpImages, Progressable* receiver, volatile bool* stopped, int idx, bool useCuda, LogFileParent *logFile){
+    return m_algorithmList[idx]->sampleImages(sharpImages, receiver, stopped, useCuda, logFile);
 }
 
 QStringList AlgorithmManager::getAlgorithmList(){
@@ -40,25 +40,17 @@ QString AlgorithmManager::getPluginNameToIndex(int index)
     return m_algorithmList[index]->getName();
 }
 
-QVariant AlgorithmManager::getBuffer(int idx)
-{
-    return m_algorithmList[idx]->getBuffer();
-}
-
-QString AlgorithmManager::getBufferName(int idx)
-{
-    return m_algorithmList[idx]->getBufferName();
-}
-
 int AlgorithmManager::getAlgorithmCount()
 {
     return (int)m_algorithmList.size();
 }
 
-void AlgorithmManager::initializePlugins(Reader *reader)
+void AlgorithmManager::initializePlugins(Reader *reader, QMap<QString, QMap<QString, QVariant>> allBuffer)
 {
     for (uint i = 0; i < m_algorithmList.size(); i++) {
-        m_algorithmList[i]->initialize(reader);
+        auto name = m_algorithmList[i]->getName();
+        auto buf = allBuffer[name];
+        m_algorithmList[i]->initialize(reader, buf, m_sigObj);
     }
     return;
 }
@@ -68,9 +60,9 @@ void AlgorithmManager::setSettings(int idx, QMap<QString, QVariant> settings)
     m_algorithmList[idx]->setSettings(settings);
 }
 
-QMap<QString, QVariant> AlgorithmManager::generateSettings(int idx, Progressable *receiver, QMap<QString, QVariant> buffer, bool useCuda, volatile bool* stopped)
+QMap<QString, QVariant> AlgorithmManager::generateSettings(int idx, Progressable *receiver, bool useCuda, volatile bool* stopped)
 {
-    return m_algorithmList[idx]->generateSettings(receiver, buffer, useCuda, stopped);
+    return m_algorithmList[idx]->generateSettings(receiver, useCuda, stopped);
 }
 
 QMap<QString, QVariant> AlgorithmManager::getSettings(int idx)
@@ -86,6 +78,16 @@ IAlgorithm *AlgorithmManager::getAlgo(int idx)
 void AlgorithmManager::sigNewMetaData()
 {
     m_sigObj->newMetaData();
+}
+
+void AlgorithmManager::sigSelectedImageIndex(uint index)
+{
+    m_sigObj->selectedImageIndex(index);
+}
+
+void AlgorithmManager::sigKeyframesChanged(std::vector<uint> keyframes)
+{
+    m_sigObj->keyframesChanged(keyframes);
 }
 
 void AlgorithmManager::loadPlugins(){
@@ -114,7 +116,6 @@ void AlgorithmManager::loadPlugins(){
             IAlgorithm* algorithm = qobject_cast<IAlgorithm*>(plugin);
             if(algorithm){
                 m_algorithmList.push_back(algorithm);
-                algorithm->setSignalObject(m_sigObj);
             } else {
                 pluginLoader.unload();
             }

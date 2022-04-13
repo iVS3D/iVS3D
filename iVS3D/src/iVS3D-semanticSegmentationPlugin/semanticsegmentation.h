@@ -56,7 +56,7 @@
 class SEMANTICSEGMENTATION_EXPORT SemanticSegmentation : public ITransform
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "pse.iVS3D.ITransform")   // implement interface as plugin, use the iid as identifier
+    Q_PLUGIN_METADATA(IID "iVS3D.ITransform")   // implement interface as plugin, use the iid as identifier
     Q_INTERFACES(ITransform)                        // declare this as implementation of ITransform interface
 
 public:

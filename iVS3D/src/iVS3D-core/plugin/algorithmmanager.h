@@ -50,7 +50,7 @@ public:
      * @param idx Index of the Algorithm
      * @return Keyframe list calculated by the plugin
      */
-    std::vector<uint> sample(Reader* images, std::vector<uint> sharpImages, Progressable* receiver, volatile bool* stopped, int idx, QMap<QString, QVariant> buffer, bool useCuda, LogFileParent *logFile);
+    std::vector<uint> sample(std::vector<uint> sharpImages, Progressable* receiver, volatile bool* stopped, int idx, bool useCuda, LogFileParent *logFile);
     /**
      * @brief getAlgorithmList returns the loaded plugins
      * @return QStringList with the names of the loaded plugins
@@ -63,18 +63,6 @@ public:
      */
     QString getPluginNameToIndex(int index);
     /**
-     * @brief getBuffer calls the getBuffer method on the indexed IAlgorithm
-     * @param index Index of the plugin
-     * @return QVariant with the buffer
-     */
-    QVariant getBuffer(int idx);
-    /**
-     * @brief getBufferName calls the getBufferName method on the indexed IAlgorithm
-     * @param index Index of the plugin
-     * @return QString with the buffer name
-     */
-    QString getBufferName(int idx);
-    /**
      * @brief getAlgorithmCount returns the number of loaded IAlgorithms
      * @return The number of loaded IAlgorithms
      */
@@ -83,7 +71,7 @@ public:
      * @brief initializePlugins calls the initialize method on all loaded IAlgorithms
      * @param reader The reader needed for the initialize method according to IAlgorithm
      */
-    void initializePlugins(Reader *reader);
+    void initializePlugins(Reader *reader, QMap<QString, QMap<QString,QVariant>> allBuffer);
     /**
      * @brief setSettings sets the settings of the indexed plugin
      * @param idx Index of the plugin
@@ -98,7 +86,7 @@ public:
      * @param useCuda @a true if cv::cuda can be used
      * @param stopped Bool to indicated user stopped the generation of settings
     */
-    QMap<QString, QVariant> generateSettings(int idx, Progressable *receiver, QMap<QString, QVariant> buffer, bool useCuda, volatile bool* stopped);
+    QMap<QString, QVariant> generateSettings(int idx, Progressable *receiver, bool useCuda, volatile bool* stopped);
     /**
      * @brief getSettings gets the settings of the indexed plugin
      * @param idx Index of the plugin
@@ -109,6 +97,8 @@ public:
     IAlgorithm *getAlgo(int idx);
 
     void sigNewMetaData();
+    void sigSelectedImageIndex(uint index);
+    void sigKeyframesChanged(std::vector<uint> keyframes);
 
 private:
     std::vector<IAlgorithm*> m_algorithmList;

@@ -94,36 +94,24 @@ public:
      *  return keyframes;
      * @endcode
      *
-     * @param images The Reader instance to fetch images from
      * @param imageList Index list of images to compute, but indices inbetween can be used for computation (see Blur)
      * @param receiver The Progressable to invoke to report progress
      * @param stopped Flag @a true if the computation should abort, @a fals if it should continue
-     * @param buffer QVariant with the buffered data form last call to sampleImages
      * @param useCuda @a true if cv::cuda can be used
      * @param logFile can be used to protocoll progress or problems
      * @return The indices of the seletced keyframes
      *
      * @see Rotation, Blur
      */
-    virtual std::vector<uint> sampleImages(Reader* images, const std::vector<uint> &imageList, Progressable* receiver, volatile bool* stopped, QMap<QString, QVariant> buffer, bool useCuda, LogFileParent *logFile) = 0;
-
-    /**
-     * @brief getBuffer returns the new buffer values computed in sampleImages. The core application handles and stores this buffer for the next call to sampleImages.
-     * @return The buffer
-     */
-
-    virtual QVariant getBuffer() = 0;
-    /**
-     * @brief getBufferName return a name for the buffer, this allows to store multiple buffers for different configurations. @see Blur
-     * @return The buffer name.
-     */
-    virtual QString getBufferName() = 0;
+    virtual std::vector<uint> sampleImages(const std::vector<uint> &imageList, Progressable* receiver, volatile bool* stopped, bool useCuda, LogFileParent *logFile) = 0;
 
     /**
      * @brief initialize the the IAlgorithm and the settings widget with plusible values from the Reader.
      * @param reader The reader with the images
+     * @param buffer QVariant with the buffered data form last call to sampleImages
+     * @param sigObj provides signals from the core application
      */
-    virtual void initialize(Reader* reader) = 0;
+    virtual void initialize(Reader* reader, QMap<QString, QVariant> buffer, signalObject* sigObj) = 0;
 
     /**
      * @brief setter for plugin's settings
@@ -144,14 +132,22 @@ public:
      * @param useCuda @a true if cv::cuda can be used
      * @return QMap with the settings
      */
-    virtual QMap<QString, QVariant> generateSettings(Progressable *receiver, QMap<QString, QVariant> buffer, bool useCuda, volatile bool* stopped) = 0;
-
-    virtual void setSignalObject(signalObject* sigObj) = 0;
+    virtual QMap<QString, QVariant> generateSettings(Progressable *receiver, bool useCuda, volatile bool* stopped) = 0;
 
 signals:
+    /**
+     * @brief updateKeyframes updates the keyframe list in the core object.
+     * @param keyframes the new keyframes
+     */
     void updateKeyframes(std::vector<uint> keyframes);
+
+    /**
+     * @brief updateBuffer stores the given buffer for future uses of the buffered data.
+     * @param buffer the data to store
+     */
+    void updateBuffer(QMap<QString, QVariant> buffer);
 };
 
-Q_DECLARE_INTERFACE(IAlgorithm, "pse.iVS3D.IAlgorithm")
+Q_DECLARE_INTERFACE(IAlgorithm, "iVS3D.IAlgorithm")
 
 #endif // IALGORITHM_H

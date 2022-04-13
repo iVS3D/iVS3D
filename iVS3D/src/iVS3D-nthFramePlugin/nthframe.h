@@ -47,7 +47,7 @@
 class NTHFRAME_EXPORT NthFrame : public IAlgorithm
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "pse.iVS3D.IAlgorithm") // implement interface as plugin, use the iid as identifier
+    Q_PLUGIN_METADATA(IID "iVS3D.IAlgorithm") // implement interface as plugin, use the iid as identifier
     Q_INTERFACES(IAlgorithm)    // declare this as implementation of IAlgorithm interface
 
 public:
@@ -68,46 +68,31 @@ public:
      * The algorithm reports progress to the Progressable *receiver by calling Progressable::slot_makeProgress. Setting the *stopped bool to @a true
      * exits the algorithm.
      *
-     * @param images A Reader instance to access images or the image/video path.
-     * @param sharpImages A list containing indices of all images classified sharp.
-     * @param receiver A Progressable instance. The slot Progressable::slot_makeProgress is called to report progress as an int in range [0,100].
-     * @param stopped Pointer to a bool inidcating if user wants to stop computation. Algorithm aborts if set to @a true.
-     * @param useCuda @a true if cv::cuda can be used
+     * @param imageList is a preselection of frames
+     * @param receiver is a progressable, which displays the already made progress
+     * @param stopped Pointer to a bool indication if user wants to stop the computation
+     * @param useCuda defines if the compution should run on graphics card
      * @param logFile can be used to protocoll progress or problems
-     * @return A list of indices. Each index represents a keyframe from the given images.
+     * @return A list of indices, which represent the selected keyframes.
      */
-    std::vector<uint> sampleImages(Reader *images, const std::vector<unsigned int> &imageList, Progressable *receiver, volatile bool *stopped, QMap<QString, QVariant> buffer, bool useCuda, LogFileParent *logFile);
-
+    std::vector<uint> sampleImages(const std::vector<unsigned int> &imageList, Progressable *receiver, volatile bool *stopped, bool useCuda, LogFileParent* logFile) override;
     /**
-     * @brief getName Returns a name for displaying this algorithm to the user.
-     * @return the name as QString.
+     * @brief getName Returns the plugin Name
+     * @return "Blur"
      */
-    QString getName() const;
-
+    QString getName() const override;
     /**
-     * @brief getBuffer Returns a buffer for storeing previously calculated Infos (not used in n-th frame)
-     * @return the buffer as a QVariant (empty)
+     * @brief initialize Blur doesn't use this currently
+     * @param reader the images
+     * @param buffer is a QVariant, which holds previous computions that could be usefull for the next selection
+     * @param sigObj provides signals from the core
      */
-    QVariant getBuffer();
-
-    /**
-     * @brief getBufferName Returns the name of the buffer
-     * @return the name of the Buffer as a QString
-     */
-    QString getBufferName();
-
-    /**
-     * @brief initialize Sets up the default value which is corresponding to video information
-     * @param reader is used to get video or image information
-     */
-    void initialize(Reader* reader);
-
+    void initialize(Reader* reader, QMap<QString, QVariant> buffer, signalObject* sigObj) override;
     /**
      * @brief setter for plugin's settings
      * @param QMap with the settings
      */
-    virtual void setSettings(QMap<QString, QVariant> settings);
-
+    void setSettings(QMap<QString, QVariant> settings) override;
     /**
      * @brief generateSettings tries to generate the best settings for the current input
      * @param receiver is a progressable, which displays the already made progress
@@ -116,15 +101,12 @@ public:
      * @param stopped is set if the algorithm should abort
      * @return QMap with the settings
      */
-    virtual QMap<QString, QVariant> generateSettings(Progressable *receiver, QMap<QString, QVariant> buffer, bool useCuda, volatile bool* stopped);
-
+    QMap<QString, QVariant> generateSettings(Progressable *receiver, bool useCuda, volatile bool* stopped) override;
     /**
      * @brief getter for plugin's settings
      * @return QMap with the settings
      */
-    virtual QMap<QString, QVariant> getSettings();
-
-    void setSignalObject(signalObject* sigObj);
+    QMap<QString, QVariant> getSettings() override;
 
 public slots:
     /**
@@ -133,17 +115,14 @@ public slots:
      */
     void slot_nChanged(int n);
 
-    void slot_newMetaData();
-
 private:
     void createSettingsWidget(QWidget *parent);
-
+    Reader *m_reader;
     unsigned int m_N;
     uint m_numFrames;
     QWidget *m_settingsWidget;
     int m_fps = 30;
     QSpinBox* m_spinBox = nullptr;
-    signalObject* m_sigObj;
 };
 
 #endif // NTHFRAME_H

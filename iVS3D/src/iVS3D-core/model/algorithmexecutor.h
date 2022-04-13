@@ -18,7 +18,6 @@
 struct ALGO_DATA {
     ModelInputPictures *mip;
     std::vector<uint> images;
-    QMap<QString, QVariant> bufferData;
     bool useCuda;
 };
 

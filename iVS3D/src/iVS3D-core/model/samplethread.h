@@ -22,7 +22,7 @@ public:
      * @brief SampleThread Constructor which takes all parameters used by IAlgorithm
      * @param parameters according to IAlgorithm
      */
-    SampleThread(Progressable *receiver, Reader *reader, const std::vector<uint> &images, volatile bool *stopped, int pluginIdx, QMap<QString, QVariant> buffer, bool useCuda);
+    SampleThread(Progressable *receiver, const std::vector<uint> &images, volatile bool *stopped, int pluginIdx, bool useCuda);
 protected:
     /**
      * @brief QThread mehtod which executes the sampling method of the specified plugin

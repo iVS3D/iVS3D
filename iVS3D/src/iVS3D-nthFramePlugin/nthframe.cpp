@@ -21,7 +21,7 @@ QWidget* NthFrame::getSettingsWidget(QWidget *parent)
     return m_settingsWidget;
 }
 
-std::vector<uint> NthFrame::sampleImages(Reader *, const std::vector<unsigned int> &imageList, Progressable *receiver, volatile bool *stopped, QMap<QString, QVariant>, bool, LogFileParent *logFile)
+std::vector<uint> NthFrame::sampleImages(const std::vector<unsigned int> &imageList, Progressable *receiver, volatile bool *stopped, bool, LogFileParent *logFile)
 {
     logFile->startTimer(LF_TOTAL);
 
@@ -63,18 +63,9 @@ QString NthFrame::getName() const
     return "NthFrame";
 }
 
-QVariant NthFrame::getBuffer()
+void NthFrame::initialize(Reader *reader, QMap<QString, QVariant>, signalObject*)
 {
-    return 0;
-}
-
-QString NthFrame::getBufferName()
-{
-    return "Nth Frame Algorithm";
-}
-
-void NthFrame::initialize(Reader *reader)
-{
+    m_reader = reader;
     m_numFrames = reader->getPicCount();
     if (reader->getFPS() == -1) {
         m_fps = 30;
@@ -94,10 +85,9 @@ void NthFrame::setSettings(QMap<QString, QVariant> settings)
     }
 }
 
-QMap<QString, QVariant> NthFrame::generateSettings(Progressable *receiver, QMap<QString, QVariant> buffer, bool useCuda, volatile bool* stopped)
+QMap<QString, QVariant> NthFrame::generateSettings(Progressable *receiver, bool useCuda, volatile bool* stopped)
 {
     (void) receiver;
-    (void) buffer;
     (void) useCuda;
     (void) stopped;
     m_N = m_fps / 5;
@@ -110,12 +100,6 @@ QMap<QString, QVariant> NthFrame::getSettings()
    QMap<QString, QVariant> settings;
    settings.insert(NAME_N, valueN);
    return settings;
-}
-
-void NthFrame::setSignalObject(signalObject *sigObj)
-{
-    m_sigObj = sigObj;
-    QObject::connect(m_sigObj, SIGNAL(sig_newMetaData()), this, SLOT(slot_newMetaData()));
 }
 
 void NthFrame::slot_nChanged(int n)
@@ -132,14 +116,6 @@ void NthFrame::slot_nChanged(int n)
     }
     keyframes.shrink_to_fit();
     emit updateKeyframes(keyframes);
-}
-
-void NthFrame::slot_newMetaData()
-{
-    if (m_spinBox) {
-        m_spinBox->setValue(999);
-    }
-
 }
 
 void NthFrame::createSettingsWidget(QWidget *parent)

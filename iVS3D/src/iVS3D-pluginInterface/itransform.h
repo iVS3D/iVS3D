@@ -147,6 +147,6 @@ signals:
     void sendToGui(uint idx, const cv::Mat &img);
 };
 
-Q_DECLARE_INTERFACE(ITransform, "pse.iVS3D.ITransform")
+Q_DECLARE_INTERFACE(ITransform, "iVS3D.ITransform")
 
 #endif // ITRANSFORM_H

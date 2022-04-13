@@ -29,7 +29,7 @@ public:
      * @brief AlgorithmThread Constructor which takes all parameters used by IAlgorithm
      * @param parameters according to IAlgorithm
      */
-    AlgorithmThread(Progressable *receiver, Reader *reader, std::vector<uint> images, volatile bool *stopped, int pluginIdx, QMap<QString, QVariant> buffer, bool useCuda);
+    AlgorithmThread(Progressable *receiver, std::vector<uint> images, volatile bool *stopped, int pluginIdx, bool useCuda);
     /**
      * @brief getOutput getter for the computed output (for example keyframes or generated settings )
      * @return The datatype of the computed output is set by the template
@@ -40,16 +40,6 @@ public:
      * @returns 0 if plugin executed without errors, ny other number indicates an error
      */
     int getResult();
-    /**
-     * @brief getBuffer Getter for the buffer of the plugin after run was called.
-     * @returns QVariant with the plugin buffer
-     */
-    QVariant getBuffer();
-    /**
-     * @brief getBufferName Getter for the bufferName of the plugin after run was called.
-     * @returns QVaraint with the plugin buffer
-     */
-    QString getBufferName();
 
 protected:
     /**
@@ -60,11 +50,9 @@ protected:
     outType m_output;
     Progressable *m_receiver;
     int m_pluginIdx;
-    Reader *m_reader;
     std::vector<uint> m_images = {};
     volatile bool *m_stopped;
     int m_result = -1;
-    QMap<QString, QVariant> m_buffer;
     bool m_useCuda;
     LogFile *m_logFile;
 };

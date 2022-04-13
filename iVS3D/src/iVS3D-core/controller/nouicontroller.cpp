@@ -75,7 +75,7 @@ int noUIController::exec()
     QPoint boundaries = QPoint(0, numberImages - 1);
     m_dataManager->getModelInputPictures()->setBoundaries(boundaries);
 
-    AlgorithmManager::instance().initializePlugins(m_dataManager->getModelInputPictures()->getReader());
+    AlgorithmManager::instance().initializePlugins(m_dataManager->getModelInputPictures()->getReader(), m_dataManager->getModelAlgorithm()->getPluginBuffer());
 
     AutomaticExecutor* autoExec = new AutomaticExecutor(m_dataManager, nullptr, autoSettings, nullptr);
     autoExec->slot_startAutomaticExec();
