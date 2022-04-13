@@ -19,7 +19,7 @@
 #include <QGridLayout>
 #include <QComboBox>
 
-#include "IAlgorithm.h"
+#include "ialgorithm.h"
 #include "reader.h"
 #include <opencv2/video.hpp>
 #include "blurlaplacian.h"
@@ -58,6 +58,7 @@ public:
      * @brief Blur Constructor which creates an instance of every BlurAlgorithm and stets standard values (WindowSize = 10, LocalDeviation = 95)
      */
     Blur();
+    ~Blur(){}
     /**
      * @brief getSettingsWidget Returns the settings widget where BlurAlgorithm, WindowSizw and LocalDeviation can be set
      * @param parent Parent of the created QWidget
@@ -122,6 +123,8 @@ public:
      * @return QMap with the settings
      */
     virtual QMap<QString, QVariant> getSettings() override;
+
+    void setSignalObject(signalObject* sig_obj) override;
 
 
 public slots:

@@ -119,5 +119,4 @@ private:
 
     MetaData* m_md = nullptr;
 };
-
 #endif // VIDEOREADER_H

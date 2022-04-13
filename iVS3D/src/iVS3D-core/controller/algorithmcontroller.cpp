@@ -33,12 +33,15 @@ AlgorithmController::~AlgorithmController()
 
 void AlgorithmController::slot_selectAlgorithm(int idx)
 {
+    if(m_pluginType == PluginType::Algorithm)
+        disconnect(AlgorithmManager::instance().getAlgo(m_pluginIdx),&IAlgorithm::updateKeyframes,this,&AlgorithmController::slot_updateKeyframes);
     m_pluginIdx = idx;
     m_pluginType = PluginType::Algorithm;
 
     // show the settings widget of the new algo
     m_samplingWidget->disablePreview();
     m_samplingWidget->showAlgorithmSettings(AlgorithmManager::instance().getSettingsWidget(m_samplingWidget, idx));
+    connect(AlgorithmManager::instance().getAlgo(idx),&IAlgorithm::updateKeyframes,this,&AlgorithmController::slot_updateKeyframes);
     // clear queue for transformations
     m_fQueue = std::make_tuple<cv::Mat*, int, int>(nullptr, NO_IMAGE,NO_TRANSFORM);
 
@@ -48,6 +51,8 @@ void AlgorithmController::slot_selectAlgorithm(int idx)
 
 void AlgorithmController::slot_selectTransform(int idx)
 {
+    if(m_pluginType == PluginType::Algorithm)
+        disconnect(AlgorithmManager::instance().getAlgo(m_pluginIdx),&IAlgorithm::updateKeyframes,this,&AlgorithmController::slot_updateKeyframes);
     m_pluginIdx = idx;
     m_pluginType = PluginType::Transform;
 
@@ -101,6 +106,11 @@ void AlgorithmController::slot_previewStateChanged(bool enabled)
 {
     emit sig_hasStatusMessage(enabled ? "Preview enabled." : "Preview disabled.");
     TransformManager::instance().setTransformationEnabled(enabled);
+}
+
+void AlgorithmController::slot_updateKeyframes(std::vector<uint> keyframes)
+{
+    m_dataManager->getModelInputPictures()->updateMIP(keyframes);
 }
 
 void AlgorithmController::startNextTransform()

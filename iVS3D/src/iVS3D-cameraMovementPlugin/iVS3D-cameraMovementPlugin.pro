@@ -4,9 +4,17 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 CONFIG += c++11
 
+TARGET = CameraMovement
+
 INCLUDEPATH += \
-    ../iVS3D-core/plugin \
+    ../iVS3D-pluginInterface \
+    ../iVS3D-core \
     ../iVS3D-core/model
+
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../iVS3D-core/release -liVS3D-pluginInterface
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../iVS3D-core/debug -liVS3D-pluginInterface
+else:unix: LIBS += -L$$OUT_PWD/../iVS3D-core -liVS3D-pluginInterface
+
 
 include(../../3rdparty.pri)
 
@@ -40,7 +48,7 @@ CONFIG += plugin
 #!isEmpty(target.path): INSTALLS += target
 
 # create .dll in plugins folder
-TARGET = $$qtLibraryTarget(cameramovementplugin)
+# TARGET = $$qtLibraryTarget(cameramovementplugin)
 DESTDIR = ../plugins
 
 FORMS +=

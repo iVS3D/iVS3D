@@ -45,6 +45,7 @@ SOURCES += \
     model/settingsthread.cpp \
     model/stringcontainer.cpp \
     plugin/itransformrequestdequeue.cpp \
+    plugin/signalobject.cpp \
     plugin/transformmanager.cpp \
     plugin/algorithmmanager.cpp \
 # view package
@@ -119,10 +120,9 @@ HEADERS += \
     model/samplethread.h \
     model/settingsthread.h \
     model/stringcontainer.h \
-    plugin/IAlgorithm.h \
     plugin/algorithmmanager.h \
-    plugin/IAlgorithm.h \
     plugin/itransformrequestdequeue.h \
+    plugin/signalobject.h \
     plugin/transformmanager.h \
 # view package
     view/automaticlistwidget.h \
@@ -190,9 +190,9 @@ FORMS += \
     view/reconstructdialog.ui \
     view/emptyfolderdialog.ui
 
-win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/release -lITransform
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/debug -lITransform
-else:unix: LIBS += -L$$OUT_PWD -lITransform
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/release -liVS3D-pluginInterface
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/debug -liVS3D-pluginInterface
+else:unix: LIBS += -L$$OUT_PWD -liVS3D-pluginInterface
 
 INCLUDEPATH += $$PWD/../iVS3D-pluginInterface
 DEPENDPATH  += $$PWD/../iVS3D-pluginInterface

@@ -95,5 +95,4 @@ private:
 
     MetaData* m_md = nullptr;
 };
-
 #endif // IMAGEREADER_H
