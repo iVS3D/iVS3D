@@ -17,6 +17,8 @@
 #include "ialgorithm.h"
 #include "signalobject.h"
 
+class AlgorithmController;
+
 /**
  * @class AlgorithmManager
  *
@@ -29,8 +31,9 @@
  * @date 2021/02/15
  */
 
-class AlgorithmManager
+class AlgorithmManager : public QObject
 {
+    Q_OBJECT
 public:
     /**
      * @brief instance singleton method
@@ -94,7 +97,8 @@ public:
     */
     QMap<QString, QVariant> getSettings(int idx);
 
-    IAlgorithm *getAlgo(int idx);
+    void connectController(AlgorithmController* controller);
+    void disconnectController(AlgorithmController* controller);
 
     void sigNewMetaData();
     void sigSelectedImageIndex(uint index);

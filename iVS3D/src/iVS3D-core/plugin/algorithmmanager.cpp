@@ -1,4 +1,5 @@
 #include "algorithmmanager.h"
+#include "algorithmcontroller.h"
 
 
 AlgorithmManager::AlgorithmManager()
@@ -70,10 +71,23 @@ QMap<QString, QVariant> AlgorithmManager::getSettings(int idx)
     return m_algorithmList[idx]->getSettings();
 }
 
-IAlgorithm *AlgorithmManager::getAlgo(int idx)
+void AlgorithmManager::connectController(AlgorithmController *controller)
 {
-    return m_algorithmList[idx];
+    for(IAlgorithm* algo : m_algorithmList) {
+        connect(algo, &IAlgorithm::updateKeyframes, controller, &AlgorithmController::slot_updateKeyframes);
+        connect(algo, &IAlgorithm::updateBuffer, controller, &AlgorithmController::slot_updateBuffer);
+    }
 }
+
+void AlgorithmManager::disconnectController(AlgorithmController *controller)
+{
+    for(IAlgorithm* algo : m_algorithmList) {
+        disconnect(algo, &IAlgorithm::updateKeyframes, controller, &AlgorithmController::slot_updateKeyframes);
+        disconnect(algo, &IAlgorithm::updateBuffer, controller, &AlgorithmController::slot_updateBuffer);
+    }
+}
+
+
 
 void AlgorithmManager::sigNewMetaData()
 {
