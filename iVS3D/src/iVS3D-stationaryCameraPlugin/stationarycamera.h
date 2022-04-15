@@ -22,11 +22,17 @@
 #include <iostream>
 #include <iomanip>
 #include <QtConcurrent/QtConcurrentMap>
+#include <QThreadPool>
+#include <vector>
+#include <algorithm>
+#include <numeric>
+#include <future>
 
 #include "IAlgorithm.h"
 #include "reader.h"
-#include "farnebackoptflow.h"
-#include "farnebackoptflowfactory.h"
+#include "factory.h"
+#include "imagegatherer.h"
+#include "flowcalculator.h"
 #include <opencv2/video.hpp>
 
 #define PLUGIN_NAME "Stationary Camera Detection"
@@ -58,9 +64,9 @@
  *
  * @author Dominic Zahn
  *
- * @date 2021/12/18
+ * @date 2022/3/13
  */
-class StationaryCamera : public QObject, IAlgorithm
+class StationaryCamera : public IAlgorithm
 {
     Q_OBJECT
     Q_PLUGIN_METADATA(IID "pse.iVS3D.IAlgorithm")   // implement interface as plugin, use the iid as identifier
@@ -155,17 +161,9 @@ private:
     long m_durationComputationFlowMs = 0;
 
     // functions
+    void reportProgress(QString op, int progress, Progressable *receiver);
     void createSettingsWidget(QWidget *parent);
     void updateInfoLabel();
-    /**
-     * @brief computeFlow uses farneback to compute a flow matrix and than condense it to a single flow value,
-     *        that represents the movement between given images
-     * @param image1 image before posible movement
-     * @param image2 image after posible movement
-     * @param farn pointer to farneback object which is either the cpu or cuda version
-     * @return a single value that represents the movent between the images
-     */
-    double computeFlow(cv::Mat image1, cv::Mat image2, FarnebackOptFlow *farn);
     void recreateBuffer(QMap<QString, QVariant> buffer);
     double median(std::vector<double> &vec);
 };

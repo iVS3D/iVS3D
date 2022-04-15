@@ -16,23 +16,29 @@ include(../../3rdparty.pri)
 
 with_cuda{
 DEFINES += WITH_CUDA
-DEFINES += WITH_CUDA
-HEADERS += farnebackoptflowgpu.h
-SOURCES += farnebackoptflowgpu.cpp
+HEADERS += flowcalculatorcuda.h
+HEADERS += imagegatherercuda.h
+SOURCES += flowcalculatorcuda.cpp
+SOURCES += imagegatherercuda.cpp
 }
 
 QT += concurrent
 
 SOURCES += \
+    factory.cpp \
+    flowcalculator.cpp \
+    flowcalculatorcpu.cpp \
+    imagegatherer.cpp \
+    imagegatherercpu.cpp \
     stationarycamera.cpp \
-    farnebackoptflowcpu.cpp \
-    farnebackoptflowfactory.cpp \
 
 HEADERS += \
+    factory.h \
+    flowcalculator.h \
+    flowcalculatorcpu.h \
+    imagegatherer.h \
+    imagegatherercpu.h \
     stationarycamera.h \
-    farnebackoptflow.h \
-    farnebackoptflowcpu.h \
-    farnebackoptflowfactory.h \
 
 TEMPLATE = lib
 CONFIG += plugin

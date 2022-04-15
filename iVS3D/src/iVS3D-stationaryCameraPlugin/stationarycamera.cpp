@@ -1,13 +1,5 @@
 #include "stationarycamera.h"
 
-// Temporary
-//#include <opencv2/cudaoptflow.hpp>
-//#include <opencv2/cudaarithm.hpp>
-//#include <opencv2/cudawarping.hpp>
-//#include <opencv2/cudaimgproc.hpp>
-#include <QThreadPool>
-//
-
 StationaryCamera::StationaryCamera()
 {
 }
@@ -28,137 +20,75 @@ std::vector<uint> StationaryCamera::sampleImages(Reader *reader, const std::vect
     recreateBuffer(buffer);
     m_logFile->stopTimer();
 
-    double reciprocalFactor = 1.0 / m_downSampleFactor;
-    // cpu read version
-    std::function<cv::Mat(const uint)> func_gatherPics_Cpu =
-            [reader, reciprocalFactor, receiver](uint idx) {
-        cv::Mat readMat, downMat, greyMat;
-        while (readMat.empty()) {
-            readMat = reader->getPic(idx, true);
-        }
-        cv::resize(readMat, downMat, cv::Size(), reciprocalFactor, reciprocalFactor);
-        cv::cvtColor(downMat, greyMat, cv::COLOR_BGR2GRAY);
-        // notify for progress update
-        int progress = 0;
-        QString currentOperation = "gathering, resizing and coloring image " + QString::number(idx);
-        QMetaObject::invokeMethod(
-                    receiver,
-                    "slot_makeProgress",
-                    Qt::DirectConnection,
-                    Q_ARG(int, progress),
-                    Q_ARG(QString, currentOperation));
-        return greyMat;
-    };
-    // cuda read version
-    std::function<cv::Mat(const uint)> func_gatherPics_Cuda;
-#ifdef WITH_CUDA
-    func_gatherPics_Cuda =
-            [reader, reciprocalFactor, receiver](uint idx) {
-        cv::Mat readMat;
-        while (readMat.empty()) {
-            readMat = reader->getPic(idx, true);
-        }
-        cv::cuda::GpuMat gpu_downMat, gpu_greyMat, gpu_readMat(readMat);
-        cv::cuda::resize(gpu_readMat, gpu_downMat, cv::Size(), reciprocalFactor, reciprocalFactor);
-        cv::cuda::cvtColor(gpu_downMat, gpu_greyMat, cv::COLOR_BGR2GRAY);
-        cv::Mat outMat;
-        gpu_greyMat.download(outMat);
-        gpu_downMat.release();
-        gpu_greyMat.release();
-        gpu_greyMat.release();
-        // notify for progress update
-        int progress = 0;
-        QString currentOperation = "gathering, resizing and coloring image " + QString::number(idx);
-        QMetaObject::invokeMethod(
-                    receiver,
-                    "slot_makeProgress",
-                    Qt::DirectConnection,
-                    Q_ARG(int, progress),
-                    Q_ARG(QString, currentOperation));
-        return outMat;
-    };
-#endif
-    std::function<cv::Mat(const uint)> func_gatherPics = func_gatherPics_Cpu;
-    if (useCuda && func_gatherPics_Cuda) {
-        func_gatherPics = func_gatherPics_Cuda;
-    } else if (func_gatherPics_Cpu) {
-        func_gatherPics = func_gatherPics_Cpu;
-    } else {
-        return {};
-    }
-    struct FLOW_PAIR {
-        uint fromIndex;
-        uint toIndex;
-        cv::Mat fromMat;
-        cv::Mat toMat;
-    };
+    // ----------- setup and creating hardware specific elements ----------------
+    Factory *fac = new Factory(imageList, reader, m_downSampleFactor, useCuda);
+    FlowCalculator *flowCalculator = fac->getFlowCalculator();
+    ImageGatherer *imageGatherer = fac->getImageGatherer();
 
-    FarnebackOptFlow *farn = FarnebackOptFlowFactory::create(useCuda ? FARNEBACK_CUDA : FARNEBACK_CPU);
-    farn->setup();
-    std::function<double(const FLOW_PAIR)> func_farn =
-            [this, farn, receiver](FLOW_PAIR fp) {
-        QString currentOperation = "computing flow between " + QString::number(fp.fromIndex) + " and " + QString::number(fp.toIndex);
-        int progress = 0;
-        QMetaObject::invokeMethod(
-                    receiver,
-                    "slot_makeProgress",
-                    Qt::DirectConnection,
-                    Q_ARG(int, progress),
-                    Q_ARG(QString, currentOperation));
-        double flowValue = computeFlow(fp.fromMat, fp.toMat, farn);
-        std::cout << std::setw(10) << fp.fromIndex << std::setw(10) << fp.toIndex << std::setw(10) << flowValue << std::endl;
-        return flowValue;
-    };
-    // ------------------------
-    uint chunkCount = 10;
-    uint chunkSize = imageList.size() / chunkCount;
     std::vector<double> flowValues;
-    for (uint chunkIndex = 0; chunkIndex < chunkCount; chunkIndex++) {
+    auto fromIter = imageList.begin();
+    auto toIter = std::next(imageList.begin(), 1);
+    std::future<void> flowCalcHandler;
+    std::future<QPair<cv::Mat, cv::Mat>> imageGatherHandler;
 
-        // gather all images of the chunk
-        m_logFile->startTimer("Gather images of chunk " + QString::number(chunkIndex));
-        auto sequenceBegin = imageList.begin();
-        std::advance(sequenceBegin, chunkSize * chunkIndex);
-        auto sequenceEnd = imageList.begin();
-        if (chunkSize * (chunkIndex + 1) < (uint)imageList.size())
-            std::advance(sequenceEnd, chunkSize * (chunkIndex + 1));
-        else
-            sequenceEnd = imageList.end();
-        std::vector<uint> chunkIndicies(sequenceBegin, sequenceEnd);
-        reader->initMultipleAccess(chunkIndicies);
-        std::vector<cv::Mat> imageMats = QtConcurrent::blockingMapped<std::vector<cv::Mat>>(sequenceBegin, sequenceEnd, func_gatherPics);
-        m_logFile->stopTimer();
-
-        // create FLOW_PAIRs for flow calculation of the current chunk
-        m_logFile->startTimer("Create flow pair of chunk " + QString::number(chunkIndex));
-        std::vector<FLOW_PAIR> flowPair;
-        uint chunkOffset = chunkIndex * chunkSize;
-        for (uint i = 0; i < chunkSize - 1; i++) {
-            FLOW_PAIR nFlowPair;
-            nFlowPair.fromIndex = imageList[chunkOffset + i];
-            nFlowPair.toIndex = imageList[chunkOffset + i + 1];
-            nFlowPair.fromMat = imageMats[i];
-            nFlowPair.toMat = imageMats[i + 1];
-            flowPair.push_back(nFlowPair);
-        }
-        m_logFile->stopTimer();
-
-        QThreadPool::globalInstance()->setMaxThreadCount(1);
-        // start flow calculation for chunk SEQUENTIAL
-        m_logFile->startTimer("Calculate flow values of chunk " + QString::number(chunkIndex));
-        std::vector<double> chunkFlowValues = QtConcurrent::blockingMapped<std::vector<double>>(flowPair, func_farn);
-        flowValues.insert(flowValues.end(), chunkFlowValues.begin(), chunkFlowValues.end());
-        m_logFile->stopTimer();
-        QThreadPool::globalInstance()->setMaxThreadCount(16);
+    // ----------- algorithms definition ------------
+    // gather image pair
+    std::function<QPair<cv::Mat, cv::Mat>(uint, uint)> gatherImagePairStatic = [imageGatherer](uint fromIdx, uint toIdx) {
+        auto startGather = std::chrono::high_resolution_clock::now();
+        QPair<cv::Mat, cv::Mat> matPair = imageGatherer->gatherImagePair(fromIdx, toIdx);
+        auto endGather = std::chrono::high_resolution_clock::now();
+        long gatherDuration = std::chrono::duration_cast<std::chrono::milliseconds>(endGather - startGather).count();
+        qDebug() << "gatherDuration=" << gatherDuration << "ms";
+        return matPair;
     };
 
-    // select keyframes
+    // flow calculation
+    std::function<void(cv::Mat, cv::Mat)> calcFlowStatic = [flowCalculator, &flowValues](cv::Mat fromMat, cv::Mat toMat) {
+        auto startFlow = std::chrono::high_resolution_clock::now();
+        double flowValue = flowCalculator->calculateFlow(fromMat, toMat);
+        flowValues.push_back(flowValue);
+        auto endFlow = std::chrono::high_resolution_clock::now();
+        long flowDuration = std::chrono::duration_cast<std::chrono::milliseconds>(endFlow - startFlow).count();
+        qDebug() << "flowDuration=" << flowDuration << "ms\tvalue=" << flowValue;
+    };
+
+    // -------------- iterate through all available frame pairs ---------------
+    m_logFile->startTimer("Core Computation");
+    while (toIter < imageList.end()) {
+        // Aborts calculations as result of user interaction
+        if (*stopped) {
+            qDebug() << "Execution was stopped.";
+            return {};
+        }
+
+        // ----------- exectution ------------
+        imageGatherHandler = std::async(std::launch::async, gatherImagePairStatic, *fromIter, *toIter);
+        QPair<cv::Mat, cv::Mat> matPair = imageGatherHandler.get();
+        flowCalcHandler = std::async(std::launch::async, calcFlowStatic, matPair.first, matPair.second);
+
+        // -------- progress and debug ------------
+        int progress = ((toIter - imageList.begin()) * 100) / imageList.size();
+        QString currOp = "Calculating flow between frame " + QString::number(*fromIter) + " and "+ QString::number(*toIter);
+        reportProgress(currOp, progress, receiver);
+        // ----------------------------------
+        fromIter = std::next(fromIter, 1);
+        toIter = std::next(toIter, 1);
+    }
+    flowCalcHandler.wait();
+    m_logFile->stopTimer();
+
+    // ------------ select keyframes ----------------
     m_logFile->startTimer("Keyframe selection");
     std::vector<uint> selectedKeyframes = { imageList[0] };
     std::vector<double> copiedFlowValues = flowValues; // median is in place and reorders vector
     double medianFlow = median(copiedFlowValues);
     double allowedDiffFlow = medianFlow * m_threshold;
     for (uint flowValuesIdx = 0; flowValuesIdx < imageList.size() - 1; flowValuesIdx++) {
+        // -------- reporting progress ---------
+        QString currentOp = "Checking if frame " + QString::number(imageList[flowValuesIdx])+ "is a keyframe.";
+        int progress = (flowValuesIdx * 100) / imageList.size();
+        reportProgress(currentOp, progress, receiver);
+        // -------------------------------------
         if (flowValues[flowValuesIdx] > allowedDiffFlow) {
             selectedKeyframes.push_back(imageList[flowValuesIdx + 1]); // flow value represents flow for the next frame (if camera moved enough until next frame)
         }
@@ -218,6 +148,16 @@ QMap<QString, QVariant> StationaryCamera::getSettings()
     settings.insert(SETTINGS_THRESHOLD, m_threshold);
     settings.insert(SETTINGS_DOWNSAMPLE, m_downSampleFactor);
     return settings;
+}
+
+void StationaryCamera::reportProgress(QString op, int progress, Progressable *receiver)
+{
+    QMetaObject::invokeMethod(
+                receiver,
+                "slot_makeProgress",
+                Qt::DirectConnection,
+                Q_ARG(int, progress),
+                Q_ARG(QString, op));
 }
 
 void StationaryCamera::createSettingsWidget(QWidget *parent)
@@ -304,26 +244,6 @@ void StationaryCamera::updateInfoLabel()
     int resizedHeight = round((float)m_inputResolution.y() * reciprocalFactor);
     QString nText = INFO_PREFIX + QString::number(resizedHeight) + " x " + QString::number(resizedWidth) + INFO_SUFFIX;
     m_infoLabel->setText(nText);
-}
-
-double StationaryCamera::computeFlow(cv::Mat image1, cv::Mat image2, FarnebackOptFlow *farn)
-{
-    cv::Mat flowMat(image1.size(), CV_32FC2);
-    if(!farn->calculateFlow(image1, image2, flowMat, m_downSampleFactor)) {
-        return -1;
-    }
-
-    // compute flow matrix to single value (median length of all flow vectors)
-    std::vector<double> flowLengths;
-    for (uint x = 0; x < (uint)flowMat.rows; x++) {
-        for (uint y = 0; y < (uint)flowMat.cols; y++) {
-            cv::Point2f flowVector = flowMat.at<cv::Point2f>(x, y);
-            const double length = cv::norm(flowVector);
-            flowLengths.push_back(length);
-        }
-    }
-    double m = median(flowLengths);
-    return m;
 }
 
 void StationaryCamera::recreateBuffer(QMap<QString, QVariant> buffer)
