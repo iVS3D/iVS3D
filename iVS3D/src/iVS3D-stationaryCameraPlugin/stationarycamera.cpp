@@ -17,7 +17,7 @@ std::vector<uint> StationaryCamera::sampleImages(Reader *reader, const std::vect
     m_logFile = logFile;
 
     m_logFile->startTimer(LF_BUFFER);
-    recreateBuffer(buffer);
+    recreateBufferMatrix(buffer);
     m_logFile->stopTimer();
 
     // ----------- setup and creating hardware specific elements ----------------
@@ -43,9 +43,11 @@ std::vector<uint> StationaryCamera::sampleImages(Reader *reader, const std::vect
     };
 
     // flow calculation
-    std::function<void(cv::Mat, cv::Mat)> calcFlowStatic = [flowCalculator, &flowValues](cv::Mat fromMat, cv::Mat toMat) {
+    const double downSampleFactorConst = m_downSampleFactor;
+    std::function<void(cv::Mat, cv::Mat)> calcFlowStatic = [flowCalculator, &flowValues, downSampleFactorConst](cv::Mat fromMat, cv::Mat toMat) {
         auto startFlow = std::chrono::high_resolution_clock::now();
-        double flowValue = flowCalculator->calculateFlow(fromMat, toMat);
+        // muliplication with down sample factor corrects the reduced resolution
+        double flowValue = flowCalculator->calculateFlow(fromMat, toMat) * downSampleFactorConst;
         flowValues.push_back(flowValue);
         auto endFlow = std::chrono::high_resolution_clock::now();
         long flowDuration = std::chrono::duration_cast<std::chrono::milliseconds>(endFlow - startFlow).count();
@@ -53,6 +55,7 @@ std::vector<uint> StationaryCamera::sampleImages(Reader *reader, const std::vect
     };
 
     // -------------- iterate through all available frame pairs ---------------
+    uint usedBufferedValues = 0;
     m_logFile->startTimer("Core Computation");
     while (toIter < imageList.end()) {
         // Aborts calculations as result of user interaction
@@ -62,36 +65,54 @@ std::vector<uint> StationaryCamera::sampleImages(Reader *reader, const std::vect
         }
 
         // ----------- exectution ------------
-        imageGatherHandler = std::async(std::launch::async, gatherImagePairStatic, *fromIter, *toIter);
-        QPair<cv::Mat, cv::Mat> matPair = imageGatherHandler.get();
-        flowCalcHandler = std::async(std::launch::async, calcFlowStatic, matPair.first, matPair.second);
-
+        double bufferedMovement = 0.0;
+        if (m_bufferMat.size() != 0) {
+            bufferedMovement = m_bufferMat.ref<double>(*fromIter, *toIter);
+        }
+        if (bufferedMovement <= 0.0) {
+            imageGatherHandler = std::async(std::launch::async, gatherImagePairStatic, *fromIter, *toIter);
+            QPair<cv::Mat, cv::Mat> matPair = imageGatherHandler.get();
+            flowCalcHandler = std::async(std::launch::async, calcFlowStatic, matPair.first, matPair.second);
+        } else {
+            // use buffered flow value
+            flowValues.push_back(bufferedMovement);
+            usedBufferedValues++;
+        }
         // -------- progress and debug ------------
-        int progress = ((toIter - imageList.begin()) * 100) / imageList.size();
+        int progress = ((toIter - imageList.begin()) * 100) / (int)imageList.size();
         QString currOp = "Calculating flow between frame " + QString::number(*fromIter) + " and "+ QString::number(*toIter);
         reportProgress(currOp, progress, receiver);
-        // ----------------------------------
+        // ----------------------------------------
         fromIter = std::next(fromIter, 1);
         toIter = std::next(toIter, 1);
     }
-    flowCalcHandler.wait();
+    if (flowCalcHandler.valid())
+        flowCalcHandler.wait();
     m_logFile->stopTimer();
+    m_logFile->addCustomEntry(LF_CE_VALUE_USED_BUFFERED, usedBufferedValues, LF_CE_TYPE_ADDITIONAL_INFO);
 
     // ------------ select keyframes ----------------
+    if (flowValues.size() != imageList.size() - 1) {
+        return {};
+    }
     m_logFile->startTimer("Keyframe selection");
     std::vector<uint> selectedKeyframes = { imageList[0] };
     std::vector<double> copiedFlowValues = flowValues; // median is in place and reorders vector
     double medianFlow = median(copiedFlowValues);
     double allowedDiffFlow = medianFlow * m_threshold;
     for (uint flowValuesIdx = 0; flowValuesIdx < imageList.size() - 1; flowValuesIdx++) {
-        // -------- reporting progress ---------
-        QString currentOp = "Checking if frame " + QString::number(imageList[flowValuesIdx])+ "is a keyframe.";
-        int progress = (flowValuesIdx * 100) / imageList.size();
-        reportProgress(currentOp, progress, receiver);
-        // -------------------------------------
+        // ----------- selection --------------
         if (flowValues[flowValuesIdx] > allowedDiffFlow) {
             selectedKeyframes.push_back(imageList[flowValuesIdx + 1]); // flow value represents flow for the next frame (if camera moved enough until next frame)
         }
+        // -------- reporting progress ---------
+        QString currentOp = "Checking if " + QString::number(imageList[flowValuesIdx])+ " is a keyframe.";
+        int progress = (flowValuesIdx * 100) / (int)imageList.size();
+        reportProgress(currentOp, progress, receiver);
+        // -------- update buffer --------------
+        m_bufferMat.ref<double>(imageList[flowValuesIdx], imageList[flowValuesIdx + 1]) = flowValues[flowValuesIdx];
+        // DEBUG write flow values in logFile
+//        m_logFile->addCustomEntry(LF_CE_NAME_FLOWVALUE, flowValues[flowValuesIdx], LF_CE_TYPE_DEBUG);
     }
     m_logFile->stopTimer();
 
@@ -105,8 +126,13 @@ QString StationaryCamera::getName() const
 
 QVariant StationaryCamera::getBuffer()
 {
-    // TODO
-    return "buffer placeholder";
+    QVariant bufferVariant = bufferMatToVariant(m_bufferMat);
+    // ------------- IAlgorithm CHANGES -----------
+//    QMap<QString, QVariant> bufferMap;
+//    bufferMap.insert(BUFFER_NAME, bufferVariant);
+//    return bufferMap;
+    // --------------------------------------------
+    return bufferVariant;
 }
 
 QString StationaryCamera::getBufferName()
@@ -122,6 +148,10 @@ void StationaryCamera::initialize(Reader *reader)
     cv::Mat testPic = reader->getPic(0);
     m_inputResolution.setX(testPic.rows);
     m_inputResolution.setY(testPic.cols);
+
+    int picCount = reader->getPicCount();
+    int size[2] = {picCount, picCount};
+    m_bufferMat = cv::SparseMat(2, size, CV_32F);
 }
 
 void StationaryCamera::setSettings(QMap<QString, QVariant> settings)
@@ -246,10 +276,68 @@ void StationaryCamera::updateInfoLabel()
     m_infoLabel->setText(nText);
 }
 
-void StationaryCamera::recreateBuffer(QMap<QString, QVariant> buffer)
+void StationaryCamera::recreateBufferMatrix(QMap<QString, QVariant> buffer)
 {
-    (void) buffer;
-    // TODO
+    // recreate bufferMatrix if the matrix is empty
+    m_bufferMat.clear();
+    if (buffer.size() != 0) {
+        //Get the QMap from Variant
+        QMapIterator<QString, QVariant> mapIt(buffer);
+        //Find movementBased buffer in the buffer
+        while (mapIt.hasNext()) {
+            mapIt.next();
+            if (mapIt.key().compare(BUFFER_NAME) == 0) {
+                stringToBufferMat(mapIt.value().toString());
+                break;
+            }
+        }
+    }
+}
+
+void StationaryCamera::stringToBufferMat(QString string)
+{
+    QStringList entryStrList = string.split(DELIMITER_ENTITY);
+
+    for (QString nzEntity : entryStrList) {
+        QStringList coorStr = nzEntity.split(DELIMITER_COORDINATE);
+        // check format "x|y|value"
+        if (coorStr.size() != 3) {
+            continue;
+        }
+        bool convertionCheck;
+        int x = coorStr[0].toInt(&convertionCheck);
+        if (!convertionCheck) {
+            continue;
+        }
+        int y = coorStr[1].toInt(&convertionCheck);
+        if (!convertionCheck) {
+            continue;
+        }
+        double value = coorStr[2].toDouble(&convertionCheck);
+        if (!convertionCheck) {
+            continue;
+        }
+
+        // set entry in recreated buffer matrix
+        m_bufferMat.ref<double>(x, y) = value;
+    }
+}
+
+QVariant StationaryCamera::bufferMatToVariant(cv::SparseMat bufferMat)
+{
+    std::stringstream matStream;
+    const int *size = bufferMat.size();
+    for (int x = 0; x < *size; x++) {
+        for (int y = 0; y < *size; y++) {
+            double value = bufferMat.ref<double>(x, y);
+            if (value != 0) {
+                matStream << x << DELIMITER_COORDINATE << y << DELIMITER_COORDINATE << value << ((x + 1 < *size) ? DELIMITER_ENTITY : "");
+            }
+        }
+    }
+
+    std::string matString = matStream.str();
+    return QVariant(QString::fromStdString(matString));
 }
 
 double StationaryCamera::median(std::vector<double> &vec)

@@ -47,6 +47,8 @@
 #define INFO_SUFFIX " before computation."
 // buffer
 #define BUFFER_NAME "StationaryCameraMovementValues"
+#define DELIMITER_COORDINATE "|"
+#define DELIMITER_ENTITY ","
 // settings
 #define SETTINGS_THRESHOLD "Stationary threshold"
 #define SETTINGS_DOWNSAMPLE "Downsample factor"
@@ -54,6 +56,10 @@
 #define LF_BUFFER "Buffer"
 #define LF_OPT_FLOW_TOTAL "Flow calculation"
 #define LF_SELECT_FRAMES "Selection of keyframes"
+#define LF_CE_TYPE_ADDITIONAL_INFO "Additional Computation Information"
+#define LF_CE_VALUE_USED_BUFFERED "Used buffered values"
+#define LF_CE_TYPE_DEBUG "Debug Information"
+#define LF_CE_NAME_FLOWVALUE "Flow value"
 
 /**
  * @class StationaryCamera
@@ -151,6 +157,7 @@ private:
     Reader *m_reader = nullptr;
     QPoint m_inputResolution = QPoint(0, 0);
     LogFileParent *m_logFile = nullptr;
+    cv::SparseMat m_bufferMat;
     //      widget elements
     QWidget *m_settingsWidget = nullptr;
     QDoubleSpinBox *m_thresholdSpinBox = nullptr;
@@ -164,7 +171,17 @@ private:
     void reportProgress(QString op, int progress, Progressable *receiver);
     void createSettingsWidget(QWidget *parent);
     void updateInfoLabel();
-    void recreateBuffer(QMap<QString, QVariant> buffer);
+    /**
+     * @brief recreateBufferMatrix initalizes the buffer matix whith the new values from nBuffer
+     * @param buffer holds the new movement values which should be stored in the buffer matrix
+     */
+    void recreateBufferMatrix(QMap<QString, QVariant> buffer);
+    /**
+     * @brief recreateMovementFromString is used to extract the movement value from a string and write it in the buffer
+     * @param string that holds the two compared images indices and the movement value (most likeyl from settings.json)
+     */
+    void stringToBufferMat(QString string);
+    QVariant bufferMatToVariant(cv::SparseMat bufferMat);
     double median(std::vector<double> &vec);
 };
 
