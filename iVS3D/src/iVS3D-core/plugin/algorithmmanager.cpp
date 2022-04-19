@@ -1,5 +1,5 @@
 #include "algorithmmanager.h"
-#include "algorithmcontroller.h"
+
 
 
 AlgorithmManager::AlgorithmManager()
@@ -71,43 +71,44 @@ QMap<QString, QVariant> AlgorithmManager::getSettings(int idx)
     return m_algorithmList[idx]->getSettings();
 }
 
-void AlgorithmManager::connectController(AlgorithmController *controller)
-{
-    for(IAlgorithm* algo : m_algorithmList) {
-        connect(algo, &IAlgorithm::updateKeyframes, controller, &AlgorithmController::slot_updateKeyframes);
-        connect(algo, &IAlgorithm::updateBuffer, controller, &AlgorithmController::slot_updateBuffer);
-    }
-}
-
-void AlgorithmManager::disconnectController(AlgorithmController *controller)
-{
-    for(IAlgorithm* algo : m_algorithmList) {
-        disconnect(algo, &IAlgorithm::updateKeyframes, controller, &AlgorithmController::slot_updateKeyframes);
-        disconnect(algo, &IAlgorithm::updateBuffer, controller, &AlgorithmController::slot_updateBuffer);
-    }
-}
 
 
 
-void AlgorithmManager::sigNewMetaData()
+void AlgorithmManager::notifyNewMetaData()
 {
     m_sigObj->newMetaData();
 }
 
-void AlgorithmManager::sigSelectedImageIndex(uint index)
+void AlgorithmManager::notifySelectedImageIndex(uint index)
 {
     m_sigObj->selectedImageIndex(index);
 }
 
-void AlgorithmManager::sigKeyframesChanged(std::vector<uint> keyframes)
+void AlgorithmManager::notifyKeyframesChanged(std::vector<uint> keyframes)
 {
     m_sigObj->keyframesChanged(keyframes);
 }
 
-void AlgorithmManager::sigUpdateBuffer(QString pluginName, QMap<QString, QVariant> buffer)
+void AlgorithmManager::slot_updateKeyframes(std::vector<uint> keyframes)
 {
-    m_sigObj->updateBuffer(pluginName, buffer);
+    QObject* sender = QObject::sender();
+    IAlgorithm* algorithm = qobject_cast<IAlgorithm*>(sender);
+    if (algorithm) {
+        QString currentName = algorithm->getName();
+        emit sig_updateKeyframe(currentName, keyframes);
+    }
 }
+
+void AlgorithmManager::slot_updateBuffer(QMap<QString, QVariant> buffer)
+{
+    QObject* sender = QObject::sender();
+    IAlgorithm* algorithm = qobject_cast<IAlgorithm*>(sender);
+    if (algorithm) {
+        QString currentName = algorithm->getName();
+        emit sig_updateBuffer(currentName, buffer);
+    }
+}
+
 
 void AlgorithmManager::loadPlugins(){
     QDir pluginsDir(QCoreApplication::applicationDirPath());
@@ -135,6 +136,8 @@ void AlgorithmManager::loadPlugins(){
             IAlgorithm* algorithm = qobject_cast<IAlgorithm*>(plugin);
             if(algorithm){
                 m_algorithmList.push_back(algorithm);
+                connect(algorithm, &IAlgorithm::updateKeyframes, this, &AlgorithmManager::slot_updateKeyframes);
+                connect(algorithm, &IAlgorithm::updateBuffer, this, &AlgorithmManager::slot_updateBuffer);
             } else {
                 pluginLoader.unload();
             }

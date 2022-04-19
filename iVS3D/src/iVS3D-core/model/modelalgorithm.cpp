@@ -51,8 +51,6 @@ void ModelAlgorithm::fromText(QVariant data)
         mapIt.next();
         QMap<QString, QVariant> innerMap = mapIt.value().toMap();
         m_pluginBuffer.insert(mapIt.key(), innerMap);
-        //Emit signal for plugins for new buffer
-        AlgorithmManager::instance().sigUpdateBuffer(mapIt.key(), innerMap);
     }
 
 

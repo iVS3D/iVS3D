@@ -3,14 +3,14 @@
 
 #include <QObject>
 #include "opencv2/core.hpp"
-#include "cvmat_qmetadata.h"
+//#include "cvmat_qmetadata.h"
 #include "iVS3D-pluginInterface_global.h"
 #include <QDebug>
 
-#include "reader.h"
-#include "progressable.h"
-#include "LogFileParent.h"
-#include "plugin\signalobject.h"
+#include "model/reader.h"
+#include "model/progressable.h"
+#include "model/LogFileParent.h"
+#include "plugin/signalobject.h"
 
 /**
  * @interface IAlgorithm

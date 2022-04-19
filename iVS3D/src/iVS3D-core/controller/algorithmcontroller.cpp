@@ -25,13 +25,15 @@ AlgorithmController::AlgorithmController(DataManager* dataManager, SamplingWidge
     m_future = std::make_tuple<cv::Mat*, int, int>(nullptr, NO_IMAGE, NO_TRANSFORM);
     m_fQueue = std::make_tuple<cv::Mat*, int, int>(nullptr, NO_IMAGE, NO_TRANSFORM);
 
-    AlgorithmManager::instance().connectController(this);
+    connect(&AlgorithmManager::instance(), &AlgorithmManager::sig_updateKeyframe, this, &AlgorithmController::slot_updateKeyframes);
+    connect(&AlgorithmManager::instance(), &AlgorithmManager::sig_updateBuffer, this, &AlgorithmController::slot_updateBuffer);
 }
 
 AlgorithmController::~AlgorithmController()
 {
     m_samplingWidget->setEnabled(false);
-    AlgorithmManager::instance().disconnectController(this);
+    disconnect(&AlgorithmManager::instance(), &AlgorithmManager::sig_updateKeyframe, this, &AlgorithmController::slot_updateKeyframes);
+    disconnect(&AlgorithmManager::instance(), &AlgorithmManager::sig_updateBuffer, this, &AlgorithmController::slot_updateBuffer);
 }
 
 void AlgorithmController::slot_selectAlgorithm(int idx)
@@ -108,38 +110,24 @@ void AlgorithmController::slot_previewStateChanged(bool enabled)
     TransformManager::instance().setTransformationEnabled(enabled);
 }
 
-void AlgorithmController::slot_updateKeyframes(std::vector<uint> keyframes)
+void AlgorithmController::slot_updateKeyframes(QString pluginName, std::vector<uint> keyframes)
 {
-    //Check if sender is the currently active Plugin
-    QObject* sender = QObject::sender();
-    IAlgorithm* algorithm = qobject_cast<IAlgorithm*>(sender);
-    if (algorithm) {
-        QString currentName = algorithm->getName();
-        QString activeName = AlgorithmManager::instance().getPluginNameToIndex(m_pluginIdx);
-        if (currentName == activeName) {
-            //Update keyframes if change is sent by currently active plugin
-            m_dataManager->getModelInputPictures()->updateMIP(keyframes);
-        }
+    QString activeName = AlgorithmManager::instance().getPluginNameToIndex(m_pluginIdx);
+    if (pluginName == activeName) {
+        //Update keyframes if change is sent by currently active plugin
+        m_dataManager->getModelInputPictures()->updateMIP(keyframes);
     }
 }
 
-void AlgorithmController::slot_updateBuffer(QMap<QString, QVariant> buffer)
+void AlgorithmController::slot_updateBuffer(QString pluginName, QMap<QString, QVariant> buffer)
 {
-    //Check if sender is the currently active Plugin
-    QObject* sender = QObject::sender();
-    IAlgorithm* algorithm = qobject_cast<IAlgorithm*>(sender);
-    if (algorithm) {
-        QString currentName = algorithm->getName();
-        QString activeName = AlgorithmManager::instance().getPluginNameToIndex(m_pluginIdx);
-        if (currentName == activeName) {
-            //Update buffer if change is sent by currently active plugin
-            QMapIterator<QString, QVariant> mapIter(buffer);
-            while (mapIter.hasNext()) {
-                mapIter.next();
-                m_dataManager->getModelAlgorithm()->addPluginBuffer(currentName, mapIter.key(), mapIter.value());
-            }
-        }
+
+    QMapIterator<QString, QVariant> mapIter(buffer);
+    while (mapIter.hasNext()) {
+        mapIter.next();
+        m_dataManager->getModelAlgorithm()->addPluginBuffer(pluginName, mapIter.key(), mapIter.value());
     }
+
 }
 
 void AlgorithmController::startNextTransform()

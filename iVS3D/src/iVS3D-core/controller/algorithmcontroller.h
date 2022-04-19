@@ -94,8 +94,8 @@ signals:
     void sig_stopPlay();
 
 public slots:
-    void slot_updateKeyframes(std::vector<uint> keyframes);
-    void slot_updateBuffer(QMap<QString, QVariant> buffer);
+    void slot_updateKeyframes(QString pluginName, std::vector<uint> keyframes);
+    void slot_updateBuffer(QString pluginName, QMap<QString, QVariant> buffer);
 
 private slots:
     void slot_previewStateChanged(bool enabled);

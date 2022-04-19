@@ -18,7 +18,6 @@
 #include "ialgorithm.h"
 #include "signalobject.h"
 
-class AlgorithmController;
 
 /**
  * @class AlgorithmManager
@@ -98,13 +97,19 @@ public:
     */
     QMap<QString, QVariant> getSettings(int idx);
 
-    void connectController(AlgorithmController* controller);
-    void disconnectController(AlgorithmController* controller);
+    void notifyNewMetaData();
+    void notifySelectedImageIndex(uint index);
+    void notifyKeyframesChanged(std::vector<uint> keyframes);
+    void notifyUpdateBuffer(QString pluginName, QMap<QString, QVariant> buffer);
 
-    void sigNewMetaData();
-    void sigSelectedImageIndex(uint index);
-    void sigKeyframesChanged(std::vector<uint> keyframes);
-    void sigUpdateBuffer(QString pluginName, QMap<QString, QVariant> buffer);
+
+private slots:
+    void slot_updateKeyframes(std::vector<uint> keyframes);
+    void slot_updateBuffer(QMap<QString, QVariant> buffer);
+
+signals:
+    void sig_updateKeyframe(QString pluginName, std::vector<uint> keyframes);
+    void sig_updateBuffer(QString pluginName, QMap<QString, QVariant> buffer);
 
 private:
     std::vector<IAlgorithm*> m_algorithmList;
