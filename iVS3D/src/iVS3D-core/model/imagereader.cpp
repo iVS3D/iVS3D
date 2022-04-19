@@ -77,7 +77,6 @@ ImageReader *ImageReader::copy()
 
 void ImageReader::addMetaData(MetaData *md)
 {
-    //AlgorithmManager::instance().initializePlugins(this);
     m_md = md;
 }
 

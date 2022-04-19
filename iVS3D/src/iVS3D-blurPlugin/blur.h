@@ -131,6 +131,11 @@ public slots:
      * @param ld The new local deviation
      */
     void slot_ldChanged(int ld);
+    /**
+     * @brief [slot] slot_selectedImageIndex changes currently displayed info (blur value of current image)
+     * @param index index of the currently shown image
+     */
+    void slot_selectedImageIndex(uint index);
 
 
 private:
@@ -152,6 +157,7 @@ private:
     std::vector<uint> sampleAllImages(Reader *reader, Progressable *receiver, volatile bool *stopped, int start, int end);
     std::vector<uint> sampleKeyframes(Reader *reader, Progressable *receiver, volatile bool *stopped, std::vector<uint> sharpImages);
     void computeBuffer();
+    QLabel* m_infoLabel;
 };
 
 #endif // BLUR_H

@@ -91,6 +91,7 @@ void Blur::initialize(Reader *reader, QMap<QString, QVariant> buffer, signalObje
     m_reader = reader;
     m_buffer = buffer;
     m_sigObj = sig_obj;
+    connect(m_sigObj, SIGNAL(sig_selectedImageIndex(uint)), this, SLOT(slot_selectedImageIndex(uint)));
 }
 
 void Blur::setSettings(QMap<QString, QVariant> settings)
@@ -151,6 +152,17 @@ void Blur::slot_wsChanged(int ws)
 void Blur::slot_ldChanged(int ld)
 {
     m_localDeviation = ld;
+}
+
+void Blur::slot_selectedImageIndex(uint index)
+{
+    if (m_buffer.contains(m_usedBlur->getName())) {
+        QVariant currentBuffer = m_buffer[m_usedBlur->getName()];
+        double currentBlurValue = splitDoubleString(currentBuffer.toString())[index];
+        QString info;
+        info = currentBlurValue == 0 ? "not calculated" : QString::number(currentBlurValue);
+        m_infoLabel->setText("Blur value for the current image is " + info);
+    }
 }
 
 
@@ -227,8 +239,14 @@ void Blur::createSettingsWidget(QWidget *parent)
     localDeviation->setWordWrap(true);
     m_settingsWidget->layout()->addWidget(localDeviation);
 
+    m_infoLabel = new QLabel("Blur value for the current image is not calculated");
+    m_infoLabel->setWordWrap(true);
+    m_settingsWidget->layout()->addWidget(m_infoLabel);
+
     m_settingsWidget->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
     m_settingsWidget->adjustSize();
+
+
 }
 
 std::vector<double> Blur::splitDoubleString(QString string) {
