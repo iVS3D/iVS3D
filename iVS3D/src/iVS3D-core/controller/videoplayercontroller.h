@@ -4,6 +4,8 @@
 #include <QObject>  // used for signals and slots
 #include <QTimer>   // used for periodic timer events to update displayed image
 
+#include "plugin/algorithmmanager.h" //used to emit signal that index has changed
+
 #include "model/DataManager.h"  // used to access image data for displaying and manipulation
 
 #include "view/videoplayer.h"   // used to display images

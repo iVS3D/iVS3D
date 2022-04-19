@@ -11,6 +11,7 @@
 #include <QDir>
 #include <QCoreApplication>
 #include <QPluginLoader>
+#include <QMap>
 
 #include <QThread>
 
@@ -103,6 +104,7 @@ public:
     void sigNewMetaData();
     void sigSelectedImageIndex(uint index);
     void sigKeyframesChanged(std::vector<uint> keyframes);
+    void sigUpdateBuffer(QString pluginName, QMap<QString, QVariant> buffer);
 
 private:
     std::vector<IAlgorithm*> m_algorithmList;

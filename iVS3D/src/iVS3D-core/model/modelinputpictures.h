@@ -9,6 +9,7 @@
 #include "delayedcopyreader.h"
 #include "concurrentreader.h"
 #include "metadatamanager.h"
+#include "algorithmmanager.h"
 
 #include <QObject>
 #include <QPoint>

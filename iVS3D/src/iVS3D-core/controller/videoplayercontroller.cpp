@@ -191,6 +191,7 @@ void VideoPlayerController::slot_changeStepSize(unsigned int stepsize)
 void VideoPlayerController::slot_changeIndex(unsigned int index)
 {
     m_imageIndex = index;
+    AlgorithmManager::instance().sigSelectedImageIndex(index);
     showImage();
 }
 

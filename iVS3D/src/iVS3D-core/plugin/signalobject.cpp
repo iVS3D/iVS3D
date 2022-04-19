@@ -19,3 +19,8 @@ void signalObject::keyframesChanged(std::vector<uint> keyframes)
 {
     emit sig_keyframesChanged(keyframes);
 }
+
+void signalObject::updateBuffer(QString pluginName, QMap<QString, QVariant> buffer)
+{
+    emit sig_updateBuffer(pluginName, buffer);
+}

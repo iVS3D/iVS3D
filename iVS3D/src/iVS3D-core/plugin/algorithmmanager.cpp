@@ -104,6 +104,11 @@ void AlgorithmManager::sigKeyframesChanged(std::vector<uint> keyframes)
     m_sigObj->keyframesChanged(keyframes);
 }
 
+void AlgorithmManager::sigUpdateBuffer(QString pluginName, QMap<QString, QVariant> buffer)
+{
+    m_sigObj->updateBuffer(pluginName, buffer);
+}
+
 void AlgorithmManager::loadPlugins(){
     QDir pluginsDir(QCoreApplication::applicationDirPath());
     #if defined(Q_OS_WIN)

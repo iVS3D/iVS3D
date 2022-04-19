@@ -2,6 +2,7 @@
 #define MODELALGORITHM_H
 
 #include "ISerializable.h"
+#include "algorithmmanager.h"
 
 #include <QObject>
 #include <QMap>

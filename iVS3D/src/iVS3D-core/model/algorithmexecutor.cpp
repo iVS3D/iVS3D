@@ -71,14 +71,7 @@ void AlgorithmExecutor::slot_pluginFinished()
         QString message = AlgorithmManager::instance().getPluginNameToIndex(m_pluginIndex) + " extracted " + QString::number(keyframes.size()) + " images";
         slot_displayMessage(message);
         m_dataManager->getModelInputPictures()->updateMIP(keyframes);
-/*
- * TODO: update buffer in slot!!!
- *
- *
- *         QString bufferName = AlgorithmManager::instance().getBufferName(m_pluginIndex);
-        QString pluginName = AlgorithmManager::instance().getPluginNameToIndex(m_pluginIndex);
-        QVariant buffer = m_sampleThread->getBuffer();
-        m_dataManager->getModelAlgorithm()->addPluginBuffer(pluginName, bufferName, buffer);*/
+
     } else if (m_currentThread == m_settingsThread) {
         // if generateSettings finished
         QMap<QString, QVariant> generatedSettings = m_settingsThread->getOutput();
