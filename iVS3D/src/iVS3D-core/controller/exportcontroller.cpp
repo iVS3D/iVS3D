@@ -314,9 +314,7 @@ void ExportController::slot_closeCropExport(int result)
         }
 
     }
-    else {
-        m_outputWidget->setCropStatus(false);
-    }
+
     disconnect(m_cropDialog, &CropExport::finished, this, &ExportController::slot_closeCropExport);
     m_cropDialog->deleteLater();
 }
