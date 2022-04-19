@@ -169,6 +169,9 @@ void Controller::slot_saveProjectAs()
         return;
     }
 
+    if (0 != QString::compare(projectPath.split(".").last(), "json", Qt::CaseSensitive)) {
+        projectPath += ".json";
+    }
     m_dataManager->saveProjectAs(getNameFromPath(projectPath, ".json"), projectPath);
     m_mainWindow->showProjectTitle(m_dataManager->getProjectPath());
     emit sig_hasStatusMessage("Project saved");
