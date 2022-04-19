@@ -118,6 +118,7 @@ void VideoPlayerController::slot_showFirstImage()
     m_imageIndex = m_iterator->getFirst(m_dataManager->getModelInputPictures());
     showImage();
     m_timeline->selectFrame(m_imageIndex);
+    AlgorithmManager::instance().notifySelectedImageIndex(m_imageIndex);
 }
 
 void VideoPlayerController::slot_showLastImage()
@@ -125,6 +126,7 @@ void VideoPlayerController::slot_showLastImage()
     m_imageIndex = m_iterator->getLast(m_dataManager->getModelInputPictures());
     showImage();
     m_timeline->selectFrame(m_imageIndex);
+    AlgorithmManager::instance().notifySelectedImageIndex(m_imageIndex);
 }
 
 void VideoPlayerController::slot_showPreviousImage()
@@ -132,6 +134,7 @@ void VideoPlayerController::slot_showPreviousImage()
     m_imageIndex = m_iterator->getPrevious(m_dataManager->getModelInputPictures(), m_imageIndex, m_stepsize);
     showImage();
     m_timeline->selectFrame(m_imageIndex);
+    AlgorithmManager::instance().notifySelectedImageIndex(m_imageIndex);
 }
 
 void VideoPlayerController::slot_showNextImage()
@@ -139,6 +142,7 @@ void VideoPlayerController::slot_showNextImage()
     m_imageIndex = m_iterator->getNext(m_dataManager->getModelInputPictures(),m_imageIndex, m_stepsize);
     showImage();
     m_timeline->selectFrame(m_imageIndex);
+    AlgorithmManager::instance().notifySelectedImageIndex(m_imageIndex);
 }
 
 void VideoPlayerController::slot_toggleKeyframe()
@@ -286,8 +290,10 @@ void VideoPlayerController::slot_timerNextImage()
             m_videoPlayer->setPlaying(false);
             m_videoPlayer->setEnabledForwardBtns(false);
             showImage();
+            AlgorithmManager::instance().notifySelectedImageIndex(m_imageIndex);
         } else {
             showImage();
+            AlgorithmManager::instance().notifySelectedImageIndex(m_imageIndex);
         }
     }
 
