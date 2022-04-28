@@ -170,6 +170,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
     QSettings settings("Fraunhofer", "iVS3D");
     settings.setValue("windowGeometry", QVariant(geometry()));
     settings.setValue("windowState", saveState());
+    settings.setValue("maximized", this->isMaximized());
     QMainWindow::closeEvent(event);
 }
 
@@ -179,6 +180,7 @@ void MainWindow::readSettings()
     if(!settings.value("windowGeometry").isNull()){
         setGeometry(settings.value("windowGeometry").value<QRect>());
         restoreState(settings.value("windowState").toByteArray());
+        if(settings.value("maximized").toBool()) this->setWindowState(this->windowState() ^ Qt::WindowMaximized);
     }
 }
 
