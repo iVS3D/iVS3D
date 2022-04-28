@@ -43,7 +43,41 @@ bool ModelInputPictures::isKeyframe(unsigned int index) {
 
 void ModelInputPictures::updateMIP(const std::vector<unsigned int> &keyframes)
 {
-    this->m_keyframes = keyframes;
+    // TODO!!! optimization possible: no need to copy lists, just count keyframes
+    // inside / outside boundries and create iterator that filters
+
+    auto inBoundaries = [=](uint i) {
+        return i >= (uint)m_boundaries.x() && i <= (uint)m_boundaries.y();
+    };
+    // keep old keyframes outside the boundaries
+    std::vector<uint> old_frames;
+    std::copy_if(
+                this->m_keyframes.begin(),
+                this->m_keyframes.end(),
+                std::back_inserter(old_frames),
+                [=](uint i){ return !inBoundaries(i); });
+
+    // only take new keyframes inside the boundaries
+    std::vector<uint> new_frames;
+    std::copy_if(
+                keyframes.begin(),
+                keyframes.end(),
+                std::back_inserter(new_frames),
+                inBoundaries);
+
+    // frames to keep are stored in old_frames
+    // allocate space for new keyframes
+    m_keyframes.clear();
+    m_keyframes.resize(old_frames.size() + new_frames.size());
+
+    // merge old frames outside boundaries with new keyframes
+    std::merge(
+                old_frames.begin(),
+                old_frames.end(),
+                new_frames.begin(),
+                new_frames.end(),
+                this->m_keyframes.begin());
+
     AlgorithmManager::instance().notifyKeyframesChanged(m_keyframes);
     emit sig_mipChanged();
 }
