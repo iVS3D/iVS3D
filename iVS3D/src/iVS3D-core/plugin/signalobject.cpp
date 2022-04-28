@@ -24,3 +24,8 @@ void signalObject::updateBuffer(QString pluginName, QMap<QString, QVariant> buff
 {
     emit sig_updateBuffer(pluginName, buffer);
 }
+
+void signalObject::boundariesChanged(QPoint boundaries)
+{
+    emit sig_boundariesChanged(boundaries);
+}

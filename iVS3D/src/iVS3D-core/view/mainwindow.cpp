@@ -32,7 +32,7 @@ MainWindow::MainWindow(QWidget *parent, bool dark, int cuda, bool createLog, QSt
     m_videoplayer = new VideoPlayer(this, dark);
     m_timeline = new Timeline(this);
     m_inputWidget = new InfoWidget(this, "Input", dark);
-    m_samplingWidget = new SamplingWidget(this,"Sampling", algorithmList, transformList);
+    m_samplingWidget = new SamplingWidget(this, algorithmList, transformList);
     m_outputWidget = new OutputWidget(this, "Output", transformList);
     m_autoWidget = new AutomaticWidget(this);
 

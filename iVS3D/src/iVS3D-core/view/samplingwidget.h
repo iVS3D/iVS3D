@@ -48,7 +48,7 @@ public:
      *
      * @see IAlgorithm, ITransform
      */
-    explicit SamplingWidget(QWidget *parent = nullptr, QString title = "Sampling", QStringList algorithmList = QStringList("no algorithm"), QStringList transformList = QStringList(""));
+    explicit SamplingWidget(QWidget *parent = nullptr, QStringList algorithmList = QStringList("no algorithm"), QStringList transformList = QStringList(""));
     ~SamplingWidget();
 
     /**
@@ -75,10 +75,6 @@ public:
      * @param idx the index in the pluginList
      */
     void setAlgorithm(int idx);
-    /**
-     * @brief resetSelectedImages Resets the selection on which images will be sampled to "All images"
-     */
-    void resetSelectedImages();
 
     void disablePreview();
 
@@ -104,7 +100,7 @@ signals:
      * @param onlyKeyframes @a true if image base is only keyframes, @a false if all images
      * @param useBounds @a true if bounds are used, @a false if bounds are ignored
      */
-    void sig_startSampling(bool onlyKeyframes, bool useBounds);
+    void sig_startSampling();
 
     /**
      * @brief [signal] sig_enablePreviewChanged(...) is emitted on enable preview checkbox state changed.
@@ -138,6 +134,6 @@ private:
 };
 
 #define HIDE_WIDGET(W) ui->gridLayout->removeWidget(W); W->setVisible(false);
-#define SHOW_WIDGET(W) ui->gridLayout->addWidget(W,2,2); W->setVisible(true);
+#define SHOW_WIDGET(W) ui->gridLayout->addWidget(W,3,2); W->setVisible(true);
 
 #endif // SAMPLINGWIDGET_H

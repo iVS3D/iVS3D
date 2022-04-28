@@ -6,10 +6,10 @@ AlgorithmExecutor::AlgorithmExecutor(DataManager *dataManager)
 }
 
 
-int AlgorithmExecutor::startSampling(int pluginIdx, bool onlyKeyframes, bool useBounds)
+int AlgorithmExecutor::startSampling(int pluginIdx)
 {
     // gather data that is needed for sampling
-    ALGO_DATA preparedData = prepareAlgoStart(pluginIdx, onlyKeyframes, useBounds);
+    ALGO_DATA preparedData = prepareAlgoStart(pluginIdx);
 
     if (preparedData.images.size() == 0) {
        slot_abort();
@@ -29,10 +29,10 @@ int AlgorithmExecutor::startSampling(int pluginIdx, bool onlyKeyframes, bool use
     return 0;
 }
 
-int AlgorithmExecutor::startGenerateSettings(int pluginIdx, bool onlyKeyframes, bool useBounds)
+int AlgorithmExecutor::startGenerateSettings(int pluginIdx)
 {
     // gather data that is needed for generating the settings
-    ALGO_DATA preparedData = prepareAlgoStart(pluginIdx, onlyKeyframes, useBounds);
+    ALGO_DATA preparedData = prepareAlgoStart(pluginIdx);
     m_settingsThread = new SettingsThread(this, preparedData.images, &m_stopped, m_pluginIndex, preparedData.useCuda);
 
     //Use a direct Connection when no ui is used
@@ -92,7 +92,7 @@ void AlgorithmExecutor::slot_pluginFinished()
     emit sig_pluginFinished();
 }
 
-ALGO_DATA AlgorithmExecutor::prepareAlgoStart(int pluginIdx, bool onlyKeyframes, bool useBounds)
+ALGO_DATA AlgorithmExecutor::prepareAlgoStart(int pluginIdx)
 {
     ALGO_DATA preparedData;
     m_pluginIndex = pluginIdx;
@@ -101,31 +101,14 @@ ALGO_DATA AlgorithmExecutor::prepareAlgoStart(int pluginIdx, bool onlyKeyframes,
     // Read mip
     preparedData.mip = m_dataManager->getModelInputPictures();
 
-    // Select images based on onlyKeframes & useBounds
-    if (useBounds) {
-        //Bounds are used
-        QPoint boundaries = preparedData.mip->getBoundaries();
-        if(onlyKeyframes){
-            //All keyframes inbound
-            preparedData.images = preparedData.mip->getAllKeyframes(boundaries);
-        } else {
-            //All images inbound
-            preparedData.images.reserve(preparedData.mip->getPicCount());
-            for(int i = boundaries.x(); i <= boundaries.y(); i++){
-                preparedData.images.push_back(i);
-            }
-        }
-    }
-    else {
-        //Bounds aren't used
-        if(onlyKeyframes) {
-          preparedData.images = preparedData.mip->getAllKeyframes();
-        }
-        else {
-            preparedData.images.reserve(preparedData.mip->getPicCount());
-            for(unsigned int i = 0; i < preparedData.mip->getPicCount(); i++){
-                preparedData.images.push_back(i);
-            }
+    // select images
+    QPoint boundaries = preparedData.mip->getBoundaries();
+    preparedData.images = preparedData.mip->getAllKeyframes(boundaries);
+    if(preparedData.images.size() == 0){
+        // no images selected jet, select all within boundaries
+        preparedData.images.reserve(boundaries.manhattanLength());
+        for(int i = boundaries.x(); i<= boundaries.y(); ++i){
+            preparedData.images.push_back(i);
         }
     }
 

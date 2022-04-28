@@ -59,11 +59,8 @@ public slots:
     void slot_selectTransform(int idx);
     /**
      * @brief Slot which is called, when 'Sample images' is clicked. The slot will start the algorithm by calling the AlgorithmExecutor
-     *
-     * @param onlyKeyframes @a true if algorithm should only be used on keyframes, @a false otherwise
-     * @param useBounds @a true if algorithm should only use images in boundaries, @a false otherwise
      */
-    void slot_startAlgorithm(bool onlyKeyframes, bool useBounds);
+    void slot_startAlgorithm();
     /**
      * @brief Slot which is called, when the algorithm finished. This will close the ProgressDialog
      *

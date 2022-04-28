@@ -152,13 +152,7 @@ void AutomaticExecutor::executeSampling()
 
     //start the plugin using keyframes, only the first plugin uses all images
     int idx = stepToPluginIndex(m_step);
-    if(m_step == 0) {
-      m_algoExec->startSampling(idx, false, false);
-    }
-    else {
-      m_algoExec->startSampling(idx, true, false);
-    }
-
+    m_algoExec->startSampling(idx);
     m_step++;
 }
 

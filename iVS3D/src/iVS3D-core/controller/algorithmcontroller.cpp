@@ -7,7 +7,6 @@ AlgorithmController::AlgorithmController(DataManager* dataManager, SamplingWidge
     m_pluginIdx = samplingWidget->getSelectedAlgorithm();
     m_pluginType = (samplingWidget->getSelctedType() ? PluginType::Algorithm : PluginType::Transform);
     AlgorithmManager::instance().initializePlugins(m_dataManager->getModelInputPictures()->getReader(), m_dataManager->getModelAlgorithm()->getPluginBuffer());
-    samplingWidget->resetSelectedImages();
     //Save samplingSettings and connect
     m_samplingWidget = samplingWidget;
     m_samplingWidget->setEnabled(true);
@@ -64,7 +63,7 @@ void AlgorithmController::slot_selectTransform(int idx)
     TransformManager::instance().selectTransform(idx);
 }
 
-void AlgorithmController::slot_startAlgorithm(bool onlyKeyframes, bool useBounds)
+void AlgorithmController::slot_startAlgorithm()
 {
     emit sig_stopPlay();
     // upadate mip (boundaries)
@@ -93,7 +92,7 @@ void AlgorithmController::slot_startAlgorithm(bool onlyKeyframes, bool useBounds
     m_timer = QElapsedTimer();
     m_timer.start();
     m_algorithmProgressDialog->show();
-    m_algExec->startSampling(m_pluginIdx, onlyKeyframes, useBounds);
+    m_algExec->startSampling(m_pluginIdx);
 }
 
 void AlgorithmController::slot_algorithmAborted()

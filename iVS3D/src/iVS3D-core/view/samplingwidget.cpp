@@ -1,6 +1,6 @@
 #include "samplingwidget.h"
 
-SamplingWidget::SamplingWidget(QWidget *parent, QString title, QStringList algorithmList, QStringList transformList) :
+SamplingWidget::SamplingWidget(QWidget *parent, QStringList algorithmList, QStringList transformList) :
     QWidget(parent),
     ui(new Ui::SamplingWidget)
 {
@@ -21,12 +21,6 @@ SamplingWidget::SamplingWidget(QWidget *parent, QString title, QStringList algor
     ui->comboBoxAlgo->addItems(transformList);
     connect(ui->comboBoxAlgo, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &SamplingWidget::slot_selectedAlgoChanged);
     connect(ui->pushButton, &QPushButton::pressed, this, &SamplingWidget::slot_startSamplingPressed);
-
-    // add sampling options
-    ui->comboBox->addItem("All images");
-    ui->comboBox->addItem("Only keyframes");
-    ui->comboBox->addItem("All images (Use bounds)");
-    ui->comboBox->addItem("Only keyframes (Use bounds)");
 
     m_cbPreviewTransform = new QCheckBox("Enable preview", parent);
     m_cbPreviewTransform->setVisible(false);
@@ -71,11 +65,6 @@ void SamplingWidget::setAlgorithm(int idx)
     ui->comboBoxAlgo->setCurrentIndex(idx);
 }
 
-void SamplingWidget::resetSelectedImages()
-{
-    ui->comboBox->setCurrentIndex(0);
-}
-
 void SamplingWidget::disablePreview()
 {
     m_cbPreviewTransform->setChecked(false);
@@ -97,19 +86,7 @@ void SamplingWidget::slot_selectedAlgoChanged(int idx)
 
 void SamplingWidget::slot_startSamplingPressed()
 {
-    int index = ui->comboBox->currentIndex();
-    //Order of comboBox
-    /*
-    "All images"
-    "Only keyframes"
-    "All images (Use bounds)"
-    "Only keyframes (Use bounds)"*/
-    switch (index) {
-        case 0 : emit sig_startSampling(false, false); break;
-        case 1 : emit sig_startSampling(true, false); break;
-        case 2 : emit sig_startSampling(false, true); break;
-        case 3 : emit sig_startSampling(true, true); break;
-    }
+    emit sig_startSampling();
 }
 
 void SamplingWidget::slot_enablePreviewChanged(bool enabled)
@@ -133,7 +110,8 @@ void SamplingWidget::showSamplingBtns()
 {
     HIDE_WIDGET(m_cbPreviewTransform)
     ui->label_2->setVisible(true);
-    ui->comboBox->setVisible(true);
+    ui->label_3->setVisible(true);
+    ui->pushButton_2->setVisible(true);
     SHOW_WIDGET(ui->pushButton);
     ui->radioButton->setVisible(true);
     ui->addAuto->setVisible(true);
@@ -142,7 +120,8 @@ void SamplingWidget::showSamplingBtns()
 void SamplingWidget::showTransformBtns()
 {
     ui->label_2->setVisible(false);
-    ui->comboBox->setVisible(false);
+    ui->label_3->setVisible(false);
+    ui->pushButton_2->setVisible(false);
     HIDE_WIDGET(ui->pushButton);
     SHOW_WIDGET(m_cbPreviewTransform);
     ui->radioButton->setVisible(false);

@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QMap>
 #include <QVariant>
+#include <QPoint>
 
 class signalObject : public QObject
 {
@@ -13,6 +14,7 @@ public:
     void newMetaData();
     void selectedImageIndex(uint index);
     void keyframesChanged(std::vector<uint> keyframes);
+    void boundariesChanged(QPoint boundaries);
     void updateBuffer(QString pluginName, QMap<QString, QVariant> buffer);
 
 signals:
@@ -30,6 +32,11 @@ signals:
      * @param keyframes are the newly selected keyframes
      */
     void sig_keyframesChanged(std::vector<uint> keyframes);
+    /**
+     * @brief sig_boundariesChanged is emitted if the timeline boundaries are moved.
+     * @param boundaries begin end end boundary
+     */
+    void sig_boundariesChanged(QPoint boundaries);
     /**
      * @brief sig_updateBuffer is emitted if new buffer has been loaded
      * @param pluginName name of the plugin whose buffer is emited

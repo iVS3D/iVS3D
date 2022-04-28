@@ -43,12 +43,10 @@ public:
     explicit AlgorithmExecutor(DataManager *dataManager);
     /**
      * @brief startAlgorithm prepares data for plugin and starts its execution on new Thread
-     * @param pluginIdx selected plugin which gets executed
-     * @param onlyKeyframes true = execute plugin only on keyframes
 	 * @param useBounds true = respect boundaries and limit image-list accordingly
      * @return returns error code, 0 = no errors
      */
-    int startSampling(int pluginIdx, bool onlyKeyframes, bool useBounds);
+    int startSampling(int pluginIdx);
     /**
      * @brief startGenerateSettings prepares data for generateSettings and starts its execution on new Thread
      * @param pluginIdx selected plugin which gets executed
@@ -56,7 +54,7 @@ public:
      * @param useBounds ture = respect boundaries and limit image-list accordingly
      * @return returns error code, 0 = no errors
      */
-    int startGenerateSettings(int pluginIdx, bool onlyKeyframes = false, bool useBounds = false);
+    int startGenerateSettings(int pluginIdx);
 
 signals:
     /**
@@ -83,7 +81,7 @@ public slots:
     void slot_pluginFinished();
 
 private:
-    ALGO_DATA prepareAlgoStart(int pluginIdx, bool onlyKeyframes, bool useBounds);
+    ALGO_DATA prepareAlgoStart(int pluginIdx);
 
     int m_pluginIndex = 0;
     volatile bool m_stopped = false;
