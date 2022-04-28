@@ -4,6 +4,9 @@ CONFIG += qt console warn_on depend_includepath testcase
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TEMPLATE = app
 
+#required to build interface for testing
+DEFINES += IVS3DPLUGININTERFACE_LIBRARY
+
 # testfiles
 HEADERS += \
     reader_stub.h \
@@ -37,6 +40,7 @@ DEFINES += TEST_RESOURCES=\"\\\"$${TEST_RESOURCES_PATH}\\\"\"
 INCLUDEPATH += \
     $$IVS_SRC_PATH/iVS3D-core/plugin \
     $$IVS_SRC_PATH/iVS3D-core/model \
+    $$IVS_SRC_PATH/iVS3D-pluginInterface \
     $$IVS_SRC_PATH/iVS3D-blurPlugin
 
 HEADERS += \
@@ -44,7 +48,7 @@ HEADERS += \
     $$IVS_SRC_PATH/iVS3D-blurPlugin/BlurAlgorithm.h \
     $$IVS_SRC_PATH/iVS3D-blurPlugin/blursobel.h \
     $$IVS_SRC_PATH/iVS3D-blurPlugin/blurlaplacian.h \
-    $$IVS_SRC_PATH/iVS3D-core/plugin/ialgorithm.h \
+    $$IVS_SRC_PATH/iVS3D-pluginInterface/ialgorithm.h \
     $$IVS_SRC_PATH/iVS3D-core/model/reader.h \
     $$IVS_SRC_PATH/iVS3D-core/model/progressable.h \
 

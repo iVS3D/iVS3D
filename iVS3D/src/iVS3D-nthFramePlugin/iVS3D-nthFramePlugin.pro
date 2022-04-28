@@ -6,8 +6,6 @@ TARGET = NthFrame
 
 CONFIG += c++11
 
-DEFINES += IVS3DNTHFRAMEPLUGIN_LIBRARY
-
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../iVS3D-core/release -liVS3D-pluginInterface
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../iVS3D-core/debug -liVS3D-pluginInterface
 else:unix: LIBS += -L$$OUT_PWD/../iVS3D-core -liVS3D-pluginInterface
@@ -28,8 +26,7 @@ SOURCES += \
 
 HEADERS += \
     cvmat_qmetadata.h \
-    nthframe.h \
-    nthframe_global.h
+    nthframe.h
 
 TEMPLATE = lib
 CONFIG += plugin

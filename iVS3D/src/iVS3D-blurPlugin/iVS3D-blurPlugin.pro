@@ -7,7 +7,8 @@ CONFIG += c++11
 INCLUDEPATH += \
     ../iVS3D-pluginInterface \
     ../iVS3D-core \
-    ../iVS3D-core/model
+    ../iVS3D-core/model \
+    ../iVS3D-core/plugin
 
 include(../../3rdparty.pri)
 

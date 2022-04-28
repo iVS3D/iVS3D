@@ -7,10 +7,10 @@
 #include "iVS3D-pluginInterface_global.h"
 #include <QDebug>
 
-#include "model/reader.h"
-#include "model/progressable.h"
-#include "model/LogFileParent.h"
-#include "plugin/signalobject.h"
+#include "reader.h"
+#include "progressable.h"
+#include "LogFileParent.h"
+#include "signalobject.h"
 
 /**
  * @interface IAlgorithm

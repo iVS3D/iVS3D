@@ -9,7 +9,8 @@ TARGET = CameraMovement
 INCLUDEPATH += \
     ../iVS3D-pluginInterface \
     ../iVS3D-core \
-    ../iVS3D-core/model
+    ../iVS3D-core/model \
+    ../iVS3D-core/plugin
 
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../iVS3D-core/release -liVS3D-pluginInterface
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../iVS3D-core/debug -liVS3D-pluginInterface

@@ -3,6 +3,9 @@ QT += gui
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 CONFIG += qt warn_on depend_includepath testcase
 
+#required to build interface for testing
+DEFINES += IVS3DPLUGININTERFACE_LIBRARY
+
 TEMPLATE = app
 
 SOURCES +=  \
@@ -37,6 +40,7 @@ DEFINES += TEST_RESOURCES=\"\\\"$${TEST_RESOURCES_PATH}\\\"\"
 INCLUDEPATH += \
     $$IVS_SRC_PATH/iVS3D-core/model \
     $$IVS_SRC_PATH/iVS3D-core/plugin \
+    $$IVS_SRC_PATH/iVS3D-pluginInterface \
     $$IVS_SRC_PATH/iVS3D-nthFramePlugin
 
 HEADERS += \
@@ -45,7 +49,7 @@ HEADERS += \
     $$IVS_SRC_PATH/iVS3D-core/model/progressable.h \
     $$IVS_SRC_PATH/iVS3D-core/model/progressdisplay.h \
     $$IVS_SRC_PATH/iVS3D-nthFramePlugin/nthframe.h \
-    $$IVS_SRC_PATH/iVS3D-core/plugin/ialgorithm.h
+    $$IVS_SRC_PATH/iVS3D-pluginInterface/ialgorithm.h
 
 SOURCES += \
     $$IVS_SRC_PATH/iVS3D-nthFramePlugin/nthframe.cpp \

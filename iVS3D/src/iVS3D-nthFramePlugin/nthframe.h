@@ -21,7 +21,6 @@
 #include "ialgorithm.h"
 #include "reader.h"
 #include "progressable.h"
-#include "nthframe_global.h"
 #include "signalobject.h"
 
 #define DESCRIPTION_TEXT "Every Nth frame is selected as keyframe."
@@ -44,7 +43,7 @@
  *
  * @date 2021/02/14
  */
-class NTHFRAME_EXPORT NthFrame : public IAlgorithm
+class NthFrame : public IAlgorithm
 {
     Q_OBJECT
     Q_PLUGIN_METADATA(IID "iVS3D.IAlgorithm") // implement interface as plugin, use the iid as identifier

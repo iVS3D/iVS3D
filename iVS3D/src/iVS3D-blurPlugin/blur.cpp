@@ -91,7 +91,7 @@ void Blur::initialize(Reader *reader, QMap<QString, QVariant> buffer, signalObje
     m_reader = reader;
     m_buffer = buffer;
     m_sigObj = sig_obj;
-    connect(m_sigObj, SIGNAL(sig_selectedImageIndex(uint)), this, SLOT(slot_selectedImageIndex(uint)));
+    if(m_sigObj) connect(m_sigObj, SIGNAL(sig_selectedImageIndex(uint)), this, SLOT(slot_selectedImageIndex(uint)));
 }
 
 void Blur::setSettings(QMap<QString, QVariant> settings)

@@ -145,8 +145,8 @@ void tst_blurMain::test_randomKeyframe()
     blur->slot_ldChanged(localDev);
     volatile bool stop = false;
     std::vector<uint> newKeyframes;
-
-    newKeyframes = blur->sampleImages(stub, keyframes, nullptr, &stop, QMap<QString, QVariant>(), false, m_logFile);
+    blur->initialize(stub, QMap<QString,QVariant>(), nullptr);
+    newKeyframes = blur->sampleImages(keyframes, nullptr, &stop, false, m_logFile);
     if (newKeyframes != expectedKeyframes) {
         qDebug() << "expected : " << expectedKeyframes;
         qDebug() << "got : " << newKeyframes;
@@ -180,7 +180,8 @@ void tst_blurMain::test_BlurOnAllImages()
       imageIndex.push_back(i);
     }
     keyframe.clear();
-    keyframe = blur->sampleImages(stub, imageIndex, nullptr, &stop, QMap<QString, QVariant>(), false, m_logFile);
+    blur->initialize(stub, QMap<QString,QVariant>(), nullptr);
+    keyframe = blur->sampleImages(imageIndex, nullptr, &stop, false, m_logFile);
 
     if (keyframe != keyframesExpected) {
         qDebug() << "expected : " << keyframesExpected;
@@ -219,7 +220,8 @@ void tst_blurMain::test_BlurOnKeyframes()
     volatile bool stop = false;
     std::vector<uint> newKeyframes;
 
-    newKeyframes = blur->sampleImages(stub, keyframes, nullptr, &stop, QMap<QString, QVariant>(), false, m_logFile);
+    blur->initialize(stub, QMap<QString,QVariant>(), nullptr);
+    newKeyframes = blur->sampleImages(keyframes, nullptr, &stop, false, m_logFile);
     qDebug() << newKeyframes;
 
     if (newKeyframes != keyframesExpected) {

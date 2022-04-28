@@ -40,8 +40,8 @@ void tst_nth_frame::test_initNthFrame()
     Reader_stub r(10,3.0);
     volatile bool stopped = false;
     NthFrame algo;
-    algo.initialize(&r);
-    auto res = algo.sampleImages(&r,std::vector<uint>({0,1,2,3,4}),nullptr, &stopped, QMap<QString,QVariant>(), false, m_logFile);
+    algo.initialize(&r, QMap<QString,QVariant>(), nullptr);
+    auto res = algo.sampleImages(std::vector<uint>({0,1,2,3,4}),nullptr, &stopped, false, m_logFile);
     QCOMPARE((int)res.size(),2);
     QCOMPARE(res[0],(uint)0);
     QCOMPARE(res[1],(uint)3);
@@ -75,8 +75,9 @@ void tst_nth_frame::test_nthframeAllImgs()
         vec.push_back(i);
     }
     NthFrame algo;
+    algo.initialize(&r, QMap<QString,QVariant>(), nullptr);
     algo.slot_nChanged(N);
-    auto res = algo.sampleImages(&r,vec,nullptr, &stopped, QMap<QString,QVariant>(), false, m_logFile);
+    auto res = algo.sampleImages(vec,nullptr, &stopped, false, m_logFile);
     QCOMPARE((uint)res.size(),KFcount);
     QCOMPARE(res.front(),firstKF);
     QCOMPARE(res.back(),lastKF);
@@ -87,7 +88,9 @@ void tst_nth_frame::test_nthframeLimits()
     Reader_stub r(20,33.33);
     bool stopped = false;
     NthFrame algo;
-    auto res = algo.sampleImages(&r,std::vector<uint>({2,3,4,7,8}),nullptr, &stopped, QMap<QString,QVariant>(), false, m_logFile);
+    algo.initialize(&r, QMap<QString,QVariant>(), nullptr);
+    algo.slot_nChanged(1);
+    auto res = algo.sampleImages(std::vector<uint>({2,3,4,7,8}),nullptr, &stopped, false, m_logFile);
     QCOMPARE((int)res.size(),5);
     QCOMPARE(res[0], (uint)2);
     QCOMPARE(res[4], (uint)8);
