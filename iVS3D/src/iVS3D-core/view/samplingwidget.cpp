@@ -21,6 +21,7 @@ SamplingWidget::SamplingWidget(QWidget *parent, QStringList algorithmList, QStri
     ui->comboBoxAlgo->addItems(transformList);
     connect(ui->comboBoxAlgo, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &SamplingWidget::slot_selectedAlgoChanged);
     connect(ui->pushButton, &QPushButton::pressed, this, &SamplingWidget::slot_startSamplingPressed);
+    connect(ui->pushButton_2, &QPushButton::pressed, this, &SamplingWidget::slot_startGeneratePressed);
 
     m_cbPreviewTransform = new QCheckBox("Enable preview", parent);
     m_cbPreviewTransform->setVisible(false);
@@ -87,6 +88,11 @@ void SamplingWidget::slot_selectedAlgoChanged(int idx)
 void SamplingWidget::slot_startSamplingPressed()
 {
     emit sig_startSampling();
+}
+
+void SamplingWidget::slot_startGeneratePressed()
+{
+    emit sig_startGenerateSettings();
 }
 
 void SamplingWidget::slot_enablePreviewChanged(bool enabled)

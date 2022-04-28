@@ -13,6 +13,7 @@ AlgorithmController::AlgorithmController(DataManager* dataManager, SamplingWidge
     connect(m_samplingWidget, &SamplingWidget::sig_selectedAlgorithmChanged, this, &AlgorithmController::slot_selectAlgorithm);
     connect(m_samplingWidget, &SamplingWidget::sig_selectedTransformChanged, this, &AlgorithmController::slot_selectTransform);
     connect(m_samplingWidget, &SamplingWidget::sig_startSampling, this, &AlgorithmController::slot_startAlgorithm);
+    connect(m_samplingWidget, &SamplingWidget::sig_startGenerateSettings, this, &AlgorithmController::slot_startGenerateSettings);
     connect(m_samplingWidget, &SamplingWidget::sig_enablePreviewChanged, this, &AlgorithmController::slot_previewStateChanged);
     //Create new AlgorithmExecutor
     m_algExec = new AlgorithmExecutor(m_dataManager);
@@ -93,6 +94,38 @@ void AlgorithmController::slot_startAlgorithm()
     m_timer.start();
     m_algorithmProgressDialog->show();
     m_algExec->startSampling(m_pluginIdx);
+}
+
+void AlgorithmController::slot_startGenerateSettings()
+{
+    emit sig_stopPlay();
+    // upadate mip (boundaries)
+    emit sig_updateBoundaries();
+
+    if(m_pluginType != PluginType::Algorithm){
+        return;
+    }
+
+    // clean up leaftovers from last algorithm
+    if(m_algorithmProgressDialog){
+        disconnect(m_algorithmProgressDialog, &ProgressDialog::sig_abort, m_algExec, &AlgorithmExecutor::slot_abort);
+        disconnect(m_algExec, &AlgorithmExecutor::sig_progress, m_algorithmProgressDialog, &ProgressDialog::slot_displayProgress);
+        delete m_algorithmProgressDialog;
+    }
+
+    // setup progress dialog ...
+    m_algorithmProgressDialog = new ProgressDialog(m_samplingWidget,true);
+    m_algorithmProgressDialog->setSizeGripEnabled(false);
+
+    // ... and connect dialog to executor
+    connect(m_algorithmProgressDialog, &ProgressDialog::sig_abort, m_algExec, &AlgorithmExecutor::slot_abort);
+    connect(m_algExec, &AlgorithmExecutor::sig_progress, m_algorithmProgressDialog, &ProgressDialog::slot_displayProgress);
+
+    // display progress dialog and start algorithm
+    m_timer = QElapsedTimer();
+    m_timer.start();
+    m_algorithmProgressDialog->show();
+    m_algExec->startGenerateSettings(m_pluginIdx);
 }
 
 void AlgorithmController::slot_algorithmAborted()

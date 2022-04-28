@@ -50,8 +50,6 @@ public:
     /**
      * @brief startGenerateSettings prepares data for generateSettings and starts its execution on new Thread
      * @param pluginIdx selected plugin which gets executed
-     * @param onlyKeyframes true = execute generateSettings only on keyframes
-     * @param useBounds ture = respect boundaries and limit image-list accordingly
      * @return returns error code, 0 = no errors
      */
     int startGenerateSettings(int pluginIdx);

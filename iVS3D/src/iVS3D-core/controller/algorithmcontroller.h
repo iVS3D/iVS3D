@@ -62,6 +62,10 @@ public slots:
      */
     void slot_startAlgorithm();
     /**
+     * @brief Slot which is called, when 'Generate settings' is clicked. The slot will start the algorithm by calling the AlgorithmExecutor
+     */
+    void slot_startGenerateSettings();
+    /**
      * @brief Slot which is called, when the algorithm finished. This will close the ProgressDialog
      *
      */

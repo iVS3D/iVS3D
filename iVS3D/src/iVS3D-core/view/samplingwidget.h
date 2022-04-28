@@ -97,10 +97,13 @@ signals:
 
     /**
      * @brief [signal] sig_startSampling(...) is emitted on start sampling button pressed.
-     * @param onlyKeyframes @a true if image base is only keyframes, @a false if all images
-     * @param useBounds @a true if bounds are used, @a false if bounds are ignored
      */
     void sig_startSampling();
+
+    /**
+     * @brief [signal] sig_startGenerateSettings is emitted on generate settings button pressed.
+     */
+    void sig_startGenerateSettings();
 
     /**
      * @brief [signal] sig_enablePreviewChanged(...) is emitted on enable preview checkbox state changed.
@@ -118,6 +121,7 @@ signals:
 private slots:
     void slot_selectedAlgoChanged(int idx);
     void slot_startSamplingPressed();
+    void slot_startGeneratePressed();
     void slot_enablePreviewChanged(bool enabled);
     void on_addAuto_clicked();
 
