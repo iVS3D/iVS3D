@@ -84,11 +84,6 @@ signals:
      */
     void sig_hasStatusMessage(QString message);
     /**
-     * @brief [signal] sig_updateBoundaries() is emitted when the ModelInputPictures boundaries should be updated.
-     *
-     */
-    void sig_updateBoundaries();
-    /**
      * @brief [signal] sig_stopPlay() is emitted when an algorithm is started to stop the VideoPlayer.
      *
      */

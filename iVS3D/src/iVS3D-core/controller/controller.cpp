@@ -414,13 +414,11 @@ void Controller::onSuccessfulOpen()
     connect(m_videoPlayerController, &VideoPlayerController::sig_hasStatusMessage, m_mainWindow, &MainWindow::slot_displayStatusMessage);
 
     connect(m_algorithmController, &AlgorithmController::sig_stopPlay, m_videoPlayerController, &VideoPlayerController::slot_stopPlay);
-    connect(m_algorithmController, &AlgorithmController::sig_updateBoundaries, m_videoPlayerController, &VideoPlayerController::slot_updateBoundaries);
 
     // ExportController manages algorithm used widget and reconstruct widget and delegates export of images and 3d-reconstruction
     m_exportController = new ExportController(m_mainWindow->getOutputWidget(), m_dataManager);
     connect(m_exportController, &ExportController::sig_hasStatusMessage, m_mainWindow, &MainWindow::slot_displayStatusMessage);
     connect(m_exportController, &ExportController::sig_stopPlay, m_videoPlayerController, &VideoPlayerController::slot_stopPlay);
-    connect(m_exportController, &ExportController::sig_updateBoundaries, m_videoPlayerController, &VideoPlayerController::slot_updateBoundaries);
     connect(m_exportController, &ExportController::sig_exportStarted, this, &Controller::slot_exportStarted);
     connect(m_exportController, &ExportController::sig_exportFinished, this, &Controller::slot_exportFinished);
     connect(m_exportController, &ExportController::sig_exportAborted, this, &Controller::slot_exportFinished);

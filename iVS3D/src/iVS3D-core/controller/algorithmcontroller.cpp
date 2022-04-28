@@ -67,8 +67,6 @@ void AlgorithmController::slot_selectTransform(int idx)
 void AlgorithmController::slot_startAlgorithm()
 {
     emit sig_stopPlay();
-    // upadate mip (boundaries)
-    emit sig_updateBoundaries();
 
     if(m_pluginType != PluginType::Algorithm){
         return;
@@ -100,7 +98,7 @@ void AlgorithmController::slot_startGenerateSettings()
 {
     emit sig_stopPlay();
     // upadate mip (boundaries)
-    emit sig_updateBoundaries();
+    //emit sig_updateBoundaries();
 
     if(m_pluginType != PluginType::Algorithm){
         return;

@@ -322,6 +322,7 @@ void Timeline::positionBoundaries(uint startPos, uint endPos)
 
     // update boundaries attribute
     m_boundaries = QPoint(startPos, endPos);
+    emit sig_boundariesChanged(m_boundaries);
 }
 
 void Timeline::highlighterMoved(int xMovement)

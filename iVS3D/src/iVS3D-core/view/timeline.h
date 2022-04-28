@@ -88,6 +88,7 @@ public:
 
 signals:
     void sig_selectedChanged(uint index);
+    void sig_boundariesChanged(QPoint boundaries);
 
 private slots:
     // triggered by SlideableLabels mouseMoved signal

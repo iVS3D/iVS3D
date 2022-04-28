@@ -41,6 +41,7 @@ VideoPlayerController::VideoPlayerController(QObject *parent, VideoPlayer *playe
 
     // connect timeline
     connect(m_timeline, &Timeline::sig_selectedChanged, this, &VideoPlayerController::slot_changeIndex);
+    connect(m_timeline, &Timeline::sig_boundariesChanged, this, &VideoPlayerController::slot_updateBoundaries);
 
     // connect dataManager->mip
     connect(m_dataManager->getModelInputPictures(), &ModelInputPictures::sig_mipChanged, this, &VideoPlayerController::slot_mipChanged);
@@ -225,9 +226,8 @@ void VideoPlayerController::slot_stopPlay()
     m_videoPlayer->setPlaying(m_playing);
 }
 
-void VideoPlayerController::slot_updateBoundaries()
+void VideoPlayerController::slot_updateBoundaries(QPoint boundaries)
 {
-    QPoint boundaries = m_timeline->getBoundaries();
     m_dataManager->getModelInputPictures()->setBoundaries(boundaries);
 }
 

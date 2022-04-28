@@ -29,11 +29,13 @@ ModelInputPictures::ModelInputPictures(QString inputPath)
 		setResolution();
         m_inputPath = inputPath;
     }
+    m_boundaries = QPoint(0,m_reader->getPicCount()-1);
 }
 
 
 ModelInputPictures::ModelInputPictures()
 {
+    m_boundaries = QPoint(0,m_reader->getPicCount()-1);
 }
 
 bool ModelInputPictures::isKeyframe(unsigned int index) {

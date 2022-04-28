@@ -131,7 +131,7 @@ public slots:
     /**
      * @brief [slot] slot_updateBoundaries() updates the mip so that the boundaries are up to date
      */
-    void slot_updateBoundaries();
+    void slot_updateBoundaries(QPoint boundaries);
 
     /**
      * @brief [slot] slot_imageProcessed(...) is invoked when image has been processed and provides additional images.

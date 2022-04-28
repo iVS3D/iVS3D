@@ -77,10 +77,6 @@ signals:
      */
     void sig_stopPlay();
     /**
-     * @brief sig_updateBoundaries updates boundary information in order to work on correct data
-     */
-    void sig_updateBoundaries();
-    /**
      * @brief sig_exportFinished is emitted if an export finished
      */
     void sig_exportFinished();

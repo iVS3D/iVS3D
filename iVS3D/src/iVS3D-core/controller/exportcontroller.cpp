@@ -154,11 +154,6 @@ void ExportController::slot_export()
 
     emit sig_stopPlay();
 
-
-    // update mip (boundaries)
-    emit sig_updateBoundaries();
-
-
     //creating export Directory if necessary
     QDir exportDir;
     if (!exportDir.mkdir(m_path)) {
