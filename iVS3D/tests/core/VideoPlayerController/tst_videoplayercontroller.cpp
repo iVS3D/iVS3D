@@ -76,7 +76,6 @@ void tst_videoplayercontroller::init()
     m_testTL = new Timeline();
     m_testVPC = new VideoPlayerController(this, m_testVP, m_testTL, m_testDM, nullptr);
     m_testVPC->slot_mipChanged();
-    m_testVPC->slot_updateBoundaries();
 }
 
 void tst_videoplayercontroller::cleanup()

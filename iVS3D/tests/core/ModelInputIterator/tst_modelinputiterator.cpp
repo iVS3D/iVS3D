@@ -9,13 +9,13 @@
 #include "controller/imageiterator.h"
 #include "controller/keyframeiterator.h"
 
-class modelinputiterator : public QObject
+class tst_modelinputiterator : public QObject
 {
     Q_OBJECT
 
 public:
-    modelinputiterator();
-    ~modelinputiterator();
+    tst_modelinputiterator();
+    ~tst_modelinputiterator();
 
 private:
     QString m_testresourcePath;
@@ -34,10 +34,10 @@ private slots:
     void test_iterateKeyframes_data();
 };
 
-modelinputiterator::modelinputiterator() {}
-modelinputiterator::~modelinputiterator() {}
+tst_modelinputiterator::tst_modelinputiterator() {}
+tst_modelinputiterator::~tst_modelinputiterator() {}
 
-void modelinputiterator::initTestCase()
+void tst_modelinputiterator::initTestCase()
 {
     m_testImagesPath = QString(TEST_RESOURCES) + "/BlurTest";
 
@@ -47,7 +47,7 @@ void modelinputiterator::initTestCase()
     requireResource(m_testImagesPath + "/WithoutBlur.jpg");
 }
 
-void modelinputiterator::init()
+void tst_modelinputiterator::init()
 {
     m_mip = new ModelInputPictures(m_testImagesPath);
     QVERIFY2(m_mip->getPicCount()>0, "failed to load test images!");
@@ -55,27 +55,27 @@ void modelinputiterator::init()
     m_mip->setBoundaries(QPoint(0,m_mip->getPicCount()));
 }
 
-void modelinputiterator::cleanup()
+void tst_modelinputiterator::cleanup()
 {
     delete m_mip;
     m_mip = nullptr;
 }
 
-void modelinputiterator::test_createImageItr()
+void tst_modelinputiterator::test_createImageItr()
 {
     ModelInputIterator *mii = ModelInputIteratorFactory::createIterator(ModelInputIteratorFactory::IteratorType::Images);
     ImageIterator *ii = dynamic_cast<ImageIterator*>(mii);
     QVERIFY2(ii, "failed to create image iterator");
 }
 
-void modelinputiterator::test_createKeyframeItr()
+void tst_modelinputiterator::test_createKeyframeItr()
 {
     ModelInputIterator *mii = ModelInputIteratorFactory::createIterator(ModelInputIteratorFactory::IteratorType::Keyframes);
     KeyframeIterator *ki = dynamic_cast<KeyframeIterator*>(mii);
     QVERIFY2(ki, "failed to create keyframe iterator");
 }
 
-void modelinputiterator::test_iterateImages()
+void tst_modelinputiterator::test_iterateImages()
 {
     QFETCH(std::vector<uint>, in_keyframes);
     QFETCH(uint, in_idx);
@@ -101,7 +101,7 @@ void modelinputiterator::test_iterateImages()
     QCOMPARE(itr.getPrevious(m_mip, in_idx, in_stepsize), out_previous);
 }
 
-void modelinputiterator::test_iterateImages_data()
+void tst_modelinputiterator::test_iterateImages_data()
 {
     QTest::addColumn<std::vector<uint>>("in_keyframes");
     QTest::addColumn<uint>("in_idx");
@@ -133,7 +133,7 @@ void modelinputiterator::test_iterateImages_data()
     QTest::addRow("_last2")  << std::vector<uint>({1,2})        << (uint)4  <<  (uint)2 << false  << true   << (uint)0  << (uint)4  << (uint)4  << (uint)2;
 }
 
-void modelinputiterator::test_iterateKeyframes()
+void tst_modelinputiterator::test_iterateKeyframes()
 {
     QFETCH(std::vector<uint>, in_keyframes);
     QFETCH(uint, in_idx);
@@ -159,7 +159,7 @@ void modelinputiterator::test_iterateKeyframes()
     QCOMPARE(itr.getPrevious(m_mip, in_idx, in_stepsize), out_previous);
 }
 
-void modelinputiterator::test_iterateKeyframes_data()
+void tst_modelinputiterator::test_iterateKeyframes_data()
 {
     QTest::addColumn<std::vector<uint>>("in_keyframes");
     QTest::addColumn<uint>("in_idx");
@@ -191,6 +191,6 @@ void modelinputiterator::test_iterateKeyframes_data()
     QTest::addRow("_last2")  << std::vector<uint>({1,3,4})      << (uint)4  <<  (uint)2 << false  << true   << (uint)1  << (uint)4  << (uint)4  << (uint)1;
 }
 
-QTEST_MAIN(modelinputiterator)
+QTEST_MAIN(tst_modelinputiterator)
 
 #include "tst_modelinputiterator.moc"

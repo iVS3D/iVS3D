@@ -28,7 +28,11 @@ DEFINES += TEST_RESOURCES=\"\\\"$${TEST_RESOURCES_PATH}\\\"\"
 # files to test
 INCLUDEPATH += \
     $$IVS_SRC_PATH/iVS3D-core \
-    $$IVS_SRC_PATH/iVS3D-pluginInterface \
+    $$IVS_SRC_PATH/iVS3D-core/model \
+    $$IVS_SRC_PATH/iVS3D-core/plugin \
+    $$IVS_SRC_PATH/iVS3D-core/view \
+    $$IVS_SRC_PATH/iVS3D-core/controller \
+    $$IVS_SRC_PATH/iVS3D-pluginInterface
 
 
 
@@ -50,11 +54,10 @@ HEADERS += \
     $$IVS_SRC_PATH/iVS3D-core/model/delayedcopyreader.h \
     $$IVS_SRC_PATH/iVS3D-core/model/logfile.h \
     $$IVS_SRC_PATH/iVS3D-core/plugin/algorithmmanager.h \
-    $$IVS_SRC_PATH/iVS3D-core/plugin/ialgorithm.h \
     $$IVS_SRC_PATH/iVS3D-core/plugin/itransformrequestdequeue.h \
     $$IVS_SRC_PATH/iVS3D-core/plugin/transformmanager.h \
     $$IVS_SRC_PATH/iVS3D-pluginInterface/itransform.h \
-    $$IVS_SRC_PATH/iVS3D-pluginInterface/itransform.h \
+    $$IVS_SRC_PATH/iVS3D-pluginInterface/ialgorithm.h \
     $$IVS_SRC_PATH/iVS3D-core/controller/videoplayercontroller.h \
     $$IVS_SRC_PATH/iVS3D-core/controller/ModelInputIterator.h \
     $$IVS_SRC_PATH/iVS3D-core/controller/modelinputiteratorfactory.h \
@@ -66,6 +69,14 @@ HEADERS += \
     $$IVS_SRC_PATH/iVS3D-core/view/slideablelabel.h \
     $$IVS_SRC_PATH/iVS3D-core/view/timelinelabel.h \
     $$IVS_SRC_PATH/iVS3D-core/view/reallydeletedialog.h \
+    $$IVS_SRC_PATH/iVS3D-core/plugin/signalobject.h \
+    $$IVS_SRC_PATH/iVS3D-core/model/metadatamanager.h \
+    $$IVS_SRC_PATH/iVS3D-core/model/metadata.h \
+    $$IVS_SRC_PATH/iVS3D-core/model/metadatareader.h \
+    $$IVS_SRC_PATH/iVS3D-core/model/gpsreader.h \
+    $$IVS_SRC_PATH/iVS3D-core/model/gpsreaderdji.h \
+    $$IVS_SRC_PATH/iVS3D-core/model/gpsreaderexif.h \
+    $$IVS_SRC_PATH/iVS3D-core/model/exif.h \
 
 
 SOURCES += \
@@ -97,6 +108,12 @@ SOURCES += \
     $$IVS_SRC_PATH/iVS3D-core/view/slideablelabel.cpp \
     $$IVS_SRC_PATH/iVS3D-core/view/timelinelabel.cpp \
     $$IVS_SRC_PATH/iVS3D-core/view/reallydeletedialog.cpp \
+    $$IVS_SRC_PATH/iVS3D-core/plugin/signalobject.cpp \
+    $$IVS_SRC_PATH/iVS3D-core/model/metadatamanager.cpp \
+    $$IVS_SRC_PATH/iVS3D-core/model/gpsreader.cpp \
+    $$IVS_SRC_PATH/iVS3D-core/model/gpsreaderdji.cpp \
+    $$IVS_SRC_PATH/iVS3D-core/model/gpsreaderexif.cpp \
+    $$IVS_SRC_PATH/iVS3D-core/model/exif.cpp \
 
 FORMS += \
     $$IVS_SRC_PATH/iVS3D-core/view/videoplayer.ui \

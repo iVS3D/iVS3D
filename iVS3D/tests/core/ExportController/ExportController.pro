@@ -6,6 +6,9 @@ CONFIG -= app_bundle
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TEMPLATE = app
 
+#required to build interface for testing
+DEFINES += IVS3DPLUGININTERFACE_LIBRARY
+
 SOURCES +=  tst_exportcontroller.cpp
 
 DEFINES += IVS3DPLUGININTERFACE_LIBRARY
@@ -28,6 +31,10 @@ DEFINES += TEST_RESOURCES=\"\\\"$${TEST_RESOURCES_PATH}\\\"\"
 # files to test
 INCLUDEPATH += \
     $$IVS_SRC_PATH/iVS3D-core \
+    $$IVS_SRC_PATH/iVS3D-core/model \
+    $$IVS_SRC_PATH/iVS3D-core/plugin \
+    $$IVS_SRC_PATH/iVS3D-core/controller \
+    $$IVS_SRC_PATH/iVS3D-core/view \
     $$IVS_SRC_PATH/iVS3D-pluginInterface
 
 
@@ -57,7 +64,7 @@ HEADERS += \
     $$IVS_SRC_PATH/iVS3D-core/plugin/itransformrequestdequeue.h \
     $$IVS_SRC_PATH/iVS3D-core/plugin/transformmanager.h \
     $$IVS_SRC_PATH/iVS3D-pluginInterface/itransform.h \
-    $$IVS_SRC_PATH/iVS3D-pluginInterface/itransform.h \
+    $$IVS_SRC_PATH/iVS3D-pluginInterface/ialgorithm.h \
     $$IVS_SRC_PATH/iVS3D-core/controller/videoplayercontroller.h \
     $$IVS_SRC_PATH/iVS3D-core/controller/exportcontroller.h \
     $$IVS_SRC_PATH/iVS3D-core/controller/ModelInputIterator.h \
@@ -77,6 +84,14 @@ HEADERS += \
     $$IVS_SRC_PATH/iVS3D-core/view/emptyfolderdialog.h \
     $$IVS_SRC_PATH/iVS3D-core/view/cropexport.h \
     $$IVS_SRC_PATH/iVS3D-core/view/roiselect.h \
+    $$IVS_SRC_PATH/iVS3D-core/plugin/signalobject.h \
+    $$IVS_SRC_PATH/iVS3D-core/model/metadatamanager.h \
+    $$IVS_SRC_PATH/iVS3D-core/model/metadata.h \
+    $$IVS_SRC_PATH/iVS3D-core/model/metadatareader.h \
+    $$IVS_SRC_PATH/iVS3D-core/model/gpsreader.h \
+    $$IVS_SRC_PATH/iVS3D-core/model/gpsreaderdji.h \
+    $$IVS_SRC_PATH/iVS3D-core/model/gpsreaderexif.h \
+    $$IVS_SRC_PATH/iVS3D-core/model/exif.h \
 
 
 SOURCES += \
@@ -120,6 +135,12 @@ SOURCES += \
     $$IVS_SRC_PATH/iVS3D-core/view/emptyfolderdialog.cpp \
     $$IVS_SRC_PATH/iVS3D-core/view/cropexport.cpp \
     $$IVS_SRC_PATH/iVS3D-core/view/roiselect.cpp \
+    $$IVS_SRC_PATH/iVS3D-core/plugin/signalobject.cpp \
+    $$IVS_SRC_PATH/iVS3D-core/model/metadatamanager.cpp \
+    $$IVS_SRC_PATH/iVS3D-core/model/gpsreader.cpp \
+    $$IVS_SRC_PATH/iVS3D-core/model/gpsreaderdji.cpp \
+    $$IVS_SRC_PATH/iVS3D-core/model/gpsreaderexif.cpp \
+    $$IVS_SRC_PATH/iVS3D-core/model/exif.cpp
 
 FORMS += \
     $$IVS_SRC_PATH/iVS3D-core/view/videoplayer.ui \
