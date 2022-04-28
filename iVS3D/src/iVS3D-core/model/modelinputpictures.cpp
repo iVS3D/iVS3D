@@ -35,7 +35,7 @@ ModelInputPictures::ModelInputPictures(QString inputPath)
 
 ModelInputPictures::ModelInputPictures()
 {
-    m_boundaries = QPoint(0,m_reader->getPicCount()-1);
+    m_boundaries = QPoint(0,0);
 }
 
 bool ModelInputPictures::isKeyframe(unsigned int index) {
