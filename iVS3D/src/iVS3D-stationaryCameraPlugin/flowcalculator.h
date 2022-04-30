@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <opencv2/core.hpp>
+#include <QtDebug>
 
 /**
  * @class FlowCalculator

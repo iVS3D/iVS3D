@@ -16,7 +16,7 @@ std::vector<uint> StationaryCamera::sampleImages(Reader *reader, const std::vect
 {
     m_logFile = logFile;
 
-    m_logFile->startTimer(LF_BUFFER);
+    m_logFile->startTimer(LF_TIMER_BUFFER);
     recreateBufferMatrix(buffer);
     m_logFile->stopTimer();
 
@@ -56,7 +56,7 @@ std::vector<uint> StationaryCamera::sampleImages(Reader *reader, const std::vect
 
     // -------------- iterate through all available frame pairs ---------------
     uint usedBufferedValues = 0;
-    m_logFile->startTimer("Core Computation");
+    m_logFile->startTimer(LF_TIMER_CORE);
     while (toIter < imageList.end()) {
         // Aborts calculations as result of user interaction
         if (*stopped) {
@@ -73,6 +73,7 @@ std::vector<uint> StationaryCamera::sampleImages(Reader *reader, const std::vect
             imageGatherHandler = std::async(std::launch::async, gatherImagePairStatic, *fromIter, *toIter);
             QPair<cv::Mat, cv::Mat> matPair = imageGatherHandler.get();
             flowCalcHandler = std::async(std::launch::async, calcFlowStatic, matPair.first, matPair.second);
+            m_bufferedValueCount++;
         } else {
             // use buffered flow value
             flowValues.push_back(bufferedMovement);
@@ -95,7 +96,7 @@ std::vector<uint> StationaryCamera::sampleImages(Reader *reader, const std::vect
     if (flowValues.size() != imageList.size() - 1) {
         return {};
     }
-    m_logFile->startTimer("Keyframe selection");
+    m_logFile->startTimer(LF_TIMER_SELECTION);
     std::vector<uint> selectedKeyframes = { imageList[0] };
     std::vector<double> copiedFlowValues = flowValues; // median is in place and reorders vector
     double medianFlow = median(copiedFlowValues);
@@ -110,12 +111,17 @@ std::vector<uint> StationaryCamera::sampleImages(Reader *reader, const std::vect
         int progress = (flowValuesIdx * 100) / (int)imageList.size();
         reportProgress(currentOp, progress, receiver);
         // -------- update buffer --------------
-        m_bufferMat.ref<double>(imageList[flowValuesIdx], imageList[flowValuesIdx + 1]) = flowValues[flowValuesIdx];
+        if (m_bufferMat.ref<double>(imageList[flowValuesIdx], imageList[flowValuesIdx + 1]) <= 0.0)
+            m_bufferMat.ref<double>(imageList[flowValuesIdx], imageList[flowValuesIdx + 1]) = flowValues[flowValuesIdx];
         // DEBUG write flow values in logFile
 //        m_logFile->addCustomEntry(LF_CE_NAME_FLOWVALUE, flowValues[flowValuesIdx], LF_CE_TYPE_DEBUG);
     }
     m_logFile->stopTimer();
+    QPoint samplingResolution = m_inputResolution / m_downSampleFactor;
+    QString strSampleResolution = QString::number(samplingResolution.x()) + "x" + QString::number(samplingResolution.y());
+    m_logFile->addCustomEntry(LF_CE_NAME_SAMPLERES, samplingResolution, LF_CE_TYPE_ADDITIONAL_INFO);
 
+    updateBufferBtText(m_bufferedValueCount);
     return selectedKeyframes;
 }
 
@@ -143,22 +149,29 @@ QString StationaryCamera::getBufferName()
 void StationaryCamera::initialize(Reader *reader)
 {
     m_reader = reader;
-    m_threshold = 0.1;
-    m_downSampleFactor = 1.0;
     cv::Mat testPic = reader->getPic(0);
-    m_inputResolution.setX(testPic.rows);
-    m_inputResolution.setY(testPic.cols);
+    m_inputResolution.setX(testPic.cols);
+    m_inputResolution.setY(testPic.rows);
 
     int picCount = reader->getPicCount();
     int size[2] = {picCount, picCount};
     m_bufferMat = cv::SparseMat(2, size, CV_32F);
+    resetBuffer();
+    if (m_resetBufferBt) {
+        updateBufferBtText(m_bufferedValueCount);
+    }
 }
 
 void StationaryCamera::setSettings(QMap<QString, QVariant> settings)
 {
     m_threshold = settings.find(SETTINGS_THRESHOLD).value().toDouble();
+    m_downSampleFactor = settings.find(SETTINGS_DOWNSAMPLE).value().toDouble();
+
     if (m_settingsWidget) {
         m_thresholdSpinBox->setValue(m_threshold * 100.0f);
+        auto ptrToFactor = std::find(std::begin(m_downSampleFactorArray), std::end(m_downSampleFactorArray), m_downSampleFactor);
+        int idx = ptrToFactor - std::begin(m_downSampleFactorArray);
+        m_downSampleDropDown->setCurrentIndex(idx);
     }
 }
 
@@ -202,14 +215,15 @@ void StationaryCamera::createSettingsWidget(QWidget *parent)
         delete m_thresholdSpinBox;
     }
     m_thresholdSpinBox = new QDoubleSpinBox(parent);
-    m_thresholdSpinBox->setMinimum(0.0f);
-    m_thresholdSpinBox->setMaximum(100.0f);
-    m_thresholdSpinBox->setValue(m_threshold * 100);
+    m_thresholdSpinBox->setMinimum(0.0);
+    m_thresholdSpinBox->setMaximum(100.0);
+    m_thresholdSpinBox->setSingleStep(1.0);
+    m_thresholdSpinBox->setValue(m_threshold * 100.0);
     m_thresholdSpinBox->setAlignment(Qt::AlignRight);
     m_thresholdSpinBox->setSuffix("%");
     QObject::connect(m_thresholdSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this,
                      [=](double v) {
-                        m_threshold = v / 100.f;
+                        m_threshold = v / 100.0;
                      });
     thresholdLayout->layout()->addWidget(m_thresholdSpinBox);
 
@@ -218,38 +232,45 @@ void StationaryCamera::createSettingsWidget(QWidget *parent)
     thresholdLable->setStyleSheet(DESCRIPTION_STYLE);
     thresholdLable->setWordWrap(true);
 
-    // create downSample layout with spinBox and lable
     QWidget *downSampleLayout = new QWidget(parent);
     downSampleLayout->setLayout(new QHBoxLayout(parent));
     downSampleLayout->layout()->addWidget(new QLabel(DOWNSAMPLE_LABEL_TEXT));
     downSampleLayout->layout()->setMargin(0);
     downSampleLayout->layout()->setSpacing(0);
-    if (m_downSampleSpinBox) {
-        delete m_downSampleSpinBox;
+    m_downSampleDropDown = new QComboBox(parent);
+    for (double entryFactor : m_downSampleFactorArray) {
+        // create an item in the comboBox for every down sample factor
+        QPoint sampleResolution = m_inputResolution / entryFactor;
+        QString txt = QString::number(sampleResolution.x()) + " x " + QString::number(sampleResolution.y());
+        if (entryFactor == 1.0) {
+            txt += " (input resolution)";
+        }
+        m_downSampleDropDown->addItem(txt, entryFactor);
     }
-    m_downSampleSpinBox = new QDoubleSpinBox(parent);
-    m_downSampleSpinBox->setMinimum(1.0);
-    m_downSampleSpinBox->setMaximum(100.0);
-    m_downSampleSpinBox->setSingleStep(0.1);
-    m_downSampleSpinBox->setValue(m_downSampleFactor);
-    m_downSampleSpinBox->setAlignment(Qt::AlignRight);
-    QObject::connect(m_downSampleSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this,
-                     [=](double v) {
-                        m_downSampleFactor = v;
-                        updateInfoLabel();
+    //
+    QObject::connect(m_downSampleDropDown, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
+                     [=](int idx) {
+                        m_downSampleFactor = m_downSampleDropDown->currentData().toDouble();
+                        qDebug() << "Sample Factor changed to " << m_downSampleFactor;
                      });
-    downSampleLayout->layout()->addWidget(m_downSampleSpinBox);
+    //
+    downSampleLayout->layout()->addWidget(m_downSampleDropDown);
 
     // downSample description
     QLabel *downSampleLable = new QLabel(DESCRIPTION_DOWNSAMPLE);
     downSampleLable->setStyleSheet(DESCRIPTION_STYLE);
     downSampleLable->setWordWrap(true);
 
-    // info label
-    m_infoLabel = new QLabel();
-    m_infoLabel->setStyleSheet(INFO_STYLE);
-    m_infoLabel->setWordWrap(true);
-    updateInfoLabel();
+    // buffer reset button
+    m_resetBufferBt = new QPushButton();
+    m_resetBufferBt->setText(RESET_BT_TEXT);
+    QObject::connect(m_resetBufferBt, &QPushButton::pressed, this, &StationaryCamera::resetBuffer);
+
+    // buffer reset label
+    m_resetBufferLabel = new QLabel();
+    m_resetBufferLabel->setStyleSheet(INFO_STYLE);
+    m_resetBufferLabel->setWordWrap(true);
+    updateBufferBtText(m_bufferedValueCount);
 
     // create main widget
     m_settingsWidget = new QWidget(parent);
@@ -257,23 +278,31 @@ void StationaryCamera::createSettingsWidget(QWidget *parent)
     m_settingsWidget->layout()->setSpacing(0);
     m_settingsWidget->layout()->setMargin(0);
     // add elements
+    m_settingsWidget->layout()->addWidget(m_resetBufferBt);
+    m_settingsWidget->layout()->addWidget(m_resetBufferLabel);
     m_settingsWidget->layout()->addWidget(thresholdLayout);
     m_settingsWidget->layout()->addWidget(thresholdLable);
     m_settingsWidget->layout()->addWidget(downSampleLayout);
     m_settingsWidget->layout()->addWidget(downSampleLable);
-    m_settingsWidget->layout()->addWidget(m_infoLabel);
 
     m_settingsWidget->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
     m_settingsWidget->adjustSize();
 }
 
-void StationaryCamera::updateInfoLabel()
+void StationaryCamera::resetBuffer()
 {
-    double reciprocalFactor = 1.0 / m_downSampleFactor;
-    int resizedWidth = round((float)m_inputResolution.x() * reciprocalFactor);
-    int resizedHeight = round((float)m_inputResolution.y() * reciprocalFactor);
-    QString nText = INFO_PREFIX + QString::number(resizedHeight) + " x " + QString::number(resizedWidth) + INFO_SUFFIX;
-    m_infoLabel->setText(nText);
+    m_bufferMat.clear();
+    m_bufferedValueCount = 0;
+    // TODO send signal that buffer changed
+    if (m_resetBufferBt) {
+        updateBufferBtText(m_bufferedValueCount);
+    }
+}
+
+void StationaryCamera::updateBufferBtText(long bufferedValueCount)
+{
+    QString txt = RESET_TEXT_PRE + QString::number(bufferedValueCount) + RESET_TEXT_SUF;
+    m_resetBufferLabel->setText(txt);
 }
 
 void StationaryCamera::recreateBufferMatrix(QMap<QString, QVariant> buffer)

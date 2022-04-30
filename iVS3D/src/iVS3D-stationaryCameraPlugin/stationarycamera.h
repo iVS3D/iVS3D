@@ -18,6 +18,8 @@
 #include <QLayout>
 #include <QLabel>
 #include <QDoubleSpinBox>
+#include <QComboBox>
+#include <QPushButton>
 #include <opencv2/core/mat.hpp>
 #include <iostream>
 #include <iomanip>
@@ -39,12 +41,10 @@
 // widget
 #define THRESHOLD_LABEL_TEXT "Stationary camera threshold"
 #define DESCRIPTION_THRESHOLD "If the rotation between two frames differs more than the defind percentage of the median rotation in the given frame sequence it is declared stationary."
-#define DOWNSAMPLE_LABEL_TEXT "Down sampling factor"
-#define DESCRIPTION_DOWNSAMPLE "The factor defines if input pictures are scaled down before computation. A higher factor results in a higher computation speed, but hurts accuracy."
+#define DOWNSAMPLE_LABEL_TEXT "Sampling resolution"
+#define DESCRIPTION_DOWNSAMPLE "Defines the resolution on which the algorithm will operate. If the resolution differs a lot form the input resolution a higher computation speed will be achieved while hurting accuracy."
 #define DESCRIPTION_STYLE "color: rgb(58, 58, 58); border-left: 6px solid  rgb(58, 58, 58); border-top-right-radius: 5px; border-bottom-right-radius: 5px; background-color: lightblue;"
 #define INFO_STYLE "color: rgb(58, 58, 58); border-left: 6px solid  rgb(58, 58, 58); border-top-right-radius: 5px; border-bottom-right-radius: 5px; background-color: lightGreen;"
-#define INFO_PREFIX "Images are resized to "
-#define INFO_SUFFIX " before computation."
 // buffer
 #define BUFFER_NAME "StationaryCameraMovementValues"
 #define DELIMITER_COORDINATE "|"
@@ -52,14 +52,20 @@
 // settings
 #define SETTINGS_THRESHOLD "Stationary threshold"
 #define SETTINGS_DOWNSAMPLE "Downsample factor"
+#define RESET_BT_TEXT "Reset Buffer"
+#define RESET_TEXT_PRE "Clears all already stored flow values. There are "
+#define RESET_TEXT_SUF " flow values currently buffered."
 // log file
-#define LF_BUFFER "Buffer"
 #define LF_OPT_FLOW_TOTAL "Flow calculation"
 #define LF_SELECT_FRAMES "Selection of keyframes"
 #define LF_CE_TYPE_ADDITIONAL_INFO "Additional Computation Information"
 #define LF_CE_VALUE_USED_BUFFERED "Used buffered values"
 #define LF_CE_TYPE_DEBUG "Debug Information"
 #define LF_CE_NAME_FLOWVALUE "Flow value"
+#define LF_CE_NAME_SAMPLERES "Sampling Resolution"
+#define LF_TIMER_BUFFER "Recreate Buffer"
+#define LF_TIMER_CORE "Core Computation"
+#define LF_TIMER_SELECTION "Keyframe selection"
 
 /**
  * @class StationaryCamera
@@ -152,17 +158,20 @@ public:
 
 private:
     // member variables
-    double m_threshold = 0.1;
+    double m_threshold = 0.3;
     double m_downSampleFactor = 1.0;
     Reader *m_reader = nullptr;
     QPoint m_inputResolution = QPoint(0, 0);
     LogFileParent *m_logFile = nullptr;
     cv::SparseMat m_bufferMat;
+    long m_bufferedValueCount = 0;
     //      widget elements
     QWidget *m_settingsWidget = nullptr;
     QDoubleSpinBox *m_thresholdSpinBox = nullptr;
-    QDoubleSpinBox *m_downSampleSpinBox = nullptr;
-    QLabel *m_infoLabel = nullptr;
+    static constexpr double m_downSampleFactorArray[] = { 1.0, 1.5, 2.0, 2.5, 3.0, 4.0 };
+    QComboBox *m_downSampleDropDown = nullptr;
+    QPushButton *m_resetBufferBt = nullptr;
+    QLabel *m_resetBufferLabel = nullptr;
     // timing variables
     long m_durationFarnebackMs = 0;
     long m_durationComputationFlowMs = 0;
@@ -170,7 +179,12 @@ private:
     // functions
     void reportProgress(QString op, int progress, Progressable *receiver);
     void createSettingsWidget(QWidget *parent);
-    void updateInfoLabel();
+    void resetBuffer();
+    /**
+     * @brief updateBufferTip updates the amount of buffered values in the status tip.
+     * @param bufferedValueCount is the new amout of buffered flow values
+     */
+    void updateBufferBtText(long bufferedValueCount);
     /**
      * @brief recreateBufferMatrix initalizes the buffer matix whith the new values from nBuffer
      * @param buffer holds the new movement values which should be stored in the buffer matrix
