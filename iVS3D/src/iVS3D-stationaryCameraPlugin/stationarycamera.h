@@ -30,7 +30,7 @@
 #include <numeric>
 #include <future>
 
-#include "IAlgorithm.h"
+#include "ialgorithm.h"
 #include "reader.h"
 #include "factory.h"
 #include "imagegatherer.h"
@@ -81,7 +81,7 @@
 class StationaryCamera : public IAlgorithm
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "pse.iVS3D.IAlgorithm")   // implement interface as plugin, use the iid as identifier
+    Q_PLUGIN_METADATA(IID "iVS3D.IAlgorithm")   // implement interface as plugin, use the iid as identifier
     Q_INTERFACES(IAlgorithm)                        // declare this as implementation of IAlgorithm interface
 
 public:
@@ -89,6 +89,7 @@ public:
      * @brief StationaryCamera Constructor sets default values for member variables
      */
     StationaryCamera();
+    ~StationaryCamera() {};
 
     /**
      * @brief getSettingsWidget creates a Widget, which can be used to change the algorithm parameters and returns it
@@ -103,12 +104,10 @@ public:
      * @param imageList is a preselection of frames
      * @param receiver is a progressable, which displays the already made progress
      * @param stopped Pointer to a bool indication if user wants to stop the computation
-     * @param buffer is a QVariant, which holds previous computions that could be usefull for the next selection
-     * @param useCuda defines if the compution should run on graphics card
      * @param logFile poiter to the log file
      * @return A list of indices, which represent the selected keyframes.
      */
-    std::vector<uint> sampleImages(Reader *reader, const std::vector<unsigned int> &imageList, Progressable *receiver, volatile bool *stopped, QMap<QString, QVariant> buffer, bool useCuda, LogFileParent *logFile) override;
+    std::vector<uint> sampleImages(const std::vector<uint> &imageList, Progressable *receiver, volatile bool *stopped, bool useCuda, LogFileParent *logFile) override;
 
     /**
      * @brief getName Returns a name for displaying this algorithm to the user.
@@ -117,22 +116,12 @@ public:
     QString getName() const override;
 
     /**
-     * @brief getBuffer Returns a buffer for storeing previously calculated Infos
-     * @return the buffer as a QVariant (empty)
-     */
-    QVariant getBuffer() override;
-
-    /**
-     * @brief getBufferName Returns the name of the buffer
-     * @return the name of the Buffer as a QString
-     */
-    QString getBufferName() override;
-
-    /**
      * @brief initialize Sets up the default value which is corresponding to video information
      * @param reader is used to get video or image information
+     * @param buffer QVariant with the buffered data form last call to sampleImages
+     * @param sigObj provides signals from the core application
      */
-    void initialize(Reader* reader) override;
+    void initialize(Reader *reader, QMap<QString, QVariant> buffer, signalObject *sigObj) override;
 
     /**
      * @brief setter for plugin's settings
@@ -143,12 +132,11 @@ public:
     /**
      * @brief generateSettings tries to generate the best settings for the current input
      * @param receiver is a progressable, which displays the already made progress
-     * @param buffer QVariant with the buffered data form last call to sampleImages
      * @param useCuda @a true if cv::cuda can be used
      * @param stopped is set if the algorithm should abort
      * @return QMap with the settings
      */
-    QMap<QString, QVariant> generateSettings(Progressable *receiver, QMap<QString, QVariant> buffer, bool useCuda, volatile bool* stopped) override;
+    QMap<QString, QVariant> generateSettings(Progressable *receiver, bool useCuda, volatile bool *stopped) override;
 
     /**
      * @brief getter for plugin's settings
@@ -162,8 +150,8 @@ private:
     double m_downSampleFactor = 1.0;
     Reader *m_reader = nullptr;
     QPoint m_inputResolution = QPoint(0, 0);
-    LogFileParent *m_logFile = nullptr;
     cv::SparseMat m_bufferMat;
+    signalObject *m_sigObj = nullptr;
     long m_bufferedValueCount = 0;
     //      widget elements
     QWidget *m_settingsWidget = nullptr;
@@ -180,6 +168,11 @@ private:
     void reportProgress(QString op, int progress, Progressable *receiver);
     void createSettingsWidget(QWidget *parent);
     void resetBuffer();
+    /**
+     * @brief sendBuffer Sends all buffered values for storeing previously calculated Infos
+     * @return the buffer as a QVariant (empty)
+     */
+    QMap<QString, QVariant> sendBuffer();
     /**
      * @brief updateBufferTip updates the amount of buffered values in the status tip.
      * @param bufferedValueCount is the new amout of buffered flow values

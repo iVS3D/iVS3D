@@ -12,16 +12,10 @@ QWidget *StationaryCamera::getSettingsWidget(QWidget *parent)
     return m_settingsWidget;
 }
 
-std::vector<uint> StationaryCamera::sampleImages(Reader *reader, const std::vector<unsigned int> &imageList, Progressable *receiver, volatile bool *stopped, QMap<QString, QVariant> buffer, bool useCuda, LogFileParent *logFile)
+std::vector<uint> StationaryCamera::sampleImages(const std::vector<uint> &imageList, Progressable *receiver, volatile bool *stopped, bool useCuda, LogFileParent *logFile)
 {
-    m_logFile = logFile;
-
-    m_logFile->startTimer(LF_TIMER_BUFFER);
-    recreateBufferMatrix(buffer);
-    m_logFile->stopTimer();
-
     // ----------- setup and creating hardware specific elements ----------------
-    Factory *fac = new Factory(imageList, reader, m_downSampleFactor, useCuda);
+    Factory *fac = new Factory(imageList, m_reader, m_downSampleFactor, useCuda);
     FlowCalculator *flowCalculator = fac->getFlowCalculator();
     ImageGatherer *imageGatherer = fac->getImageGatherer();
 
@@ -56,7 +50,7 @@ std::vector<uint> StationaryCamera::sampleImages(Reader *reader, const std::vect
 
     // -------------- iterate through all available frame pairs ---------------
     uint usedBufferedValues = 0;
-    m_logFile->startTimer(LF_TIMER_CORE);
+    logFile->startTimer(LF_TIMER_CORE);
     while (toIter < imageList.end()) {
         // Aborts calculations as result of user interaction
         if (*stopped) {
@@ -89,14 +83,14 @@ std::vector<uint> StationaryCamera::sampleImages(Reader *reader, const std::vect
     }
     if (flowCalcHandler.valid())
         flowCalcHandler.wait();
-    m_logFile->stopTimer();
-    m_logFile->addCustomEntry(LF_CE_VALUE_USED_BUFFERED, usedBufferedValues, LF_CE_TYPE_ADDITIONAL_INFO);
+    logFile->stopTimer();
+    logFile->addCustomEntry(LF_CE_VALUE_USED_BUFFERED, usedBufferedValues, LF_CE_TYPE_ADDITIONAL_INFO);
 
     // ------------ select keyframes ----------------
     if (flowValues.size() != imageList.size() - 1) {
         return {};
     }
-    m_logFile->startTimer(LF_TIMER_SELECTION);
+    logFile->startTimer(LF_TIMER_SELECTION);
     std::vector<uint> selectedKeyframes = { imageList[0] };
     std::vector<double> copiedFlowValues = flowValues; // median is in place and reorders vector
     double medianFlow = median(copiedFlowValues);
@@ -116,12 +110,13 @@ std::vector<uint> StationaryCamera::sampleImages(Reader *reader, const std::vect
         // DEBUG write flow values in logFile
 //        m_logFile->addCustomEntry(LF_CE_NAME_FLOWVALUE, flowValues[flowValuesIdx], LF_CE_TYPE_DEBUG);
     }
-    m_logFile->stopTimer();
+    logFile->stopTimer();
     QPoint samplingResolution = m_inputResolution / m_downSampleFactor;
     QString strSampleResolution = QString::number(samplingResolution.x()) + "x" + QString::number(samplingResolution.y());
-    m_logFile->addCustomEntry(LF_CE_NAME_SAMPLERES, samplingResolution, LF_CE_TYPE_ADDITIONAL_INFO);
+    logFile->addCustomEntry(LF_CE_NAME_SAMPLERES, samplingResolution, LF_CE_TYPE_ADDITIONAL_INFO);
 
     updateBufferBtText(m_bufferedValueCount);
+    emit updateBuffer(sendBuffer());
     return selectedKeyframes;
 }
 
@@ -130,24 +125,19 @@ QString StationaryCamera::getName() const
     return PLUGIN_NAME;
 }
 
-QVariant StationaryCamera::getBuffer()
+QMap<QString, QVariant> StationaryCamera::sendBuffer()
 {
     QVariant bufferVariant = bufferMatToVariant(m_bufferMat);
-    // ------------- IAlgorithm CHANGES -----------
-//    QMap<QString, QVariant> bufferMap;
-//    bufferMap.insert(BUFFER_NAME, bufferVariant);
-//    return bufferMap;
-    // --------------------------------------------
-    return bufferVariant;
+    QMap<QString, QVariant> bufferMap;
+    bufferMap.insert(BUFFER_NAME, bufferVariant);
+    return bufferMap;
 }
 
-QString StationaryCamera::getBufferName()
+void StationaryCamera::initialize(Reader *reader, QMap<QString, QVariant> buffer, signalObject *sigObj)
 {
-    return BUFFER_NAME;
-}
+    recreateBufferMatrix(buffer);
+    m_sigObj = sigObj;
 
-void StationaryCamera::initialize(Reader *reader)
-{
     m_reader = reader;
     cv::Mat testPic = reader->getPic(0);
     m_inputResolution.setX(testPic.cols);
@@ -175,11 +165,9 @@ void StationaryCamera::setSettings(QMap<QString, QVariant> settings)
     }
 }
 
-QMap<QString, QVariant> StationaryCamera::generateSettings(Progressable *receiver, QMap<QString, QVariant> buffer, bool useCuda, volatile bool *stopped)
+QMap<QString, QVariant> StationaryCamera::generateSettings(Progressable *receiver, bool useCuda, volatile bool *stopped)
 {
-    // TODO
     (void) receiver;
-    (void) buffer;
     (void) useCuda;
     (void) stopped;
     return getSettings();
@@ -250,6 +238,7 @@ void StationaryCamera::createSettingsWidget(QWidget *parent)
     //
     QObject::connect(m_downSampleDropDown, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
                      [=](int idx) {
+                        (void) idx;
                         m_downSampleFactor = m_downSampleDropDown->currentData().toDouble();
                         qDebug() << "Sample Factor changed to " << m_downSampleFactor;
                      });
@@ -293,7 +282,7 @@ void StationaryCamera::resetBuffer()
 {
     m_bufferMat.clear();
     m_bufferedValueCount = 0;
-    // TODO send signal that buffer changed
+    emit updateBuffer(sendBuffer());
     if (m_resetBufferBt) {
         updateBufferBtText(m_bufferedValueCount);
     }

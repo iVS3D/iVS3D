@@ -5,10 +5,16 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 CONFIG += c++11
 
 INCLUDEPATH += \
-    ../iVS3D-core/plugin \
-    ../iVS3D-core/model
+    ../iVS3D-pluginInterface \
+    ../iVS3D-core \
+    ../iVS3D-core/model \
+    ../iVS3D-core/plugin
 
 include(../../3rdparty.pri)
+
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../iVS3D-core/release -liVS3D-pluginInterface
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../iVS3D-core/debug -liVS3D-pluginInterface
+else:unix: LIBS += -L$$OUT_PWD/../iVS3D-core -liVS3D-pluginInterface
 
 # You can make your code fail to compile if it uses deprecated APIs.
 # In order to do so, uncomment the following line.
@@ -44,12 +50,12 @@ TEMPLATE = lib
 CONFIG += plugin
 
 # Default rules for deployment.
-qnx: target.path = /tmp/$${TARGET}/bin
-else: unix:!android: target.path = /opt/$${TARGET}/bin
-!isEmpty(target.path): INSTALLS += target
+#qnx: target.path = /tmp/$${TARGET}/bin
+#else: unix:!android: target.path = /opt/$${TARGET}/bin
+#!isEmpty(target.path): INSTALLS += target
 
 # create .dll in plugins folder
-TARGET = $$qtLibraryTarget(stationarymovementplugin)
+TARGET = StationaryCameraMovement
 DESTDIR = ../plugins
 
 FORMS +=
