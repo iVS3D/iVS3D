@@ -174,10 +174,10 @@ private:
      */
     QMap<QString, QVariant> sendBuffer();
     /**
-     * @brief updateBufferTip updates the amount of buffered values in the status tip.
+     * @brief updateBufferInfo updates the amount of buffered values in the status tip.
      * @param bufferedValueCount is the new amout of buffered flow values
      */
-    void updateBufferBtText(long bufferedValueCount);
+    void updateBufferInfo(long bufferedValueCount);
     /**
      * @brief recreateBufferMatrix initalizes the buffer matix whith the new values from nBuffer
      * @param buffer holds the new movement values which should be stored in the buffer matrix

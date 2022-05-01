@@ -115,7 +115,7 @@ std::vector<uint> StationaryCamera::sampleImages(const std::vector<uint> &imageL
     QString strSampleResolution = QString::number(samplingResolution.x()) + "x" + QString::number(samplingResolution.y());
     logFile->addCustomEntry(LF_CE_NAME_SAMPLERES, samplingResolution, LF_CE_TYPE_ADDITIONAL_INFO);
 
-    updateBufferBtText(m_bufferedValueCount);
+    updateBufferInfo(m_bufferedValueCount);
     emit updateBuffer(sendBuffer());
     return selectedKeyframes;
 }
@@ -146,9 +146,29 @@ void StationaryCamera::initialize(Reader *reader, QMap<QString, QVariant> buffer
     int picCount = reader->getPicCount();
     int size[2] = {picCount, picCount};
     m_bufferMat = cv::SparseMat(2, size, CV_32F);
-    resetBuffer();
     if (m_resetBufferBt) {
-        updateBufferBtText(m_bufferedValueCount);
+        updateBufferInfo(m_bufferedValueCount);
+    }
+
+    if (m_downSampleDropDown) {
+        // update dropDown for sample resolution
+        int dropDownItemCount = m_downSampleDropDown->count();
+        for (int i = dropDownItemCount - 1; i >= 0; i--) {
+            // remove all existing entries
+            m_downSampleDropDown->removeItem(i);
+        }
+        // add new entries
+        for (double entryFactor : m_downSampleFactorArray) {
+            // create an item in the comboBox for every down sample factor
+            QPoint sampleResolution = m_inputResolution / entryFactor;
+            QString txt = QString::number(sampleResolution.x()) + " x " + QString::number(sampleResolution.y());
+            if (entryFactor == 1.0) {
+                txt += " (input resolution)";
+            }
+            m_downSampleDropDown->addItem(txt, entryFactor);
+        }
+
+        m_downSampleDropDown->setCurrentIndex(0);
     }
 }
 
@@ -240,7 +260,6 @@ void StationaryCamera::createSettingsWidget(QWidget *parent)
                      [=](int idx) {
                         (void) idx;
                         m_downSampleFactor = m_downSampleDropDown->currentData().toDouble();
-                        qDebug() << "Sample Factor changed to " << m_downSampleFactor;
                      });
     //
     downSampleLayout->layout()->addWidget(m_downSampleDropDown);
@@ -259,7 +278,7 @@ void StationaryCamera::createSettingsWidget(QWidget *parent)
     m_resetBufferLabel = new QLabel();
     m_resetBufferLabel->setStyleSheet(INFO_STYLE);
     m_resetBufferLabel->setWordWrap(true);
-    updateBufferBtText(m_bufferedValueCount);
+    updateBufferInfo(m_bufferedValueCount);
 
     // create main widget
     m_settingsWidget = new QWidget(parent);
@@ -284,11 +303,11 @@ void StationaryCamera::resetBuffer()
     m_bufferedValueCount = 0;
     emit updateBuffer(sendBuffer());
     if (m_resetBufferBt) {
-        updateBufferBtText(m_bufferedValueCount);
+        updateBufferInfo(m_bufferedValueCount);
     }
 }
 
-void StationaryCamera::updateBufferBtText(long bufferedValueCount)
+void StationaryCamera::updateBufferInfo(long bufferedValueCount)
 {
     QString txt = RESET_TEXT_PRE + QString::number(bufferedValueCount) + RESET_TEXT_SUF;
     m_resetBufferLabel->setText(txt);
