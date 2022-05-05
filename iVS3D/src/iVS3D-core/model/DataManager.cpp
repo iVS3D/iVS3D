@@ -5,6 +5,7 @@ DataManager::DataManager()
     m_projectManager = new ProjectManager();
     m_ma = nullptr;
     m_mip = nullptr;
+    m_history = nullptr;
 }
 
 DataManager::~DataManager()
@@ -16,6 +17,9 @@ DataManager::~DataManager()
     if (m_ma) {
         delete m_ma;
     }
+    if (m_history) {
+        delete m_history;
+    }
 }
 
 int DataManager::open(QString path)
@@ -25,6 +29,9 @@ int DataManager::open(QString path)
     m_projectManager = new ProjectManager;
     if(m_mip){
         delete m_mip;
+    }
+    if(m_history){
+        delete m_history;
     }
 
     LogFile *lf = LogManager::instance().createLogFile(stringContainer::lfImportProcess, false);
@@ -36,6 +43,7 @@ int DataManager::open(QString path)
     lf->setSettings(settingsInput);
 
     m_ma = new ModelAlgorithm;
+    m_history = new History(m_mip);
     return m_mip->getPicCount();
 }
 
@@ -49,6 +57,9 @@ int DataManager::openProject(QString path)
     }
     if(m_ma){
         delete m_ma;
+    }
+    if(m_history){
+        delete m_history;
     }
 
     m_mip = new ModelInputPictures();
@@ -64,6 +75,7 @@ int DataManager::openProject(QString path)
 
     if (success)
     {
+        m_history = new History(m_mip);
         return m_mip->getPicCount();
     }
     else
@@ -80,6 +92,11 @@ ModelAlgorithm* DataManager::getModelAlgorithm()
 ModelInputPictures* DataManager::getModelInputPictures()
 {
     return m_mip;
+}
+
+History *DataManager::getHistory()
+{
+    return m_history;
 }
 
 

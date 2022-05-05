@@ -12,6 +12,7 @@
 #include "modelinputpictures.h"
 #include "projectmanager.h"
 #include "logmanager.h"
+#include "history.h"
 
 /**
  * @class DataManager
@@ -89,11 +90,13 @@ public:
      * @return The current ModelInputPictures
      */
     ModelInputPictures* getModelInputPictures();
+    History* getHistory();
 
 private:
     ModelAlgorithm* m_ma = nullptr;
     ModelInputPictures* m_mip = nullptr;
     ProjectManager* m_projectManager;
+    History* m_history;
 };
 
 

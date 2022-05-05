@@ -244,6 +244,17 @@ int ModelInputPictures::loadMetaDataImages()
     return metaDataLoaded;
 }
 
+ModelInputPictures::Memento *ModelInputPictures::save()
+{
+    return new Memento(m_keyframes);
+}
+
+void ModelInputPictures::restore(ModelInputPictures::Memento *m)
+{
+    m_keyframes = m->getState();
+    emit sig_mipChanged();
+}
+
 std::vector<unsigned int> ModelInputPictures::getAllKeyframes()
 {   
     return m_keyframes;
@@ -294,10 +305,14 @@ std::vector<unsigned int> ModelInputPictures::splitString(QString string) {
 }
 
 
+QDateTime ModelInputPictures::Memento::getSnapshotDate()
+{
+    return m_dateTime;
+}
 
+ModelInputPictures::Memento::Memento(std::vector<uint> state) : m_state(state) { m_dateTime = QDateTime::currentDateTime(); }
 
-
-
-
-
-
+std::vector<uint> ModelInputPictures::Memento::getState()
+{
+    return m_state;
+}

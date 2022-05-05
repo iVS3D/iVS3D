@@ -131,6 +131,9 @@ private slots:
     void slot_openFinished(int result);
     void slot_exportStarted();
     void slot_exportFinished();
+    void slot_undo();
+    void slot_redo();
+    void slot_historyChanged();
 
 private:
     VideoPlayerController *m_videoPlayerController;

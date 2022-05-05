@@ -21,6 +21,10 @@ Controller::Controller()
                 algorithms,
                 transforms
                 );
+
+    m_mainWindow->enableUndo(false);
+    m_mainWindow->enableRedo(false);
+
     if(AlgorithmManager::instance().getAlgorithmCount() + TransformManager::instance().getTransformCount() >0){
         displayPluginSettings();
     }
@@ -45,6 +49,8 @@ Controller::Controller()
     connect(m_mainWindow, &MainWindow::sig_changeUseCuda, this, &Controller::slot_changeUseCuda);
     connect(m_mainWindow, &MainWindow::sig_changeCreateLogFile, this, &Controller::slot_changeCreateLogFile);
     connect(m_mainWindow, &MainWindow::sig_openMetaData, this, &Controller::slot_openMetaData);
+    connect(m_mainWindow, &MainWindow::sig_undo, this, &Controller::slot_undo);
+    connect(m_mainWindow, &MainWindow::sig_redo, this, &Controller::slot_redo);
 
     connect(this, &Controller::sig_hasStatusMessage, m_mainWindow, &MainWindow::slot_displayStatusMessage);
 
@@ -267,6 +273,22 @@ void Controller::slot_exportFinished()
     TransformManager::instance().enableCuda(ApplicationSettings::instance().getUseCuda());
 }
 
+void Controller::slot_undo()
+{
+    m_dataManager->getHistory()->undo();
+}
+
+void Controller::slot_redo()
+{
+    m_dataManager->getHistory()->redo();
+}
+
+void Controller::slot_historyChanged()
+{
+    m_mainWindow->enableRedo(m_dataManager->getHistory()->hasFuture());
+    m_mainWindow->enableUndo(m_dataManager->getHistory()->hasPast());
+}
+
 void Controller::createOpenMessage(int numPics)
 {
     auto duration_ms = m_timer.elapsed();
@@ -338,6 +360,8 @@ void Controller::onFailedOpen()
     // --- called after image data has been loaded succesfully
     // --- setup the GUI with the new data
     m_mainWindow->enableSaveProject(false);
+    m_mainWindow->enableUndo(false);
+    m_mainWindow->enableRedo(false);
     QMap<QString, QString> info;
     m_mainWindow->getInputWidget()->setInfo(info);
     m_mainWindow->enableOpenMetaData(false);
@@ -373,6 +397,8 @@ void Controller::onSuccessfulOpen()
     // --- called after image data has been loaded succesfully
     // --- setup the GUI with the new data
     m_mainWindow->enableSaveProject(true);
+    m_mainWindow->enableUndo(false);
+    m_mainWindow->enableRedo(false);
     if(m_dataManager->isProjectLoaded()){
         m_mainWindow->showProjectTitle(m_dataManager->getProjectPath());
         emit sig_hasStatusMessage("Project " + m_dataManager->getProjectName() + " with "
@@ -433,4 +459,6 @@ void Controller::onSuccessfulOpen()
     setInputWidgetInfo(); // initialize input widget with information about new input data
     m_mainWindow->getSamplingWidget()->setAlgorithm(0);
     m_mainWindow->enableOpenMetaData(true);
+
+    connect(m_dataManager->getHistory(), &History::sig_historyChanged, this, &Controller::slot_historyChanged);
 }

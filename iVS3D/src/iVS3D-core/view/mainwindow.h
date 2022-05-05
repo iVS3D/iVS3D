@@ -131,6 +131,18 @@ public:
      * @param status true = enable
      */
     void enableOpenMetaData(bool status);
+    /**
+     * @brief enableUndo enables "undo" button in the menu-bar
+     *
+     * @param status true = enable
+     */
+    void enableUndo(bool status);
+    /**
+     * @brief enableRedo enables "redo" button in the menu-bar
+     *
+     * @param status true = enable
+     */
+    void enableRedo(bool status);
 
 
 
@@ -196,6 +208,10 @@ signals:
      */
     void sig_changeCreateLogFile(bool createLog);
 
+    void sig_undo();
+
+    void sig_redo();
+
 
 public slots:
     /**
@@ -220,6 +236,10 @@ private slots:
     void on_actionLicence_triggered();
     void on_actionCreate_log_file_triggered();
     void on_actionOpen_Meta_Data_triggered();
+
+    void on_actionUndo_triggered();
+
+    void on_actionRedo_triggered();
 
 private:
     Ui::MainWindow *ui;

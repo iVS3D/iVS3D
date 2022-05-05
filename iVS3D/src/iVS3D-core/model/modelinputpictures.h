@@ -41,7 +41,23 @@
 class ModelInputPictures: public QObject, public ISerializable
 {
 Q_OBJECT
+
+
+
 public:
+    class Memento {
+        friend class ModelInputPictures;
+
+    public:
+        QDateTime getSnapshotDate();
+    private:
+        Memento(std::vector<uint> state);
+        std::vector<uint> getState();
+
+        std::vector<uint> m_state;
+        QDateTime m_dateTime;
+    };
+
     /**
      * @brief ModelInputPictures Constructor, which uses inputPath to import the frames.
      *
@@ -185,6 +201,8 @@ public:
      * @return how many MetaDataReader have succesfully loaded meta data
      */
     int loadMetaDataImages();
+    Memento *save();
+    void restore(Memento *m);
 
 signals:
     /**
@@ -205,6 +223,9 @@ private:
 
     void setResolution();
     std::vector<unsigned int> splitString(QString string);
+
+
+
 };
 
 #endif // MODELINPUTPICTURES_H

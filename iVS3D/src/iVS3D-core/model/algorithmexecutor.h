@@ -66,7 +66,7 @@ signals:
     /**
      * @brief sig_algorithmFinished gets emitted once the plugin finished and all results are saved to the model
      */
-    void sig_pluginFinished();
+    void sig_pluginFinished(int index);
 
 public slots:
     /**

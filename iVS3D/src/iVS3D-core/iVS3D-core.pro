@@ -37,6 +37,7 @@ SOURCES += \
     model/gpsreader.cpp \
     model/gpsreaderdji.cpp \
     model/gpsreaderexif.cpp \
+    model/history.cpp \
     model/metadatamanager.cpp \
     model/nouiexport.cpp \
     model/progressable.cpp \
@@ -112,6 +113,7 @@ HEADERS += \
     model/gpsreader.h \
     model/gpsreaderdji.h \
     model/gpsreaderexif.h \
+    model/history.h \
     model/metadata.h \
     model/metadatamanager.h \
     model/metadatareader.h \

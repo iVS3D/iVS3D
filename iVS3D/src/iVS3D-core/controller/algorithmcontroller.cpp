@@ -167,9 +167,10 @@ void AlgorithmController::startNextTransform()
     emit sig_hasStatusMessage("Computing preview ...");
 }
 
-void AlgorithmController::slot_algorithmFinished()
+void AlgorithmController::slot_algorithmFinished(int)
 {
     auto duration_ms = m_timer.elapsed();
     emit sig_hasStatusMessage(AlgorithmManager::instance().getAlgorithmList()[m_pluginIdx] + " finished after " + QString::number(duration_ms) + "ms");
+    m_dataManager->getHistory()->slot_save();
     m_algorithmProgressDialog->close();
 }

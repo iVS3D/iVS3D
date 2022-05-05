@@ -89,7 +89,7 @@ void AlgorithmExecutor::slot_pluginFinished()
         AlgorithmManager::instance().setSettings(m_pluginIndex, generatedSettings);
     }
 
-    emit sig_pluginFinished();
+    emit sig_pluginFinished(m_pluginIndex);
 }
 
 ALGO_DATA AlgorithmExecutor::prepareAlgoStart(int pluginIdx)

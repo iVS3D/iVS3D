@@ -69,7 +69,7 @@ public slots:
      * @brief Slot which is called, when the algorithm finished. This will close the ProgressDialog
      *
      */
-    void slot_algorithmFinished();
+    void slot_algorithmFinished(int idx);
     /**
      * @brief Slot which is called, when the 'Abort' on the ProgressDialog is clicked. This will close the ProgressDialog
      *

@@ -241,6 +241,15 @@ void MainWindow::enableOpenMetaData(bool status)
     m_inputWidget->enableOpenMetaData(status);
 }
 
+void MainWindow::enableUndo(bool status)
+{
+    ui->actionUndo->setEnabled(status);
+}
+
+void MainWindow::enableRedo(bool status)
+{
+    ui->actionRedo->setEnabled(status);
+}
 
 void MainWindow::on_actionOpen_Project_triggered()
 {
@@ -355,4 +364,14 @@ void MainWindow::on_actionCreate_log_file_triggered()
 void MainWindow::on_actionOpen_Meta_Data_triggered()
 {
     emit sig_openMetaData();
+}
+
+void MainWindow::on_actionUndo_triggered()
+{
+    emit sig_undo();
+}
+
+void MainWindow::on_actionRedo_triggered()
+{
+    emit sig_redo();
 }
