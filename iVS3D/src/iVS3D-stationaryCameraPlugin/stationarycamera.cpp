@@ -55,7 +55,7 @@ std::vector<uint> StationaryCamera::sampleImages(const std::vector<uint> &imageL
         // Aborts calculations as result of user interaction
         if (*stopped) {
             qDebug() << "Execution was stopped.";
-            return {};
+            break;
         }
 
         // ----------- exectution ------------
@@ -87,7 +87,7 @@ std::vector<uint> StationaryCamera::sampleImages(const std::vector<uint> &imageL
     logFile->addCustomEntry(LF_CE_VALUE_USED_BUFFERED, usedBufferedValues, LF_CE_TYPE_ADDITIONAL_INFO);
 
     // ------------ select keyframes ----------------
-    if (flowValues.size() != imageList.size() - 1) {
+    if (flowValues.size() > imageList.size() - 1) {
         return {};
     }
     logFile->startTimer(LF_TIMER_SELECTION);
@@ -95,7 +95,7 @@ std::vector<uint> StationaryCamera::sampleImages(const std::vector<uint> &imageL
     std::vector<double> copiedFlowValues = flowValues; // median is in place and reorders vector
     double medianFlow = median(copiedFlowValues);
     double allowedDiffFlow = medianFlow * m_threshold;
-    for (uint flowValuesIdx = 0; flowValuesIdx < imageList.size() - 1; flowValuesIdx++) {
+    for (uint flowValuesIdx = 0; flowValuesIdx < flowValues.size() - 1; flowValuesIdx++) {
         // ----------- selection --------------
         if (flowValues[flowValuesIdx] > allowedDiffFlow) {
             selectedKeyframes.push_back(imageList[flowValuesIdx + 1]); // flow value represents flow for the next frame (if camera moved enough until next frame)
@@ -117,6 +117,11 @@ std::vector<uint> StationaryCamera::sampleImages(const std::vector<uint> &imageL
 
     updateBufferInfo(m_bufferedValueCount);
     emit updateBuffer(sendBuffer());
+
+    if (*stopped) {
+        // clear keyframes if algorithm was aborted
+        selectedKeyframes = {};
+    }
     return selectedKeyframes;
 }
 
@@ -286,12 +291,12 @@ void StationaryCamera::createSettingsWidget(QWidget *parent)
     m_settingsWidget->layout()->setSpacing(0);
     m_settingsWidget->layout()->setMargin(0);
     // add elements
-    m_settingsWidget->layout()->addWidget(m_resetBufferBt);
-    m_settingsWidget->layout()->addWidget(m_resetBufferLabel);
     m_settingsWidget->layout()->addWidget(thresholdLayout);
     m_settingsWidget->layout()->addWidget(thresholdLable);
     m_settingsWidget->layout()->addWidget(downSampleLayout);
     m_settingsWidget->layout()->addWidget(downSampleLable);
+    m_settingsWidget->layout()->addWidget(m_resetBufferBt);
+    m_settingsWidget->layout()->addWidget(m_resetBufferLabel);
 
     m_settingsWidget->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
     m_settingsWidget->adjustSize();
