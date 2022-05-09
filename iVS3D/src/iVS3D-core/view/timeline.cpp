@@ -172,8 +172,8 @@ void Timeline::resizeEvent(QResizeEvent *ev)
         resize();
     } else {
         // default timeline
-        m_totalTimeline->updateTimelinelabel(&this->m_keyframes, QPointF(0, 42), false);
-        m_zoomTimeline->updateTimelinelabel(&this->m_keyframes, QPointF(0, 42), true);
+        m_totalTimeline->updateTimelinelabel(&this->m_keyframes, QPointF(0, 0), false);
+        m_zoomTimeline->updateTimelinelabel(&this->m_keyframes, QPointF(0, 0), true);
     }
 }
 
