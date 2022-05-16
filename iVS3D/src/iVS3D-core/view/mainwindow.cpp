@@ -116,6 +116,9 @@ MainWindow::MainWindow(QWidget *parent, bool dark, int cuda, bool createLog, QSt
     connect(m_inputWidget, &InfoWidget::sig_openVideoPressed, this, &MainWindow::on_actionOpen_Input_Video_triggered);
     connect(m_inputWidget, &InfoWidget::sig_openMetaPressed, this, &MainWindow::on_actionOpen_Meta_Data_triggered);
 
+    // connect videoplayer widget
+    connect(m_videoplayer, &VideoPlayer::sig_deleteAllKeyframes, this, &MainWindow::on_actionDelete_All_Keyframes_triggered);
+
     this->showProjectTitle();
 
 
@@ -251,6 +254,13 @@ void MainWindow::enableRedo(bool status)
     ui->actionRedo->setEnabled(status);
 }
 
+void MainWindow::enableTools(bool status)
+{
+    ui->actionDelete_All_Keyframes->setEnabled(status);
+    ui->actionDelete_Keyframes->setEnabled(status);
+    ui->actionReset_Boundaries->setEnabled(status);
+}
+
 void MainWindow::on_actionOpen_Project_triggered()
 {
     emit sig_openProject();
@@ -374,4 +384,19 @@ void MainWindow::on_actionUndo_triggered()
 void MainWindow::on_actionRedo_triggered()
 {
     emit sig_redo();
+}
+
+void MainWindow::on_actionReset_Boundaries_triggered()
+{
+    emit sig_resetBoundaries();
+}
+
+void MainWindow::on_actionDelete_All_Keyframes_triggered()
+{
+    emit sig_deleteAllKeyframes();
+}
+
+void MainWindow::on_actionDelete_Keyframes_triggered()
+{
+    emit sig_deleteKeyframesBoundaries();
 }

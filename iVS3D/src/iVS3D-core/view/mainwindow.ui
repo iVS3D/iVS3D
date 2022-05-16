@@ -96,6 +96,9 @@
     <addaction name="actionRedo"/>
     <addaction name="separator"/>
     <addaction name="actionReset_Boundaries"/>
+    <addaction name="separator"/>
+    <addaction name="actionDelete_Keyframes"/>
+    <addaction name="actionDelete_All_Keyframes"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuSettings"/>
@@ -226,6 +229,31 @@
   <action name="actionReset_Boundaries">
    <property name="text">
     <string>Reset Boundaries</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+R</string>
+   </property>
+  </action>
+  <action name="actionDelete_All_Keyframes">
+   <property name="text">
+    <string>Delete All Keyframes</string>
+   </property>
+   <property name="toolTip">
+    <string>Delete all keyframes</string>
+   </property>
+   <property name="shortcut">
+    <string>Shift+Del</string>
+   </property>
+  </action>
+  <action name="actionDelete_Keyframes">
+   <property name="text">
+    <string>Delete Keyframes</string>
+   </property>
+   <property name="toolTip">
+    <string>Delete keyframes within boundaries</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Del</string>
    </property>
   </action>
  </widget>

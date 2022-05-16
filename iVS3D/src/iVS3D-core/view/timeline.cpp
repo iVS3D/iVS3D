@@ -50,10 +50,6 @@ Timeline::Timeline(QWidget *parent) :
     QObject::connect(m_zoomTimeline, &TimelineLabel::sig_clicked, this, &Timeline::slot_zoomTimelineClicked);
     QObject::connect(m_totalTimeline, &TimelineLabel::sig_clicked, this, &Timeline::slot_totalTimelineClicked);
 
-    // setup shortcuts
-    m_resetShortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_R), this);
-    QObject::connect(m_resetShortcut, &QShortcut::activated, this, &Timeline::slot_resetShortcut);
-
     // disable window
     setEnabled(false);
 }
@@ -212,6 +208,11 @@ void Timeline::setEnabled(bool enable)
 QPoint Timeline::getBoundaries()
 {
     return m_boundaries;
+}
+
+void Timeline::resetBoundaries()
+{
+    positionBoundaries(0, m_frameCount - 1);
 }
 
 QPointF Timeline::getHighlighterRange()
@@ -399,11 +400,6 @@ void Timeline::boundaryMoved(int xMovement, SlideableLabel *boundaryLabel)
         positionBoundaries(m_boundaries.y(), m_boundaries.y());
     }
     positionBoundaries(m_boundaries.x(), m_boundaries.y());
-}
-
-void Timeline::slot_resetShortcut()
-{
-    positionBoundaries(0, m_frameCount - 1);
 }
 
 void Timeline::slot_totalTimelineClicked(QPoint pos)

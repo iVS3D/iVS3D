@@ -143,6 +143,12 @@ public:
      * @param status true = enable
      */
     void enableRedo(bool status);
+    /**
+     * @brief enableTools enables tool buttons in the menu-bar
+     *
+     * @param status true = enable
+     */
+    void enableTools(bool status);
 
 
 
@@ -212,6 +218,14 @@ signals:
 
     void sig_redo();
 
+    void sig_resetBoundaries();
+
+    void sig_deleteAllKeyframes();
+
+    void sig_deleteKeyframesBoundaries();
+
+    void sig_toggleKeyframe();
+
 
 public slots:
     /**
@@ -240,6 +254,12 @@ private slots:
     void on_actionUndo_triggered();
 
     void on_actionRedo_triggered();
+
+    void on_actionReset_Boundaries_triggered();
+
+    void on_actionDelete_All_Keyframes_triggered();
+
+    void on_actionDelete_Keyframes_triggered();
 
 private:
     Ui::MainWindow *ui;

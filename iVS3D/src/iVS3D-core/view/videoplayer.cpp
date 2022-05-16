@@ -18,6 +18,12 @@ VideoPlayer::VideoPlayer(QWidget *parent, bool dark) :
     ui->pushButton_nextPic->setIcon(QIcon(":/icons/nextIcon" + col));
     ui->pushButton_prevPic->setIcon(QIcon(":/icons/prevIcon" + col));
     ui->pushButton_playPause->setIcon(QIcon(":/icons/playIcon" + col));
+
+    m_nextSC = new QShortcut(QKeySequence(/*Qt::CTRL + */Qt::Key_Right), this);
+    m_prevSC = new QShortcut(QKeySequence(/*Qt::CTRL + */Qt::Key_Left), this);
+
+    connect(m_nextSC, &QShortcut::activated, this, &VideoPlayer::on_pushButton_nextPic_clicked);
+    connect(m_prevSC, &QShortcut::activated, this, &VideoPlayer::on_pushButton_prevPic_clicked);
 }
 
 
@@ -78,6 +84,7 @@ void VideoPlayer::setEnabledBackBtns(bool enabled)
 {
     ui->pushButton_firstPic->setEnabled(enabled);
     ui->pushButton_prevPic->setEnabled(enabled);
+    m_prevSC->setEnabled(enabled);
 }
 
 
@@ -85,6 +92,7 @@ void VideoPlayer::setEnabledForwardBtns(bool enabled)
 {
     ui->pushButton_lastPic->setEnabled(enabled);
     ui->pushButton_nextPic->setEnabled(enabled);
+    m_nextSC->setEnabled(enabled);
 }
 
 

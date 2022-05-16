@@ -119,7 +119,12 @@ public slots:
     void slot_mipChanged();
 
     /**
-     * @brief [slot] slot_deleteAllKeyframes() deletes all selected keyframes.
+     * @brief [slot] slot_deleteKeyframes() deletes all selected keyframes.
+     */
+    void slot_deleteKeyframes();
+
+    /**
+     * @brief [slot] slot_deleteAllKeyframes() deletes all keyframes.
      */
     void slot_deleteAllKeyframes();
 
@@ -132,6 +137,11 @@ public slots:
      * @brief [slot] slot_updateBoundaries() updates the mip so that the boundaries are up to date
      */
     void slot_updateBoundaries(QPoint boundaries);
+
+    /**
+     * @brief [slot] slot_resetBoundaries() updates the mip so that the boundaries are back to default
+     */
+    void slot_resetBoundaries();
 
     /**
      * @brief [slot] slot_imageProcessed(...) is invoked when image has been processed and provides additional images.

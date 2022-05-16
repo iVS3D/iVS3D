@@ -3,8 +3,6 @@
 
 #include <QWidget>
 #include <QSpinBox>
-#include <QShortcut>
-#include <QKeySequence>
 #include <QScreen>
 #include "slideablelabel.h"
 #include "timelinelabel.h"
@@ -86,6 +84,8 @@ public:
      */
     QPoint getBoundaries();
 
+    void resetBoundaries();
+
 signals:
     void sig_selectedChanged(uint index);
     void sig_boundariesChanged(QPoint boundaries);
@@ -99,8 +99,6 @@ private slots:
     // triggered by click on Timeline
     void slot_totalTimelineClicked(QPoint pos);
     void slot_zoomTimelineClicked(QPoint pos);
-
-    void slot_resetShortcut();
     void zoomChanged();
 
 public slots:
@@ -129,9 +127,6 @@ private:
     QPoint m_boundaries;
     QPixmap drawBoundary(uint pixWidth, uint pixHeight, uint symbolWidth, uint topBottomMargin, bool isStart);
     void positionBoundaries(uint startPos, uint endPos);
-
-    // shortcuts
-    QShortcut *m_resetShortcut;
 
     // frame data
     std::vector<uint> m_keyframes;

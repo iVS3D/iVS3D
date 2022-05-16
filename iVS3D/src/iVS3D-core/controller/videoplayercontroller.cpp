@@ -37,7 +37,7 @@ VideoPlayerController::VideoPlayerController(QObject *parent, VideoPlayer *playe
     connect(m_videoPlayer, &VideoPlayer::sig_toggleKeyframes, this, &VideoPlayerController::slot_toggleKeyframe);
     connect(m_videoPlayer, &VideoPlayer::sig_toggleKeyframesOnly, this, &VideoPlayerController::slot_toggleKeyframesOnly);
     connect(m_videoPlayer, &VideoPlayer::sig_changeStepsize, this, &VideoPlayerController::slot_changeStepSize);
-    connect(m_videoPlayer, &VideoPlayer::sig_deleteAllKeyframes, this, &VideoPlayerController::slot_deleteAllKeyframes);
+    //connect(m_videoPlayer, &VideoPlayer::sig_deleteAllKeyframes, this, &VideoPlayerController::slot_deleteAllKeyframes);
 
     // connect timeline
     connect(m_timeline, &Timeline::sig_selectedChanged, this, &VideoPlayerController::slot_changeIndex);
@@ -209,12 +209,25 @@ void VideoPlayerController::slot_mipChanged()
     showImage();
 }
 
+void VideoPlayerController::slot_deleteKeyframes()
+{
+    uint index = m_timeline->selectedFrame();
+    m_dataManager->getModelInputPictures()->updateMIP(std::vector<unsigned int>());
+    m_dataManager->getHistory()->slot_save();
+    m_timeline->selectFrame(index);
+    //force to enable correct buttons
+    slot_toggleKeyframesOnly(m_keyframesOnly);
+}
+
 void VideoPlayerController::slot_deleteAllKeyframes()
 {
     ReallyDeleteDialog rdd(m_videoPlayer);
     if(rdd.exec() == QDialog::Accepted){
         uint index = m_timeline->selectedFrame();
+        auto bs = m_dataManager->getModelInputPictures()->getBoundaries();
+        m_dataManager->getModelInputPictures()->setBoundaries(QPoint(0, m_dataManager->getModelInputPictures()->getPicCount()-1));
         m_dataManager->getModelInputPictures()->updateMIP(std::vector<unsigned int>());
+        m_dataManager->getModelInputPictures()->setBoundaries(bs);
         m_dataManager->getHistory()->slot_save();
         m_timeline->selectFrame(index);
         //force to enable correct buttons
@@ -231,6 +244,11 @@ void VideoPlayerController::slot_stopPlay()
 void VideoPlayerController::slot_updateBoundaries(QPoint boundaries)
 {
     m_dataManager->getModelInputPictures()->setBoundaries(boundaries);
+}
+
+void VideoPlayerController::slot_resetBoundaries()
+{
+    m_timeline->resetBoundaries();
 }
 
 void VideoPlayerController::slot_imageProcessed(cv::Mat *preview, int id)

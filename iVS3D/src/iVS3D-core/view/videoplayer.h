@@ -2,6 +2,8 @@
 #define VIDEOPLAYER_H
 
 #include <QWidget>
+#include <QShortcut>
+#include <QKeySequence>
 
 #include "opencv2/core.hpp"
 #include "opencv2/imgproc.hpp"
@@ -178,6 +180,8 @@ private slots:
 private:
     Ui::VideoPlayer *ui;
     bool m_dark;
+    QShortcut *m_prevSC;
+    QShortcut *m_nextSC;
 
     QImage qImageFromCvMat(cv::Mat* input, bool bgr = true);
     void alphaBlend(cv::Mat *foreground, cv::Mat *background, float alpha, cv::Mat &output);

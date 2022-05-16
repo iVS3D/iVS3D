@@ -24,6 +24,7 @@ Controller::Controller()
 
     m_mainWindow->enableUndo(false);
     m_mainWindow->enableRedo(false);
+    m_mainWindow->enableTools(false);
 
     if(AlgorithmManager::instance().getAlgorithmCount() + TransformManager::instance().getTransformCount() >0){
         displayPluginSettings();
@@ -365,6 +366,7 @@ void Controller::onFailedOpen()
     QMap<QString, QString> info;
     m_mainWindow->getInputWidget()->setInfo(info);
     m_mainWindow->enableOpenMetaData(false);
+    m_mainWindow->enableTools(false);
     // remove old controllers if existing
     if(m_videoPlayerController)
     {
@@ -438,6 +440,9 @@ void Controller::onSuccessfulOpen()
     // VideoPlayerControler manages video player and timeline
     m_videoPlayerController = new VideoPlayerController(this, m_mainWindow->getVideoPlayer(), m_mainWindow->getTimeline(), m_dataManager, m_algorithmController);
     connect(m_videoPlayerController, &VideoPlayerController::sig_hasStatusMessage, m_mainWindow, &MainWindow::slot_displayStatusMessage);
+    connect(m_mainWindow, &MainWindow::sig_deleteAllKeyframes, m_videoPlayerController, &VideoPlayerController::slot_deleteAllKeyframes);
+    connect(m_mainWindow, &MainWindow::sig_deleteKeyframesBoundaries, m_videoPlayerController, &VideoPlayerController::slot_deleteKeyframes);
+    connect(m_mainWindow, &MainWindow::sig_resetBoundaries, m_videoPlayerController, &VideoPlayerController::slot_resetBoundaries);
 
     connect(m_algorithmController, &AlgorithmController::sig_stopPlay, m_videoPlayerController, &VideoPlayerController::slot_stopPlay);
 
@@ -459,6 +464,7 @@ void Controller::onSuccessfulOpen()
     setInputWidgetInfo(); // initialize input widget with information about new input data
     m_mainWindow->getSamplingWidget()->setAlgorithm(0);
     m_mainWindow->enableOpenMetaData(true);
+    m_mainWindow->enableTools(true);
 
     connect(m_dataManager->getHistory(), &History::sig_historyChanged, this, &Controller::slot_historyChanged);
 }
