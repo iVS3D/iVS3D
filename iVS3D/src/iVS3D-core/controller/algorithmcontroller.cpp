@@ -146,6 +146,7 @@ void AlgorithmController::slot_updateKeyframes(QString pluginName, std::vector<u
     if (pluginName == activeName) {
         //Update keyframes if change is sent by currently active plugin
         m_dataManager->getModelInputPictures()->updateMIP(keyframes);
+        m_dataManager->getHistory()->slot_save();
     }
 }
 

@@ -153,6 +153,7 @@ void VideoPlayerController::slot_toggleKeyframe()
     } else {
         m_dataManager->getModelInputPictures()->addKeyframe(m_imageIndex);
     }
+    m_dataManager->getHistory()->slot_save();
     m_videoPlayer->setKeyframe(m_dataManager->getModelInputPictures()->isKeyframe(m_imageIndex));
     m_videoPlayer->setKeyframeCount(m_dataManager->getModelInputPictures()->getKeyframeCount());
     m_timeline->updateKeyframes(m_dataManager->getModelInputPictures()->getAllKeyframes());
@@ -214,6 +215,7 @@ void VideoPlayerController::slot_deleteAllKeyframes()
     if(rdd.exec() == QDialog::Accepted){
         uint index = m_timeline->selectedFrame();
         m_dataManager->getModelInputPictures()->updateMIP(std::vector<unsigned int>());
+        m_dataManager->getHistory()->slot_save();
         m_timeline->selectFrame(index);
         //force to enable correct buttons
         slot_toggleKeyframesOnly(m_keyframesOnly);

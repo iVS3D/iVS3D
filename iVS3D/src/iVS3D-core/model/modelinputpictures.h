@@ -45,10 +45,25 @@ Q_OBJECT
 
 
 public:
+    /**
+     * @class Memento
+     *
+     * @ingroup Model
+     *
+     * @brief The Memento class is used to store and restore the keyframe list of mip for undo and redo.
+     *
+     * @author Dominik Wuest
+     *
+     * @date 2022/05/16
+     */
     class Memento {
         friend class ModelInputPictures;
 
     public:
+        /**
+         * @brief getSnapshotDate returns the QDateTime object with the exact creation time and date of the memento
+         * @return The date and time of creation
+         */
         QDateTime getSnapshotDate();
     private:
         Memento(std::vector<uint> state);
