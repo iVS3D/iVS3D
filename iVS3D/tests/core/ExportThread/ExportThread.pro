@@ -48,6 +48,7 @@ SOURCES +=  itransform_stub.cpp \
     $$IVS_SRC_PATH/iVS3D-core/model/progressdisplay.cpp \
     $$IVS_SRC_PATH/iVS3D-core/model/delayedcopyreader.cpp \
     $$IVS_SRC_PATH/iVS3D-core/model/stringcontainer.cpp \
+    $$IVS_SRC_PATH/iVS3D-core/model/history.cpp \
     $$IVS_SRC_PATH/iVS3D-core/model/logfile.cpp \
     $$IVS_SRC_PATH/iVS3D-core/model/applicationsettings.cpp \
     $$IVS_SRC_PATH/iVS3D-core/model/exportexecutor.cpp \
@@ -79,6 +80,7 @@ HEADERS +=  itransform_stub.h \
     $$IVS_SRC_PATH/iVS3D-core/model/progressdisplay.h \
     $$IVS_SRC_PATH/iVS3D-core/model/delayedcopyreader.h \
     $$IVS_SRC_PATH/iVS3D-core/model/stringcontainer.h \
+    $$IVS_SRC_PATH/iVS3D-core/model/history.h \
     $$IVS_SRC_PATH/iVS3D-core/model/logfile.h \
     $$IVS_SRC_PATH/iVS3D-core/model/applicationsettings.h \
     $$IVS_SRC_PATH/iVS3D-core/model/exportexecutor.h \

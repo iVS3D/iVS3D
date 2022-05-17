@@ -55,6 +55,7 @@ HEADERS += \
     $$IVS_SRC_PATH/iVS3D-core/model/progressdisplay.h \
     $$IVS_SRC_PATH/iVS3D-core/model/delayedcopyreader.h \
     $$IVS_SRC_PATH/iVS3D-core/model/stringcontainer.h \
+    $$IVS_SRC_PATH/iVS3D-core/model/history.h \
     $$IVS_SRC_PATH/iVS3D-core/model/logfile.h \
     $$IVS_SRC_PATH/iVS3D-core/model/applicationsettings.h \
     $$IVS_SRC_PATH/iVS3D-core/model/exportexecutor.h \
@@ -114,6 +115,7 @@ SOURCES += \
     $$IVS_SRC_PATH/iVS3D-core/model/applicationsettings.cpp \
     $$IVS_SRC_PATH/iVS3D-core/model/exportexecutor.cpp \
     $$IVS_SRC_PATH/iVS3D-core/model/exportthread.cpp \
+    $$IVS_SRC_PATH/iVS3D-core/model/history.cpp \
     $$IVS_SRC_PATH/iVS3D-core/plugin/algorithmmanager.cpp \
     $$IVS_SRC_PATH/iVS3D-core/plugin/itransformrequestdequeue.cpp \
     $$IVS_SRC_PATH/iVS3D-core/plugin/transformmanager.cpp \

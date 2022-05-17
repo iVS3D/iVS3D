@@ -49,6 +49,7 @@ HEADERS += \
     $$IVS_SRC_PATH/iVS3D-core/model/logfile.h \
     $$IVS_SRC_PATH/iVS3D-core/model/logfileParent.h \
     $$IVS_SRC_PATH/iVS3D-core/model/stringcontainer.h \
+    $$IVS_SRC_PATH/iVS3D-core/model/history.h \
     $$IVS_SRC_PATH/iVS3D-core/plugin/algorithmmanager.h \
     $$IVS_SRC_PATH/iVS3D-core/plugin/signalobject.h \
     $$IVS_SRC_PATH/iVS3D-core/model/metadatamanager.h \
@@ -74,6 +75,7 @@ SOURCES += \
     $$IVS_SRC_PATH/iVS3D-core/model/concurrentreader.cpp \
     $$IVS_SRC_PATH/iVS3D-core/model/logfile.cpp \
     $$IVS_SRC_PATH/iVS3D-core/model/stringcontainer.cpp \
+    $$IVS_SRC_PATH/iVS3D-core/model/history.cpp \
     $$IVS_SRC_PATH/iVS3D-core/plugin/algorithmmanager.cpp \
     $$IVS_SRC_PATH/iVS3D-core/plugin/signalobject.cpp \
     $$IVS_SRC_PATH/iVS3D-core/model/metadatamanager.cpp \
