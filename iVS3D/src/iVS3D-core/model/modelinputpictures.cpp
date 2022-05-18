@@ -154,7 +154,7 @@ QString ModelInputPictures::getPath()
 
 Reader *ModelInputPictures::getReader()
 {
-    return new DelayedCopyReader(m_reader); // return a copy, but only create that copy as it is needed
+    return m_reader;
 }
 
 ConcurrentReader *ModelInputPictures::createConcurrentReader()

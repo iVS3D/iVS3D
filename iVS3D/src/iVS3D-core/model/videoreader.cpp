@@ -123,6 +123,7 @@ VideoReader *VideoReader::copy()
     if (m_multipleAccess) {
         reader->initMultipleAccess(m_currentFrames);
     }
+    reader->addMetaData(m_md);
     return reader;
 }
 

@@ -3,7 +3,7 @@
 ExportThread::ExportThread(Progressable* receiver, ModelInputPictures* mip, QPoint resolution, const QString &path, const QString &name, volatile bool* stopped, QRect roi, const std::vector<ITransform*> &iTransformCopies, LogFile *logFile)
 {
     m_receiver = receiver;
-    m_reader = mip->getReader();
+    m_reader = mip->getReader()->copy();
     m_keyframes = mip->getAllKeyframes(mip->getBoundaries());
     m_resolution = resolution;
     m_path = path;

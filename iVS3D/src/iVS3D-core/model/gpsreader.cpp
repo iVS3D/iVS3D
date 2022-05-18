@@ -30,8 +30,8 @@ QPointF GPSReader::interpolate(QPointF a, QPointF b, double t, double stepsize) 
     Q_ASSERT(t <= stepsize);
     double latitude = ((stepsize-t) * a.x()) + (t * b.x());
     double longitude = ((stepsize-t) * a.y()) + (t * b.y());
-    //round to 4 decimal places
-    latitude = roundf(latitude * 10000) / 10000;
-    longitude = roundf(longitude * 10000) / 10000;
+    //round to 5 decimal places
+    latitude = roundf(latitude * 100000) / 100000;
+    longitude = roundf(longitude * 100000) / 100000;
     return QPointF(latitude, longitude);
 }

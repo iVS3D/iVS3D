@@ -6,7 +6,6 @@
 #include "videoreader.h"
 #include "ISerializable.h"
 #include "stringcontainer.h"
-#include "delayedcopyreader.h"
 #include "concurrentreader.h"
 #include "metadatamanager.h"
 #include "algorithmmanager.h"

@@ -78,7 +78,6 @@ SOURCES += \
 # model package
     model/logfile.cpp \
     model/logmanager.cpp \
-    model/delayedcopyreader.cpp \
     model/openexecutor.cpp \
     model/exportexecutor.cpp \
     model/imagereader.cpp \
@@ -155,7 +154,6 @@ HEADERS += \
 # model package
     model/logfile.h \
     model/logmanager.h \
-    model/delayedcopyreader.h \
     model/openexecutor.h \
     model/ISerializable.h \
     model/exportthread.h \
