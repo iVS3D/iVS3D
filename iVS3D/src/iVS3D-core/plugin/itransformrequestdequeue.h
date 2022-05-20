@@ -6,6 +6,8 @@
 #include <QObject>
 #include <QThread>
 #include <QTimer>
+#include <QMap>
+#include <QVariant>
 
 /**
  * @class ITransformRequestDequeue
