@@ -8,6 +8,10 @@ QWidget *StationaryCamera::getSettingsWidget(QWidget *parent)
 {
     if (!m_settingsWidget) {
         createSettingsWidget(parent);
+        // update widget items
+        bool boxIsChecked = downInputResToCheck(m_inputResolution);
+        m_downSampleCheck->setChecked(boxIsChecked);
+        m_downSampleCheck->setEnabled(boxIsChecked);
     }
     return m_settingsWidget;
 }
@@ -111,9 +115,6 @@ std::vector<uint> StationaryCamera::sampleImages(const std::vector<uint> &imageL
 //        m_logFile->addCustomEntry(LF_CE_NAME_FLOWVALUE, flowValues[flowValuesIdx], LF_CE_TYPE_DEBUG);
     }
     logFile->stopTimer();
-    QPoint samplingResolution = m_inputResolution / m_downSampleFactor;
-    QString strSampleResolution = QString::number(samplingResolution.x()) + "x" + QString::number(samplingResolution.y());
-    logFile->addCustomEntry(LF_CE_NAME_SAMPLERES, samplingResolution, LF_CE_TYPE_ADDITIONAL_INFO);
 
     updateBufferInfo(m_bufferedValueCount);
     emit updateBuffer(sendBuffer());
@@ -140,6 +141,13 @@ QMap<QString, QVariant> StationaryCamera::sendBuffer()
 
 void StationaryCamera::initialize(Reader *reader, QMap<QString, QVariant> buffer, signalObject *sigObj)
 {
+    if (m_settingsWidget) {
+        m_settingsWidget->deleteLater();
+        m_settingsWidget = nullptr;
+        m_thresholdSpinBox = nullptr;
+        m_downSampleCheck = nullptr;
+    }
+
     recreateBufferMatrix(buffer);
     m_sigObj = sigObj;
 
@@ -154,39 +162,20 @@ void StationaryCamera::initialize(Reader *reader, QMap<QString, QVariant> buffer
     if (m_resetBufferBt) {
         updateBufferInfo(m_bufferedValueCount);
     }
-
-    if (m_downSampleDropDown) {
-        // update dropDown for sample resolution
-        int dropDownItemCount = m_downSampleDropDown->count();
-        for (int i = dropDownItemCount - 1; i >= 0; i--) {
-            // remove all existing entries
-            m_downSampleDropDown->removeItem(i);
-        }
-        // add new entries
-        for (double entryFactor : m_downSampleFactorArray) {
-            // create an item in the comboBox for every down sample factor
-            QPoint sampleResolution = m_inputResolution / entryFactor;
-            QString txt = QString::number(sampleResolution.x()) + " x " + QString::number(sampleResolution.y());
-            if (entryFactor == 1.0) {
-                txt += " (input resolution)";
-            }
-            m_downSampleDropDown->addItem(txt, entryFactor);
-        }
-
-        m_downSampleDropDown->setCurrentIndex(0);
-    }
+    bool isChecked = downInputResToCheck(m_inputResolution);
+    sampleCheckChanged(isChecked);
 }
 
 void StationaryCamera::setSettings(QMap<QString, QVariant> settings)
 {
     m_threshold = settings.find(SETTINGS_THRESHOLD).value().toDouble();
-    m_downSampleFactor = settings.find(SETTINGS_DOWNSAMPLE).value().toDouble();
-
-    if (m_settingsWidget) {
-        m_thresholdSpinBox->setValue(m_threshold * 100.0f);
-        auto ptrToFactor = std::find(std::begin(m_downSampleFactorArray), std::end(m_downSampleFactorArray), m_downSampleFactor);
-        int idx = ptrToFactor - std::begin(m_downSampleFactorArray);
-        m_downSampleDropDown->setCurrentIndex(idx);
+    bool sampleResActive = settings.find(SETTINGS_SAMPLE_RESOLUTION).value().toBool();
+    if (m_downSampleCheck) {
+        // UI mode
+        m_downSampleCheck->setChecked(sampleResActive);
+    } else {
+        // Headless mode
+        sampleCheckChanged(sampleResActive);
     }
 }
 
@@ -202,8 +191,37 @@ QMap<QString, QVariant> StationaryCamera::getSettings()
 {
     QMap<QString, QVariant> settings;
     settings.insert(SETTINGS_THRESHOLD, m_threshold);
-    settings.insert(SETTINGS_DOWNSAMPLE, m_downSampleFactor);
+    bool samplingResActive = downFactorToCheck(m_downSampleFactor);
+    settings.insert(SETTINGS_SAMPLE_RESOLUTION, samplingResActive);
     return settings;
+}
+
+bool StationaryCamera::downInputResToCheck(QPointF inputRes)
+{
+    return !(inputRes.x() <= 720 || inputRes.y() <= 720);
+}
+
+bool StationaryCamera::downFactorToCheck(double downFactor)
+{
+    return downFactor > 1.0;
+}
+
+double StationaryCamera::downCheckToFactor(bool boxChecked, QPointF inputRes)
+{
+    double downFactor = 1.0; // deactivated => default resolution
+    if (boxChecked) {
+        //      activated => downsampled resolution
+        // calc optimal downSampling factor
+        QPointF approxFactors = (QPointF)inputRes / 720.0;
+        downFactor = approxFactors.x() < approxFactors.y() ? approxFactors.x() : approxFactors.y();
+
+        // round to half or full values
+        downFactor = round(m_downSampleFactor * 2) / 2;
+
+        // prevent up sampling
+        downFactor = m_downSampleFactor < 1.0 ? 1.0 : m_downSampleFactor;
+    }
+    return downFactor;
 }
 
 void StationaryCamera::reportProgress(QString op, int progress, Progressable *receiver)
@@ -245,29 +263,19 @@ void StationaryCamera::createSettingsWidget(QWidget *parent)
     thresholdLable->setStyleSheet(DESCRIPTION_STYLE);
     thresholdLable->setWordWrap(true);
 
+    // downSample layout
     QWidget *downSampleLayout = new QWidget(parent);
     downSampleLayout->setLayout(new QHBoxLayout(parent));
     downSampleLayout->layout()->addWidget(new QLabel(DOWNSAMPLE_LABEL_TEXT));
     downSampleLayout->layout()->setMargin(0);
     downSampleLayout->layout()->setSpacing(0);
-    m_downSampleDropDown = new QComboBox(parent);
-    for (double entryFactor : m_downSampleFactorArray) {
-        // create an item in the comboBox for every down sample factor
-        QPoint sampleResolution = m_inputResolution / entryFactor;
-        QString txt = QString::number(sampleResolution.x()) + " x " + QString::number(sampleResolution.y());
-        if (entryFactor == 1.0) {
-            txt += " (input resolution)";
-        }
-        m_downSampleDropDown->addItem(txt, entryFactor);
-    }
-    //
-    QObject::connect(m_downSampleDropDown, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
-                     [=](int idx) {
-                        (void) idx;
-                        m_downSampleFactor = m_downSampleDropDown->currentData().toDouble();
-                     });
-    //
-    downSampleLayout->layout()->addWidget(m_downSampleDropDown);
+
+    // downSample checkBox
+    m_downSampleCheck = new QCheckBox(parent);
+    m_downSampleCheck->setText(DOWNSAMPLE_CHECKBOX_TEXT);
+    QObject::connect(m_downSampleCheck, &QCheckBox::clicked, this, &StationaryCamera::sampleCheckChanged);
+    downSampleLayout->layout()->addItem(new QSpacerItem(0, 0,QSizePolicy::Expanding));
+    downSampleLayout->layout()->addWidget(m_downSampleCheck);
 
     // downSample description
     QLabel *downSampleLable = new QLabel(DESCRIPTION_DOWNSAMPLE);
@@ -310,6 +318,11 @@ void StationaryCamera::resetBuffer()
     if (m_resetBufferBt) {
         updateBufferInfo(m_bufferedValueCount);
     }
+}
+
+void StationaryCamera::sampleCheckChanged(bool isChecked)
+{
+    m_downSampleFactor = downCheckToFactor(isChecked, m_inputResolution);
 }
 
 void StationaryCamera::updateBufferInfo(long bufferedValueCount)

@@ -18,7 +18,6 @@
 #include <QLayout>
 #include <QLabel>
 #include <QDoubleSpinBox>
-#include <QComboBox>
 #include <QPushButton>
 #include <opencv2/core/mat.hpp>
 #include <iostream>
@@ -42,7 +41,8 @@
 #define THRESHOLD_LABEL_TEXT "Stationary camera threshold"
 #define DESCRIPTION_THRESHOLD "If the rotation between two frames differs more than the defind percentage of the median rotation in the given frame sequence it is declared stationary."
 #define DOWNSAMPLE_LABEL_TEXT "Sampling resolution"
-#define DESCRIPTION_DOWNSAMPLE "Defines the resolution on which the algorithm will operate. If the resolution differs a lot form the input resolution a higher computation speed will be achieved while hurting accuracy."
+#define DOWNSAMPLE_CHECKBOX_TEXT "Activate down sampling"
+#define DESCRIPTION_DOWNSAMPLE "If enabled a resolution of 720p will be used for the algorithm to speed up computation. This however will hurt the accuracy of the result slightly. It however won't change the export resolution. This parameter will be disabled if the input resolution is lower or equal than 720p."
 #define DESCRIPTION_STYLE "color: rgb(58, 58, 58); border-left: 6px solid  rgb(58, 58, 58); border-top-right-radius: 5px; border-bottom-right-radius: 5px; background-color: lightblue;"
 #define INFO_STYLE "color: rgb(58, 58, 58); border-left: 6px solid  rgb(58, 58, 58); border-top-right-radius: 5px; border-bottom-right-radius: 5px; background-color: lightGreen;"
 // buffer
@@ -51,7 +51,7 @@
 #define DELIMITER_ENTITY ","
 // settings
 #define SETTINGS_THRESHOLD "Stationary threshold"
-#define SETTINGS_DOWNSAMPLE "Downsample factor"
+#define SETTINGS_SAMPLE_RESOLUTION "Sample resolution"
 #define RESET_BT_TEXT "Reset Buffer"
 #define RESET_TEXT_PRE "Clears all already stored flow values. There are "
 #define RESET_TEXT_SUF " flow values currently buffered."
@@ -157,7 +157,9 @@ private:
     QWidget *m_settingsWidget = nullptr;
     QDoubleSpinBox *m_thresholdSpinBox = nullptr;
     static constexpr double m_downSampleFactorArray[] = { 1.0, 1.5, 2.0, 2.5, 3.0, 4.0 };
-    QComboBox *m_downSampleDropDown = nullptr;
+//    QComboBox *m_downSampleDropDown = nullptr;
+    QCheckBox *m_downSampleCheck = nullptr;
+
     QPushButton *m_resetBufferBt = nullptr;
     QLabel *m_resetBufferLabel = nullptr;
     // timing variables
@@ -165,6 +167,9 @@ private:
     long m_durationComputationFlowMs = 0;
 
     // functions
+    bool downInputResToCheck(QPointF inputRes);
+    bool downFactorToCheck(double downFactor);
+    double downCheckToFactor(bool boxChecked, QPointF inputRes);
     void reportProgress(QString op, int progress, Progressable *receiver);
     void createSettingsWidget(QWidget *parent);
     void resetBuffer();
@@ -190,6 +195,8 @@ private:
     void stringToBufferMat(QString string);
     QVariant bufferMatToVariant(cv::SparseMat bufferMat);
     double median(std::vector<double> &vec);
+private slots:
+    void sampleCheckChanged(bool isChecked);
 };
 
 #endif // STATIONARYCAMERA_H
