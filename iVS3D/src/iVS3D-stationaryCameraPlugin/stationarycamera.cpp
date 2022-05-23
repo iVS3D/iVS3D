@@ -184,6 +184,8 @@ QMap<QString, QVariant> StationaryCamera::generateSettings(Progressable *receive
     (void) receiver;
     (void) useCuda;
     (void) stopped;
+    m_downSampleFactor = downInputResToCheck(m_inputResolution);
+    m_threshold = 0.3;
     return getSettings();
 }
 
