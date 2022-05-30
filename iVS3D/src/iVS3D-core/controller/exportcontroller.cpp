@@ -456,7 +456,7 @@ bool ExportController::validateResolution(QPoint resolution)
     }
     return true;
 }
-
+#if defined(Q_OS_WIN)
 bool ExportController::startReconstruct()
 {
     //get data from GUI
@@ -622,7 +622,7 @@ bool ExportController::startReconstruct()
     //starts process
     QProcess reconstructProcess;
     if (colmapGUI) {
-        if (reconstructProcess.startDetached(executablePath)) {
+        if (/*reconstructProcess.startDetached(executablePath)*/QProcess::startDetached(executablePath, QStringList(""))) {
             emit sig_hasStatusMessage("start of Reconstruction Software successful");
             return true;
         }
@@ -650,8 +650,66 @@ bool ExportController::startReconstruct()
             emit sig_hasStatusMessage("failed to start Reconstruction Software!");
         }
     }
+
     return false;
 }
+
+#elif defined(Q_OS_LINUX)
+
+bool ExportController::startReconstruct()
+{
+    //get data from GUI
+    QMap<QString, QString> reconstructtools = ApplicationSettings::instance().getReconstructPath();
+    QString executablePath = reconstructtools.take(m_reconstructDialog->getReconstructtool());
+    QString exportName = m_reconstructDialog->getExportName();
+    QString startargs = m_reconstructDialog->getStartArguments();
+    //bool createProject = m_reconstructDialog->getCreateProject();
+
+    QString exportPath = m_currentExports.find(exportName).value();
+    qDebug() << "ExportPath:" << exportPath;
+
+    //boolean for whether it starts colmap gui or explorer
+    bool colmapGUI = false;
+    if (startargs.contains("gui", Qt::CaseSensitive)) {
+        colmapGUI = true;
+    }
+
+    //boolean for whether it starts colmap automatic reconstruction
+    bool autoreconstruct = false;
+    if (startargs.contains("automatic_reconstructor", Qt::CaseSensitive)) {
+        autoreconstruct = true;
+    }
+
+    QStringList c_args;
+    c_args.push_back(startargs);
+
+    if (autoreconstruct) {
+        c_args << "--workspace_path" << exportPath;
+    }
+
+    if (colmapGUI){
+        c_args << "--database_path" << exportPath + "/database.db";
+    }
+
+    c_args << "--image_path" << exportPath + "/images";
+
+    qint64 pid;
+    if(colmapGUI){
+        //QProcess::startDetached("/home/dominik/Downloads/iVS3D-1.1.9-linux-x64/iVS3D-core");
+        QProcess::startDetached(executablePath, c_args, exportPath, &pid);
+        emit sig_hasStatusMessage("start of Reconstruction Software successful");
+        qDebug() << "PID: " << pid;
+        return true;
+    } else {
+        //QProcess::startDetached("x-terminal-emulator", QStringList() << "-e" << "bash -c 'echo $PATH; read'");
+        qDebug() << executablePath;
+        QString colmap_cmd = executablePath + " " + c_args.join(" ");
+        QProcess::startDetached("x-terminal-emulator", QStringList() << "-e" << ("bash -c '" + colmap_cmd + "; read'"), exportPath, &pid);
+        qDebug() << "PID: " << pid;
+        return true;
+    }
+}
+#endif
 
 void ExportController::deleteExportFolder(QString path)
 {

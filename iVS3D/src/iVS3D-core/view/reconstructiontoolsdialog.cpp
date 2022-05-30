@@ -37,7 +37,12 @@ void ReconstructionToolsDialog::on_pushButton_2_clicked()
 void ReconstructionToolsDialog::on_pushButton_add_clicked()
 {
     QString selectedFilter = "";
-    QString reconstructPath = QFileDialog::getOpenFileName (this, "Choose reconstruction software", ApplicationSettings::instance().getStandardInputPath(), "*.exe *.bat", &selectedFilter, QFileDialog::DontUseNativeDialog);
+#if defined(Q_OS_WIN)
+    QString execTypes = "*.exe *.bat";
+#elif defined(Q_OS_LINUX)
+    QString execTypes = "*.sh *";
+#endif
+    QString reconstructPath = QFileDialog::getOpenFileName (this, "Choose reconstruction software", ApplicationSettings::instance().getStandardInputPath(), execTypes, &selectedFilter, QFileDialog::DontUseNativeDialog);
     if (reconstructPath == nullptr) {
         return;
     }

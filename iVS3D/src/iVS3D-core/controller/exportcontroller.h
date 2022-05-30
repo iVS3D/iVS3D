@@ -14,6 +14,7 @@
 #include "model/stringcontainer.h"
 
 #include <QObject>
+#include <QDebug>
 #include <QFileDialog>
 #include <QProcess>
 #include <QCoreApplication>
