@@ -1,8 +1,8 @@
 #include "algorithmexecutor.h"
 
-AlgorithmExecutor::AlgorithmExecutor(DataManager *dataManager)
+AlgorithmExecutor::AlgorithmExecutor(ModelInputPictures *mip)
 {
-    m_dataManager = dataManager;
+    m_mip = mip;
 }
 
 
@@ -70,7 +70,7 @@ void AlgorithmExecutor::slot_pluginFinished()
         std::vector<uint> keyframes = m_sampleThread->getOutput();
         QString message = AlgorithmManager::instance().getPluginNameToIndex(m_pluginIndex) + " extracted " + QString::number(keyframes.size()) + " images";
         slot_displayMessage(message);
-        m_dataManager->getModelInputPictures()->updateMIP(keyframes);
+        m_mip->updateMIP(keyframes);
 
     } else if (m_currentThread == m_settingsThread) {
         // if generateSettings finished
@@ -99,7 +99,7 @@ ALGO_DATA AlgorithmExecutor::prepareAlgoStart(int pluginIdx)
     m_stopped = false;
 
     // Read mip
-    preparedData.mip = m_dataManager->getModelInputPictures();
+    preparedData.mip = m_mip;
 
     // select images
     QPoint boundaries = preparedData.mip->getBoundaries();

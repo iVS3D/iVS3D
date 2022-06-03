@@ -1,5 +1,4 @@
 #include "metadatamanager.h"
-#include "gpsreaderdji.h"
 
 
 MetaDataManager::MetaDataManager()
@@ -7,23 +6,23 @@ MetaDataManager::MetaDataManager()
 
 }
 
-void MetaDataManager::initMetaDataVideo(QStringList paths, Reader* images)
+void MetaDataManager::initMetaDataVideo(QStringList paths, uint picCount, double fps)
 {
     for (QString path : paths) {
         for (std::pair<std::string, AbstractBuilder> a : MetaDataManager::instance().m_availablerReader) {
             MetaDataReader* current = a.second();
-            if (current->parseDataVideo(path, images->getPicCount(), images->getFPS()) == true) {
+            if (current->parseDataVideo(path, picCount, fps) == true) {
                 m_parsedMetaReader.append(current);
             }
         }
     }
 }
 
-void MetaDataManager::initMetaDataImages(Reader *images)
+void MetaDataManager::initMetaDataImages(std::vector<std::string> fileVector)
 {
     for (std::pair<std::string, AbstractBuilder> a : MetaDataManager::instance().m_availablerReader) {
         MetaDataReader* current = a.second();
-        bool result = current->parseDataImage(images->getFileVector());
+        bool result = current->parseDataImage(fileVector);
         if (result == true) {
             m_parsedMetaReader.append(current);
         }

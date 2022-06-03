@@ -5,9 +5,9 @@
 #include <QLayout>
 #include <QGroupBox>
 
-#include "view/exportwidget.h"
-#include "view/progresswidget.h"
-#include "model/progressdisplay.h"
+#include "exportwidget.h"
+#include "progresswidget.h"
+#include "progressdisplay.h"
 
 /**
  * @class OutputWidget
@@ -22,7 +22,7 @@
  *
  * @date 2021/02/08
  */
-class OutputWidget : public QWidget, public ProgressDisplay
+class OutputWidget : public QWidget
 {
     Q_OBJECT
 public:

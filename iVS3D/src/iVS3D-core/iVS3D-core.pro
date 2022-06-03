@@ -41,7 +41,7 @@ SOURCES += \
     model/metadatamanager.cpp \
     model/nouiexport.cpp \
     model/progressable.cpp \
-    model/progressdisplay.cpp \
+    model/readerfactory.cpp \
     model/samplethread.cpp \
     model/settingsthread.cpp \
     model/stringcontainer.cpp \
@@ -117,7 +117,8 @@ HEADERS += \
     model/metadatamanager.h \
     model/metadatareader.h \
     model/nouiexport.h \
-    model/progressdisplay.h \
+    view/progressdisplay.h \
+    model/readerfactory.h \
     model/samplethread.h \
     model/settingsthread.h \
     model/stringcontainer.h \

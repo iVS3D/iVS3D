@@ -8,7 +8,6 @@
 #include <opencv2/imgcodecs.hpp>
 #include <QMutex>
 #include <QMutexLocker>
-#include "metadata.h"
 #include "algorithmmanager.h"
 
 

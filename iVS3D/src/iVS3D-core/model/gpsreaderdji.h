@@ -60,6 +60,6 @@ private:
 
 };
 
-REGISTER_I("GPSReaderDJI", GPSReaderDJI)
+REGISTER_METAREADER("GPSReaderDJI", GPSReaderDJI)
 
 #endif // GPSREADERDJI_H

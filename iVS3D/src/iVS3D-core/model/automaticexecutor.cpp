@@ -5,7 +5,7 @@ AutomaticExecutor::AutomaticExecutor(DataManager* dm, AutomaticWidget* autoWidge
     :m_dm(dm), m_autoWidget(autoWidget), m_autoSettings(autoSettings), m_exportController(exportController)
 
 {
-    m_algoExec = new AlgorithmExecutor(m_dm);
+    m_algoExec = new AlgorithmExecutor(m_dm->getModelInputPictures());
     m_algorithmProgressDialog = nullptr;
     // only ui
     connect(autoWidget, &AutomaticWidget::sig_startAutomaticExec, this, &AutomaticExecutor::slot_startAutomaticExec);
@@ -72,7 +72,7 @@ void AutomaticExecutor::slot_startAutomaticExec()
     m_pluginOrder = m_autoSettings->getPluginList();
     m_stepCount = m_pluginOrder.size();
     if (m_stepCount != 0) {
-        m_algoExec = new AlgorithmExecutor(m_dm);
+        m_algoExec = new AlgorithmExecutor(m_dm->getModelInputPictures());
         if (qApp->property(stringContainer::UIIdentifier).toBool()) {
             m_algorithmProgressDialog = new ProgressDialog(m_autoWidget, true);
             connect(m_algoExec, &AlgorithmExecutor::sig_progress, m_algorithmProgressDialog, &ProgressDialog::slot_displayProgress);

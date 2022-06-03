@@ -2,7 +2,7 @@
 #define ALGORITHMEXECUTOR_H
 
 #include "progressable.h"
-#include "DataManager.h"
+#include "modelinputpictures.h"
 #include "algorithmthread.h"
 #include "samplethread.h"
 #include "settingsthread.h"
@@ -40,7 +40,7 @@ public:
      * @brief AlgorithmExecutor sets DataManager member variable
      * @param dataManager given DataManager to use model-data
      */
-    explicit AlgorithmExecutor(DataManager *dataManager);
+    explicit AlgorithmExecutor(ModelInputPictures *mip);
     /**
      * @brief startAlgorithm prepares data for plugin and starts its execution on new Thread
 	 * @param useBounds true = respect boundaries and limit image-list accordingly
@@ -85,7 +85,7 @@ private:
     volatile bool m_stopped = false;
     bool m_algorithmFinished = false;
     bool m_blurFinished = false;
-    DataManager *m_dataManager = nullptr;
+    ModelInputPictures *m_mip = nullptr;
     SampleThread *m_sampleThread = nullptr;
     QThread *m_currentThread = nullptr;
     SettingsThread *m_settingsThread = nullptr;

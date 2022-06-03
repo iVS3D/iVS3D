@@ -16,7 +16,7 @@ AlgorithmController::AlgorithmController(DataManager* dataManager, SamplingWidge
     connect(m_samplingWidget, &SamplingWidget::sig_startGenerateSettings, this, &AlgorithmController::slot_startGenerateSettings);
     connect(m_samplingWidget, &SamplingWidget::sig_enablePreviewChanged, this, &AlgorithmController::slot_previewStateChanged);
     //Create new AlgorithmExecutor
-    m_algExec = new AlgorithmExecutor(m_dataManager);
+    m_algExec = new AlgorithmExecutor(m_dataManager->getModelInputPictures());
     connect(m_algExec, &AlgorithmExecutor::sig_pluginFinished, this, &AlgorithmController::slot_algorithmFinished);
     connect(m_algExec, &AlgorithmExecutor::sig_algorithmAborted, this, &AlgorithmController::slot_algorithmAborted);
 

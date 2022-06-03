@@ -43,6 +43,6 @@ private:
     QList<QPointF> m_GPSvalues;
 };
 
-REGISTER_I("GPSReaderExif", GPSReaderExif)
+REGISTER_METAREADER("GPSReaderExif", GPSReaderExif)
 
 #endif // GPSREADEREXIF_H

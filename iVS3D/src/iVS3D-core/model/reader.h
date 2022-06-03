@@ -3,7 +3,6 @@
 
 #include <QObject>
 #include <opencv2/core.hpp>
-#include "progressable.h"
 #include "metadata.h"
 
 /**
