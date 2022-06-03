@@ -18,6 +18,7 @@ QWidget *StationaryCamera::getSettingsWidget(QWidget *parent)
 
 std::vector<uint> StationaryCamera::sampleImages(const std::vector<uint> &imageList, Progressable *receiver, volatile bool *stopped, bool useCuda, LogFileParent *logFile)
 {
+    qDebug() << "Down sampling factor: " << m_downSampleFactor;
     // ----------- setup and creating hardware specific elements ----------------
     Factory *fac = new Factory(imageList, m_reader, m_downSampleFactor, useCuda);
     FlowCalculator *flowCalculator = fac->getFlowCalculator();
@@ -218,10 +219,10 @@ double StationaryCamera::downCheckToFactor(bool boxChecked, QPointF inputRes)
         downFactor = approxFactors.x() < approxFactors.y() ? approxFactors.x() : approxFactors.y();
 
         // round to half or full values
-        downFactor = round(m_downSampleFactor * 2) / 2;
+        downFactor = round(downFactor * 2) / 2;
 
         // prevent up sampling
-        downFactor = m_downSampleFactor < 1.0 ? 1.0 : m_downSampleFactor;
+        downFactor = downFactor < 1.0 ? 1.0 : downFactor;
     }
     return downFactor;
 }
