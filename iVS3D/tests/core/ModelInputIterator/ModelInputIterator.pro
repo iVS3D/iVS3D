@@ -42,7 +42,6 @@ HEADERS += \
     $$IVS_SRC_PATH/iVS3D-core/controller/keyframeiterator.h \
     $$IVS_SRC_PATH/iVS3D-core/model/imagereader.h \
     $$IVS_SRC_PATH/iVS3D-core/model/videoreaer.h \
-    $$IVS_SRC_PATH/iVS3D-core/model/delayedcopyreader.h \
     $$IVS_SRC_PATH/iVS3D-core/model/ConcurrentReader.h \
     $$IVS_SRC_PATH/iVS3D-core/model/stringcontainer.h \
     $$IVS_SRC_PATH/iVS3D-core/plugin/signalobject.h \
@@ -63,7 +62,6 @@ SOURCES += \
     $$IVS_SRC_PATH/iVS3D-core/controller/keyframeiterator.cpp \
     $$IVS_SRC_PATH/iVS3D-core/model/imagereader.cpp \
     $$IVS_SRC_PATH/iVS3D-core/model/videoreader.cpp \
-    $$IVS_SRC_PATH/iVS3D-core/model/delayedcopyreader.cpp \
     $$IVS_SRC_PATH/iVS3D-core/model/ConcurrentReader.cpp \
     $$IVS_SRC_PATH/iVS3D-core/model/stringcontainer.cpp \
     $$IVS_SRC_PATH/iVS3D-core/plugin/algorithmmanager.cpp \

@@ -53,7 +53,6 @@ HEADERS += \
     $$IVS_SRC_PATH/iVS3D-core/model/algorithmthread.h \
     $$IVS_SRC_PATH/iVS3D-core/model/progressable.h \
     $$IVS_SRC_PATH/iVS3D-core/model/progressdisplay.h \
-    $$IVS_SRC_PATH/iVS3D-core/model/delayedcopyreader.h \
     $$IVS_SRC_PATH/iVS3D-core/model/stringcontainer.h \
     $$IVS_SRC_PATH/iVS3D-core/model/history.h \
     $$IVS_SRC_PATH/iVS3D-core/model/logfile.h \
@@ -109,7 +108,6 @@ SOURCES += \
     $$IVS_SRC_PATH/iVS3D-core/model/algorithmthread.cpp \
     $$IVS_SRC_PATH/iVS3D-core/model/progressable.cpp \
     $$IVS_SRC_PATH/iVS3D-core/model/progressdisplay.cpp \
-    $$IVS_SRC_PATH/iVS3D-core/model/delayedcopyreader.cpp \
     $$IVS_SRC_PATH/iVS3D-core/model/stringcontainer.cpp \
     $$IVS_SRC_PATH/iVS3D-core/model/logfile.cpp \
     $$IVS_SRC_PATH/iVS3D-core/model/applicationsettings.cpp \
