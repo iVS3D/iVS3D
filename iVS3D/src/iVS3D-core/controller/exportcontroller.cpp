@@ -668,6 +668,35 @@ bool ExportController::startReconstruct()
     QString exportPath = m_currentExports.find(exportName).value();
     qDebug() << "ExportPath:" << exportPath;
 
+    //get Itransforms and create maskPath
+    QStringList iTransformNames = TransformManager::instance().getTransformList();
+    std::vector<ITransform*> iTransformCopies;
+    QString maskPath = exportPath;
+    //mask path in project.ini file (for COLMAP) is set for the first iTransform that has a masks folder
+    bool maskPathIsSet = false;
+    std::vector<bool> iTransformUsed = m_outputWidget->getSelectedITransformMasks();
+    if (iTransformUsed.size() != iTransformNames.length()) {
+        //this shouldn't happen
+        qDebug () << "start reconstruct failed, because .getTransformList() and getSelectedITransformMasks() didn't return Lists with the same size";
+    }
+    for (uint i = 0; i < unsigned(iTransformNames.length()); ++i) {
+        if (!iTransformUsed[i]) {
+            continue;
+        }
+        iTransformCopies.push_back(TransformManager::instance().getTransform(i)->copy());
+        maskPath = exportPath;
+        maskPath.append("/").append(iTransformCopies[i]->getName());
+        QStringList iTransformOutputNames = iTransformCopies[i]->getOutputNames();
+        for (int j = 0; j < iTransformOutputNames.length(); ++j) {
+            QString maskCheck = iTransformOutputNames[j];
+            if (!maskPathIsSet && maskCheck.replace("masks", "").isEmpty()) {
+                maskPath.append("/").append(iTransformOutputNames[j]);
+                maskPathIsSet = true;
+                break;
+            }
+        }
+    }
+
     //boolean for whether it starts colmap gui or explorer
     bool colmapGUI = false;
     if (startargs.contains("gui", Qt::CaseSensitive)) {
@@ -685,10 +714,15 @@ bool ExportController::startReconstruct()
 
     if (autoreconstruct) {
         c_args << "--workspace_path" << exportPath;
+        c_args << "--mask_path" << maskPath;
     }
 
     if (colmapGUI){
         c_args << "--database_path" << exportPath + "/database.db";
+        if (maskPathIsSet) {
+            c_args << "--ImageReader.mask_path" << maskPath;
+            c_args << "--StereoFusion.mask_path" << maskPath;
+        }
     }
 
     c_args << "--image_path" << exportPath + "/images";
