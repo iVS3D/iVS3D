@@ -202,6 +202,7 @@ void ModelInputPictures::fromText(QVariant data)
     m_inputPath = inputPath.value().toString();
     if (m_reader->getPicCount() != 0) {
         setResolution();
+        m_boundaries = QPoint(0,m_reader->getPicCount() -1);
     }
     //get keyframes
     QString keyframes = jsonData.find(stringContainer::keyframesIdentifier).value().toString();
