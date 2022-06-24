@@ -24,7 +24,7 @@
  * @date 2021/06/10
  */
 
-class AutomaticExecutor : public QObject
+class AutomaticExecutor : public Progressable
 {
     Q_OBJECT
 

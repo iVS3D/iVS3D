@@ -171,7 +171,7 @@ void AutomaticExecutor::executeExport(QMap<QString, QVariant> settings)
         if (m_exportRunner) {
             delete m_exportRunner;
         }
-        m_exportRunner = new noUIExport(settings, m_dm);
+        m_exportRunner = new noUIExport(this, settings, m_dm);
         connect(m_exportRunner, &noUIExport::sig_exportFinished, this, &AutomaticExecutor::slot_samplingFinished, Qt::DirectConnection);
         m_exportRunner->runExport();
     }

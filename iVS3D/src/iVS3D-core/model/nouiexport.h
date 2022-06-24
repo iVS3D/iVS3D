@@ -7,7 +7,8 @@
 #include <QRect>
 #include <QVariant>
 
-#include "exportcontroller.h"
+#include "transformmanager.h"
+#include "exportexecutor.h"
 #include "DataManager.h"
 #include "logfile.h"
 #include "logmanager.h"
@@ -35,7 +36,7 @@ public:
      * @param exportSettings Settings of the export
      * @param dm Pointer to the DataManager
      */
-    noUIExport(QMap<QString, QVariant> exportSettings, DataManager* dm);
+    noUIExport(Progressable* receiver, QMap<QString, QVariant> exportSettings, DataManager* dm);
     /**
      * @brief runExport Runs the export. This method is similar to ExportController::slot_export
      */
@@ -46,6 +47,14 @@ public slots:
      * @brief slot_exportFinished Connected to the ExportExecutor, called when the export is finished
      */
     void slot_exportFinished(int result);
+    /**
+     * @brief slot_displayMessage Connected to the ExportExecutor, called to display a message
+     */
+    void slot_displayMessage(QString message);
+    /**
+     * @brief slot_makeProgress Connected to the ExportExecutor, called to display progress
+     */
+    void slot_displayProgress(int progress, QString currentProgress);
 
 signals:
     /**
@@ -63,7 +72,8 @@ private:
     DataManager* m_dataManager;
     ExportExecutor* m_exportExec = nullptr;
     LogFile *m_logFile;
-    TerminalInteraction* m_terminal;
+    Progressable* m_receiver;
+
 
     QPoint parseResolution(QString resolutionString);
 };

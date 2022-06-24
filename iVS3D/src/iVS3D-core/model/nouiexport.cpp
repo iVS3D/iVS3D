@@ -1,6 +1,6 @@
 #include "nouiexport.h"
 
-noUIExport::noUIExport(QMap<QString, QVariant> exportSettings, DataManager* dm)
+noUIExport::noUIExport(Progressable * receiver, QMap<QString, QVariant> exportSettings, DataManager* dm)
 {
     m_logFile = LogManager::instance().createLogFile(stringContainer::Export, false);
     m_logFile->setSettings(exportSettings);
@@ -38,7 +38,7 @@ noUIExport::noUIExport(QMap<QString, QVariant> exportSettings, DataManager* dm)
         TransformManager::instance().setSettings(iTransformSettings, idx);
         idx++;
     }
-    m_terminal = &TerminalInteraction::instance();
+    m_receiver = receiver;
 }
 
 QPoint noUIExport::parseResolution(QString resolutionString)
@@ -106,8 +106,8 @@ void noUIExport::runExport()
     m_exportExec = new ExportExecutor(this, m_dataManager);
     connect(m_exportExec, &ExportExecutor::sig_exportFinished, this, &noUIExport::slot_exportFinished, Qt::DirectConnection);
 
-    connect(m_exportExec,&ExportExecutor::sig_progress, m_terminal, &TerminalInteraction::slot_displayProgress, Qt::DirectConnection);
-    connect(m_exportExec, &ExportExecutor::sig_message, m_terminal, &TerminalInteraction::slot_displayMessage, Qt::DirectConnection);
+    connect(m_exportExec,&ExportExecutor::sig_progress, this, &noUIExport::slot_displayProgress, Qt::DirectConnection);
+    connect(m_exportExec, &ExportExecutor::sig_message, this, &noUIExport::slot_displayMessage, Qt::DirectConnection);
 
     m_dataManager->createProject(outputName, pathWOimages + "/" + outputName + "-project.json");
 
@@ -125,10 +125,20 @@ void noUIExport::runExport()
 void noUIExport::slot_exportFinished(int result)
 {
     if (result == -1) {
-        TerminalInteraction::instance().slot_displayMessage("Export failed. Maybe the path is invalid");
+        m_receiver->slot_displayMessage("Export failed. Maybe the path is invalid");
     }
-    disconnect(m_exportExec,&ExportExecutor::sig_progress, m_terminal, &TerminalInteraction::slot_displayProgress);
-    disconnect(m_exportExec, &ExportExecutor::sig_message, m_terminal, &TerminalInteraction::slot_displayMessage);
+    disconnect(m_exportExec,&ExportExecutor::sig_progress, this, &noUIExport::slot_displayProgress);
+    disconnect(m_exportExec, &ExportExecutor::sig_message, this, &noUIExport::slot_displayMessage);
     emit sig_exportFinished();
     delete m_exportExec;
+}
+
+void noUIExport::slot_displayMessage(QString message)
+{
+    m_receiver->slot_displayMessage(message);
+}
+
+void noUIExport::slot_displayProgress(int progress, QString currentProgress)
+{
+    m_receiver->slot_makeProgress(progress, currentProgress);
 }

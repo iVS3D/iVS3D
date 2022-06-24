@@ -78,6 +78,10 @@ int noUIController::exec()
     AlgorithmManager::instance().initializePlugins(m_dataManager->getModelInputPictures()->getReader(), m_dataManager->getModelAlgorithm()->getPluginBuffer());
 
     AutomaticExecutor* autoExec = new AutomaticExecutor(m_dataManager, nullptr, autoSettings, nullptr);
+
+    connect(autoExec, &AutomaticExecutor::sig_message, m_terminal, &TerminalInteraction::slot_displayMessage);
+    connect(autoExec, &AutomaticExecutor::sig_progress, m_terminal, &TerminalInteraction::slot_displayProgress);
+
     autoExec->slot_startAutomaticExec();
 
     //Wait for execution to finish

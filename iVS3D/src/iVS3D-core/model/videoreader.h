@@ -1,6 +1,7 @@
 #ifndef VIDEOREADER_H
 #define VIDEOREADER_H
 
+#include "readerfactory.h"
 #include "reader.h"
 #include <QObject>
 #include <opencv2/videoio.hpp>
@@ -104,11 +105,18 @@ public:
      * @return The currently saved MetaData
      */
     MetaData* getMetaData() override;
+    /**
+     * @brief isValid Retruns wether the reader is valid or not
+     * @return @a true if the reader is valid, @a false otherwise
+     */
+    bool isValid() override;
+
 private:
     int m_lastUsedIndex = 0;
     std::string m_path;
     unsigned int m_numImages;
     cv::VideoCapture m_cap;
+    bool m_isValid = false;
 
     double m_fps;
     QMutex mutex;
@@ -118,4 +126,7 @@ private:
 
     MetaData* m_md = nullptr;
 };
+
+REGISTER_READER("VideoReader", VideoReader)
+
 #endif // VIDEOREADER_H

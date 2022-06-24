@@ -17,6 +17,10 @@ ModelInputPictures::ModelInputPictures(QString inputPath)
     m_metaDataManager = &MetaDataManager::instance();
     m_reader = ReaderFactory::instance().createReader(inputPath);
 
+    if (m_reader == nullptr) {
+        return;
+    }
+
     if(m_reader->getPicCount() > 0) {
 		setResolution();
         m_inputPath = inputPath;
@@ -109,6 +113,9 @@ unsigned int ModelInputPictures::getKeyframeCount(){
 }
 
 unsigned int ModelInputPictures::getPicCount(){
+    if (m_reader == nullptr) {
+        return 0;
+    }
     return m_reader->getPicCount();
 }
 

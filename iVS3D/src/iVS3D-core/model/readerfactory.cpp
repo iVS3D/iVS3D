@@ -7,13 +7,15 @@ ReaderFactory::ReaderFactory()
 
 Reader *ReaderFactory::createReader(QString path)
 {
-
-    for (std::pair<std::string, AbstractReader> a : ReaderFactory::instance().m_availablerReader) {
+    for (std::pair<std::string, AbstractReader> a : m_availablerReader) {
         Reader* current = a.second(path);
-        //TODO: if (current->isValid)
-        return current;
+        if (current->isValid()) {
+            return current;
+        }
+        delete current;
     }
 
+    return nullptr;
 }
 
 bool ReaderFactory::reg(std::string name, AbstractReader reader)

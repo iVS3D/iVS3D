@@ -26,8 +26,8 @@ private:
 };
 
 template<typename Implementation>
-Reader *builder(){
-    return new Implementation();
+Reader *builder(QString path){
+    return new Implementation(path);
 }
 
 #define REGISTER_READER(name, impl) const bool res = ReaderFactory::instance().reg(name, builder<impl>);
