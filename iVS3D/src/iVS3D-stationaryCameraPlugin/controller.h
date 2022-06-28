@@ -1,5 +1,5 @@
-#ifndef STATIONARYCAMERA_H
-#define STATIONARYCAMERA_H
+#ifndef CONTROLLER_H
+#define CONTROLLER_H
 
 /** @defgroup StationaryCameraPlugin StationaryCameraPlugin
  *
@@ -78,7 +78,7 @@
  *
  * @date 2022/3/13
  */
-class StationaryCamera : public IAlgorithm
+class Controller : public IAlgorithm
 {
     Q_OBJECT
     Q_PLUGIN_METADATA(IID "iVS3D.IAlgorithm")   // implement interface as plugin, use the iid as identifier
@@ -88,8 +88,8 @@ public:
     /**
      * @brief StationaryCamera Constructor sets default values for member variables
      */
-    StationaryCamera();
-    ~StationaryCamera() {};
+    Controller();
+    ~Controller() {};
 
     /**
      * @brief getSettingsWidget creates a Widget, which can be used to change the algorithm parameters and returns it
@@ -199,4 +199,4 @@ private slots:
     void sampleCheckChanged(bool isChecked);
 };
 
-#endif // STATIONARYCAMERA_H
+#endif // CONTROLLER_H

@@ -1,10 +1,10 @@
-#include "stationarycamera.h"
+#include "controller.h"
 
-StationaryCamera::StationaryCamera()
+Controller::Controller()
 {
 }
 
-QWidget *StationaryCamera::getSettingsWidget(QWidget *parent)
+QWidget *Controller::getSettingsWidget(QWidget *parent)
 {
     if (!m_settingsWidget) {
         createSettingsWidget(parent);
@@ -16,7 +16,7 @@ QWidget *StationaryCamera::getSettingsWidget(QWidget *parent)
     return m_settingsWidget;
 }
 
-std::vector<uint> StationaryCamera::sampleImages(const std::vector<uint> &imageList, Progressable *receiver, volatile bool *stopped, bool useCuda, LogFileParent *logFile)
+std::vector<uint> Controller::sampleImages(const std::vector<uint> &imageList, Progressable *receiver, volatile bool *stopped, bool useCuda, LogFileParent *logFile)
 {
     qDebug() << "Down sampling factor: " << m_downSampleFactor;
     // ----------- setup and creating hardware specific elements ----------------
@@ -33,24 +33,22 @@ std::vector<uint> StationaryCamera::sampleImages(const std::vector<uint> &imageL
     // ----------- algorithms definition ------------
     // gather image pair
     std::function<QPair<cv::Mat, cv::Mat>(uint, uint)> gatherImagePairStatic = [imageGatherer](uint fromIdx, uint toIdx) {
-        auto startGather = std::chrono::high_resolution_clock::now();
+        QElapsedTimer timer;
+        timer.start();
         QPair<cv::Mat, cv::Mat> matPair = imageGatherer->gatherImagePair(fromIdx, toIdx);
-        auto endGather = std::chrono::high_resolution_clock::now();
-        long gatherDuration = std::chrono::duration_cast<std::chrono::milliseconds>(endGather - startGather).count();
-        qDebug() << "gatherDuration=" << gatherDuration << "ms";
+        qDebug() << "gatherDuration=" << timer.elapsed() << "ms";
         return matPair;
     };
 
     // flow calculation
     const double downSampleFactorConst = m_downSampleFactor;
     std::function<void(cv::Mat, cv::Mat)> calcFlowStatic = [flowCalculator, &flowValues, downSampleFactorConst](cv::Mat fromMat, cv::Mat toMat) {
-        auto startFlow = std::chrono::high_resolution_clock::now();
+        QElapsedTimer timer;
+        timer.start();
         // muliplication with down sample factor corrects the reduced resolution
         double flowValue = flowCalculator->calculateFlow(fromMat, toMat) * downSampleFactorConst;
         flowValues.push_back(flowValue);
-        auto endFlow = std::chrono::high_resolution_clock::now();
-        long flowDuration = std::chrono::duration_cast<std::chrono::milliseconds>(endFlow - startFlow).count();
-        qDebug() << "flowDuration=" << flowDuration << "ms\tvalue=" << flowValue;
+        qDebug() << "flowDuration=" << timer.elapsed() << "ms\tvalue=" << flowValue;
     };
 
     // -------------- iterate through all available frame pairs ---------------
@@ -127,12 +125,12 @@ std::vector<uint> StationaryCamera::sampleImages(const std::vector<uint> &imageL
     return selectedKeyframes;
 }
 
-QString StationaryCamera::getName() const
+QString Controller::getName() const
 {
     return PLUGIN_NAME;
 }
 
-QMap<QString, QVariant> StationaryCamera::sendBuffer()
+QMap<QString, QVariant> Controller::sendBuffer()
 {
     QVariant bufferVariant = bufferMatToVariant(m_bufferMat);
     QMap<QString, QVariant> bufferMap;
@@ -140,7 +138,7 @@ QMap<QString, QVariant> StationaryCamera::sendBuffer()
     return bufferMap;
 }
 
-void StationaryCamera::initialize(Reader *reader, QMap<QString, QVariant> buffer, signalObject *sigObj)
+void Controller::initialize(Reader *reader, QMap<QString, QVariant> buffer, signalObject *sigObj)
 {
     if (m_settingsWidget) {
         m_settingsWidget->deleteLater();
@@ -167,7 +165,7 @@ void StationaryCamera::initialize(Reader *reader, QMap<QString, QVariant> buffer
     sampleCheckChanged(isChecked);
 }
 
-void StationaryCamera::setSettings(QMap<QString, QVariant> settings)
+void Controller::setSettings(QMap<QString, QVariant> settings)
 {
     m_threshold = settings.find(SETTINGS_THRESHOLD).value().toDouble();
     bool sampleResActive = settings.find(SETTINGS_SAMPLE_RESOLUTION).value().toBool();
@@ -175,12 +173,12 @@ void StationaryCamera::setSettings(QMap<QString, QVariant> settings)
         // UI mode
         m_downSampleCheck->setChecked(sampleResActive);
     } else {
-        // Headless mode
+        // Headless modell
         sampleCheckChanged(sampleResActive);
     }
 }
 
-QMap<QString, QVariant> StationaryCamera::generateSettings(Progressable *receiver, bool useCuda, volatile bool *stopped)
+QMap<QString, QVariant> Controller::generateSettings(Progressable *receiver, bool useCuda, volatile bool *stopped)
 {
     (void) receiver;
     (void) useCuda;
@@ -190,7 +188,7 @@ QMap<QString, QVariant> StationaryCamera::generateSettings(Progressable *receive
     return getSettings();
 }
 
-QMap<QString, QVariant> StationaryCamera::getSettings()
+QMap<QString, QVariant> Controller::getSettings()
 {
     QMap<QString, QVariant> settings;
     settings.insert(SETTINGS_THRESHOLD, m_threshold);
@@ -199,17 +197,17 @@ QMap<QString, QVariant> StationaryCamera::getSettings()
     return settings;
 }
 
-bool StationaryCamera::downInputResToCheck(QPointF inputRes)
+bool Controller::downInputResToCheck(QPointF inputRes)
 {
     return !(inputRes.x() <= 720 || inputRes.y() <= 720);
 }
 
-bool StationaryCamera::downFactorToCheck(double downFactor)
+bool Controller::downFactorToCheck(double downFactor)
 {
     return downFactor > 1.0;
 }
 
-double StationaryCamera::downCheckToFactor(bool boxChecked, QPointF inputRes)
+double Controller::downCheckToFactor(bool boxChecked, QPointF inputRes)
 {
     double downFactor = 1.0; // deactivated => default resolution
     if (boxChecked) {
@@ -227,7 +225,7 @@ double StationaryCamera::downCheckToFactor(bool boxChecked, QPointF inputRes)
     return downFactor;
 }
 
-void StationaryCamera::reportProgress(QString op, int progress, Progressable *receiver)
+void Controller::reportProgress(QString op, int progress, Progressable *receiver)
 {
     QMetaObject::invokeMethod(
                 receiver,
@@ -237,7 +235,7 @@ void StationaryCamera::reportProgress(QString op, int progress, Progressable *re
                 Q_ARG(QString, op));
 }
 
-void StationaryCamera::createSettingsWidget(QWidget *parent)
+void Controller::createSettingsWidget(QWidget *parent)
 {
     // create threshold layout with spinBox and label
     QWidget *thresholdLayout = new QWidget(parent);
@@ -276,7 +274,7 @@ void StationaryCamera::createSettingsWidget(QWidget *parent)
     // downSample checkBox
     m_downSampleCheck = new QCheckBox(parent);
     m_downSampleCheck->setText(DOWNSAMPLE_CHECKBOX_TEXT);
-    QObject::connect(m_downSampleCheck, &QCheckBox::clicked, this, &StationaryCamera::sampleCheckChanged);
+    QObject::connect(m_downSampleCheck, &QCheckBox::clicked, this, &Controller::sampleCheckChanged);
     downSampleLayout->layout()->addItem(new QSpacerItem(0, 0,QSizePolicy::Expanding));
     downSampleLayout->layout()->addWidget(m_downSampleCheck);
 
@@ -288,7 +286,7 @@ void StationaryCamera::createSettingsWidget(QWidget *parent)
     // buffer reset button
     m_resetBufferBt = new QPushButton();
     m_resetBufferBt->setText(RESET_BT_TEXT);
-    QObject::connect(m_resetBufferBt, &QPushButton::pressed, this, &StationaryCamera::resetBuffer);
+    QObject::connect(m_resetBufferBt, &QPushButton::pressed, this, &Controller::resetBuffer);
 
     // buffer reset label
     m_resetBufferLabel = new QLabel();
@@ -313,7 +311,7 @@ void StationaryCamera::createSettingsWidget(QWidget *parent)
     m_settingsWidget->adjustSize();
 }
 
-void StationaryCamera::resetBuffer()
+void Controller::resetBuffer()
 {
     m_bufferMat.clear();
     m_bufferedValueCount = 0;
@@ -323,18 +321,18 @@ void StationaryCamera::resetBuffer()
     }
 }
 
-void StationaryCamera::sampleCheckChanged(bool isChecked)
+void Controller::sampleCheckChanged(bool isChecked)
 {
     m_downSampleFactor = downCheckToFactor(isChecked, m_inputResolution);
 }
 
-void StationaryCamera::updateBufferInfo(long bufferedValueCount)
+void Controller::updateBufferInfo(long bufferedValueCount)
 {
     QString txt = RESET_TEXT_PRE + QString::number(bufferedValueCount) + RESET_TEXT_SUF;
     m_resetBufferLabel->setText(txt);
 }
 
-void StationaryCamera::recreateBufferMatrix(QMap<QString, QVariant> buffer)
+void Controller::recreateBufferMatrix(QMap<QString, QVariant> buffer)
 {
     // recreate bufferMatrix if the matrix is empty
     m_bufferMat.clear();
@@ -352,7 +350,7 @@ void StationaryCamera::recreateBufferMatrix(QMap<QString, QVariant> buffer)
     }
 }
 
-void StationaryCamera::stringToBufferMat(QString string)
+void Controller::stringToBufferMat(QString string)
 {
     QStringList entryStrList = string.split(DELIMITER_ENTITY);
 
@@ -381,7 +379,7 @@ void StationaryCamera::stringToBufferMat(QString string)
     }
 }
 
-QVariant StationaryCamera::bufferMatToVariant(cv::SparseMat bufferMat)
+QVariant Controller::bufferMatToVariant(cv::SparseMat bufferMat)
 {
     std::stringstream matStream;
     const int *size = bufferMat.size();
@@ -398,7 +396,7 @@ QVariant StationaryCamera::bufferMatToVariant(cv::SparseMat bufferMat)
     return QVariant(QString::fromStdString(matString));
 }
 
-double StationaryCamera::median(std::vector<double> &vec)
+double Controller::median(std::vector<double> &vec)
 {
     std::vector<double>::iterator median = vec.begin() + vec.size() / 2;
     std::nth_element(vec.begin(), median, vec.end());

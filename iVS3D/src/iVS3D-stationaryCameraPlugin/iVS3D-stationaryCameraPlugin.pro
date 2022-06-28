@@ -31,20 +31,20 @@ SOURCES += imagegatherercuda.cpp
 QT += concurrent
 
 SOURCES += \
+    controller.cpp \
     factory.cpp \
     flowcalculator.cpp \
     flowcalculatorcpu.cpp \
     imagegatherer.cpp \
     imagegatherercpu.cpp \
-    stationarycamera.cpp \
 
 HEADERS += \
+    controller.h \
     factory.h \
     flowcalculator.h \
     flowcalculatorcpu.h \
     imagegatherer.h \
     imagegatherercpu.h \
-    stationarycamera.h \
 
 TEMPLATE = lib
 CONFIG += plugin
