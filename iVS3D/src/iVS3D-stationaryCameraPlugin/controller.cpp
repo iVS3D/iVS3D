@@ -383,12 +383,22 @@ QVariant Controller::bufferMatToVariant(cv::SparseMat bufferMat)
 {
     std::stringstream matStream;
     const int *size = bufferMat.size();
-    for (int x = 0; x < *size; x++) {
-        for (int y = 0; y < *size; y++) {
-            double value = bufferMat.ref<double>(x, y);
-            if (value != 0) {
-                matStream << x << DELIMITER_COORDINATE << y << DELIMITER_COORDINATE << value << ((x + 1 < *size) ? DELIMITER_ENTITY : "");
-            }
+//    for (int x = 0; x < *size; x++) {
+//        for (int y = 0; y < *size; y++) {
+//            double value = bufferMat.ref<double>(x, y);
+//            if (value != 0) {
+//                matStream << x << DELIMITER_COORDINATE << y << DELIMITER_COORDINATE << value << ((x + 1 < *size) ? DELIMITER_ENTITY : "");
+//            }
+//        }
+//    }
+
+    for (cv::SparseMatConstIterator it = bufferMat.begin(); it != bufferMat.end(); it++) {
+        const cv::SparseMat::Node *node = it.node();
+        uint x = node->idx[0];
+        uint y = node->idx[1];
+        double value = node->hashval;
+        if (value != 0) {
+            matStream << x << DELIMITER_COORDINATE << y << DELIMITER_COORDINATE << value << ((x + 1 < *size) ? DELIMITER_ENTITY : "");
         }
     }
 
