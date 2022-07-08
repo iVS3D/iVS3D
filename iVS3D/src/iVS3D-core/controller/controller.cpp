@@ -383,6 +383,7 @@ void Controller::onFailedOpen()
         delete m_exportController;
         m_exportController = nullptr;
     }
+    m_automaticController->disableAutoWidget();
 
 }
 

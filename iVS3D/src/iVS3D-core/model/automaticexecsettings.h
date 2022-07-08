@@ -99,9 +99,15 @@ signals:
      * @param exportSettings Settings of the export
      */
     void sig_showExportSettings(QMap<QString, QVariant> exportSettings);
-
+    /**
+     * @brief sig_setAlgorithm Emitted to set the currently shown algorithm on the SamplingWidget
+     * @param index
+     */
     void sig_setAlgorithm(int index);
-
+    /**
+     * @brief sig_updatedSelectedPlugins Emitted to set the currently shown plugin list on the AutomaticWidget
+     * @param usedPlugins QStringList with the plugins
+     */
     void sig_updatedSelectedPlugins(QStringList usedPlugins);
 
 

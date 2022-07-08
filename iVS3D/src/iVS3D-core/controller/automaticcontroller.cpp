@@ -99,6 +99,11 @@ AutomaticExecutor *AutomaticController::autoExec()
     return m_autoExec;
 }
 
+void AutomaticController::disableAutoWidget()
+{
+    m_autoWidget->setEnabled(false);
+}
+
 AutomaticExecSettings *AutomaticController::autoExecSettings()
 {
     return m_autoExecSettings;

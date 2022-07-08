@@ -85,10 +85,14 @@ signals:
      *
      */
     void sig_stopPlay();
-
-
+    /**
+     * @brief sig_createProgress Emitted to the AutomaticController when an AlgorithmExecutor needs to report porgress on a ProgressDisplay (or TerminalInteraction)
+     * @param algoExec The AlgorithmExecutor which wants to report progress
+     */
     void sig_createProgress(AlgorithmExecutor* algoExec);
-
+    /**
+     * @brief sig_deleteProgress Emitted to the AutomaticController when the AlgorithmExecutor stops to report porgress on a ProgressDisplay (or TerminalInteraction)
+     */
     void sig_deleteProgress();
 
 private:
