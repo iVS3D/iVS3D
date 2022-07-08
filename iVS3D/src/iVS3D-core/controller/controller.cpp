@@ -5,7 +5,6 @@ Controller::Controller()
 {
     m_videoPlayerController = nullptr;
     m_algorithmController = nullptr;
-    m_autoExec = nullptr;
     QStringList algorithms = AlgorithmManager::instance().getAlgorithmList();
     QStringList transforms = TransformManager::instance().getTransformList();
     int useCuda = -1;
@@ -30,7 +29,6 @@ Controller::Controller()
         displayPluginSettings();
     }
     TransformManager::instance().enableCuda(ApplicationSettings::instance().getUseCuda());
-    m_autoSettings = new AutomaticExecSettings(m_mainWindow->getAutoWidget(), m_mainWindow->getSamplingWidget(), m_mainWindow->getOutputWidget());
 
     LogManager::instance().toggleLog(ApplicationSettings::instance().getCreateLogs());
     m_dataManager = new DataManager();
@@ -55,7 +53,7 @@ Controller::Controller()
 
     connect(this, &Controller::sig_hasStatusMessage, m_mainWindow, &MainWindow::slot_displayStatusMessage);
 
-    m_mainWindow->getAutoWidget()->updateSelectedPlugins(m_autoSettings->getPluginNames());
+    m_automaticController = new AutomaticController(m_mainWindow->getOutputWidget(), m_mainWindow->getAutoWidget(), m_mainWindow->getSamplingWidget(), m_dataManager);
     m_mainWindow->show();
 }
 
@@ -385,12 +383,6 @@ void Controller::onFailedOpen()
         delete m_exportController;
         m_exportController = nullptr;
     }
-    if (m_autoExec)
-    {
-        disconnect(m_autoExec, &AutomaticExecutor::sig_hasStatusMessage, m_mainWindow, &MainWindow::slot_displayStatusMessage);
-        delete m_autoExec;
-        m_autoExec = nullptr;
-    }
 
 }
 
@@ -424,11 +416,6 @@ void Controller::onSuccessfulOpen()
         disconnect(m_exportController, &ExportController::sig_hasStatusMessage, m_mainWindow, &MainWindow::slot_displayStatusMessage);
         delete m_exportController;
     }
-    if(m_autoExec)
-    {
-        disconnect(m_autoExec, &AutomaticExecutor::sig_hasStatusMessage, m_mainWindow, &MainWindow::slot_displayStatusMessage);
-        delete m_autoExec;
-    }
 
     // --- create new controllers for video player, export and image sampling
     // --- using the new data (in dataManager) and connect to main window
@@ -453,13 +440,13 @@ void Controller::onSuccessfulOpen()
     connect(m_exportController, &ExportController::sig_exportStarted, this, &Controller::slot_exportStarted);
     connect(m_exportController, &ExportController::sig_exportFinished, this, &Controller::slot_exportFinished);
     connect(m_exportController, &ExportController::sig_exportAborted, this, &Controller::slot_exportFinished);
-    connect(m_autoSettings, &AutomaticExecSettings::sig_showExportSettings, m_exportController, &ExportController::slot_showExportSettings);
+
 
     //AutoExecutor is used for the automatic Execution
-    m_autoExec = new AutomaticExecutor(m_dataManager, m_mainWindow->getAutoWidget(), m_autoSettings, m_exportController);
-    connect(m_autoExec, &AutomaticExecutor::sig_stopPlay, m_videoPlayerController, &VideoPlayerController::slot_stopPlay);
-    connect(m_autoExec, &AutomaticExecutor::sig_hasStatusMessage, m_mainWindow, &MainWindow::slot_displayStatusMessage);
-    m_autoSettings->setExportController(m_exportController);
+    m_automaticController->setExporController(m_exportController);
+    connect(m_automaticController->autoExec(), &AutomaticExecutor::sig_stopPlay, m_videoPlayerController, &VideoPlayerController::slot_stopPlay);
+    connect(m_automaticController->autoExec(), &AutomaticExecutor::sig_hasStatusMessage, m_mainWindow, &MainWindow::slot_displayStatusMessage);
+
 
     setInputWidgetInfo(); // initialize input widget with information about new input data
     m_mainWindow->getSamplingWidget()->setAlgorithm(0);

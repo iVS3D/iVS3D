@@ -21,6 +21,7 @@
 #include "controller/exportcontroller.h"
 #include "controller/algorithmcontroller.h"
 #include "controller/videoplayercontroller.h"
+#include "controller/automaticcontroller.h"
 
 #include "plugin/algorithmmanager.h"
 #include "plugin/transformmanager.h"
@@ -139,13 +140,14 @@ private:
     VideoPlayerController *m_videoPlayerController;
     AlgorithmController* m_algorithmController;
     ExportController *m_exportController;
+    AutomaticController* m_automaticController;
     MainWindow* m_mainWindow;
     DataManager* m_dataManager;
     OpenExecutor *m_openExec;
     bool m_exporting = false;
     //Prevents multiple drag and drops at the same time
     bool m_isImporting = false;
-    AutomaticExecutor* m_autoExec;
+
 
     void createOpenMessage(int numPics);
     QString getNameFromPath(QString path, QString dataFormat);
@@ -161,7 +163,7 @@ private:
     // plugin runtime
     QElapsedTimer m_timer;
 
-    AutomaticExecSettings* m_autoSettings;
+
 };
 
 #endif // CONTROLLER_H

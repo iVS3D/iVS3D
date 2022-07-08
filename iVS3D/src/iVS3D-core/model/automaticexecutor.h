@@ -3,13 +3,10 @@
 
 #include "DataManager.h"
 #include "algorithmexecutor.h"
-#include "progressdialog.h"
 #include "algorithmmanager.h"
 #include "automaticexecsettings.h"
-#include "view/automaticwidget.h"
 #include "nouiexport.h"
 #include "stringcontainer.h"
-#include "terminalinteraction.h"
 
 
 /**
@@ -36,7 +33,7 @@ public:
      * @param autoSettings Pointer to the AutomaticExecSettings
      * @param exportController Pointer to the ExportController
      */
-    AutomaticExecutor(DataManager* dm, AutomaticWidget* autoWidget, AutomaticExecSettings* autoSettings, ExportController* exportController);
+    AutomaticExecutor(DataManager* dm, AutomaticExecSettings* autoSettings);
     ~AutomaticExecutor();
     /**
      * @brief startMultipleAlgo Executes the indexed algorithm
@@ -49,6 +46,12 @@ public:
      * @return @a true if all algorithms are done @a false otherwise
      */
     bool isFinished();
+
+    /**
+     * @brief setExportController ExportController doesn't exists when this class is created, so it has to be set later
+     * @param exportController Pointer to the ExportController
+     */
+    void setExportController(ExportController* exportController);
 
 public slots:
     /**
@@ -83,22 +86,25 @@ signals:
      */
     void sig_stopPlay();
 
+
+    void sig_createProgress(AlgorithmExecutor* algoExec);
+
+    void sig_deleteProgress();
+
 private:
     int stepToPluginIndex(int step);
     void executeSampling();
     void executeExport(QMap<QString, QVariant> settings);
     DataManager *m_dm;
     AlgorithmExecutor* m_algoExec;
-    ProgressDialog* m_algorithmProgressDialog;
     int m_step = 0;
     int m_stepCount;
     QList<QPair<QString, QMap<QString, QVariant>>> m_pluginOrder;
-    AutomaticWidget *m_autoWidget;
     AutomaticExecSettings *m_autoSettings;
     ExportController *m_exportController;
     bool m_isFinished = false;
     noUIExport *m_exportRunner = nullptr;
-    TerminalInteraction *m_terminal = nullptr;
+
 };
 
 #endif // AUTOMATICEXECUTOR_H

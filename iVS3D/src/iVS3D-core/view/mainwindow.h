@@ -24,13 +24,11 @@
 #include "view/infowidget.h"
 #include "view/samplingwidget.h"
 #include "view/automaticwidget.h"
-//#include "view/inputautomaticwidget.h"
 #include "view/outputwidget.h"
 #include "view/helpdialog.h"
 #include "view/about.h"
 #include "view/darkstyle/DarkStyle.h"
 
-#include "model/automaticexecsettings.h"
 
 //for debug
 #include <opencv2/core.hpp>

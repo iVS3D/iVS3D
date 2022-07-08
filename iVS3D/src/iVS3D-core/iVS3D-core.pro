@@ -19,6 +19,7 @@ INCLUDEPATH += \
     $$_PRO_FILE_PWD_
 
 SOURCES += \
+    controller/automaticcontroller.cpp \
     controller/nouicontroller.cpp \
     main.cpp \
 # controller package
@@ -94,6 +95,7 @@ SOURCES += \
 HEADERS += \
 # controller package
     controller/ModelInputIterator.h \
+    controller/automaticcontroller.h \
     controller/imageiterator.h \
     controller/keyframeiterator.h \
     controller/modelinputiteratorfactory.h \

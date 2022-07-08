@@ -56,7 +56,7 @@ int noUIController::exec()
 
     m_terminal->slot_displayMessage("Opend " + QString::number(numberImages) + " images");
     //Load auto settings file
-    AutomaticExecSettings* autoSettings = new AutomaticExecSettings(nullptr, nullptr, nullptr);
+    AutomaticExecSettings* autoSettings = new AutomaticExecSettings();
     autoSettings->loadPluginList(m_autoPath);
     QStringList plugins = autoSettings->getPluginNames();
     m_terminal->slot_displayMessage("Loaded the following plugin settings:");
@@ -77,7 +77,7 @@ int noUIController::exec()
 
     AlgorithmManager::instance().initializePlugins(m_dataManager->getModelInputPictures()->getReader(), m_dataManager->getModelAlgorithm()->getPluginBuffer());
 
-    AutomaticExecutor* autoExec = new AutomaticExecutor(m_dataManager, nullptr, autoSettings, nullptr);
+    AutomaticExecutor* autoExec = new AutomaticExecutor(m_dataManager, autoSettings);
 
     connect(autoExec, &AutomaticExecutor::sig_message, m_terminal, &TerminalInteraction::slot_displayMessage);
     connect(autoExec, &AutomaticExecutor::sig_progress, m_terminal, &TerminalInteraction::slot_displayProgress);
