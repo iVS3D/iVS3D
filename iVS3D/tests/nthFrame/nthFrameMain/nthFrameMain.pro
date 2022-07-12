@@ -38,20 +38,16 @@ DEFINES += TEST_RESOURCES=\"\\\"$${TEST_RESOURCES_PATH}\\\"\"
 #
 # these files and there dependencies are tested within this unit test
 INCLUDEPATH += \
-    $$IVS_SRC_PATH/iVS3D-core/model \
-    $$IVS_SRC_PATH/iVS3D-core/plugin \
-    $$IVS_SRC_PATH/iVS3D-pluginInterface \
     $$IVS_SRC_PATH/iVS3D-nthFramePlugin
 
 HEADERS += \
-    $$IVS_SRC_PATH/iVS3D-core/model/LogFileParent.h \
-    $$IVS_SRC_PATH/iVS3D-core/model/reader.h \
-    $$IVS_SRC_PATH/iVS3D-core/model/progressable.h \
-    $$IVS_SRC_PATH/iVS3D-core/model/progressdisplay.h \
     $$IVS_SRC_PATH/iVS3D-nthFramePlugin/nthframe.h \
-    $$IVS_SRC_PATH/iVS3D-pluginInterface/ialgorithm.h
 
 SOURCES += \
     $$IVS_SRC_PATH/iVS3D-nthFramePlugin/nthframe.cpp \
-    $$IVS_SRC_PATH/iVS3D-core/model/progressable.cpp \
-    $$IVS_SRC_PATH/iVS3D-core/model/progressdisplay.cpp
+
+unix {
+ !include( ../../../setrpath.pri) {
+   message("Cannot find setrpath.pri!")
+ }
+}

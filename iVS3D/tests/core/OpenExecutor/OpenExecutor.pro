@@ -26,61 +26,8 @@ include(../../../3rdparty.pri)
 include(../../resourceloader.pri)
 DEFINES += TEST_RESOURCES=\"\\\"$${TEST_RESOURCES_PATH}\\\"\"
 
-# files to test
-INCLUDEPATH += \
-    $$IVS_SRC_PATH/iVS3D-core \
-    $$IVS_SRC_PATH/iVS3D-core/model \
-    $$IVS_SRC_PATH/iVS3D-core/plugin \
-    $$IVS_SRC_PATH/iVS3D-pluginInterface
-
-HEADERS += \
-    $$IVS_SRC_PATH/iVS3D-core/model/DataManager.h \
-    $$IVS_SRC_PATH/iVS3D-core/model/modelinputpictures.h \
-    $$IVS_SRC_PATH/iVS3D-core/model/modelalgorithm.h \
-    $$IVS_SRC_PATH/iVS3D-core/model/projectmanager.h \
-    $$IVS_SRC_PATH/iVS3D-core/model/logmanager.h \
-    $$IVS_SRC_PATH/iVS3D-core/model/reader.h \
-    $$IVS_SRC_PATH/iVS3D-core/model/imagereader.h \
-    $$IVS_SRC_PATH/iVS3D-core/model/videoreader.h \
-    $$IVS_SRC_PATH/iVS3D-core/model/ISerializable.h \
-    $$IVS_SRC_PATH/iVS3D-core/model/delayedcopyreader.h \
-    $$IVS_SRC_PATH/iVS3D-core/model/concurrentreader.h \
-    $$IVS_SRC_PATH/iVS3D-core/model/logfile.h \
-    $$IVS_SRC_PATH/iVS3D-core/model/logfileParent.h \
-    $$IVS_SRC_PATH/iVS3D-core/model/stringcontainer.h \
-    $$IVS_SRC_PATH/iVS3D-core/model/history.h \
-    $$IVS_SRC_PATH/iVS3D-core/plugin/algorithmmanager.h \
-    $$IVS_SRC_PATH/iVS3D-core/plugin/signalobject.h \
-    $$IVS_SRC_PATH/iVS3D-core/model/metadatamanager.h \
-    $$IVS_SRC_PATH/iVS3D-core/model/metadata.h \
-    $$IVS_SRC_PATH/iVS3D-core/model/metadatareader.h \
-    $$IVS_SRC_PATH/iVS3D-core/model/gpsreader.h \
-    $$IVS_SRC_PATH/iVS3D-core/model/gpsreaderdji.h \
-    $$IVS_SRC_PATH/iVS3D-core/model/gpsreaderexif.h \
-    $$IVS_SRC_PATH/iVS3D-core/model/exif.h \
-    $$IVS_SRC_PATH/iVS3D-pluginInterface/ialgorithm.h \
-    $$IVS_SRC_PATH/iVS3D-core/model/openexecutor.h \
-
-
-
-SOURCES += \
-    $$IVS_SRC_PATH/iVS3D-core/model/DataManager.cpp \
-    $$IVS_SRC_PATH/iVS3D-core/model/modelinputpictures.cpp \
-    $$IVS_SRC_PATH/iVS3D-core/model/modelalgorithm.cpp \
-    $$IVS_SRC_PATH/iVS3D-core/model/projectmanager.cpp \
-    $$IVS_SRC_PATH/iVS3D-core/model/logmanager.cpp \
-    $$IVS_SRC_PATH/iVS3D-core/model/imagereader.cpp \
-    $$IVS_SRC_PATH/iVS3D-core/model/videoreader.cpp \
-    $$IVS_SRC_PATH/iVS3D-core/model/delayedcopyreader.cpp \
-    $$IVS_SRC_PATH/iVS3D-core/model/concurrentreader.cpp \
-    $$IVS_SRC_PATH/iVS3D-core/model/logfile.cpp \
-    $$IVS_SRC_PATH/iVS3D-core/model/stringcontainer.cpp \
-    $$IVS_SRC_PATH/iVS3D-core/model/history.cpp \
-    $$IVS_SRC_PATH/iVS3D-core/plugin/algorithmmanager.cpp \
-    $$IVS_SRC_PATH/iVS3D-core/plugin/signalobject.cpp \
-    $$IVS_SRC_PATH/iVS3D-core/model/metadatamanager.cpp \
-    $$IVS_SRC_PATH/iVS3D-core/model/gpsreader.cpp \
-    $$IVS_SRC_PATH/iVS3D-core/model/gpsreaderdji.cpp \
-    $$IVS_SRC_PATH/iVS3D-core/model/gpsreaderexif.cpp \
-    $$IVS_SRC_PATH/iVS3D-core/model/exif.cpp \
-    $$IVS_SRC_PATH/iVS3D-core/model/openexecutor.cpp \
+unix {
+ !include( ../../../setrpath.pri) {
+   message("Cannot find setrpath.pri!")
+ }
+}

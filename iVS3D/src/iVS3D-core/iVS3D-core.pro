@@ -18,9 +18,9 @@ for(file, src_files) {
 }
 INCLUDEPATH += $$unique(src_dirs)
 INCLUDEPATH += $$_PRO_FILE_PWD_
-SOURCES = $$files(*.cpp, true)
-FORMS = $$files(*.ui, true)
-HEADERS = $$files(*.h, true)
+SOURCES += $$files(*.cpp, true)
+FORMS += $$files(*.ui, true)
+HEADERS += $$files(*.h, true)
 
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/release -liVS3D-pluginInterface
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/debug -liVS3D-pluginInterface

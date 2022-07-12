@@ -1,7 +1,6 @@
 #include <QtTest>
 #include "reader.h"
-#include "videoreader.h"
-#include "imagereader.h"
+#include "readerfactory.h"
 #include "openexecutor.h"
 #include "DataManager.h"
 #include "resourceloader.h"
@@ -71,7 +70,7 @@ void tst_reader::test_DeleteVideo()
     QFile* video = new QFile((m_resources + "/video.mp4"));
     video->copy(m_resources + "/v/video.mp4");
 
-    VideoReader* v = new VideoReader(m_resources + "/v/video.mp4");
+    Reader* v = ReaderFactory::instance().createReader(m_resources + "/v/video.mp4");
     cv::Mat before = v->getPic(0);
     currentDir->cd("v");
 
@@ -100,7 +99,7 @@ void tst_reader::test_DeleteImages()
     QString image = m_resources + "/image.png";
     QFile::copy(image, m_resources + "/i/image.png");
 
-    Reader* i = new ImageReader(m_resources + "/i");
+    Reader* i = ReaderFactory::instance().createReader(m_resources + "/i");
     cv::Mat before = i->getPic(0);
     currentDir->cd("i");
 
@@ -123,14 +122,14 @@ void tst_reader::test_DeleteImages()
 
 void tst_reader::test_EmptyFile()
 {
-    Reader* r = new ImageReader(m_resources + "/emptyFolder");
+    Reader* r = ReaderFactory::instance().createReader(m_resources + "/emptyFolder");
     uint images = 0;
     QCOMPARE(r->getPicCount(), images);
 }
 
 void tst_reader::test_ReadOneToMany()
 {
-    VideoReader* v = new VideoReader(m_resources + "/video.mp4");
+    Reader* v = ReaderFactory::instance().createReader(m_resources + "/video.mp4");
     int toMuch = v->getPicCount() + 1;
     cv::Mat vIShouldBeEmpty = v->getPic(toMuch);
 
@@ -139,7 +138,7 @@ void tst_reader::test_ReadOneToMany()
     cv::compare(vIShouldBeEmpty, empty, equal, CV_HAL_CMP_EQ);
     QVERIFY(equal.empty());
 
-    Reader* i = new ImageReader(m_resources + "/images");
+    Reader* i = ReaderFactory::instance().createReader(m_resources + "/images");
     toMuch = i->getPicCount() + 1;
     cv::Mat iIShouldBeEmpty = i->getPic(toMuch);
 
@@ -151,7 +150,7 @@ void tst_reader::test_ReadOneToMany()
 
 void tst_reader::test_ReadWayToMany()
 {
-    VideoReader* v = new VideoReader(m_resources + "/video.mp4");
+    Reader* v = ReaderFactory::instance().createReader(m_resources + "/video.mp4");
     int toMuch = v->getPicCount() * 2;
     cv::Mat vIShouldBeEmpty = v->getPic(toMuch);
 
@@ -160,7 +159,7 @@ void tst_reader::test_ReadWayToMany()
     cv::compare(vIShouldBeEmpty, empty, equal, CV_HAL_CMP_EQ);
     QVERIFY(equal.empty());
 
-    Reader* i = new ImageReader(m_resources + "/images");
+    Reader* i = ReaderFactory::instance().createReader(m_resources + "/images");
     toMuch = i->getPicCount() * 2;
     cv::Mat iIShouldBeEmpty = i->getPic(toMuch);
 
@@ -172,7 +171,7 @@ void tst_reader::test_ReadWayToMany()
 
 void tst_reader::test_ReadNegativeIndex()
 {
-    VideoReader* v = new VideoReader(m_resources + "/video.mp4");
+    Reader* v = ReaderFactory::instance().createReader(m_resources + "/video.mp4");
     cv::Mat vIShouldBeEmpty = v->getPic(-1);
 
     cv::Mat empty;
@@ -180,7 +179,7 @@ void tst_reader::test_ReadNegativeIndex()
     cv::compare(vIShouldBeEmpty, empty, equal, CV_HAL_CMP_EQ);
     QVERIFY(equal.empty());
 
-    Reader* i = new ImageReader(m_resources + "/images");
+    Reader* i = ReaderFactory::instance().createReader(m_resources + "/images");
     cv::Mat iIShouldBeEmpty = i->getPic(-1);
 
     cv::Mat newequal;
@@ -191,7 +190,7 @@ void tst_reader::test_ReadNegativeIndex()
 
 void tst_reader::test_CopyImageReader()
 {
-    Reader* i = new ImageReader(m_resources + "/images");
+    Reader* i = ReaderFactory::instance().createReader(m_resources + "/images");
 
     Reader* copy = i->copy();
 
@@ -200,7 +199,7 @@ void tst_reader::test_CopyImageReader()
 
 void tst_reader::test_CopyVideoReader()
 {
-    VideoReader* v = new VideoReader(m_resources + "/video.mp4");
+    Reader* v = ReaderFactory::instance().createReader(m_resources + "/video.mp4");
 
     Reader* copy = v->copy();
 
@@ -216,10 +215,10 @@ void tst_reader::test_GetPic()
 
     int randomFrame = rand() % 61;
 
-    VideoReader* v = new VideoReader(m_resources + "/video.mp4");
+    Reader* v = ReaderFactory::instance().createReader(m_resources + "/video.mp4");
     cv::Mat frame = v->getPic(randomFrame);
 
-    Reader* i = new ImageReader(m_resources + "/images");
+    Reader* i = ReaderFactory::instance().createReader(m_resources + "/images");
     cv::Mat pic = i->getPic(randomFrame);
 
     //Test images are 1 indexed

@@ -3,6 +3,7 @@
 
 #include "itransform.h"
 
+#include <QMap>
 #include <opencv2/video.hpp>
 
 class ITransform_stub : public ITransform

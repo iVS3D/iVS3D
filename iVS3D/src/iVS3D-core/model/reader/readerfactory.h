@@ -32,4 +32,5 @@ Reader *builder(QString path){
 
 #define REGISTER_READER(name, impl) const bool res = ReaderFactory::instance().reg(name, builder<impl>);
 
+
 #endif // READERFACTORY_H

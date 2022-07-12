@@ -1,8 +1,8 @@
 #include <QtTest>
 #include <QCoreApplication>
 
-#include "model/modelinputpictures.h"
-#include "model/DataManager.h"
+#include "modelinputpictures.h"
+#include "DataManager.h"
 #include "view/outputwidget.h"
 #include "controller/exportcontroller.h"
 #include "resourceloader.h"
