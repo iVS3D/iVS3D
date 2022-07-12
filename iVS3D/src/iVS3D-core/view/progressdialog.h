@@ -2,7 +2,7 @@
 #define PROGRESSDIALOG_H
 
 #include <QDialog>
-#include "model/progressdisplay.h"
+#include "progressdisplay.h"
 
 namespace Ui {
 class ProgressDialog;

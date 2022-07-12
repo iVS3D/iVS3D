@@ -3,9 +3,10 @@
 
 #include <QThread>
 #include <opencv2/core.hpp>
-#include "modelalgorithm.h"
+
 #include "reader.h"
 #include "plugin/algorithmmanager.h"
+#include "progressable.h"
 #include "logmanager.h"
 #include "logfile.h"
 

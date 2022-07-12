@@ -1,17 +1,30 @@
-#ifndef GPSREADEREXIF_H
-#define GPSREADEREXIF_H
+#ifndef GPSREADERDJI_H
+#define GPSREADERDJI_H
 
 #include "gpsreader.h"
 #include "metadatamanager.h"
-#include "exif.h"
 #include <QVariant>
+#include <QFile>
+#include <QRegularExpression>
 #include <QPointF>
 
-class GPSReaderExif : public GPSReader
+/**
+ * @interface GPSReaderDJI
+ *
+ * @ingroup Model
+ *
+ * @brief Class to parse meta data from DJI drones
+ *
+ * @author Daniel Brommer
+ *
+ * @date 2022/01/09
+ */
+
+class GPSReaderDJI : public GPSReader
 {
 public:
-    GPSReaderExif();
-    ~GPSReaderExif();
+    GPSReaderDJI();
+    ~GPSReaderDJI();
 
     /**
      * @brief getName Returns name of meta data
@@ -35,14 +48,18 @@ public:
      * @param images Reader with the loaded images
      * @return @a True if meta data have been loaded @a False otherwise
      */
-    bool parseDataImage(std::vector<std::string> paths);
+    bool parseDataVideo(QString path, int picCount, double fps);
+
 
 private:
-    QString m_name = "GPSReaderExif";
+    bool parseLine(QString line);
+    QString m_name = "GPSReaderDJI";
     QString m_path;
     QList<QPointF> m_GPSvalues;
+    QList<QPointF> m_GPSvaluesInterpolated;
+
 };
 
-REGISTER_I("GPSReaderExif", GPSReaderExif)
+REGISTER_METAREADER("GPSReaderDJI", GPSReaderDJI)
 
-#endif // GPSREADEREXIF_H
+#endif // GPSREADERDJI_H

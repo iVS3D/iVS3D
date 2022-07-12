@@ -2,8 +2,7 @@
 #define MODELINPUTPICTURES_H
 
 #include "reader.h"
-#include "imagereader.h"
-#include "videoreader.h"
+#include "readerfactory.h"
 #include "ISerializable.h"
 #include "stringcontainer.h"
 #include "concurrentreader.h"

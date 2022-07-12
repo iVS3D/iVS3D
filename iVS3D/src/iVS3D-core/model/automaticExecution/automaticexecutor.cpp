@@ -1,32 +1,18 @@
 #include "automaticexecutor.h"
 
 
-AutomaticExecutor::AutomaticExecutor(DataManager* dm, AutomaticWidget* autoWidget, AutomaticExecSettings* autoSettings, ExportController* exportController)
-    :m_dm(dm), m_autoWidget(autoWidget), m_autoSettings(autoSettings), m_exportController(exportController)
+AutomaticExecutor::AutomaticExecutor(DataManager* dm, AutomaticExecSettings* autoSettings)
+    :m_dm(dm), m_autoSettings(autoSettings)
 
 {
-    m_algoExec = new AlgorithmExecutor(m_dm);
-    m_algorithmProgressDialog = nullptr;
-    // only ui
-    connect(autoWidget, &AutomaticWidget::sig_startAutomaticExec, this, &AutomaticExecutor::slot_startAutomaticExec);
-
+//    m_algoExec = new AlgorithmExecutor(m_dm->getModelInputPictures());
     // prevents conflicts with concurrent access from ui
     emit sig_stopPlay();
-
-    // connects for displaying information
-    if (qApp->property(stringContainer::UIIdentifier).toBool()) {
-        // ui is active
-        if(m_autoWidget) {
-            m_autoWidget->setEnabled(true);
-        }
-    }
 }
 
 AutomaticExecutor::~AutomaticExecutor()
 {
-    if(m_autoWidget) {
-        m_autoWidget->setEnabled(false);
-    }
+
 }
 
 void AutomaticExecutor::startMultipleAlgo(QList<QPair<QString, QMap<QString, QVariant>>> algoList, int step)
@@ -65,6 +51,11 @@ bool AutomaticExecutor::isFinished()
     return m_isFinished;
 }
 
+void AutomaticExecutor::setExportController(ExportController *exportController)
+{
+    m_exportController = exportController;
+}
+
 void AutomaticExecutor::slot_startAutomaticExec()
 {
     m_step = 0;
@@ -72,20 +63,8 @@ void AutomaticExecutor::slot_startAutomaticExec()
     m_pluginOrder = m_autoSettings->getPluginList();
     m_stepCount = m_pluginOrder.size();
     if (m_stepCount != 0) {
-        m_algoExec = new AlgorithmExecutor(m_dm);
-        if (qApp->property(stringContainer::UIIdentifier).toBool()) {
-            m_algorithmProgressDialog = new ProgressDialog(m_autoWidget, true);
-            connect(m_algoExec, &AlgorithmExecutor::sig_progress, m_algorithmProgressDialog, &ProgressDialog::slot_displayProgress);
-            connect(m_algoExec, &AlgorithmExecutor::sig_message, m_algorithmProgressDialog, &ProgressDialog::slot_displayMessage);
-            connect(m_algorithmProgressDialog, &ProgressDialog::sig_abort, m_algoExec, &AlgorithmExecutor::slot_abort);
-            m_algorithmProgressDialog->setSizeGripEnabled(false);
-            m_algorithmProgressDialog->show();
-        } else {
-            // terminal is active
-            m_terminal = &TerminalInteraction::instance();
-            connect(m_algoExec,&AlgorithmExecutor::sig_progress, m_terminal, &TerminalInteraction::slot_displayProgress);
-            connect(m_algoExec, &AlgorithmExecutor::sig_message, m_terminal, &TerminalInteraction::slot_displayMessage);
-        }
+        m_algoExec = new AlgorithmExecutor(m_dm->getModelInputPictures());
+        emit sig_createProgress(m_algoExec);
         startMultipleAlgo(m_pluginOrder, 0);
     }
 
@@ -104,17 +83,15 @@ void AutomaticExecutor::slot_samplingFinished()
     else {
         // cleanup because every step of the batch processing is down now
         emit sig_hasStatusMessage("Finished " + QString::number(m_stepCount) + " sampling algorithms");
-        if (m_algorithmProgressDialog) {
-           m_algorithmProgressDialog->close();
-        }
+
         //Reset the algoExecutor and the progressDialog
+        emit sig_deleteProgress();
         if (m_algoExec) {
             delete m_algoExec;
             m_algoExec = nullptr;
         }
         disconnect(m_exportController, &ExportController::sig_exportFinished, this, &AutomaticExecutor::slot_samplingFinished);
-        delete m_algorithmProgressDialog;
-        m_algorithmProgressDialog = nullptr;
+
         m_step = 0;
         m_isFinished = true;
 
@@ -124,9 +101,7 @@ void AutomaticExecutor::slot_samplingFinished()
 void AutomaticExecutor::slot_algoAbort()
 {
     emit sig_hasStatusMessage("Aborted batch processing");
-    if (m_algorithmProgressDialog) {
-       m_algorithmProgressDialog->close();
-    }
+    emit sig_deleteProgress();
     m_step = 0;
 }
 
@@ -160,9 +135,7 @@ void AutomaticExecutor::executeExport(QMap<QString, QVariant> settings)
 {
     //dont use ui, if command line is active
     if (qApp->property(stringContainer::UIIdentifier).toBool()) {
-        if (m_algorithmProgressDialog) {
-           m_algorithmProgressDialog->close();
-        }
+        emit sig_deleteProgress();
         m_exportController->setOutputSettings(settings);
         connect(m_exportController, &ExportController::sig_exportFinished, this, &AutomaticExecutor::slot_samplingFinished);
         m_exportController->slot_export();
@@ -171,7 +144,7 @@ void AutomaticExecutor::executeExport(QMap<QString, QVariant> settings)
         if (m_exportRunner) {
             delete m_exportRunner;
         }
-        m_exportRunner = new noUIExport(settings, m_dm);
+        m_exportRunner = new noUIExport(this, settings, m_dm);
         connect(m_exportRunner, &noUIExport::sig_exportFinished, this, &AutomaticExecutor::slot_samplingFinished, Qt::DirectConnection);
         m_exportRunner->runExport();
     }

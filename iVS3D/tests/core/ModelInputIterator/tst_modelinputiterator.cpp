@@ -5,7 +5,7 @@
 #include "resourceloader.h"
 #include "controller/modelinputiteratorfactory.h"
 #include "controller/ModelInputIterator.h"
-#include "model/modelinputpictures.h"
+#include "modelinputpictures.h"
 #include "controller/imageiterator.h"
 #include "controller/keyframeiterator.h"
 

@@ -13,6 +13,9 @@ QT += core gui widgets
 INCLUDEPATH += \
     ../iVS3D-core \
     ../iVS3D-core/model \
+    ../iVS3D-core/model/reader \
+    ../iVS3D-core/model/metaData \
+    ../iVS3D-core/model/log \
     ../iVS3D-core/plugin
 
 SOURCES +=

@@ -19,15 +19,8 @@ include(../../../3rdparty.pri)
 include(../../resourceloader.pri)
 DEFINES += TEST_RESOURCES=\"\\\"$${TEST_RESOURCES_PATH}\\\"\"
 
-# files to test
-INCLUDEPATH += \
-    $$IVS_SRC_PATH/iVS3D-core/model
-
-HEADERS += \
-    $$IVS_SRC_PATH/iVS3D-core/model/applicationsettings.h \
-    $$IVS_SRC_PATH/iVS3D-core/model/stringcontainer.h
-
-SOURCES += \
-    $$IVS_SRC_PATH/iVS3D-core/model/applicationsettings.cpp \
-    $$IVS_SRC_PATH/iVS3D-core/model/stringcontainer.cpp
-
+unix {
+ !include( ../../../setrpath.pri) {
+   message("Cannot find setrpath.pri!")
+ }
+}

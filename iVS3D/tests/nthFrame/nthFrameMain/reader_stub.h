@@ -12,6 +12,7 @@ public:
     unsigned int getPicCount();
     QString getInputPath() { throw "not implemented"; };
     double getFPS();
+    bool isValid() { throw "not implemented"; };
     double getVideoDuration() { throw "not implemented"; };
     virtual bool isDir() { throw "not implemented"; };
     virtual Reader *copy() { throw "not implemented"; };

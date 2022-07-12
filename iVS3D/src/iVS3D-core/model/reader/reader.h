@@ -3,7 +3,6 @@
 
 #include <QObject>
 #include <opencv2/core.hpp>
-#include "progressable.h"
 #include "metadata.h"
 
 /**
@@ -21,7 +20,6 @@
 class Reader
 {
 public:
-
     /**
      * @brief Returns the frame to a given index
      *
@@ -93,6 +91,11 @@ public:
      * @return The currently saved MetaData
      */
     virtual MetaData* getMetaData() = 0;
+    /**
+     * @brief isValid Retruns wether the reader is valid or not
+     * @return @a true if the reader is valid, @a false otherwise
+     */
+    virtual bool isValid() = 0;
 
 };
 

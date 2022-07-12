@@ -2,7 +2,7 @@
 #define PROGRESSWIDGET_H
 
 #include <QWidget>
-#include "model/progressdisplay.h"
+#include "progressdisplay.h"
 
 namespace Ui {
 class ProgressWidget;
@@ -18,7 +18,7 @@ class ProgressWidget;
  *
  * @date 2021/04/14
  */
-class ProgressWidget : public QWidget, ProgressDisplay
+class ProgressWidget : public QWidget,  ProgressDisplay
 {
     Q_OBJECT
 

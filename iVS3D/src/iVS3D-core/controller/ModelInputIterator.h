@@ -1,7 +1,7 @@
 #ifndef MODELINPUTITERATOR_H
 #define MODELINPUTITERATOR_H
 
-#include "model/modelinputpictures.h"
+#include "modelinputpictures.h"
 
 /**
  * @interface ModelInputIterator

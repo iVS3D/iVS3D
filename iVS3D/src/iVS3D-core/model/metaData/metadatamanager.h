@@ -2,8 +2,8 @@
 #define METADATAMANAGER_H
 
 #include "metadata.h"
-#include "reader.h"
 #include <QObject>
+#include <functional>
 
 
 typedef std::function<MetaDataReader *()> AbstractBuilder;
@@ -23,7 +23,6 @@ typedef std::function<MetaDataReader *()> AbstractBuilder;
 class MetaDataManager : public MetaData
 {
 public:
-    MetaDataManager();
 
     static MetaDataManager &instance(){
         static MetaDataManager INSTANCE;
@@ -35,13 +34,13 @@ public:
      * @param paths Paths to the selected meta data files
      * @param images Reader with the currently loaded images
      */
-    void initMetaDataVideo(QStringList paths, Reader* images);
+    void initMetaDataVideo(QStringList paths, uint picCount, double fps);
 
     /**
      * @brief initMetaData tries to load all known MetaDataReader with the meta data given by the paths
      * @param images Reader with the currently loaded images
      */
-    void initMetaDataImages(Reader* images);
+    void initMetaDataImages(std::vector<std::string> fileVector);
 
     /**
      * @brief availableMetaData returns a List of the names of all MetaDataReader whichs have loaded meta data
@@ -76,6 +75,7 @@ private:
     QStringList m_uniquePaths;
     QList<MetaDataReader*> m_parsedMetaReader;
     std::map<std::string, AbstractBuilder> m_availablerReader;
+    MetaDataManager();
 
 };
 
@@ -84,6 +84,6 @@ MetaDataReader *builder(){
     return new Implementation();
 }
 
-#define REGISTER_I(name, impl) const bool res = MetaDataManager::instance().reg(name, builder<impl>);
+#define REGISTER_METAREADER(name, impl) const bool res = MetaDataManager::instance().reg(name, builder<impl>);
 
 #endif // METADATAMANAGER_H

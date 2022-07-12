@@ -7,13 +7,9 @@
 #include <QFile>
 #include <QJsonDocument>
 
-
-#include "view/automaticwidget.h"
-#include "view/samplingwidget.h"
 #include "controller/exportcontroller.h"
-#include "view/exportwidget.h"
 #include "plugin/algorithmmanager.h"
-#include "model/applicationsettings.h"
+
 
 
 /**
@@ -38,7 +34,7 @@ public:
      * @param samplingWidget Pointer to the SamplingWidget
      * @param outputWidget Pointer to the OutputWidget
      */
-    AutomaticExecSettings(AutomaticWidget* autoWidget, SamplingWidget* samplingWidget, OutputWidget* outputWidget);
+    AutomaticExecSettings();
     /**
      * @brief getPluginList Returns the current automatic settings
      * @return QList with QPairs. First in the pair is name of the algorithm, second is a QMap with its settings
@@ -54,6 +50,11 @@ public:
      * @param exportController Pointer to the ExportController
      */
     void setExportController(ExportController* exportController);
+    /**
+     * @brief loadPluginList Actually loads the settings from the given file
+     * @param path Path to the JSON file
+     */
+    void loadPluginList(QString path);
 
 public slots:
     /**
@@ -72,18 +73,14 @@ public slots:
      */
     void slot_removedPlugin(int row);
     /**
-     * @brief slot_saveConfiguration Connected to the AutomaticWidget, called to save the current settings to a JSON file
+     * @brief slot_saveConfiguration Connected to the AutomaticController, called to save the current settings to a JSON file
      */
-    void slot_saveConfiguration();
+    void slot_saveConfiguration(QString path);
     /**
-     * @brief slot_loadConfiguration Connected to the AutomaticWidget, called to load a existing JSON file via a file dialog
+     * @brief slot_loadConfiguration Connected to the AutomaticController, called to load a existing JSON file
      */
-    void slot_loadConfiguration();
-    /**
-     * @brief loadPluginList Actually loads the settings from the given file
-     * @param path Path to the JSON file
-     */
-    void loadPluginList(QString path);
+    void slot_loadConfiguration(QString path);
+
     /**
      * @brief slot_doubleClickedItem Connected to the AutomaticWidget, called when a algorithm is double clicked to show its settings on the ui
      * @param row Index of the clicked algorithm
@@ -102,18 +99,24 @@ signals:
      * @param exportSettings Settings of the export
      */
     void sig_showExportSettings(QMap<QString, QVariant> exportSettings);
+    /**
+     * @brief sig_setAlgorithm Emitted to set the currently shown algorithm on the SamplingWidget
+     * @param index
+     */
+    void sig_setAlgorithm(int index);
+    /**
+     * @brief sig_updatedSelectedPlugins Emitted to set the currently shown plugin list on the AutomaticWidget
+     * @param usedPlugins QStringList with the plugins
+     */
+    void sig_updatedSelectedPlugins(QStringList usedPlugins);
 
 
 private:
     //algoList maps the plugin name with its selected settings
     QList<QPair<QString, QMap<QString, QVariant>>> m_algoList;
-    AutomaticWidget* m_autoWidget = nullptr;
-    SamplingWidget* m_samplingWidget = nullptr;
-    ExportWidget* m_exportWidget = nullptr;
-    OutputWidget* m_outputWidget = nullptr;
+
     ExportController* m_exportController = nullptr;
 
-    void savePluginList(QString path);
     void updateShownAlgoList();
 
 };

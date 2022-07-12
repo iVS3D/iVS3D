@@ -1,7 +1,7 @@
 #include <QtTest>
 #include <QCoreApplication>
 
-#include "model/DataManager.h"
+#include "DataManager.h"
 #include "controller/videoplayercontroller.h"
 #include "view/timeline.h"
 #include "view/videoplayer.h"

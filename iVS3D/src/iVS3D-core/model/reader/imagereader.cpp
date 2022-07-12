@@ -2,6 +2,11 @@
 
 ImageReader::ImageReader(QString path)
 {
+    QFileInfo fileInfo(path);
+    if (!fileInfo.isDir()) {
+        m_isValid = false;
+        return;
+    }
     QDir dir(path);
     QStringList filters;
     filters << "*.png" << "*.bmp" << "*.jpeg" << "*.jpg";
@@ -24,6 +29,9 @@ ImageReader::ImageReader(QString path)
     }
     m_numImages = static_cast<int>(m_filePaths.size());
     m_folderPath = path.toStdString();
+    if (m_numImages > 0) {
+        m_isValid = true;
+    }
 }
 
 cv::Mat ImageReader::getPic(unsigned int index, bool)
@@ -58,7 +66,7 @@ QString ImageReader::getInputPath()
 
 bool ImageReader::isDir()
 {
-    return true;
+    return m_isValid;
 }
 
 std::vector<std::string> ImageReader::getFileVector()
@@ -84,6 +92,11 @@ void ImageReader::addMetaData(MetaData *md)
 MetaData *ImageReader::getMetaData()
 {
     return m_md;
+}
+
+bool ImageReader::isValid()
+{
+    return m_isValid;
 }
 
 ImageReader::ImageReader()

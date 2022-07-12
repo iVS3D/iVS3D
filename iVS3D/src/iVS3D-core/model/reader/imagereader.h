@@ -1,6 +1,7 @@
 #ifndef IMAGEREADER_H
 #define IMAGEREADER_H
 
+#include "readerfactory.h"
 #include "reader.h"
 #include <QObject>
 #include <opencv2/core.hpp>
@@ -86,13 +87,21 @@ public:
      * @return The currently saved MetaData
      */
     MetaData* getMetaData() override;
+    /**
+     * @brief isValid Retruns wether the reader is valid or not
+     * @return @a true if the reader is valid, @a false otherwise
+     */
+    bool isValid() override;
 
 private:
     ImageReader();
     std::vector<std::string> m_filePaths;
     unsigned int m_numImages = 0;
     std::string m_folderPath;
+    bool m_isValid = false;
 
     MetaData* m_md = nullptr;
 };
+
+REGISTER_READER("ImageReader", ImageReader)
 #endif // IMAGEREADER_H

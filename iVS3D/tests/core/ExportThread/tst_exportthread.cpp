@@ -2,9 +2,9 @@
 #include <QCoreApplication>
 #include <opencv2/core.hpp>
 
-#include "model/modelinputpictures.h"
-#include "model/exportthread.h"
-#include "model/logfile.h"
+#include "modelinputpictures.h"
+#include "exportthread.h"
+#include "logfile.h"
 #include "itransform_stub.h"
 #include "resourceloader.h"
 

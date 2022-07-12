@@ -6,7 +6,7 @@
 
 #include "plugin/algorithmmanager.h" //used to emit signal that index has changed
 
-#include "model/DataManager.h"  // used to access image data for displaying and manipulation
+#include "DataManager.h"  // used to access image data for displaying and manipulation
 
 #include "view/videoplayer.h"   // used to display images
 #include "view/timeline.h"      // used to visualize keyframe distribution

@@ -6,6 +6,12 @@ VideoReader::VideoReader(const QString &path) : m_path(path.toUtf8().constData()
     m_numImages = prev.get(cv::CAP_PROP_FRAME_COUNT) - 1;
     m_fps = prev.get(cv::CAP_PROP_FPS);
     m_cap = prev;
+    if (m_numImages > 0) {
+        m_isValid = true;
+    }
+    else {
+        m_isValid = false;
+    }
 }
 
 VideoReader::~VideoReader()
@@ -41,7 +47,10 @@ MetaData *VideoReader::getMetaData()
     return m_md;
 }
 
-
+bool VideoReader::isValid()
+{
+    return m_isValid;
+}
 
 
 cv::Mat VideoReader::getPic(unsigned int index, bool useMultipleAccess)

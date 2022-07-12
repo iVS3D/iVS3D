@@ -14,21 +14,18 @@ void ModelInputPictures::setResolution() {
 
 ModelInputPictures::ModelInputPictures(QString inputPath)
 {
-    m_metaDataManager = new MetaDataManager();
-    std::string path = inputPath.toUtf8().constData();
-    if(cv::utils::fs::isDirectory(path)) {
-        m_reader = new ImageReader(inputPath);
-        //Always try to load meta data when images are imported
-        loadMetaDataImages();
-    }
-    else {
-        m_reader = new VideoReader(inputPath);
+    m_metaDataManager = &MetaDataManager::instance();
+    m_reader = ReaderFactory::instance().createReader(inputPath);
+
+    if (m_reader == nullptr) {
+        return;
     }
 
     if(m_reader->getPicCount() > 0) {
 		setResolution();
         m_inputPath = inputPath;
     }
+
     m_boundaries = QPoint(0,m_reader->getPicCount()-1);
 }
 
@@ -116,6 +113,9 @@ unsigned int ModelInputPictures::getKeyframeCount(){
 }
 
 unsigned int ModelInputPictures::getPicCount(){
+    if (m_reader == nullptr) {
+        return 0;
+    }
     return m_reader->getPicCount();
 }
 
@@ -193,13 +193,10 @@ void ModelInputPictures::fromText(QVariant data)
     QJsonObject jsonData = data.toJsonObject();
     //get import part, create new reader and set resolution
     QJsonObject::Iterator inputPath = jsonData.find(stringContainer::inputPathIdentifier);
-    if (cv::utils::fs::isDirectory(inputPath.value().toString().toStdString())) {
-        m_reader = new ImageReader(inputPath.value().toString());
-    }
-    else {
-        m_reader = new VideoReader(inputPath.value().toString());
-    }
     m_inputPath = inputPath.value().toString();
+    m_reader = ReaderFactory::instance().createReader(m_inputPath);
+
+
     if (m_reader->getPicCount() != 0) {
         setResolution();
         m_boundaries = QPoint(0,m_reader->getPicCount() -1);
@@ -225,7 +222,7 @@ void ModelInputPictures::setBoundaries(QPoint boundaries)
 int ModelInputPictures::loadMetaData(QStringList paths)
 {
     int oldMetaCount = m_metaDataManager->availableMetaData().size();
-    m_metaDataManager->initMetaDataVideo(paths, m_reader);
+    m_metaDataManager->initMetaDataVideo(paths, m_reader->getPicCount(), m_reader->getFPS());
     m_reader->addMetaData(m_metaDataManager);
     int metaDataLoaded =  m_metaDataManager->availableMetaData().size() - oldMetaCount;
     if (metaDataLoaded > 0) {
@@ -236,7 +233,7 @@ int ModelInputPictures::loadMetaData(QStringList paths)
 
 int ModelInputPictures::loadMetaDataImages()
 {
-    m_metaDataManager->initMetaDataImages(m_reader);
+    m_metaDataManager->initMetaDataImages(m_reader->getFileVector());
     m_reader->addMetaData(m_metaDataManager);
     int metaDataLoaded = m_metaDataManager->availableMetaData().size();
     if (metaDataLoaded > 0) {
