@@ -5,7 +5,7 @@ AutomaticExecutor::AutomaticExecutor(DataManager* dm, AutomaticExecSettings* aut
     :m_dm(dm), m_autoSettings(autoSettings)
 
 {
-    m_algoExec = new AlgorithmExecutor(m_dm->getModelInputPictures());
+//    m_algoExec = new AlgorithmExecutor(m_dm->getModelInputPictures());
     // prevents conflicts with concurrent access from ui
     emit sig_stopPlay();
 }
