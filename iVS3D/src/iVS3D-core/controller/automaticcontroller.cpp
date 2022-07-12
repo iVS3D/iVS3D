@@ -104,11 +104,6 @@ void AutomaticController::disableAutoWidget()
     m_autoWidget->setEnabled(false);
 }
 
-AutomaticExecSettings *AutomaticController::autoExecSettings()
-{
-    return m_autoExecSettings;
-}
-
 void AutomaticController::setExporController(ExportController* exCon) {
     m_autoExecSettings->setExportController(exCon);
     m_autoExec->setExportController(exCon);

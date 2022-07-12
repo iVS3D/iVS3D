@@ -36,11 +36,6 @@ public:
      */
     explicit AutomaticController(OutputWidget* outputWidget, AutomaticWidget* autoWidget, SamplingWidget* samplingWidget, DataManager* dm);
     /**
-     * @brief autoExecSettings Getter for AutoExecSettings
-     * @return AutoExecSettings
-     */
-    AutomaticExecSettings *autoExecSettings();
-    /**
      * @brief autoExec Getter for AutoExec
      * @return AutoExec
      */
