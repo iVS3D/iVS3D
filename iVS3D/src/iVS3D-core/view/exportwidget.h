@@ -5,7 +5,7 @@
 #include <QFileDialog>
 #include <QCheckBox>
 
-#include "model/applicationsettings.h" // used to determin text color depending on GUI style
+#include "applicationsettings.h" // used to determin text color depending on GUI style
 
 namespace Ui {
 class ExportWidget;

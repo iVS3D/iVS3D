@@ -1,12 +1,12 @@
 #ifndef AUTOMATICCONTROLLER_H
 #define AUTOMATICCONTROLLER_H
 
-#include "model/automaticexecsettings.h"
-#include "view/automaticwidget.h"
-#include "view/outputwidget.h"
-#include "view/samplingwidget.h"
-#include "view/progressdialog.h"
-#include "model/automaticexecutor.h"
+#include "automaticexecsettings.h"
+#include "automaticwidget.h"
+#include "outputwidget.h"
+#include "samplingwidget.h"
+#include "progressdialog.h"
+#include "automaticexecutor.h"
 #include <QObject>
 
 

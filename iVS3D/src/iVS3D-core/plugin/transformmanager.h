@@ -3,7 +3,7 @@
 
 #include "itransform.h"
 #include "itransformrequestdequeue.h"
-#include "model/stringcontainer.h"
+#include "stringcontainer.h"
 #include <QWidget>
 
 

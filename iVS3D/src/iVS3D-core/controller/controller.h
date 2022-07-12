@@ -8,11 +8,11 @@
  * @brief manages interaction between model and view.
  */
 
-#include "model/DataManager.h"
-#include "model/openexecutor.h"
-#include "model/applicationsettings.h"
-#include "model/automaticexecutor.h"
-#include "model/automaticexecsettings.h"
+#include "DataManager.h"
+#include "openexecutor.h"
+#include "applicationsettings.h"
+#include "automaticexecutor.h"
+#include "automaticexecsettings.h"
 
 #include "view/mainwindow.h"
 #include "view/progressdialog.h"

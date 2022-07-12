@@ -7,8 +7,8 @@
 #include <QTimer>
 #include <QElapsedTimer>
 
-#include "model/DataManager.h"
-#include "model/algorithmexecutor.h"
+#include "DataManager.h"
+#include "algorithmexecutor.h"
 
 #include "view/progressdialog.h"
 #include "view/samplingwidget.h"

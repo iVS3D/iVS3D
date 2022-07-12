@@ -1,17 +1,17 @@
 #ifndef EXPORTCONTROLLER_H
 #define EXPORTCONTROLLER_H
 
-#include "model/DataManager.h"
-#include "model/applicationsettings.h"
-#include "model/exportexecutor.h"
+#include "DataManager.h"
+#include "applicationsettings.h"
+#include "exportexecutor.h"
 #include "view/outputwidget.h"
 #include "view/reconstructdialog.h"
 #include "view/cropexport.h"
 #include "view/emptyfolderdialog.h"
 #include "plugin/transformmanager.h"
-#include "model/logfile.h"
-#include "model/logmanager.h"
-#include "model/stringcontainer.h"
+#include "logfile.h"
+#include "logmanager.h"
+#include "stringcontainer.h"
 
 #include <QObject>
 #include <QDebug>
