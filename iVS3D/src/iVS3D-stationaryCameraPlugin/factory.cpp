@@ -1,68 +1,64 @@
 #include "factory.h"
 
-Factory::Factory(std::vector<uint> futureFrames, Reader *reader, double downSampleFactor, bool useCuda)
+std::tuple<ImageGatherer *, FlowCalculator *, KeyframeSelector *>
+Factory::createComponents(std::vector<uint> futureFrames,
+                          Reader *reader,
+                          double downSampleFactor,
+                          bool useCuda,
+                          QString selectorName,
+                          KeyframeSelector::Settings selectorSettings)
 {
-    setup(futureFrames, reader, downSampleFactor, useCuda);
+    ImageGatherer *ig = createImageGatherer(futureFrames, reader, downSampleFactor, useCuda);
+    FlowCalculator *fc = createFlowCalculator(useCuda);
+    KeyframeSelector *ks = createKeyframeSelector(selectorName, selectorSettings);
+    return std::tuple<ImageGatherer *, FlowCalculator *, KeyframeSelector *>(ig, fc, ks);
 }
 
-void Factory::setup(std::vector<uint> futureFrames, Reader *reader, double downSampleFactor, bool useCuda)
+QMap<QString, KeyframeSelector::Settings> Factory::getAllSelectors()
 {
-    m_futureFrames = futureFrames;
-    m_reader = reader;
-    m_downSampleFactor = downSampleFactor;
-    m_type = useCuda ? CUDA : CPU;
-
-    // create new hardware specific object because the parameters may changed
-    if (m_specificFlowCalculator) {
-        delete m_specificFlowCalculator;
-        m_specificFlowCalculator = nullptr;
+    // returns the m_available map without the AbstractKeyframeSelector entry
+    QMap<QString, KeyframeSelector::Settings> selectorPairList;
+    for (QString name : m_availableSelectors.keys()) {
+        selectorPairList.insert(name, m_availableSelectors.value(name).second);
     }
-    if (m_specificImageGatherer) {
-        delete m_specificImageGatherer;
-        m_specificImageGatherer = nullptr;
-    }
-    m_specificFlowCalculator = createFlowCalculator(m_type);
-    m_specificImageGatherer = createImageGatherer(m_type);
+    return selectorPairList;
 }
 
-ImageGatherer *Factory::getImageGatherer()
+bool Factory::reg(QString selectorName, AbstractKeyframeSelector builder, KeyframeSelector::Settings selectorSettings)
 {
-    if (!m_specificImageGatherer) {
-        m_specificImageGatherer = createImageGatherer(m_type);
-    }
-    return  m_specificImageGatherer;
+    auto iter = m_availableSelectors.insert(selectorName, QPair<AbstractKeyframeSelector, KeyframeSelector::Settings>(builder, selectorSettings));
+    return iter != m_availableSelectors.end();
 }
 
-FlowCalculator *Factory::getFlowCalculator()
+Factory::Factory()
 {
-    if (!m_specificFlowCalculator) {
-        m_specificFlowCalculator = createFlowCalculator(m_type);
-    }
-    return m_specificFlowCalculator;
+
 }
 
-ImageGatherer *Factory::createImageGatherer(int type)
+ImageGatherer *Factory::createImageGatherer(std::vector<uint> futureFrames, Reader *reader, double downSampleFactor, bool useCuda)
 {
-    if (type == CPU) {
-        return new ImageGathererCpu(m_reader, m_downSampleFactor, m_futureFrames);
-    } else if (type == CUDA) {
+    if (useCuda) {
 #ifdef WITH_CUDA
-        return new ImageGathererCuda(m_reader, m_downSampleFactor, m_futureFrames);
+        return new ImageGathererCuda(reader, downSampleFactor, futureFrames);
 #endif
     } else {
-        return nullptr;
+        return new ImageGathererCpu(reader, downSampleFactor, futureFrames);
     }
 }
 
-FlowCalculator *Factory::createFlowCalculator(int type)
+FlowCalculator *Factory::createFlowCalculator(bool useCuda)
 {
-    if (type == CPU) {
-        return new FlowCalculatorCpu();
-    } else if (type == CUDA) {
+    if (useCuda) {
 #ifdef WITH_CUDA
         return new FlowCalculatorCuda();
 #endif
     } else {
-        return nullptr;
+        return new FlowCalculatorCpu();
     }
+}
+
+KeyframeSelector *Factory::createKeyframeSelector(QString name, KeyframeSelector::Settings settings)
+{
+    AbstractKeyframeSelector abstractSelector = m_availableSelectors.find(name)->first;
+    return abstractSelector(settings);
 }
