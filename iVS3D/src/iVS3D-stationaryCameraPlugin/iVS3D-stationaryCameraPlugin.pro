@@ -37,6 +37,7 @@ SOURCES += \
     flowcalculatorcpu.cpp \
     imagegatherer.cpp \
     imagegatherercpu.cpp \
+    movementfactor.cpp \
     optflowcontroller.cpp \
     staticselector.cpp
 
@@ -48,6 +49,7 @@ HEADERS += \
     imagegatherer.h \
     imagegatherercpu.h \
     keyframeselector.h \
+    movementfactor.h \
     optflowcontroller.h \
     staticselector.h
 
