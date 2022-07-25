@@ -3,11 +3,13 @@
 
 #include <QObject>
 #include <reader.h>
+#include <tuple>
 
 #include "imagegatherer.h"
 #include "imagegatherercpu.h"
 #include "flowcalculator.h"
 #include "flowcalculatorcpu.h"
+#include "keyframeselector.h"
 
 #ifdef WITH_CUDA
 #include "imagegatherercuda.h"
@@ -16,6 +18,8 @@
 
 #define CUDA 0
 #define CPU 1
+
+typedef std::function<KeyframeSelector *(KeyframeSelector::Settings)> AbstractKeyframeSelector;
 
 /**
  * @class Factory
@@ -33,44 +37,49 @@
 class Factory
 {
 public:
+    static Factory &instance() {
+        static Factory INSTANCE = Factory();
+        return INSTANCE;
+    }
     /**
-     * @brief Factory Constructors sets all parameters that are required to construct both objects
+     * @brief createComponents creates all neccessary components for the sample process (ImageGatherer, FlowCalculator, KeyframeSelector)
      * @param futureFrames as list of all frames that will be requested from the imageGatherer in the future
      * @param reader is the object which the imageGatherer uses to extract the images
      * @param downSampleFactor is a double value which specifies how much the input image will be sampled down
      * @param useCuda defines the implementation which should be used (CPU or CUDA)
+     * @param selectorName name of the selected KeyframeSelector
+     * @param selectorSettings parameters from ui, which will be used to select Keyframes
+     * @return as an std::tuple containing one of each components {ImageGatherer, FlowCalculator, KeyframeSelector}
      */
-    Factory(std::vector<uint> futureFrames, Reader *reader, double downSampleFactor, bool useCuda);
+    std::tuple<ImageGatherer *, FlowCalculator *, KeyframeSelector *>
+    createComponents(std::vector<uint> futureFrames,
+                     Reader *reader,
+                     double downSampleFactor,
+                     bool useCuda,
+                     QString selectorName,
+                     KeyframeSelector::Settings selectorSettings);
     /**
-     * @brief setup can be used to change the parameters which are required to construct both objects
-     * @param futureFrames as list of all frames that will be requested from the imageGatherer in the future
-     * @param reader is the object which the imageGatherer uses to extract the images
-     * @param downSampleFactor is a double value which specifies how much the input image will be sampled down
-     * @param useCuda defines the implementation which should be used (CPU or CUDA)
+     * @brief getAllSelectors returns a map which includes name and default settings for every available KeyframeSelector
+     * @return is a QMap the name of the selector as its key, while the value represents the default settings
      */
-    void setup(std::vector<uint> futureFrames, Reader *reader, double downSampleFactor, bool useCuda);
-    /**
-     * @brief getImageGatherer Getter for ImageGatherer object
-     * @return Pointer to ImageGatherer object
-     */
-    ImageGatherer* getImageGatherer();
-    /**
-     * @brief getFlowCalculator Getter for FlowCalculator object
-     * @return Pointer to FlowCalculator object
-     */
-    FlowCalculator* getFlowCalculator();
+    QMap<QString, KeyframeSelector::Settings> getAllSelectors();
+
+    bool reg(QString selectorName, AbstractKeyframeSelector builder, KeyframeSelector::Settings selectorSettings);
 
 private:
-    ImageGatherer* createImageGatherer(int type);
-    FlowCalculator *createFlowCalculator(int type);
+    Factory();
+    ImageGatherer *createImageGatherer(std::vector<uint> futureFrames, Reader *reader, double downSampleFactor, bool useCuda);
+    FlowCalculator *createFlowCalculator(bool useCuda);
+    KeyframeSelector *createKeyframeSelector(QString name, KeyframeSelector::Settings settings);
     // member variables
-    ImageGatherer *m_specificImageGatherer = nullptr;
-    FlowCalculator *m_specificFlowCalculator = nullptr;
-    std::vector<uint> m_futureFrames = {};
-    Reader *m_reader = nullptr;
-    double m_downSampleFactor = 1.0f;
-    int m_type = CPU;
-
+    QMap<QString, QPair<AbstractKeyframeSelector, KeyframeSelector::Settings>> m_availableSelectors;
 };
+
+template<typename Implementaion>
+KeyframeSelector *builder(KeyframeSelector::Settings settings) {
+    return new Implementaion(settings);
+}
+
+#define REGISTER_SELECTOR(name, impl, settings) const bool res = Factory::instance().reg(name, builder<impl>, settings);
 
 #endif // FACTORY_H

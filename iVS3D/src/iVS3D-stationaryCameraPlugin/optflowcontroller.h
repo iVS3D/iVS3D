@@ -19,6 +19,7 @@
 #include <QLabel>
 #include <QDoubleSpinBox>
 #include <QPushButton>
+#include <QComboBox>
 #include <opencv2/core/mat.hpp>
 #include <iostream>
 #include <iomanip>
@@ -38,11 +39,13 @@
 
 #define PLUGIN_NAME "Stationary Camera Detection"
 // widget
-#define THRESHOLD_LABEL_TEXT "Stationary camera threshold"
-#define DESCRIPTION_THRESHOLD "If the rotation between two frames differs more than the defind percentage of the median rotation in the given frame sequence it is declared stationary."
+#define SELECTOR_DROPDOWN "Mode"
 #define DOWNSAMPLE_LABEL_TEXT "Sampling resolution"
 #define DOWNSAMPLE_CHECKBOX_TEXT "Activate down sampling"
 #define DESCRIPTION_DOWNSAMPLE "If enabled a resolution of 720p will be used for the algorithm to speed up computation. This however will hurt the accuracy of the result slightly. It however won't change the export resolution. This parameter will be disabled if the input resolution is lower or equal than 720p."
+#define RESET_BT_TEXT "Reset Buffer"
+#define RESET_TEXT_PRE "Clears all already stored flow values. There are "
+#define RESET_TEXT_SUF " flow values currently buffered."
 #define DESCRIPTION_STYLE "color: rgb(58, 58, 58); border-left: 6px solid  rgb(58, 58, 58); border-top-right-radius: 5px; border-bottom-right-radius: 5px; background-color: lightblue;"
 #define INFO_STYLE "color: rgb(58, 58, 58); border-left: 6px solid  rgb(58, 58, 58); border-top-right-radius: 5px; border-bottom-right-radius: 5px; background-color: lightGreen;"
 // buffer
@@ -50,11 +53,9 @@
 #define DELIMITER_COORDINATE "|"
 #define DELIMITER_ENTITY ","
 // settings
-#define SETTINGS_THRESHOLD "Stationary threshold"
 #define SETTINGS_SAMPLE_RESOLUTION "Sample resolution"
-#define RESET_BT_TEXT "Reset Buffer"
-#define RESET_TEXT_PRE "Clears all already stored flow values. There are "
-#define RESET_TEXT_SUF " flow values currently buffered."
+#define SETTINGS_SELECTOR_NAME "Selector name"
+#define SETTINGS_SELECTOR_SETTINGS "Selector settings"
 // log file
 #define LF_OPT_FLOW_TOTAL "Flow calculation"
 #define LF_SELECT_FRAMES "Selection of keyframes"
@@ -63,7 +64,7 @@
 #define LF_CE_TYPE_DEBUG "Debug Information"
 #define LF_CE_NAME_FLOWVALUE "Flow value"
 #define LF_CE_NAME_SAMPLERES "Sampling Resolution"
-#define LF_TIMER_BUFFER "Recreate Buffer"
+#define LF_TIMER_BUFFER "Update Buffer"
 #define LF_TIMER_CORE "Core Computation"
 #define LF_TIMER_SELECTION "Keyframe selection"
 
@@ -78,7 +79,7 @@
  *
  * @date 2022/3/13
  */
-class Controller : public IAlgorithm
+class OptFlowController : public IAlgorithm
 {
     Q_OBJECT
     Q_PLUGIN_METADATA(IID "iVS3D.IAlgorithm")   // implement interface as plugin, use the iid as identifier
@@ -88,8 +89,8 @@ public:
     /**
      * @brief StationaryCamera Constructor sets default values for member variables
      */
-    Controller();
-    ~Controller() {};
+    OptFlowController();
+    ~OptFlowController() {}
 
     /**
      * @brief getSettingsWidget creates a Widget, which can be used to change the algorithm parameters and returns it
@@ -125,6 +126,14 @@ public:
 
     /**
      * @brief setter for plugin's settings
+     * settings structure:
+     *  <QMap> settings (all settings)
+     *      <QVariant> samplingResolution (enable/disable diffrent resolution for sampling)
+     *      <QString> selectorName
+     *      <QList> KeyframeSelector::Setings as QList<QVariant>
+     *          <QVariant> parameter (KeyframeSelector::Parameter as QVariant)
+     *      </QList>
+     *  </QMap>
      * @param QMap with the settings
      */
     void setSettings(QMap<QString, QVariant> settings) override;
@@ -146,22 +155,22 @@ public:
 
 private:
     // member variables
-    double m_threshold = 0.3;
+    QMap<QString, KeyframeSelector::Settings> m_selectorSettingsMap;
     double m_downSampleFactor = 1.0;
     Reader *m_reader = nullptr;
     QPoint m_inputResolution = QPoint(0, 0);
     cv::SparseMat m_bufferMat;
     signalObject *m_sigObj = nullptr;
-    long m_bufferedValueCount = 0;
     //      widget elements
+    QMap<QString, QWidget*> m_selectorWidgetMap;
     QWidget *m_settingsWidget = nullptr;
-    QDoubleSpinBox *m_thresholdSpinBox = nullptr;
-    static constexpr double m_downSampleFactorArray[] = { 1.0, 1.5, 2.0, 2.5, 3.0, 4.0 };
-//    QComboBox *m_downSampleDropDown = nullptr;
-    QCheckBox *m_downSampleCheck = nullptr;
+    QWidget *m_currentSelectorWidget = {};
 
+    static constexpr double m_downSampleFactorArray[] = { 1.0, 1.5, 2.0, 2.5, 3.0, 4.0 };
+    QCheckBox *m_downSampleCheck = nullptr;
     QPushButton *m_resetBufferBt = nullptr;
     QLabel *m_resetBufferLabel = nullptr;
+    QComboBox *m_selectorDropDown = nullptr;
     // timing variables
     long m_durationFarnebackMs = 0;
     long m_durationComputationFlowMs = 0;
@@ -194,9 +203,14 @@ private:
      */
     void stringToBufferMat(QString string);
     QVariant bufferMatToVariant(cv::SparseMat bufferMat);
-    double median(std::vector<double> &vec);
+    //      KeyframeSelector::Settings ---> QWidget
+    QWidget *selectorSettingsToWidget(QWidget *parent, QString selectorName);
 private slots:
     void sampleCheckChanged(bool isChecked);
+    void selectorChanged(QString selectorName);
+    void updateSettingsMap(QVariant nValue, KeyframeSelector::Parameter param, QString selectorName);
+signals:
+    void changeUIParameter(QVariant nValue, QString paramName, QString selectorName);
 };
 
 #endif // CONTROLLER_H
