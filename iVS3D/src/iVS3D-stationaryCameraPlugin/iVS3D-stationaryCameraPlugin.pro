@@ -38,6 +38,7 @@ SOURCES += \
     imagegatherer.cpp \
     imagegatherercpu.cpp \
     optflowcontroller.cpp \
+    staticselector.cpp
 
 HEADERS += \
     distributionselector.h \
@@ -48,6 +49,7 @@ HEADERS += \
     imagegatherercpu.h \
     keyframeselector.h \
     optflowcontroller.h \
+    staticselector.h
 
 TEMPLATE = lib
 CONFIG += plugin
