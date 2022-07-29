@@ -78,7 +78,9 @@ void ExportThread::run(){
 
     //directory of export (without /images)
     QString fileName = m_path;
-    fileName.replace("/images", "");
+    if(fileName.endsWith("/images"))
+        fileName = fileName.left(fileName.length() - QString("/images").length());
+    //fileName.replace("/images", "");
 
     //prepare all iTransform directories and their subdirectories
     for (uint i = 0; i < m_iTransformCopies.size(); ++i) {
@@ -192,6 +194,7 @@ bool ExportThread::exportImages(cv::Mat image, int iTransformCopiesSize, const Q
             //write image on disk
             bool exportedImage = cv::imwrite(imgPath.toStdString(), image);
             if (!exportedImage) {
+                qDebug() << "failed to export " + imgPath;
                 return false;
             }
         }

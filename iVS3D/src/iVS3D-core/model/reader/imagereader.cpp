@@ -80,6 +80,7 @@ ImageReader *ImageReader::copy()
     ir->m_folderPath = m_folderPath;
     ir->m_numImages = m_numImages;
     ir->m_filePaths = m_filePaths;
+    ir->m_isValid = m_isValid;
     ir->addMetaData(m_md);
     return ir;
 }
