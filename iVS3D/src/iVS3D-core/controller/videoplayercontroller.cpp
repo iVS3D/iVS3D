@@ -21,7 +21,9 @@ VideoPlayerController::VideoPlayerController(QObject *parent, VideoPlayer *playe
     m_videoPlayer->setEnabled(true);
     m_videoPlayer->setEnabledBackBtns(false);
     m_videoPlayer->setKeyframeCount(m_dataManager->getModelInputPictures()->getKeyframeCount());
-
+    m_videoPlayer->setStepsize(m_stepsize);
+    m_videoPlayer->setPlaying(m_playing);
+    m_videoPlayer->setKeyframesOnly(m_keyframesOnly);
 
     m_timeline->setFrames(m_dataManager->getModelInputPictures()->getAllKeyframes(), m_dataManager->getModelInputPictures()->getPicCount());
     m_timeline->setEnabled(true);

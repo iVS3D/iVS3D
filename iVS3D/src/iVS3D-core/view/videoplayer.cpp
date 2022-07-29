@@ -108,6 +108,11 @@ void VideoPlayer::setStepsize(unsigned int stepsize)
     ui->spinBox_stepsize->setValue(stepsize);
 }
 
+void VideoPlayer::setKeyframesOnly(bool checked)
+{
+    ui->checkBox_onlyKeyframes->setChecked(checked);
+}
+
 
 void VideoPlayer::addWidgetToLayout(QWidget *widget)
 {

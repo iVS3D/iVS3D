@@ -27,6 +27,10 @@ ModelInputPictures::ModelInputPictures(QString inputPath)
     }
 
     m_boundaries = QPoint(0,m_reader->getPicCount()-1);
+    m_keyframes.reserve(m_reader->getPicCount());
+    for(uint i = 0; i < m_reader->getPicCount(); i++){
+        m_keyframes.push_back(i);
+    }
 }
 
 

@@ -103,6 +103,12 @@ public:
     void setStepsize(unsigned int stepsize);
 
     /**
+     * @brief setKeyframesOnly checks the iterate keyframes only checkbox
+     * @param checked
+     */
+    void setKeyframesOnly(bool checked);
+
+    /**
      * @brief addWidgetToLayout adds the given QWidget to the VideoPlayer between the displayed image and the interaction buttons.
      * @param widget The QWidget to add
      */
