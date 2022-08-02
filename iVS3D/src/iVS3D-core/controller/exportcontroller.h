@@ -139,6 +139,10 @@ public slots:
     * @param QMap containing the export settings
     */
     void slot_showExportSettings(QMap<QString, QVariant> exportSettings);
+    /**
+     * @brief slot_onKeyframesChanged triggered by MIP if keyframes change
+     */
+    void slot_onKeyframesChanged();
 
 private:
     /**

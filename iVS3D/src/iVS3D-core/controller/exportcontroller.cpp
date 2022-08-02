@@ -17,6 +17,8 @@ ExportController::ExportController(OutputWidget *outputWidget, DataManager *data
     connect(m_outputWidget, &OutputWidget::sig_resChanged, this, &ExportController::slot_resolutionChange);
     connect(m_outputWidget, &OutputWidget::sig_pathChanged, this, &ExportController::slot_outputPathChanged);
 
+    connect(m_dataManager->getModelInputPictures(), &ModelInputPictures::sig_mipChanged, this, &ExportController::slot_onKeyframesChanged);
+
     m_outputWidget->setEnabled(true);
 
     // set standard (input) resolution
@@ -374,6 +376,11 @@ void ExportController::slot_exportFinished(int result)
 void ExportController::slot_showExportSettings(QMap<QString, QVariant> exportSettings)
 {
     setOutputSettings(exportSettings);
+}
+
+void ExportController::slot_onKeyframesChanged()
+{
+    m_outputWidget->enableExport(m_dataManager->getModelInputPictures()->getKeyframeCount() > 0);
 }
 
 QPoint ExportController::parseResolution(QString resolutionString)

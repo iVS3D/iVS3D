@@ -93,6 +93,7 @@ void ModelInputPictures::addKeyframe(unsigned int index)
     }
     this->m_keyframes.insert(std::upper_bound(this->m_keyframes.begin(), this->m_keyframes.end(), index), index);
     AlgorithmManager::instance().notifyKeyframesChanged(m_keyframes);
+    emit sig_mipChanged();
     return;
 }
 
@@ -101,6 +102,7 @@ void ModelInputPictures::removeKeyframe(unsigned int index) {
         std::vector<unsigned int>::iterator it = std::find(this->m_keyframes.begin(), this->m_keyframes.end(), index);
         this->m_keyframes.erase(it);
         AlgorithmManager::instance().notifyKeyframesChanged(m_keyframes);
+        emit sig_mipChanged();
     }
     return;
 }
