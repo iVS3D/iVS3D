@@ -89,3 +89,6 @@ unix {
    message("Cannot find setrpath.pri!")
  }
 }
+
+OTHER_FILES += \
+    copy_to_install_dir/colmap/*
