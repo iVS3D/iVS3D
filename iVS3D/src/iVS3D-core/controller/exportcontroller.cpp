@@ -36,7 +36,7 @@ ExportController::ExportController(OutputWidget *outputWidget, DataManager *data
     }
     m_path += "/export";
     m_outputWidget->setOutputPath(m_path);
-
+    m_outputWidget->setCropStatus(false);
 
     m_outputWidget->enableReconstruct(false);
 
