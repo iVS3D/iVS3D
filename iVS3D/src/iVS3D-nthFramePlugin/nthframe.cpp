@@ -5,6 +5,7 @@ NthFrame::NthFrame()
     m_N = 1;    // N initialized to stepwidth 1
     m_numFrames = 0;
     m_settingsWidget = nullptr;
+    m_keepLonely = true;
 }
 
 NthFrame::~NthFrame()
@@ -24,12 +25,18 @@ QWidget* NthFrame::getSettingsWidget(QWidget *parent)
 std::vector<uint> NthFrame::sampleImages(const std::vector<unsigned int> &imageList, Progressable *receiver, volatile bool *stopped, bool, LogFileParent *logFile)
 {
     logFile->startTimer(LF_TOTAL);
+    int expectedKfDistance = roundf((float)m_N / ((float)imageList.size() / m_numFrames));
+    qDebug() << "Expected Distance: " << expectedKfDistance;
+    qDebug() << "N: " << m_N;
 
     // allocate memory for keyframes
     std::vector<unsigned int> keyframes;
     keyframes.reserve(1 + imageList.size() / m_N);
 
-    for(int i = 0; i < (int)imageList.size(); i += m_N){
+    uint lastKfIndex = imageList[0];
+    uint ctr = UINT_MAX-2;
+
+    for(int i = 0; i < (int)imageList.size(); i++){
         // iterate every N-th sharp image
         if(*stopped){
             // user stopped the algorithm -> return
@@ -43,7 +50,15 @@ std::vector<uint> NthFrame::sampleImages(const std::vector<unsigned int> &imageL
                     Qt::DirectConnection,
                     Q_ARG(int, progress),
                     Q_ARG(QString, "getting every n-th frame"));
-        keyframes.push_back(imageList[i]);    // add keyframe
+
+        ctr++;
+
+        if(ctr >= m_N || (m_keepLonely && (imageList[i] - lastKfIndex > expectedKfDistance))){
+            keyframes.push_back(imageList[i]);    // add keyframe
+            lastKfIndex = imageList[i];
+            ctr = 0;
+        }
+
     }
 
     logFile->stopTimer();
@@ -63,7 +78,7 @@ QString NthFrame::getName() const
     return "NthFrame";
 }
 
-void NthFrame::initialize(Reader *reader, QMap<QString, QVariant>, signalObject*)
+void NthFrame::initialize(Reader *reader, QMap<QString, QVariant>, signalObject *so)
 {
     m_reader = reader;
     m_numFrames = reader->getPicCount();
@@ -75,6 +90,8 @@ void NthFrame::initialize(Reader *reader, QMap<QString, QVariant>, signalObject*
     }
 
     m_N = m_fps;
+    if(m_settingsWidget)
+        m_spinBox->setValue(m_N);
 }
 
 void NthFrame::setSettings(QMap<QString, QVariant> settings)
@@ -82,6 +99,8 @@ void NthFrame::setSettings(QMap<QString, QVariant> settings)
     QMap<QString, QVariant>::iterator iterator = settings.find(NAME_N);
     if (iterator != settings.end()) {
         m_N = iterator.value().toInt();
+        if(m_settingsWidget)
+            m_spinBox->setValue(m_N);
     }
 }
 
@@ -91,6 +110,8 @@ QMap<QString, QVariant> NthFrame::generateSettings(Progressable *receiver, bool 
     (void) useCuda;
     (void) stopped;
     m_N = m_fps / 5;
+    if(m_settingsWidget)
+        m_spinBox->setValue(m_N);
     return QMap<QString, QVariant>();
 }
 
@@ -105,17 +126,11 @@ QMap<QString, QVariant> NthFrame::getSettings()
 void NthFrame::slot_nChanged(int n)
 {
     m_N = (unsigned int)n;
-    // allocate memory for keyframes
-    std::vector<uint> keyframes;
-    keyframes.reserve(1 + m_numFrames / m_N);
+}
 
-    for(uint i = 0; i < m_numFrames; i += m_N){
-        // iterate every N-th sharp image
-
-        keyframes.push_back(i);    // add keyframe
-    }
-    keyframes.shrink_to_fit();
-    emit updateKeyframes(keyframes);
+void NthFrame::slot_checkboxToggled(bool checked)
+{
+    m_keepLonely = checked;
 }
 
 void NthFrame::createSettingsWidget(QWidget *parent)
@@ -141,10 +156,20 @@ void NthFrame::createSettingsWidget(QWidget *parent)
 
     m_settingsWidget->layout()->addWidget(w);
 
-    QLabel *txt = new QLabel(DESCRIPTION_TEXT);
+    QLabel *txt = new QLabel(DESCRIPTION_TEXT_N);
     txt->setStyleSheet(DESCRIPTION_STYLE);
     txt->setWordWrap(true);
     m_settingsWidget->layout()->addWidget(txt);
+
+    m_checkBox = new QCheckBox("keep lonely keyframes", parent);
+    m_checkBox->setChecked(m_keepLonely);
+    connect(m_checkBox, &QCheckBox::toggled, this, &NthFrame::slot_checkboxToggled);
+    m_settingsWidget->layout()->addWidget(m_checkBox);
+
+    QLabel *txt2 = new QLabel(DESCRIPTION_TEXT);
+    txt2->setStyleSheet(DESCRIPTION_STYLE);
+    txt2->setWordWrap(true);
+    m_settingsWidget->layout()->addWidget(txt2);
 
     m_settingsWidget->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
     m_settingsWidget->adjustSize();
