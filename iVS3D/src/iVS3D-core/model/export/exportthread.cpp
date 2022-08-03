@@ -162,7 +162,7 @@ void ExportThread::reportProgress() {
 cv::Mat ExportThread::resizeCrop(cv::Mat image, cv::Size resize, bool useResize, cv::Rect crop, bool useCrop) {
     cv::Mat output = image;
     if (useResize) {
-        cv::resize(image, output, resize);
+        cv::resize(image, output, resize, 0, 0, cv::INTER_AREA);
     }
     if (useCrop) {
         output = output(crop);
