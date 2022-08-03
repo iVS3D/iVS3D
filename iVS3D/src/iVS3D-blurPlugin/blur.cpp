@@ -91,6 +91,17 @@ void Blur::initialize(Reader *reader, QMap<QString, QVariant> buffer, signalObje
     m_reader = reader;
     m_buffer = buffer;
     m_sigObj = sig_obj;
+    if (m_settingsWidget) {
+        if(m_buffer.contains(m_usedBlur->getName())) {
+            QVariant currentBuffer = m_buffer[m_usedBlur->getName()];
+            double currentBlurValue = splitDoubleString(currentBuffer.toString())[0];
+            QString info;
+            info = currentBlurValue == 0 ? "not calculated" : QString::number(currentBlurValue);
+            m_infoLabel->setText("Blur value for the current image is " + info);
+        } else {
+            m_infoLabel->setText("Blur value for the current image is not calculated");
+        }
+    }
     if(m_sigObj) connect(m_sigObj, SIGNAL(sig_selectedImageIndex(uint)), this, SLOT(slot_selectedImageIndex(uint)));
 }
 
