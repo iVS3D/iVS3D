@@ -104,6 +104,16 @@ doc/latex
 ### testresources ###
 *testresources/
 
+### ots generated files ###
+*ots/colmapwrapper/ColmapWorker
+*ots/colmapwrapper/ColmapWorker.spec
+*ots/colmapwrapper/ExtractGpsReferenceData
+*ots/colmapwrapper/ExtractGpsReferenceData.spec
+
+# Python byte code
+*.pyc
+
 ### allowed files ###
 !*resourceloader.pri
 !*setrpath.pri
+!*prebuild_cmds.pri
