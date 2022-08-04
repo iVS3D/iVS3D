@@ -105,10 +105,10 @@ doc/latex
 *testresources/
 
 ### ots generated files ###
-*ots/colmapwrapper/ColmapWorker
-*ots/colmapwrapper/ColmapWorker.spec
-*ots/colmapwrapper/ExtractGpsReferenceData
-*ots/colmapwrapper/ExtractGpsReferenceData.spec
+iVS3D/src/iVS3D-core/ots/colmapwrapper/ColmapWorker
+iVS3D/src/iVS3D-core/ots/colmapwrapper/ColmapWorker.spec
+iVS3D/src/iVS3D-core/ots/colmapwrapper/ExtractGpsReferenceData
+iVS3D/src/iVS3D-core/ots/colmapwrapper/ExtractGpsReferenceData.spec
 
 # Python byte code
 *.pyc
