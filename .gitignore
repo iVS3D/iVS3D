@@ -107,8 +107,8 @@ doc/latex
 ### ots generated files ###
 iVS3D/src/iVS3D-core/ots/colmapwrapper/ColmapWorker
 iVS3D/src/iVS3D-core/ots/colmapwrapper/ColmapWorker.spec
-iVS3D/src/iVS3D-core/ots/colmapwrapper/ExtractGpsReferenceData
-iVS3D/src/iVS3D-core/ots/colmapwrapper/ExtractGpsReferenceData.spec
+iVS3D/src/iVS3D-core/ots/colmapwrapper/ExctractGpsReferenceData
+iVS3D/src/iVS3D-core/ots/colmapwrapper/ExctractGpsReferenceData.spec
 
 # Python byte code
 *.pyc

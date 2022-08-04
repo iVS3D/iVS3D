@@ -11,6 +11,8 @@ RC_ICONS = resources/ivs3dIcon.ico
 # In order to do so, uncomment the following line.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
+unix:include(prebuild_cmds.pri)
+
 src_files = $$files(*.cpp, true)
 message($$src_files)
 for(file, src_files) {
@@ -34,9 +36,14 @@ include(../../3rdparty.pri)
 
 DISTFILES +=
 
+TRANSLATIONS = \
+    $$PWD/translations/lib3D_ots_de.ts \
+    $$PWD/translations/lib3D_ots_en.ts
+
 RESOURCES += \
     darkstyle.qrc \
-    resources.qrc
+    resources.qrc \
+    lib3D_ots.qrc
 
 CONFIG(debug, debug|release){
     VARIANT = debug
@@ -96,4 +103,5 @@ TRANSLATIONS += \
     $$PWD/translations/core_de.ts
 
 OTHER_FILES += \
-    copy_to_install_dir/colmap/*
+    copy_to_install_dir/colmap/* \
+
