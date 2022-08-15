@@ -280,5 +280,6 @@ private:
     void readSettings();
     void closeEvent(QCloseEvent *event) override;
     QDockWidget *m_outputDock;
+    QDockWidget *m_reconstructDock;
 };
 #endif // MAINWINDOW_H

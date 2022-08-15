@@ -94,6 +94,11 @@ MainWindow::MainWindow(QWidget *parent, bool dark, int cuda, bool createLog, QSt
     const auto defaultDockLayout = saveState();
     ui->menuView->addAction("Reset Layout", [this,defaultDockLayout](){
         this->restoreState(defaultDockLayout);
+        if(this->m_reconstructDock) {
+            qDebug() << "resetting reconstruct";
+            this->tabifyDockWidget(this->m_outputDock, this->m_reconstructDock);
+            m_outputDock->raise();
+        }
     });
 
     // read layout and geometry from last session if available
@@ -259,10 +264,12 @@ void MainWindow::addOtsWindow(QWidget *otsWidget)
                 Qt::LeftDockWidgetArea |
                 Qt::RightDockWidgetArea);
     dock->setWidget(addFrame(otsWidget));
+    m_reconstructDock = dock;
     addDockWidget(Qt::RightDockWidgetArea, dock);
     tabifyDockWidget(m_outputDock, dock);
     m_outputDock->raise();
     ui->menuView->insertAction(m_outputDock->toggleViewAction(), dock->toggleViewAction());
+    readSettings();
 }
 
 void MainWindow::addSettingsAction(QAction *action)
