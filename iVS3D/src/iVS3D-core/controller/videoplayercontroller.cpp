@@ -228,7 +228,12 @@ void VideoPlayerController::slot_deleteAllKeyframes()
         uint index = m_timeline->selectedFrame();
         auto bs = m_dataManager->getModelInputPictures()->getBoundaries();
         m_dataManager->getModelInputPictures()->setBoundaries(QPoint(0, m_dataManager->getModelInputPictures()->getPicCount()-1));
-        m_dataManager->getModelInputPictures()->updateMIP(std::vector<unsigned int>());
+        std::vector<uint> allFrames;
+        allFrames.reserve(m_dataManager->getModelInputPictures()->getPicCount());
+        for(uint i = 0; i<m_dataManager->getModelInputPictures()->getPicCount(); i++){
+            allFrames.push_back(i);
+        }
+        m_dataManager->getModelInputPictures()->updateMIP(allFrames);
         m_dataManager->getModelInputPictures()->setBoundaries(bs);
         m_dataManager->getHistory()->slot_save();
         m_timeline->selectFrame(index);
