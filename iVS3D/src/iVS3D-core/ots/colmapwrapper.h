@@ -186,6 +186,8 @@ class ColmapWrapper : public QObject
      */
     void init();
 
+    QMultiMap<QString,QString> imageSequencePaths() const;
+
     /**
      * @brief Returns absolute path to COLMAP binary on local machine.
      */
@@ -312,7 +314,6 @@ class ColmapWrapper : public QObject
     void workspaceStatusUpdate();
 
   public slots:
-
     /**
      * @brief Set absolute path to COLMAP binary on local machine.
      */
@@ -571,6 +572,7 @@ class ColmapWrapper : public QObject
     //--- MEMBER DECLERATION ---//
 
   private:
+
 
     /// Settings object.
     QSettings mSettings;

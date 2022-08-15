@@ -3,6 +3,7 @@
 
 #include "DataManager.h"
 #include "applicationsettings.h"
+#include "modelalgorithm.h"
 #include "exportexecutor.h"
 #include "view/outputwidget.h"
 #include "view/reconstructdialog.h"
@@ -12,6 +13,7 @@
 #include "logfile.h"
 #include "logmanager.h"
 #include "stringcontainer.h"
+#include "colmapwrapper.h"
 
 #include <QObject>
 #include <QDebug>
@@ -50,7 +52,7 @@ public:
      * @param outputWidget
      * @param dataManager
      */
-    ExportController(OutputWidget *outputWidget, DataManager *dataManager);
+    ExportController(OutputWidget *outputWidget, DataManager *dataManager, lib3d::ots::ColmapWrapper *colmap);
     /**
      * @brief ExportController::~ExportController
      */
@@ -185,6 +187,8 @@ private:
     QMap<QString, QString> m_currentExports;
     // export runtime
     QElapsedTimer m_timer;
+
+    lib3d::ots::ColmapWrapper *m_colmap;
 };
 
 #endif // EXPORTCONTROLLER_H

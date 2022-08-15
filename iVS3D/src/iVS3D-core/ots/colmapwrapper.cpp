@@ -431,7 +431,12 @@ std::function<void (ColmapWrapper::EProductType, std::string)> ColmapWrapper::cu
 //==================================================================================================
 void ColmapWrapper::clearCustomProductOpenFn()
 {
-  mCustomProductOpenFn = std::function<void(EProductType, std::string)>();
+    mCustomProductOpenFn = std::function<void(EProductType, std::string)>();
+}
+
+void ColmapWrapper::updateImageSequencePaths(const QMultiMap<QString, QString> paths)
+{
+    mImageSequencePaths = paths;
 }
 
 //==================================================================================================
@@ -1037,12 +1042,12 @@ void ColmapWrapper::startProcessing()
   //--- depending on connection type copy bootstrap scrip
   if(mConnectionType == LOCAL)
   {
-    QFile::copy(":/src/ots/colmapwrapper/localBootstrapper.sh",
+    QFile::copy(":/ots/colmapwrapper/localBootstrapper.sh",
                 mpTempDir->path() + "/colmapbootstrapper.sh");
   }
   else
   {
-    QFile::copy(":/src/ots/colmapwrapper/remoteBootstrapper.sh",
+    QFile::copy(":/ots/colmapwrapper/remoteBootstrapper.sh",
                 mpTempDir->path() + "/colmapbootstrapper.sh");
   }
   QFile::setPermissions(mpTempDir->path() + "/colmapbootstrapper.sh",
@@ -1117,9 +1122,9 @@ void ColmapWrapper::installScriptFilesIntoWorkspace()
 
   //--- defince ressource list that needs to be installed
   QStringList ressourceList;
-  ressourceList << ":/src/ots/colmapwrapper/ColmapWorker"
-           << ":/src/ots/colmapwrapper/colmap_work_queue.yaml"
-           << ":/src/ots/colmapwrapper/colmap_worker_state.yaml";
+  ressourceList << ":/ots/colmapwrapper/ColmapWorker"
+           << ":/ots/colmapwrapper/colmap_work_queue.yaml"
+           << ":/ots/colmapwrapper/colmap_worker_state.yaml";
 
   QString outputPath = (mConnectionType == LOCAL) ?
         mLocalWorkspacePath : mMntPntRemoteWorkspacePath;

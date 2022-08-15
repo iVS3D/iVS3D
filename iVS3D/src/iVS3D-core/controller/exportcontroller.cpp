@@ -1,6 +1,6 @@
 #include "exportcontroller.h"
 
-ExportController::ExportController(OutputWidget *outputWidget, DataManager *dataManager) : m_roi(0,0,0,0)
+ExportController::ExportController(OutputWidget *outputWidget, DataManager *dataManager, lib3d::ots::ColmapWrapper *colmap) : m_roi(0,0,0,0)
 {
 
     m_exportExec = nullptr;
@@ -10,6 +10,7 @@ ExportController::ExportController(OutputWidget *outputWidget, DataManager *data
 
     m_outputWidget = outputWidget;
     m_dataManager = dataManager;
+    m_colmap = colmap;
 
     connect(m_outputWidget, &OutputWidget::sig_reconstruct, this, &ExportController::slot_reconstruct);
     connect(m_outputWidget, &OutputWidget::sig_export, this, &ExportController::slot_export);
@@ -158,8 +159,10 @@ void ExportController::slot_export()
 
     //creating export Directory if necessary
     QDir exportDir;
-    if (!exportDir.mkdir(m_path)) {
-        qDebug() << "Couldn't create Export Directory";
+    if (!exportDir.mkpath(m_path)) {
+        qDebug() << "Couldn't create Export Directory " << m_path;
+        emit sig_hasStatusMessage(QString("Couldn't create Export Directory: %1").arg(m_path));
+        return;
     }
 
     QString outputName;
@@ -368,7 +371,9 @@ void ExportController::slot_exportFinished(int result)
         LogManager::instance().print();
     }
     //Save current exportPath and name
-    m_currentExports.insert(m_path.split("/").last(), m_path);
+    //m_currentExports.insert(m_path.split("/").last(), m_path);
+
+    m_dataManager->getModelAlgorithm()->addExportToList(m_path.split("/").last(), m_path);
 
     emit sig_exportFinished();
 }

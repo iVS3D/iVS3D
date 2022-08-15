@@ -41,19 +41,6 @@ MainWindow::MainWindow(QWidget *parent, bool dark, int cuda, bool createLog, QSt
     setCentralWidget(m_videoplayer);
     setDockNestingEnabled(true);
     QDockWidget *dock;
-    auto addFrame = [] (QWidget *w){
-        QLayout *l = new QHBoxLayout();
-        l->addWidget(w);
-        QFrame *f = new QFrame();
-        f->setFrameShape(QFrame::Box);
-        //QPalette* palette = new QPalette();
-        //palette->setColor(QPalette::Foreground,QColor(0,0,0,50));
-        //f->setPalette(*palette);
-        f->setObjectName("myObject");
-        f->setStyleSheet("#myObject { border: 1px solid rgba(0,0,0,0.3); }");
-        f->setLayout(l);
-        return f;
-    };
 
     dock = new QDockWidget(tr("Input"), this);
     dock->setObjectName("Input");
@@ -261,6 +248,20 @@ void MainWindow::enableTools(bool status)
     ui->actionReset_Boundaries->setEnabled(status);
 }
 
+void MainWindow::addOtsWindow(QWidget *otsWidget)
+{
+    QDockWidget *dock = new QDockWidget("Reconstruction", this);
+    dock->setObjectName("Reconstruction");
+    dock->setAllowedAreas(
+                Qt::BottomDockWidgetArea |
+                Qt::TopDockWidgetArea |
+                Qt::LeftDockWidgetArea |
+                Qt::RightDockWidgetArea);
+    dock->setWidget(addFrame(otsWidget));
+    addDockWidget(Qt::RightDockWidgetArea, dock);
+    ui->menuView->addAction(dock->toggleViewAction());
+}
+
 void MainWindow::on_actionOpen_Project_triggered()
 {
     emit sig_openProject();
@@ -399,4 +400,19 @@ void MainWindow::on_actionDelete_All_Keyframes_triggered()
 void MainWindow::on_actionDelete_Keyframes_triggered()
 {
     emit sig_deleteKeyframesBoundaries();
+}
+
+QFrame *MainWindow::addFrame(QWidget *w)
+{
+     QLayout *l = new QHBoxLayout();
+     l->addWidget(w);
+     QFrame *f = new QFrame();
+     f->setFrameShape(QFrame::Box);
+     //QPalette* palette = new QPalette();
+     //palette->setColor(QPalette::Foreground,QColor(0,0,0,50));
+     //f->setPalette(*palette);
+     f->setObjectName("myObject");
+     f->setStyleSheet("#myObject { border: 1px solid rgba(0,0,0,0.3); }");
+     f->setLayout(l);
+     return f;
 }

@@ -23,6 +23,8 @@
 #include "controller/videoplayercontroller.h"
 #include "controller/automaticcontroller.h"
 
+#include "colmapwrapper.h"
+
 #include "plugin/algorithmmanager.h"
 #include "plugin/transformmanager.h"
 
@@ -144,6 +146,7 @@ private:
     MainWindow* m_mainWindow;
     DataManager* m_dataManager;
     OpenExecutor *m_openExec;
+    lib3d::ots::ColmapWrapper *m_colmapWrapper;
     bool m_exporting = false;
     //Prevents multiple drag and drops at the same time
     bool m_isImporting = false;

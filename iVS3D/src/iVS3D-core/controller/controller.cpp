@@ -1,7 +1,7 @@
 #include "controller.h"
 
 
-Controller::Controller(QString inputPath, QString settingsPath, QString outputPath)
+Controller::Controller(QString inputPath, QString settingsPath, QString outputPath) : m_colmapWrapper(new lib3d::ots::ColmapWrapper)
 {
     m_videoPlayerController = nullptr;
     m_algorithmController = nullptr;
@@ -24,6 +24,13 @@ Controller::Controller(QString inputPath, QString settingsPath, QString outputPa
     m_mainWindow->enableUndo(false);
     m_mainWindow->enableRedo(false);
     m_mainWindow->enableTools(false);
+
+    QWidget *otsWidget = new QWidget;
+    otsWidget->setLayout(new QVBoxLayout);
+    otsWidget->layout()->addWidget(m_colmapWrapper->getOrCreateUiControlsFactory()->createSettingsPushButton());
+    otsWidget->layout()->addWidget(m_colmapWrapper->getOrCreateUiControlsFactory()->createViewWidget());
+    otsWidget->layout()->addWidget(m_colmapWrapper->getOrCreateUiControlsFactory()->createNewProductPushButton());
+    m_mainWindow->addOtsWindow(otsWidget);
 
     if(AlgorithmManager::instance().getAlgorithmCount() + TransformManager::instance().getTransformCount() >0){
         displayPluginSettings();
@@ -452,7 +459,7 @@ void Controller::onSuccessfulOpen()
     connect(m_algorithmController, &AlgorithmController::sig_stopPlay, m_videoPlayerController, &VideoPlayerController::slot_stopPlay);
 
     // ExportController manages algorithm used widget and reconstruct widget and delegates export of images and 3d-reconstruction
-    m_exportController = new ExportController(m_mainWindow->getOutputWidget(), m_dataManager);
+    m_exportController = new ExportController(m_mainWindow->getOutputWidget(), m_dataManager, m_colmapWrapper);
     connect(m_exportController, &ExportController::sig_hasStatusMessage, m_mainWindow, &MainWindow::slot_displayStatusMessage);
     connect(m_exportController, &ExportController::sig_stopPlay, m_videoPlayerController, &VideoPlayerController::slot_stopPlay);
     connect(m_exportController, &ExportController::sig_exportStarted, this, &Controller::slot_exportStarted);

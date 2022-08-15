@@ -148,6 +148,7 @@ public:
      */
     void enableTools(bool status);
 
+    void addOtsWindow(QWidget *otsWidget);
 
 
 signals:
@@ -260,6 +261,8 @@ private slots:
     void on_actionDelete_Keyframes_triggered();
 
 private:
+    QFrame *addFrame(QWidget *w);
+
     Ui::MainWindow *ui;
     //delete this: QWidget *layout_widget;
     VideoPlayer *m_videoplayer;

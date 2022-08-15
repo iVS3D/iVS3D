@@ -35,7 +35,6 @@
 
 #if defined(Q_OS_LINUX)
     #include "translations.h"
-    #include "colmapwrapper.h"
 #endif
 
 void ignoreMessages(QtMsgType type, const QMessageLogContext &context, const QString &msg)
@@ -102,15 +101,6 @@ int main(int argc, char *argv[])
         systemLocale.truncate(systemLocale.lastIndexOf('_')); // e.g. "de"
         lib3d::ots::Translations::load(&translator, systemLocale);
         a.installTranslator(&translator);
-
-        lib3d::ots::ColmapWrapper w;
-
-        QDialog d;
-        d.setLayout(new QVBoxLayout);
-        d.layout()->addWidget(w.getOrCreateUiControlsFactory()->createSettingsPushButton());
-        d.layout()->addWidget(w.getOrCreateUiControlsFactory()->createViewWidget());
-        d.layout()->addWidget(w.getOrCreateUiControlsFactory()->createNewProductPushButton());
-        d.show();
 
         return a.exec();
     }
