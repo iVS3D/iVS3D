@@ -96,11 +96,11 @@ int main(int argc, char *argv[])
         qApp->setProperty(stringContainer::UIIdentifier, true);
 
         //--- setup translation
-        QTranslator translator;
-        QString systemLocale = QLocale::system().name(); // e.g. "de_DE"
-        systemLocale.truncate(systemLocale.lastIndexOf('_')); // e.g. "de"
-        lib3d::ots::Translations::load(&translator, systemLocale);
-        a.installTranslator(&translator);
+        //QTranslator translator;
+        //QString systemLocale = QLocale::system().name(); // e.g. "de_DE"
+        //systemLocale.truncate(systemLocale.lastIndexOf('_')); // e.g. "de"
+        //lib3d::ots::Translations::load(&translator, systemLocale);
+        //a.installTranslator(&translator);
 
         return a.exec();
     }

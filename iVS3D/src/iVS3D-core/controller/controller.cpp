@@ -30,11 +30,11 @@ Controller::Controller(QString inputPath, QString settingsPath, QString outputPa
     QWidget *otsWidget = new QWidget;
     otsWidget->setLayout(new QVBoxLayout);
     //otsWidget->layout()->addWidget(m_colmapWrapper->getOrCreateUiControlsFactory()->createSettingsPushButton());
-    otsWidget->layout()->addWidget(m_colmapWrapper->getOrCreateUiControlsFactory()->createViewWidget());
-    otsWidget->layout()->addWidget(m_colmapWrapper->getOrCreateUiControlsFactory()->createNewProductPushButton(otsTheme));
+    otsWidget->layout()->addWidget(m_colmapWrapper->getOrCreateUiControlsFactory()->createViewWidget(m_mainWindow));
+    otsWidget->layout()->addWidget(m_colmapWrapper->getOrCreateUiControlsFactory()->createNewProductPushButton(otsTheme, m_mainWindow));
     m_mainWindow->addOtsWindow(otsWidget);
 
-    m_mainWindow->addSettingsAction(m_colmapWrapper->getOrCreateUiControlsFactory()->createSettingsAction(otsTheme));
+    m_mainWindow->addSettingsAction(m_colmapWrapper->getOrCreateUiControlsFactory()->createSettingsAction(otsTheme, m_mainWindow));
 
     m_colmapWrapper->getOrCreateUiControlsFactory()->updateIconTheme(otsTheme);
 
