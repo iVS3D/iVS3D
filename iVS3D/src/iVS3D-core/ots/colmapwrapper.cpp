@@ -1105,7 +1105,7 @@ void ColmapWrapper::startProcessing()
 //==================================================================================================
 void ColmapWrapper::openColmapLogFile()
 {
-  QString logFilePath = QString("file://%1//ColmapWorker.log");
+  QString logFilePath = QString("%1/ColmapWorker.log");
 
   if(mConnectionType == LOCAL)
   {
