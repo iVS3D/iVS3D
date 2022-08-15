@@ -434,11 +434,6 @@ void ColmapWrapper::clearCustomProductOpenFn()
     mCustomProductOpenFn = std::function<void(EProductType, std::string)>();
 }
 
-void ColmapWrapper::updateImageSequencePaths(const QMultiMap<QString, QString> paths)
-{
-    mImageSequencePaths = paths;
-}
-
 //==================================================================================================
 void ColmapWrapper::setCustomProductOpenFn(const std::function<void (EProductType, std::string)> &customProductOpenFn)
 {
@@ -472,7 +467,12 @@ ColmapWrapper::EWorkspaceStatus ColmapWrapper::getWorkspaceStatus() const
 //==================================================================================================
 std::vector<ColmapWrapper::SSequence> ColmapWrapper::getFinishedSequenceList() const
 {
-  return mAvailableSequences;
+    return mAvailableSequences;
+}
+
+ColmapWrapper::SSequence ColmapWrapper::getLocalPresetSequence() const
+{
+    return mLocalPresetSequence;
 }
 
 //==================================================================================================
@@ -702,6 +702,12 @@ void ColmapWrapper::setConnectionType(const ColmapWrapper::EConnectionType &conn
 QString ColmapWrapper::localColmapBinPath() const
 {
   return mLocalColmapBinPath;
+}
+
+//==================================================================================================
+void ColmapWrapper::setLocalPresetSequence(QString name, QString path){
+  mLocalPresetSequence.name = name.toStdString();
+  mLocalPresetSequence.imagePath = path.toStdString();
 }
 
 //==================================================================================================
@@ -1292,6 +1298,34 @@ QToolButton *ui::ColmapWrapperControlsFactory::createSettingsToolButton(ETheme i
           this, &ColmapWrapperControlsFactory::showSettingsDialog);
 
   return pToolButton;
+}
+
+//=================================================================================================
+QAction *ui::ColmapWrapperControlsFactory::createSettingsAction(ui::ETheme iTheme, QWidget *parent, QAction *rhs)
+{
+    QAction* pAction = (!rhs) ? new QAction(parent) : rhs;
+    pAction->setToolTip(QObject::tr("Open COLMAP Wrapper Settings"));
+    pAction->setCheckable(false);
+    pAction->setText("Colmap Wrapper Settings");
+
+    if(iTheme == DARK)
+    {
+      pAction->setIcon(QIcon(":/assets/icons/glyphicons-281-settings-dark.png"));
+    }
+    else
+    {
+      pAction->setIcon(QIcon(":/assets/icons/glyphicons-281-settings.png"));
+    }
+
+    //--- initialize dialog
+    if(mpMsWrapperSettingsDialog == nullptr)
+      mpMsWrapperSettingsDialog = QSharedPointer<colmapwrapper::SettingsDialog>(
+            new colmapwrapper::SettingsDialog(mpMsWrapper, parent));
+
+    connect(pAction, &QAction::triggered,
+            this, &ColmapWrapperControlsFactory::showSettingsDialog);
+
+    return pAction;
 }
 
 

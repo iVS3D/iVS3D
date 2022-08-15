@@ -86,6 +86,7 @@ MainWindow::MainWindow(QWidget *parent, bool dark, int cuda, bool createLog, QSt
                 Qt::LeftDockWidgetArea |
                 Qt::RightDockWidgetArea);
     dock->setWidget(addFrame(m_outputWidget));
+    m_outputDock = dock;
     addDockWidget(Qt::BottomDockWidgetArea, dock);
     ui->menuView->addAction(dock->toggleViewAction());
 
@@ -259,7 +260,14 @@ void MainWindow::addOtsWindow(QWidget *otsWidget)
                 Qt::RightDockWidgetArea);
     dock->setWidget(addFrame(otsWidget));
     addDockWidget(Qt::RightDockWidgetArea, dock);
-    ui->menuView->addAction(dock->toggleViewAction());
+    tabifyDockWidget(m_outputDock, dock);
+    m_outputDock->raise();
+    ui->menuView->insertAction(m_outputDock->toggleViewAction(), dock->toggleViewAction());
+}
+
+void MainWindow::addSettingsAction(QAction *action)
+{
+    ui->menuSettings->insertAction(ui->actionSet_Input_Path, action);
 }
 
 void MainWindow::on_actionOpen_Project_triggered()

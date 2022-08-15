@@ -11,6 +11,7 @@
 #include <QSettings>
 #include <QObject>
 #include <QDialog>
+#include <QAction>
 #include <QToolButton>
 #include <QPushButton>
 #include <QProcess>
@@ -314,6 +315,7 @@ class ColmapWrapper : public QObject
     void workspaceStatusUpdate();
 
   public slots:
+    void setLocalPresetSequence(QString name, QString path);
     /**
      * @brief Set absolute path to COLMAP binary on local machine.
      */
@@ -440,6 +442,7 @@ class ColmapWrapper : public QObject
      */
     std::vector<SSequence> getFinishedSequenceList() const;
 
+    SSequence getLocalPresetSequence() const;
     /**
      * @brief Get list with available (i.e. already processed) sequences.
      */
@@ -632,6 +635,8 @@ class ColmapWrapper : public QObject
     /// List of available sequences
     std::vector<SSequence> mAvailableSequences;
 
+    ColmapWrapper::SSequence mLocalPresetSequence;
+
     /// List of job pointers
     std::vector<SJob> mJobs;
 
@@ -697,6 +702,16 @@ namespace ui {
        */
       QToolButton* createSettingsToolButton(ETheme iTheme = LIGHT,
                                     QWidget* parent = nullptr, QToolButton* rhs = nullptr);
+
+      /**
+       * @brief Create a QAction that opens the settings dialog.
+       * @param[in] iTheme Theme for Icon to use.
+       * @param[in] rhs Pointer to already instatiated QToolButton. If null, a new Object of a
+       * QToolButton will be instatiated. Can be used to adjust the icon.
+       * @return Pointer to instatiated object.
+       */
+      QAction* createSettingsAction(ETheme iTheme = LIGHT,
+                                    QWidget* parent = nullptr, QAction* rhs = nullptr);
 
       /**
        * @brief Create ViewWidget for interaction with MetashapeWrapper.

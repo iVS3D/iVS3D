@@ -371,9 +371,8 @@ void ExportController::slot_exportFinished(int result)
         LogManager::instance().print();
     }
     //Save current exportPath and name
-    //m_currentExports.insert(m_path.split("/").last(), m_path);
-
-    m_dataManager->getModelAlgorithm()->addExportToList(m_path.split("/").last(), m_path);
+    m_currentExports.insert(m_path.split("/").last(), m_path);
+    m_colmap->setLocalPresetSequence(m_path.split("/").last(), m_path + "/images");
 
     emit sig_exportFinished();
 }

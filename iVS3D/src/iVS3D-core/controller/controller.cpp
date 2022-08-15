@@ -25,12 +25,18 @@ Controller::Controller(QString inputPath, QString settingsPath, QString outputPa
     m_mainWindow->enableRedo(false);
     m_mainWindow->enableTools(false);
 
+    const auto otsTheme = ApplicationSettings::instance().getDarkStyle() ? lib3d::ots::ui::ETheme::DARK : lib3d::ots::ui::ETheme::LIGHT;
+
     QWidget *otsWidget = new QWidget;
     otsWidget->setLayout(new QVBoxLayout);
-    otsWidget->layout()->addWidget(m_colmapWrapper->getOrCreateUiControlsFactory()->createSettingsPushButton());
+    //otsWidget->layout()->addWidget(m_colmapWrapper->getOrCreateUiControlsFactory()->createSettingsPushButton());
     otsWidget->layout()->addWidget(m_colmapWrapper->getOrCreateUiControlsFactory()->createViewWidget());
-    otsWidget->layout()->addWidget(m_colmapWrapper->getOrCreateUiControlsFactory()->createNewProductPushButton());
+    otsWidget->layout()->addWidget(m_colmapWrapper->getOrCreateUiControlsFactory()->createNewProductPushButton(otsTheme));
     m_mainWindow->addOtsWindow(otsWidget);
+
+    m_mainWindow->addSettingsAction(m_colmapWrapper->getOrCreateUiControlsFactory()->createSettingsAction(otsTheme));
+
+    m_colmapWrapper->getOrCreateUiControlsFactory()->updateIconTheme(otsTheme);
 
     if(AlgorithmManager::instance().getAlgorithmCount() + TransformManager::instance().getTransformCount() >0){
         displayPluginSettings();

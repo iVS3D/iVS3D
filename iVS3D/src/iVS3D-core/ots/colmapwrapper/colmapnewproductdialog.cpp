@@ -68,9 +68,9 @@ void NewProductDialog::onCbCurrentTextChanged(QString currentText)
 
   //--- if current index is -1, i.e. new name, clear image path.
   //--- Otherwise, load image path according to sequence.
-  if(currIdx == -1)
-    ui->le_imagePath->setText("");
-  else
+  if(currIdx != -1)
+    //ui->le_imagePath->setText("");
+  //else
     ui->le_imagePath->setText(QString::fromStdString(mAvailableSeqs.at(currIdx).imagePath));
 }
 
@@ -281,6 +281,8 @@ void NewProductDialog::onAccepted()
     return newJob;
   };
 
+  // TODO: copy image files to REMOTE here, if not done already!!!
+
   //--- create job to estimate camera poses if applicable
   if(ui->cb_prodCameraPoses->isChecked())
   {
@@ -377,6 +379,11 @@ void NewProductDialog::onShow()
       ui->cb_sequenceName->addItem(QString::fromStdString(seq.name));
   }
   ui->cb_sequenceName->setCurrentIndex(-1);
+  ui->le_imagePath->setText("");
+  if(!mpColmapWrapper->getLocalPresetSequence().name.empty()){
+      ui->cb_sequenceName->setEditText(QString::fromStdString(mpColmapWrapper->getLocalPresetSequence().name));
+      ui->le_imagePath->setText(QString::fromStdString(mpColmapWrapper->getLocalPresetSequence().imagePath));
+  }
 }
 
 //==================================================================================================

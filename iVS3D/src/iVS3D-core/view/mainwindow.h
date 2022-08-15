@@ -150,6 +150,8 @@ public:
 
     void addOtsWindow(QWidget *otsWidget);
 
+    void addSettingsAction(QAction *action);
+
 
 signals:
     /**
@@ -277,5 +279,6 @@ private:
     void dragEnterEvent(QDragEnterEvent *event) override;
     void readSettings();
     void closeEvent(QCloseEvent *event) override;
+    QDockWidget *m_outputDock;
 };
 #endif // MAINWINDOW_H
