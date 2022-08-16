@@ -55,7 +55,7 @@ class Job:
 #---------------------------------------------------------------------------------------------------------------------
 
 ######################################################################################################################
-# Method to compute lest of gps reference data, needed for georegistration
+# Method to compute list of gps reference data, needed for georegistration, returns false if no valid gps reference data found
 def computeGpsRefernceList(colmapProjectDirPath: str, sequenceName: str, geoDir: str):
 
     # open gps output file
@@ -74,6 +74,8 @@ def computeGpsRefernceList(colmapProjectDirPath: str, sequenceName: str, geoDir:
     fileList = listImgFiles('{}/../{}.images/'.format(colmapProjectDirPath, sequenceName))
     fileList.sort()
     i = 0
+    #sum of all gps entries to detect empty gps data
+    gps_sum = 0
     #ecef_offset_x, ecef_offset_y, ecef_offset_z
     for imgFilename in fileList:
 
@@ -95,6 +97,8 @@ def computeGpsRefernceList(colmapProjectDirPath: str, sequenceName: str, geoDir:
         # write data
         ecef_x, ecef_y, ecef_z = gpsEntry.toWGS84Ecef()
         fout_ecef.write('{} {:.3f} {:.3f} {:.3f}\r\n'.format(os.path.basename(imgFilename), (ecef_x - ecef_offset_x), (ecef_y - ecef_offset_y), (ecef_z - ecef_offset_z)))
+        gps_sum += ecef_x - ecef_offset_x + ecef_y - ecef_offset_y + ecef_z - ecef_offset_z
+
         fout_ecef.flush()
         fout_wgs84.write('{} {} {} {}\r\n'.format(os.path.basename(imgFilename), gpsEntry.lat, gpsEntry.long, gpsEntry.alt))
         fout_wgs84.flush()
@@ -104,6 +108,8 @@ def computeGpsRefernceList(colmapProjectDirPath: str, sequenceName: str, geoDir:
     fout_ecef.close()
     fout_offset.close()
     fout_wgs84.close()
+
+    return int(gps_sum) != 0
 
 ######################################################################################################################
 # Compute camera poses for given parameter list.
@@ -163,23 +169,31 @@ def computeCameraPoses(colmapDatabaseFilePath: str, projectImageDir: str, colmap
               '{}/01_sparse/geo/sparse_in/'.format(colmapProjectDirPath, colmapProjectDirPath))
 
     # compute reference informaion
-    computeGpsRefernceList(colmapProjectDirPath, sequenceName, '{}/01_sparse/geo/'.format(colmapProjectDirPath))
+    success = computeGpsRefernceList(colmapProjectDirPath, sequenceName, '{}/01_sparse/geo/'.format(colmapProjectDirPath))
 
-    # run model aligner
-    print('\t> Running model aligner...')
-    cmd=('{} model_aligner '
-         '--input_path {}/01_sparse/geo/sparse_in/ '
-         '--output_path {}/01_sparse/geo/sparse_out/ '
-         '--ref_images_path {}/01_sparse/geo/ImgGpsList_ecef.txt '
-         '--robust_alignment 0').format(COLMAP_BIN, colmapProjectDirPath, colmapProjectDirPath,
-         colmapProjectDirPath)
-    os.system(cmd)
+    # running model aligner if computeGpsRefernceList was successfull
+    if success:
+        # run model aligner
+        print('\t> Running model aligner...')
+        cmd=('{} model_aligner '
+            '--input_path {}/01_sparse/geo/sparse_in/ '
+            '--output_path {}/01_sparse/geo/sparse_out/ '
+            '--ref_images_path {}/01_sparse/geo/ImgGpsList_ecef.txt '
+            '--robust_alignment 0').format(COLMAP_BIN, colmapProjectDirPath, colmapProjectDirPath,
+            colmapProjectDirPath)
+        os.system(cmd)    
 
-    # copy output data
-    os.system('cp {}/01_sparse/geo/sparse_out/cameras.bin '
-              '{}/{}_cameras.bin'.format(colmapProjectDirPath, projectOutputDirPath, sequenceName))
-    os.system('cp {}/01_sparse/geo/sparse_out/images.bin '
-              '{}/{}_images.bin'.format(colmapProjectDirPath, projectOutputDirPath, sequenceName))
+        # copy output data
+        os.system('cp {}/01_sparse/geo/sparse_out/cameras.bin '
+                '{}/{}_cameras.bin'.format(colmapProjectDirPath, projectOutputDirPath, sequenceName))
+        os.system('cp {}/01_sparse/geo/sparse_out/images.bin '
+                '{}/{}_images.bin'.format(colmapProjectDirPath, projectOutputDirPath, sequenceName))
+    else:
+        # copy output data
+        os.system('cp {}/01_sparse/geo/sparse_in/cameras.bin '
+                '{}/{}_cameras.bin'.format(colmapProjectDirPath, projectOutputDirPath, sequenceName))
+        os.system('cp {}/01_sparse/geo/sparse_in/images.bin '
+                '{}/{}_images.bin'.format(colmapProjectDirPath, projectOutputDirPath, sequenceName))
 
     progressCallback(100)
 
@@ -231,9 +245,8 @@ def computeDenseCloud(projectImageDir: str, colmapProjectDirPath: str, projectOu
          '--workspace_path {}/02_dense/ '
          '--workspace_format COLMAP '
          '--input_type geometric '
-         '--output_path {}/02_dense/fused_model/ '
-         '--output_type BIN '
-         '--StereoFusion.cache_size {}').format(COLMAP_BIN, colmapProjectDirPath, colmapProjectDirPath,
+         '--output_path {}/02_dense/fused_model/{}_dense_cloud.ply '
+         '--StereoFusion.cache_size {}').format(COLMAP_BIN, colmapProjectDirPath, colmapProjectDirPath, sequenceName,
                                                 cacheSize)
     os.system(cmd)
 
@@ -246,28 +259,35 @@ def computeDenseCloud(projectImageDir: str, colmapProjectDirPath: str, projectOu
     # copy data
     os.system('cp {}/02_dense/fused_model/* '
               '{}/02_dense/geo/dense_in/'.format(colmapProjectDirPath, colmapProjectDirPath))
+    os.system('cp {}/02_dense/sparse/* '
+              '{}/02_dense/geo/dense_in/'.format(colmapProjectDirPath, colmapProjectDirPath))
 
     # compute reference informaion
-    computeGpsRefernceList(colmapProjectDirPath, sequenceName, '{}/02_dense/geo/'.format(colmapProjectDirPath))
+    success = computeGpsRefernceList(colmapProjectDirPath, sequenceName, '{}/02_dense/geo/'.format(colmapProjectDirPath))
 
-    # run model aligner
-    print('\t> Running model aligner...')
-    cmd=('{} model_aligner '
-         '--input_path {}/02_dense/geo/dense_in/ '
-         '--output_path {}/02_dense/geo/dense_out/ '
-         '--ref_images_path {}/02_dense/geo/ImgGpsList_ecef.txt '
-         '--robust_alignment 0').format(COLMAP_BIN, colmapProjectDirPath, colmapProjectDirPath,
-         colmapProjectDirPath)
-    os.system(cmd)
+    # running model aligner if computeGpsRefernceList was successfull
+    if success:
+        # run model aligner
+        print('\t> Running model aligner...')
+        cmd=('{} model_aligner '
+            '--input_path {}/02_dense/geo/dense_in/ '
+            '--output_path {}/02_dense/geo/dense_out/ '
+            '--ref_images_path {}/02_dense/geo/ImgGpsList_ecef.txt '
+            '--robust_alignment 0').format(COLMAP_BIN, colmapProjectDirPath, colmapProjectDirPath,
+            colmapProjectDirPath)
+        os.system(cmd)
 
-    # run model_converter fusion
-    print('\t> Running model converter...')
-    cmd=('{} model_converter '
-         '--input_path {}/02_dense/geo/dense_out/ '
-         '--output_path {}/02_dense/{}_dense_cloud.ply '
-         '--output_type PLY').format(COLMAP_BIN, colmapProjectDirPath, colmapProjectDirPath,
-         sequenceName, cacheSize)
-    os.system(cmd)
+        # run model_converter fusion
+        print('\t> Running model converter...')
+        cmd=('{} model_converter '
+            '--input_path {}/02_dense/geo/dense_out/ '
+            '--output_path {}/02_dense/{}_dense_cloud.ply '
+            '--output_type PLY').format(COLMAP_BIN, colmapProjectDirPath, colmapProjectDirPath,
+            sequenceName, cacheSize)
+        os.system(cmd)
+    else:
+        os.system('cp {}/02_dense/fused_model/{}_dense_cloud.ply '
+              '{}/02_dense/{}_dense_cloud.ply '.format(colmapProjectDirPath, sequenceName, colmapProjectDirPath, sequenceName))
 
     # copy result
     cmd=('cp {}/02_dense/{}_dense_cloud.ply '
