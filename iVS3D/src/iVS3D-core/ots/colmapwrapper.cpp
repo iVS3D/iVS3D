@@ -558,13 +558,14 @@ void ColmapWrapper::mountRemoteWorkspace()
   qDebug() << "Cmd: " << MNT_CMD << args;
 
   //--- call sync cmd
-  mpMountProcess->start(MNT_CMD, args);
+  /*mpMountProcess->start(MNT_CMD, args);
   mpMountProcess->waitForFinished();
-
+  qDebug() << mpMountProcess->exitCode();
   QString stdOut = mpSyncProcess->readAllStandardOutput();
   QString stdErr = mpSyncProcess->readAllStandardError();
   if(!stdOut.isEmpty()) qDebug() << stdOut;
-  if(!stdErr.isEmpty()) qDebug() << stdErr;
+  if(!stdErr.isEmpty()) qDebug() << stdErr;*/
+  qDebug() << "Mount exit code: " << QProcess::execute(MNT_CMD, args);
 }
 
 //==================================================================================================
