@@ -116,12 +116,14 @@ void SettingsDialog::onConnectionComboBoxIdxChanged(int currentIdx)
 //==================================================================================================
 void SettingsDialog::onMountPushButtonPressed()
 {
+  mpColmapWrapper->setMntPntRemoteWorkspacePath(ui->le_mntPnt->text());
   mpColmapWrapper->mountRemoteWorkspace();
 }
 
 //==================================================================================================
 void SettingsDialog::onUnmountPushButtonPressed()
 {
+  mpColmapWrapper->setMntPntRemoteWorkspacePath(ui->le_mntPnt->text());
   mpColmapWrapper->unmountRemoteWorkspace();
 }
 
