@@ -51,6 +51,7 @@ struct stringContainer
     static const QString mipIdentifier;
     static const QString inputPathIdentifier;
     static const QString keyframesIdentifier;
+    static const QString boundariesIdentifier;
     //Identifier for ma
     static const QString maIdentifier;
     //Identifier for exportData

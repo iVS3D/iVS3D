@@ -84,6 +84,12 @@ public:
      */
     QPoint getBoundaries();
 
+    /**
+     * @brief setBoundaries sets the boundaries of the working set and moves them to the desired position
+     * @param boundaries QPoint(lower, upper) boundary
+     */
+    void setBoundaries(QPoint boundaries);
+
     void resetBoundaries();
 
 signals:

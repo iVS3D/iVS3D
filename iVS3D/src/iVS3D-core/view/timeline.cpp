@@ -210,6 +210,11 @@ QPoint Timeline::getBoundaries()
     return m_boundaries;
 }
 
+void Timeline::setBoundaries(QPoint boundaries)
+{
+    positionBoundaries(boundaries.x(), boundaries.y());
+}
+
 void Timeline::resetBoundaries()
 {
     positionBoundaries(0, m_frameCount - 1);

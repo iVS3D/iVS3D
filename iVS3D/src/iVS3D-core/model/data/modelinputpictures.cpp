@@ -184,12 +184,14 @@ QVariant ModelInputPictures::toText()
     std::string key = keyStream.str();
     QVariant keyframes(QString::fromStdString(key));
 
-
+    QPoint boundaries = getBoundaries();
+    QVariantList varBoundaries = {boundaries.x(), boundaries.y()};
 
     QJsonObject jsonObject;
     QJsonValue::fromVariant(inputPath);
     jsonObject.insert(stringContainer::keyframesIdentifier, QJsonValue::fromVariant(keyframes));
     jsonObject.insert(stringContainer::inputPathIdentifier, QJsonValue::fromVariant(inputPath));
+    jsonObject.insert(stringContainer::boundariesIdentifier, QJsonValue::fromVariant(varBoundaries));
     return QVariant(jsonObject);
 
 }
@@ -211,7 +213,14 @@ void ModelInputPictures::fromText(QVariant data)
     QString keyframes = jsonData.find(stringContainer::keyframesIdentifier).value().toString();
     m_keyframes = splitString(keyframes);
 
-
+    // get boundaries
+    QVariantList varBoundaries = jsonData.find(stringContainer::boundariesIdentifier).value().toVariant().toList();
+    if (varBoundaries.size() == 2) {
+        QPoint boundaries;
+        boundaries.setX(varBoundaries.at(0).toInt());
+        boundaries.setY(varBoundaries.at(1).toInt());
+        setBoundaries(boundaries);
+    }
 }
 
 QPoint ModelInputPictures::getBoundaries()

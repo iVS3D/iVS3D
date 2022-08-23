@@ -28,6 +28,7 @@ VideoPlayerController::VideoPlayerController(QObject *parent, VideoPlayer *playe
     m_timeline->setFrames(m_dataManager->getModelInputPictures()->getAllKeyframes(), m_dataManager->getModelInputPictures()->getPicCount());
     m_timeline->setEnabled(true);
     m_timeline->selectFrame(m_imageIndex);
+    m_timeline->setBoundaries(m_dataManager->getModelInputPictures()->getBoundaries());
 
 
     // connect videoPlayer
@@ -207,6 +208,7 @@ void VideoPlayerController::slot_mipChanged()
 {
     m_timeline->updateKeyframes(m_dataManager->getModelInputPictures()->getAllKeyframes());
     m_timeline->selectFrame(m_imageIndex);
+    m_timeline->setBoundaries(m_dataManager->getModelInputPictures()->getBoundaries());
     m_videoPlayer->setKeyframeCount(m_dataManager->getModelInputPictures()->getKeyframeCount());
     showImage();
 }

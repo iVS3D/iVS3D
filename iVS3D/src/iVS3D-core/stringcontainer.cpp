@@ -33,6 +33,7 @@ const QString stringContainer::jsonDelimiter = ",";
 const QString stringContainer::mipIdentifier = "ModelInputPictures";
 const QString stringContainer::inputPathIdentifier = "inputPath";
 const QString stringContainer::keyframesIdentifier = "keyframes";
+const QString stringContainer::boundariesIdentifier = "boundaries";
 
 // Identifier for ModelAlgorithm
 const QString stringContainer::maIdentifier = "ModelAlgorithm";
