@@ -20,7 +20,6 @@ VideoPlayerController::VideoPlayerController(QObject *parent, VideoPlayer *playe
 
     m_videoPlayer->setEnabled(true);
     m_videoPlayer->setEnabledBackBtns(false);
-    m_videoPlayer->setKeyframeCount(m_dataManager->getModelInputPictures()->getKeyframeCount());
     m_videoPlayer->setStepsize(m_stepsize);
     m_videoPlayer->setPlaying(m_playing);
     m_videoPlayer->setKeyframesOnly(m_keyframesOnly);
@@ -28,8 +27,11 @@ VideoPlayerController::VideoPlayerController(QObject *parent, VideoPlayer *playe
     m_timeline->setFrames(m_dataManager->getModelInputPictures()->getAllKeyframes(), m_dataManager->getModelInputPictures()->getPicCount());
     m_timeline->setEnabled(true);
     m_timeline->selectFrame(m_imageIndex);
-    m_timeline->setBoundaries(m_dataManager->getModelInputPictures()->getBoundaries());
+    QPoint boundaries = m_dataManager->getModelInputPictures()->getBoundaries();
+    m_timeline->setBoundaries(boundaries);
 
+    uint inBoundKeyframeCount = m_dataManager->getModelInputPictures()->getAllKeyframes(boundaries).size();
+    m_videoPlayer->setKeyframeCount(inBoundKeyframeCount);
 
     // connect videoPlayer
     connect(m_videoPlayer, &VideoPlayer::sig_play, this, &VideoPlayerController::slot_play);
@@ -253,6 +255,8 @@ void VideoPlayerController::slot_stopPlay()
 void VideoPlayerController::slot_updateBoundaries(QPoint boundaries)
 {
     m_dataManager->getModelInputPictures()->setBoundaries(boundaries);
+    uint inBoundKeyframeCount = m_dataManager->getModelInputPictures()->getAllKeyframes(boundaries).size();
+    m_videoPlayer->setKeyframeCount(inBoundKeyframeCount);
 }
 
 void VideoPlayerController::slot_resetBoundaries()

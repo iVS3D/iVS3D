@@ -4,7 +4,7 @@ TimelineLabel::TimelineLabel(QWidget *parent) : QLabel(parent)
 {
 }
 
-void TimelineLabel::updateTimelinelabel(std::vector<uint> *keyframes, QPointF indexBounds, bool drawTimestamps)
+void TimelineLabel::updateTimelinelabel(std::vector<uint> *keyframes, QPointF indexBounds, bool drawTimestamps, QPoint boundaries)
 {
     if (!keyframes) {
         return;
@@ -19,7 +19,7 @@ void TimelineLabel::updateTimelinelabel(std::vector<uint> *keyframes, QPointF in
     m_keyframes = keyframes;
     m_drawTimestamps = drawTimestamps;
 
-    redraw();
+    redraw(boundaries);
 }
 
 float TimelineLabel::relPosToIndex(uint relativePosition)
@@ -60,9 +60,9 @@ uint TimelineLabel::getLastIndex()
     return m_lastIndex;
 }
 
-void TimelineLabel::redraw()
+void TimelineLabel::redraw(QPoint boundaries)
 {
-    setPixmap(drawPixmap(m_drawTimestamps));
+    setPixmap(drawPixmap(m_drawTimestamps, boundaries));
 }
 
 void TimelineLabel::mousePressEvent(QMouseEvent *ev)
@@ -70,7 +70,7 @@ void TimelineLabel::mousePressEvent(QMouseEvent *ev)
     emit sig_clicked(ev->pos());
 }
 
-QPixmap TimelineLabel::drawPixmap(bool timeStamps)
+QPixmap TimelineLabel::drawPixmap(bool timeStamps, QPoint boundaries)
 {
     QPixmap pix = QPixmap(geometry().width() - lineWidth() - 1, geometry().height() - lineWidth() - 1);
     pix.fill(Qt::transparent);
@@ -86,7 +86,7 @@ QPixmap TimelineLabel::drawPixmap(bool timeStamps)
 
     // draw timestamps
     if (timeStamps) {
-        pen.setColor(Qt::black);
+        pen.setColor(TIMESTAMP_COLOR);
         painter.setPen(pen);
         QVector<QLine> stampLines;
         for (uint i = m_firstIndex; i <= m_lastIndex; i++) {
@@ -98,9 +98,9 @@ QPixmap TimelineLabel::drawPixmap(bool timeStamps)
     }
 
     // draw keyframes
-    pen.setColor(Qt::red);
-    painter.setPen(pen);
-    QVector<QLine> keyframeLines;
+    QVector<QLine> inBoundKeyframeLines, outOfBoundKeyframeLines;
+    uint lowerBound = boundaries.x() < 0 ? m_firstIndex : (uint)boundaries.x();
+    uint upperBound = boundaries.y() < 0 ? m_lastIndex : (uint)boundaries.y();
     foreach (uint index, *m_keyframes) {
         if (index < m_firstIndex) {
             continue;
@@ -108,11 +108,23 @@ QPixmap TimelineLabel::drawPixmap(bool timeStamps)
         if (index > m_lastIndex) {
             break;
         }
+
         uint x = indexToRelPos(index);
         QLine line = QLine(x, lineMarginTop, x, lineHeight + lineMarginBottom);
-        keyframeLines.push_back(line);
+        if (lowerBound <= index && index <= upperBound) {
+            inBoundKeyframeLines.push_back(line);
+        } else {
+            outOfBoundKeyframeLines.push_back(line);
+        }
     }
-    painter.drawLines(keyframeLines);
+    // in bound keyframes
+    pen.setColor(INBOUND_COLOR);
+    painter.setPen(pen);
+    painter.drawLines(inBoundKeyframeLines);
+    // out of bound keyframes
+    pen.setColor(OUTOFBOUND_COLOR);
+    painter.setPen(pen);
+    painter.drawLines(outOfBoundKeyframeLines);
 
     return pix;
 }

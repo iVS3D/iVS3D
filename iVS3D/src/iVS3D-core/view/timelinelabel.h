@@ -7,6 +7,11 @@
 #include <QMouseEvent>
 #include <QtMath>
 
+// color definitions
+#define INBOUND_COLOR Qt::red
+#define OUTOFBOUND_COLOR Qt::darkGray
+#define TIMESTAMP_COLOR Qt::black
+
 /**
  * @class TimelineLabel
  *
@@ -33,9 +38,10 @@ public:
      * @param keyframes new keayframes
      * @param indexBounds represents the bounds of the timelinelabel in form of indices.
      *        They can be represented as floads so that the first and last displayed frame has an offset to its boundarie.
+     * @param (optional) boundaries defines which keyframelines will be outside of the bound and will color them diffrent
      * @param drawTimestamps should timestamps be drawn
      */
-    void updateTimelinelabel(std::vector<uint> *keyframes, QPointF indexBounds, bool drawTimestamps);
+    void updateTimelinelabel(std::vector<uint> *keyframes, QPointF indexBounds, bool drawTimestamps, QPoint boundaries = QPoint(-1,-1));
 
     /**
      * @brief relPosToIndex returns the respective index as float number to the relative position the timelinelabel
@@ -65,8 +71,10 @@ public:
 
     /**
      * @brief redraw redraws entire label
+     *
+     * @param (optional) boundaries defines which frames are defined as out of bound and should be colored diffrent
      */
-    void redraw();
+    void redraw(QPoint boundaries = QPoint(-1, -1));
 
     /**
      * @brief mousePressEvent signals a mousepress event
@@ -86,7 +94,7 @@ private:
     float m_frameSize = 0.f;
     bool m_drawTimestamps = true;
 
-    QPixmap drawPixmap(bool timeStamps);
+    QPixmap drawPixmap(bool timeStamps, QPoint boundaries);
 };
 
 #endif // TIMELINELABEL_H

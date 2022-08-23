@@ -74,8 +74,8 @@ void Timeline::resize()
     updateHighlighterWidth();
 
     // set frames for each timelineLabel
-    m_totalTimeline->updateTimelinelabel(&this->m_keyframes, QPointF(0, m_frameCount - 1), false);
-    m_zoomTimeline->updateTimelinelabel(&this->m_keyframes, getHighlighterRange(), true);
+    m_totalTimeline->updateTimelinelabel(&this->m_keyframes, QPointF(0, m_frameCount - 1), false, m_boundaries);
+    m_zoomTimeline->updateTimelinelabel(&this->m_keyframes, getHighlighterRange(), true, m_boundaries);
 
     // setup marker
     m_marker->setYLevel(m_zoomTimeline->parentWidget()->y());
@@ -131,7 +131,7 @@ void Timeline::selectFrame(uint index)
     if (index < m_zoomTimeline->getFirstIndex() || m_zoomTimeline->getLastIndex() < index) {
         int nHighlighterPos = m_totalTimeline->indexToRelPos(index) - m_highlighter->width() / 2;
         m_highlighter->setRelPosition(nHighlighterPos);
-        m_zoomTimeline->updateTimelinelabel(&m_keyframes, getHighlighterRange(), true);
+        m_zoomTimeline->updateTimelinelabel(&m_keyframes, getHighlighterRange(), true, m_boundaries);
     }
 
     // repostion marker
@@ -157,7 +157,7 @@ void Timeline::updateHighlighterWidth()
     // correct postioning so that the highlighter moves to the left if it would grow over the right edge
     int missPlacement = maxX_Highlighter - m_highlighter->getIntervall().y();
     m_highlighter->setRelPosition(m_highlighter->x() - missPlacement);
-    m_zoomTimeline->updateTimelinelabel(&m_keyframes, getHighlighterRange(), true);
+    m_zoomTimeline->updateTimelinelabel(&m_keyframes, getHighlighterRange(), true, m_boundaries);
 }
 
 void Timeline::resizeEvent(QResizeEvent *ev)
@@ -253,7 +253,7 @@ QPixmap Timeline::drawMarker(uint pixWidth, uint pixHeight, uint symbolWidth, ui
     QPixmap pix = QPixmap(pixWidth, pixHeight);
     pix.fill(Qt::transparent);
     QPainter painter(&pix);
-    QPen pen(Qt::black);
+    QPen pen(MARKER_COLOR);
     painter.setPen(pen);
     QPolygon symbol;
     QPoint topLeft = QPoint(pixWidth / 2 - symbolWidth / 2, topMargin);
@@ -279,7 +279,7 @@ QPixmap Timeline::drawBoundary(uint pixWidth, uint pixHeight, uint symbolWidth, 
     pix.fill(Qt::transparent);
     // create painter and pen with fitting color
     QPainter painter(&pix);
-    QPen pen(Qt::black);
+    QPen pen(BOUNDARY_COLOR);
     pen.setWidth(2);
     painter.setPen(pen);
 
@@ -326,6 +326,9 @@ void Timeline::positionBoundaries(uint startPos, uint endPos)
     m_startBoundaryLabel->setRelPosition(relPosStart);
     m_endBoundaryLabel->setRelPosition(relPosEnd);
 
+    m_totalTimeline->redraw(QPoint(startPos, endPos));
+    m_zoomTimeline->redraw(QPoint(startPos, endPos));
+
     // update boundaries attribute
     m_boundaries = QPoint(startPos, endPos);
     emit sig_boundariesChanged(m_boundaries);
@@ -337,7 +340,7 @@ void Timeline::highlighterMoved(int xMovement)
     int movedPostion = m_highlighter->getRelPosition() + xMovement - m_highlighter->width() / 2;
     m_highlighter->setRelPosition(movedPostion);
 
-    m_zoomTimeline->updateTimelinelabel(&m_keyframes, getHighlighterRange(), true);
+    m_zoomTimeline->updateTimelinelabel(&m_keyframes, getHighlighterRange(), true, m_boundaries);
 
     // reselect currently selected frame to set marker correctly
     uint currentlySelectedIdx = selectedFrame();

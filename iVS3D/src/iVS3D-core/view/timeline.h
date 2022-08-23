@@ -8,6 +8,8 @@
 #include "timelinelabel.h"
 #include "ui_timeline.h"
 
+#define MARKER_COLOR Qt::black
+#define BOUNDARY_COLOR Qt::black
 
 namespace Ui {
 class Timeline;
