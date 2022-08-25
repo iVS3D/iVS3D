@@ -132,7 +132,7 @@ public:
      * @param useCuda @a true if cv::cuda can be used
      * @return QMap with the settings
      */
-    virtual QMap<QString, QVariant> generateSettings(Progressable *receiver, bool useCuda, volatile bool* stopped) = 0;
+    virtual QMap<QString, QVariant> generateSettings(Progressable *receiver, bool useCuda, volatile bool* stopped) {return {}; };
 
 signals:
     /**

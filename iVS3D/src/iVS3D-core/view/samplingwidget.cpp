@@ -26,6 +26,11 @@ SamplingWidget::SamplingWidget(QWidget *parent, QStringList algorithmList, QStri
     m_cbPreviewTransform = new QCheckBox("Enable preview", parent);
     m_cbPreviewTransform->setVisible(false);
     connect(m_cbPreviewTransform, &QCheckBox::stateChanged, this, &SamplingWidget::slot_enablePreviewChanged);
+
+    // disable generate Settings buttons
+    ui->pushButton_2->setVisible(false);
+    ui->radioButton->setVisible(false);
+    //
 }
 
 SamplingWidget::~SamplingWidget()
@@ -117,9 +122,9 @@ void SamplingWidget::showSamplingBtns()
     HIDE_WIDGET(m_cbPreviewTransform)
     ui->label_2->setVisible(true);
     ui->label_3->setVisible(true);
-    ui->pushButton_2->setVisible(true);
+//    ui->pushButton_2->setVisible(true);
     SHOW_WIDGET(ui->pushButton);
-    ui->radioButton->setVisible(true);
+//    ui->radioButton->setVisible(true);
     ui->addAuto->setVisible(true);
 }
 
@@ -127,10 +132,10 @@ void SamplingWidget::showTransformBtns()
 {
     ui->label_2->setVisible(false);
     ui->label_3->setVisible(false);
-    ui->pushButton_2->setVisible(false);
+//    ui->pushButton_2->setVisible(false);
     HIDE_WIDGET(ui->pushButton);
     SHOW_WIDGET(m_cbPreviewTransform);
-    ui->radioButton->setVisible(false);
+//    ui->radioButton->setVisible(false);
     ui->addAuto->setVisible(false);
 }
 
