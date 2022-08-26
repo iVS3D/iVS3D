@@ -48,7 +48,7 @@ public:
      * @param relativePosition on the timelinelinelabel in pixels
      * @return index as a float number to also represent a position between two frames
      */
-    float relPosToIndex(uint relativePosition);
+    float relPosToIndex(int relativePosition);
 
     /**
      * @brief indexToRelPos returns the relative position which correspondes to the global index (firstIndex computation is involved in function)

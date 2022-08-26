@@ -22,7 +22,7 @@ void TimelineLabel::updateTimelinelabel(std::vector<uint> *keyframes, QPointF in
     redraw(boundaries);
 }
 
-float TimelineLabel::relPosToIndex(uint relativePosition)
+float TimelineLabel::relPosToIndex(int relativePosition)
 {
     float index = m_firstIndex + (float)(relativePosition - m_firstIndex_offset) / m_frameSize;
 

@@ -284,7 +284,7 @@ QPixmap Timeline::drawBoundary(uint pixWidth, uint pixHeight, uint symbolWidth, 
     painter.setPen(pen);
 
     // set lines which are used to draw the symbol
-    uint xMiddle = pixWidth / 2;
+    uint xMiddle = pixWidth / 2 + pen.width();
     QLine verticalLine = QLine(xMiddle, topBottomMargin, xMiddle, pixHeight - topBottomMargin);
     QPoint topOutterPoint;
     QPoint bottomOutterPoint;
@@ -309,9 +309,6 @@ QPixmap Timeline::drawBoundary(uint pixWidth, uint pixHeight, uint symbolWidth, 
 void Timeline::positionBoundaries(uint startPos, uint endPos)
 {
     // correct parameters if neccessary;
-    if (startPos < 0) {
-        startPos = 0;
-    }
     if (endPos < startPos) {
         endPos = startPos;
     }
