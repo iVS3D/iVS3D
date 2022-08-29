@@ -88,7 +88,7 @@ int noUIController::exec()
     while (!autoExec->isFinished()) {
         QCoreApplication::processEvents( QEventLoop::AllEvents, 100 );
     }
-    int keyframeCount = m_dataManager->getModelInputPictures()->getKeyframeCount();
+    int keyframeCount = m_dataManager->getModelInputPictures()->getKeyframeCount(true);
     m_terminal->slot_displayMessage("Sampled " + QString::number(keyframeCount) + " keyframes.");
 
     m_terminal->slot_displayMessage("\n### Finished Computation ###\n");

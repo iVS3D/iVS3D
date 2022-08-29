@@ -116,9 +116,11 @@ public:
     /**
      * @brief Returns the number of keyframes
      *
+     * @param inBound   true: returns only the amount of keyframes between the currently set boundaries
+     *                  false: returns the total amount of keyframes
      * @return Number of keyframes
      */
-    unsigned int getKeyframeCount();
+    unsigned int getKeyframeCount(bool inBound);
     /**
      * @brief Returns the number of frames
      *
@@ -128,16 +130,11 @@ public:
     /**
      * @brief Returns the index vector containing the keyframes
      *
+     * @param inBound   true: returns only the keyframes that are between the currently set boundaries
+     *                  false: returns all keyframes
      * @return Keyframe vector
      */
-    std::vector<unsigned int> getAllKeyframes();
-    /**
-     * @brief Returns the index vector containing the keyframes bounded by the given boundaries
-     *
-     * @param boundaries
-     * @return Keyframe vector bounded by the given boundaries
-     */
-    std::vector<unsigned int> getAllKeyframes(QPoint boundaries);
+    std::vector<unsigned int> getAllKeyframes(bool inBound);
     /**
      * @brief Returns the input resolution
      *

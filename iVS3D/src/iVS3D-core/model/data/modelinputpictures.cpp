@@ -114,8 +114,8 @@ const cv::Mat* ModelInputPictures::getPic(unsigned int index){
 }
 
 
-unsigned int ModelInputPictures::getKeyframeCount(){
-    return static_cast<unsigned int>(m_keyframes.size());
+unsigned int ModelInputPictures::getKeyframeCount(bool inBound){
+    return static_cast<unsigned int>(getAllKeyframes(inBound).size());
 }
 
 unsigned int ModelInputPictures::getPicCount(){
@@ -268,15 +268,16 @@ void ModelInputPictures::restore(ModelInputPictures::Memento *m)
     emit sig_mipChanged();
 }
 
-std::vector<unsigned int> ModelInputPictures::getAllKeyframes()
+std::vector<unsigned int> ModelInputPictures::getAllKeyframes(bool inBound)
 {   
-    return m_keyframes;
-}
+    if (!inBound) {
+        // all keyframes
+        return m_keyframes;
+    }
 
-std::vector<unsigned int> ModelInputPictures::getAllKeyframes(QPoint boundaries)
-{
+    // crop keyframes with bounds
     // check if boundaries are valid
-    Q_ASSERT(0 <= boundaries.x() && boundaries.x() <= boundaries.y());
+    Q_ASSERT(0 <= m_boundaries.x() && m_boundaries.x() <= m_boundaries.y());
 
     std::vector<unsigned int> croppedKeyframes;
 
@@ -285,8 +286,8 @@ std::vector<unsigned int> ModelInputPictures::getAllKeyframes(QPoint boundaries)
         return croppedKeyframes;
     }
 
-    uint startFrame = boundaries.x();
-    uint endFrame = boundaries.y();
+    uint startFrame = m_boundaries.x();
+    uint endFrame = m_boundaries.y();
 
 
     for (uint currKeyframe : m_keyframes) {
@@ -295,8 +296,6 @@ std::vector<unsigned int> ModelInputPictures::getAllKeyframes(QPoint boundaries)
             croppedKeyframes.push_back(currKeyframe);
         }
     }
-
-
     return croppedKeyframes;
 }
 

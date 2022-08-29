@@ -103,7 +103,7 @@ ALGO_DATA AlgorithmExecutor::prepareAlgoStart(int pluginIdx)
 
     // select images
     QPoint boundaries = preparedData.mip->getBoundaries();
-    preparedData.images = preparedData.mip->getAllKeyframes(boundaries);
+    preparedData.images = preparedData.mip->getAllKeyframes(true);
     if(preparedData.images.size() == 0){
         // no images selected jet, select all within boundaries
         preparedData.images.reserve(boundaries.manhattanLength());

@@ -380,7 +380,7 @@ void ExportController::slot_showExportSettings(QMap<QString, QVariant> exportSet
 
 void ExportController::slot_onKeyframesChanged()
 {
-    m_outputWidget->enableExport(m_dataManager->getModelInputPictures()->getKeyframeCount() > 0);
+    m_outputWidget->enableExport(m_dataManager->getModelInputPictures()->getKeyframeCount(true) > 0);
 }
 
 QPoint ExportController::parseResolution(QString resolutionString)

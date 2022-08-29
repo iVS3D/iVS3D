@@ -24,13 +24,13 @@ VideoPlayerController::VideoPlayerController(QObject *parent, VideoPlayer *playe
     m_videoPlayer->setPlaying(m_playing);
     m_videoPlayer->setKeyframesOnly(m_keyframesOnly);
 
-    m_timeline->setFrames(m_dataManager->getModelInputPictures()->getAllKeyframes(), m_dataManager->getModelInputPictures()->getPicCount());
+    m_timeline->setFrames(m_dataManager->getModelInputPictures()->getAllKeyframes(false), m_dataManager->getModelInputPictures()->getPicCount());
     m_timeline->setEnabled(true);
     m_timeline->selectFrame(m_imageIndex);
     QPoint boundaries = m_dataManager->getModelInputPictures()->getBoundaries();
     m_timeline->setBoundaries(boundaries);
 
-    uint inBoundKeyframeCount = m_dataManager->getModelInputPictures()->getAllKeyframes(boundaries).size();
+    uint inBoundKeyframeCount = m_dataManager->getModelInputPictures()->getKeyframeCount(true);
     m_videoPlayer->setKeyframeCount(inBoundKeyframeCount);
 
     // connect videoPlayer
@@ -112,7 +112,7 @@ unsigned int VideoPlayerController::getImageIndexOnScreen()
 void VideoPlayerController::slot_play()
 {
     //ignore play if only keyframes on 0 Keyframes is selected
-    if(m_keyframesOnly && m_dataManager->getModelInputPictures()->getKeyframeCount() == 0) {
+    if(m_keyframesOnly && m_dataManager->getModelInputPictures()->getKeyframeCount(false) == 0) {
         return;
     }
     m_playing = !m_playing;
@@ -160,8 +160,8 @@ void VideoPlayerController::slot_toggleKeyframe()
     }
     m_dataManager->getHistory()->slot_save();
     m_videoPlayer->setKeyframe(m_dataManager->getModelInputPictures()->isKeyframe(m_imageIndex));
-    m_videoPlayer->setKeyframeCount(m_dataManager->getModelInputPictures()->getKeyframeCount());
-    m_timeline->updateKeyframes(m_dataManager->getModelInputPictures()->getAllKeyframes());
+    m_videoPlayer->setKeyframeCount(m_dataManager->getModelInputPictures()->getKeyframeCount(true));
+    m_timeline->updateKeyframes(m_dataManager->getModelInputPictures()->getAllKeyframes(false));
     m_timeline->selectFrame(m_imageIndex);
 }
 
@@ -180,7 +180,7 @@ void VideoPlayerController::slot_toggleKeyframesOnly(bool checked)
     m_videoPlayer->setEnabledForwardBtns(true);
 
     //disable all buttons if no keyframes exists
-    if (m_dataManager->getModelInputPictures()->getKeyframeCount() == 0 && checked == true) {
+    if (m_dataManager->getModelInputPictures()->getKeyframeCount(false) == 0 && checked == true) {
         m_videoPlayer->setEnabledBackBtns(false);
         m_videoPlayer->setEnabledForwardBtns(false);
     }
@@ -208,10 +208,10 @@ void VideoPlayerController::slot_changeIndex(unsigned int index)
 
 void VideoPlayerController::slot_mipChanged()
 {
-    m_timeline->updateKeyframes(m_dataManager->getModelInputPictures()->getAllKeyframes());
+    m_timeline->updateKeyframes(m_dataManager->getModelInputPictures()->getAllKeyframes(false));
     m_timeline->selectFrame(m_imageIndex);
     m_timeline->setBoundaries(m_dataManager->getModelInputPictures()->getBoundaries());
-    m_videoPlayer->setKeyframeCount(m_dataManager->getModelInputPictures()->getKeyframeCount());
+    m_videoPlayer->setKeyframeCount(m_dataManager->getModelInputPictures()->getKeyframeCount(true));
     showImage();
 }
 
@@ -255,7 +255,7 @@ void VideoPlayerController::slot_stopPlay()
 void VideoPlayerController::slot_updateBoundaries(QPoint boundaries)
 {
     m_dataManager->getModelInputPictures()->setBoundaries(boundaries);
-    uint inBoundKeyframeCount = m_dataManager->getModelInputPictures()->getAllKeyframes(boundaries).size();
+    uint inBoundKeyframeCount = m_dataManager->getModelInputPictures()->getKeyframeCount(true);
     m_videoPlayer->setKeyframeCount(inBoundKeyframeCount);
 }
 

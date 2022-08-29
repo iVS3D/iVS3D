@@ -4,7 +4,7 @@ ExportThread::ExportThread(Progressable* receiver, ModelInputPictures* mip, QPoi
 {
     m_receiver = receiver;
     m_reader = mip->getReader()->copy();
-    m_keyframes = mip->getAllKeyframes(mip->getBoundaries());
+    m_keyframes = mip->getAllKeyframes(true);
     m_resolution = resolution;
     m_path = path;
     m_name = name;
