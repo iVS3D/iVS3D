@@ -18,15 +18,28 @@ QWidget *OptFlowController::getSettingsWidget(QWidget *parent)
 
 std::vector<uint> OptFlowController::sampleImages(const std::vector<uint> &imageList, Progressable *receiver, volatile bool *stopped, bool useCuda, LogFileParent *logFile)
 {
-    qDebug() << "Down sampling factor: " << m_downSampleFactor;
     // ----------- setup and creating hardware specific elements ----------------
     QString selectorName = m_selectorDropDown->currentText();
     KeyframeSelector::Settings selectorSettings = m_selectorSettingsMap.value(selectorName);
 
     // ---------- create all neccessary components ------------
+    reportProgress("Excluding buffered values from computation list", 0, receiver);
+    // create a vector that containst only indices that need to be gathered (futureFrames + indices with buffered values = imageList)
+    std::vector<uint> futureFrames;
+    for (uint imageListIdx = 0; imageListIdx < imageList.size() - 1; imageListIdx++) {
+        uint fromIdx = imageList[imageListIdx];
+        uint toIdx = imageList[imageListIdx + 1];
+        double bufferedMovement = m_bufferMat.value<double>(fromIdx, toIdx);
+        if (bufferedMovement <= 0.0) {
+            futureFrames.push_back(fromIdx);
+            futureFrames.push_back(toIdx);
+        }
+    }
+    futureFrames.erase(std::unique(futureFrames.begin(), futureFrames.end()), futureFrames.end()); // remove duplicates
+
     reportProgress("Creating calculation units", 0, receiver);
     std::tuple<ImageGatherer*, FlowCalculator*, KeyframeSelector*> components = Factory::instance().createComponents(
-            imageList,
+            futureFrames,
             m_reader,
             m_downSampleFactor,
             useCuda,
