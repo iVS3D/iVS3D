@@ -402,6 +402,10 @@ void Controller::onSuccessfulOpen()
         m_mainWindow->showProjectTitle();
     }
 
+    //init plugins and notify about current keyframes
+    AlgorithmManager::instance().initializePlugins(m_dataManager->getModelInputPictures()->getReader(), m_dataManager->getModelAlgorithm()->getPluginBuffer());
+    AlgorithmManager::instance().notifyKeyframesChanged(m_dataManager->getModelInputPictures()->getAllKeyframes(false));
+
     // remove old controllers if existing
     if(m_videoPlayerController)
     {
