@@ -15,6 +15,7 @@ void ModelInputPictures::setResolution() {
 ModelInputPictures::ModelInputPictures(QString inputPath)
 {
     m_metaDataManager = &MetaDataManager::instance();
+    m_metaDataManager->resetData();
     m_reader = ReaderFactory::instance().createReader(inputPath);
 
     if (m_reader == nullptr) {
