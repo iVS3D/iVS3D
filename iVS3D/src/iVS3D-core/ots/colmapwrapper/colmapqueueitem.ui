@@ -153,7 +153,7 @@
             <string/>
            </property>
            <property name="icon">
-            <iconset resource="../../../lib3D_ots.qrc">
+            <iconset resource="../../lib3D_ots.qrc">
              <normaloff>:/assets/icons/glyphicons-17-bin.png</normaloff>:/assets/icons/glyphicons-17-bin.png</iconset>
            </property>
           </widget>
@@ -189,7 +189,7 @@
             <string/>
            </property>
            <property name="icon">
-            <iconset resource="../../../lib3D_ots.qrc">
+            <iconset resource="../../lib3D_ots.qrc">
              <normaloff>:/assets/icons/glyphicons-370-collapse-top.png</normaloff>:/assets/icons/glyphicons-370-collapse-top.png</iconset>
            </property>
           </widget>
@@ -221,7 +221,7 @@
             <string/>
            </property>
            <property name="icon">
-            <iconset resource="../../../lib3D_ots.qrc">
+            <iconset resource="../../lib3D_ots.qrc">
              <normaloff>:/assets/icons/glyphicons-368-expand.png</normaloff>:/assets/icons/glyphicons-368-expand.png</iconset>
            </property>
           </widget>
@@ -235,7 +235,7 @@
   </layout>
  </widget>
  <resources>
-  <include location="../../../lib3D_ots.qrc"/>
+  <include location="../../lib3D_ots.qrc"/>
  </resources>
  <connections/>
 </ui>

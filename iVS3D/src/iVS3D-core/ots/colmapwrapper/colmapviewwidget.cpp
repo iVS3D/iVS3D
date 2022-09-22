@@ -160,9 +160,8 @@ void ViewWidget::refreshJobQueue()
       {
         QueueItemActive *jqi = new QueueItemActive(*jobItr);
         jqi->setProgress(jobItr->progress);
-        item->setSizeHint(jqi->minimumSize());
         ui->lw_queue->setItemWidget(item, jqi);
-
+        item->setSizeHint(jqi->minimumSize());
         if(mCurrentTheme == DARK)
           jqi->onUpdateToDarkTheme();
         else

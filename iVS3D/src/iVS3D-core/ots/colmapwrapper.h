@@ -292,6 +292,11 @@ class ColmapWrapper : public QObject
      */
     void clearCustomProductOpenFn();
 
+    /**
+     * @brief switchWorkspace tries to switch to the local/remote workspace.
+     */
+    int switchWorkspace();
+
   signals:
 
     /**
@@ -365,7 +370,7 @@ class ColmapWrapper : public QObject
     /**
      * @brief Mount remote workspace into path specified with setMntPntRemoteWorkspacePath().
      */
-    void mountRemoteWorkspace();
+    int mountRemoteWorkspace();
 
     /**
      * @brief Unmount remote workspace.
@@ -486,6 +491,11 @@ class ColmapWrapper : public QObject
      * @brief Method to install script files into workspace
      */
     void installScriptFilesIntoWorkspace();
+
+    /**
+     * @brief check if script files are already installed
+     */
+    bool hasScriptFilesInstalled();
 
     /**
      * @brief Read settings from settings-file specified in the ColmapWrapper().

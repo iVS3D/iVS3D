@@ -549,6 +549,9 @@
         </item>
         <item>
          <widget class="QPushButton" name="pb_mount">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
           <property name="text">
            <string>Mount</string>
           </property>
@@ -556,6 +559,9 @@
         </item>
         <item>
          <widget class="QPushButton" name="pb_unmount">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
           <property name="text">
            <string>Unmount</string>
           </property>
@@ -564,6 +570,13 @@
        </layout>
       </item>
      </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="l_error">
+     <property name="text">
+      <string/>
+     </property>
     </widget>
    </item>
    <item>
@@ -583,6 +596,9 @@
      </item>
      <item>
       <widget class="QPushButton" name="pb_installScript">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="text">
         <string>Install script files into workspace ...</string>
        </property>
@@ -617,22 +633,6 @@
  </widget>
  <resources/>
  <connections>
-  <connection>
-   <sender>buttonBox</sender>
-   <signal>accepted()</signal>
-   <receiver>lib3d::ots::ui::colmapwrapper::SettingsDialog</receiver>
-   <slot>accept()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>248</x>
-     <y>254</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>157</x>
-     <y>274</y>
-    </hint>
-   </hints>
-  </connection>
   <connection>
    <sender>buttonBox</sender>
    <signal>rejected()</signal>

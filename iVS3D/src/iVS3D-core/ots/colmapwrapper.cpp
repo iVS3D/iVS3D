@@ -102,6 +102,10 @@ void ColmapWrapper::init()
     mountRemoteWorkspace();
   }
 
+  if(mConnectionType == LOCAL && !mLocalWorkspacePath.isEmpty() && !hasScriptFilesInstalled()){
+      installScriptFilesIntoWorkspace();
+  }
+
   //--- check worker state file
   //--- initial sync and import of sequence is done at the end of checkRunningJobs
   bool runningJobChanged = checkWorkerState();
@@ -434,6 +438,35 @@ void ColmapWrapper::clearCustomProductOpenFn()
     mCustomProductOpenFn = std::function<void(EProductType, std::string)>();
 }
 
+int ColmapWrapper::switchWorkspace()
+{
+    //--- mount remote workspace
+    if(!isRemoteWorkspaceMounted(mMntPntRemoteWorkspacePath) && mConnectionType != LOCAL)
+    {
+        int exitCode = mountRemoteWorkspace();
+        if(exitCode != 0){
+            return exitCode;
+        }
+
+    }
+
+    if(!hasScriptFilesInstalled()){
+        installScriptFilesIntoWorkspace();
+    }
+    //--- check worker state file
+    //--- initial sync and import of sequence is done at the end of checkRunningJobs
+    bool runningJobChanged = checkWorkerState();
+
+    //--- if running job has not changed, i.e. currently no running job in state file, sync
+    //--- workspace from server.
+    if(!runningJobChanged && mConnectionType != LOCAL)
+      syncWorkspaceFromServer();
+    else if( mConnectionType == LOCAL)
+      importSeuences();
+
+    return 0;
+}
+
 //==================================================================================================
 void ColmapWrapper::setCustomProductOpenFn(const std::function<void (EProductType, std::string)> &customProductOpenFn)
 {
@@ -530,7 +563,7 @@ bool ColmapWrapper::isRemoteWorkspaceMounted(QString iRemoteWorkspacePathMntPath
 }
 
 //==================================================================================================
-void ColmapWrapper::mountRemoteWorkspace()
+int ColmapWrapper::mountRemoteWorkspace()
 {
   qDebug() << "==================================================================================";
   qDebug() << "Time: " << QDateTime::currentDateTime().toString();
@@ -540,7 +573,7 @@ void ColmapWrapper::mountRemoteWorkspace()
   if(isRemoteWorkspaceMounted(mMntPntRemoteWorkspacePath) || mMntPntRemoteWorkspacePath.isEmpty())
   {
     qDebug() << "Info: Remote Workspace already mounted!";
-    return;
+    return 0;
   }
 
   //--- construct temporary mount directory
@@ -565,7 +598,14 @@ void ColmapWrapper::mountRemoteWorkspace()
   QString stdErr = mpSyncProcess->readAllStandardError();
   if(!stdOut.isEmpty()) qDebug() << stdOut;
   if(!stdErr.isEmpty()) qDebug() << stdErr;*/
-  qDebug() << "Mount exit code: " << QProcess::execute(MNT_CMD, args);
+  int exitCode = QProcess::execute(MNT_CMD, args);
+  qDebug() << "Mount exit code: " << exitCode;
+  // if mounted successfully, install scripts if missing
+  if(exitCode == 0 && !hasScriptFilesInstalled()){
+      qDebug() << "Installing script files";
+      installScriptFilesIntoWorkspace();
+  }
+  return exitCode;
 }
 
 //==================================================================================================
@@ -1165,6 +1205,29 @@ void ColmapWrapper::installScriptFilesIntoWorkspace()
     file.write(text.toUtf8()); // write the new text back to the file
     file.close(); // close the file handle.
   }
+}
+
+bool ColmapWrapper::hasScriptFilesInstalled()
+{
+    //--- defince ressource list that needs to be installed
+      QStringList ressourceList;
+      ressourceList << ":/ots/colmapwrapper/ColmapWorker"
+               << ":/ots/colmapwrapper/colmap_work_queue.yaml"
+               << ":/ots/colmapwrapper/colmap_worker_state.yaml";
+
+      QString outputPath = (mConnectionType == LOCAL) ?
+            mLocalWorkspacePath : mMntPntRemoteWorkspacePath;
+      for(QString res : ressourceList)
+      {
+          //--- compute output file path
+          QString outputFile = outputPath + QDir::separator() + QFileInfo(res).baseName();
+          outputFile += (QFileInfo(res).completeSuffix() != "") ? "." + QFileInfo(res).completeSuffix() : "";
+
+          //--- copy file and set permissions
+          if(!QFile::exists(outputFile))
+            return false;
+      }
+      return true;
 }
 
 //==================================================================================================

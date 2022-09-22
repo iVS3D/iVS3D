@@ -37,6 +37,8 @@ SettingsDialog::SettingsDialog(ColmapWrapper *ipWrapper,
            this, &SettingsDialog::onInstallScriptsPushButtonPressed);
   connect(ui->buttonBox, &QDialogButtonBox::accepted,
           this, &SettingsDialog::onAccepted);
+  connect(ui->buttonBox, &QDialogButtonBox::close,
+          this, &SettingsDialog::onCancel);
 
   //--- hide remote settings (default)
   ui->f_remote->setVisible(false);
@@ -157,7 +159,19 @@ void SettingsDialog::onAccepted()
   mpColmapWrapper->setRemoteWorkspacePath(ui->le_remoteWorkspace->text());
   mpColmapWrapper->setMntPntRemoteWorkspacePath(ui->le_mntPnt->text());
   mpColmapWrapper->setSyncInterval(ui->sb_syncInterval->value());
-  mpColmapWrapper->writeSettings();
+
+  int workspaceSwitchExitCode = mpColmapWrapper->switchWorkspace();
+  if(workspaceSwitchExitCode == 0){
+      mpColmapWrapper->writeSettings();
+      this->accept();
+  } else {
+      ui->l_error->setText("Mount failed with exit code " + QString::number(workspaceSwitchExitCode));
+  }
+}
+
+void SettingsDialog::onCancel()
+{
+    mpColmapWrapper->readSettings();
 }
 
 //==================================================================================================

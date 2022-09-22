@@ -41,12 +41,14 @@ class SettingsDialog : public QDialog
     void onUnmountPushButtonPressed();
     void onInstallScriptsPushButtonPressed();
     void onAccepted();
+    void onCancel();
 
   private:
     Ui::SettingsDialog *ui;
 
     /// Member pointer to wrapper
     lib3d::ots::ColmapWrapper* mpColmapWrapper;
+
 };
 
 } // namespace colmapwrapper
