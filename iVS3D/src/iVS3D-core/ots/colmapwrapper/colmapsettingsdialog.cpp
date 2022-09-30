@@ -149,6 +149,10 @@ void SettingsDialog::onInstallScriptsPushButtonPressed()
 //==================================================================================================
 void SettingsDialog::onAccepted()
 {
+  ui->l_error->setText("Testing connection... this may take up to 10 seconds");
+  ui->l_error->setStyleSheet("QLabel { border : 1px solid orange; color : orange; }");
+  this->repaint();
+
   mpColmapWrapper->setLocalColmapBinPath(ui->le_localColmapBinary->text());
   mpColmapWrapper->setLocalWorkspacePath(ui->le_localWorkspace->text());
   mpColmapWrapper->setConnectionType(static_cast<ColmapWrapper::EConnectionType>(
@@ -161,11 +165,26 @@ void SettingsDialog::onAccepted()
   mpColmapWrapper->setSyncInterval(ui->sb_syncInterval->value());
 
   int workspaceSwitchExitCode = mpColmapWrapper->switchWorkspace();
-  if(workspaceSwitchExitCode == 0){
+
+  if(workspaceSwitchExitCode != 0){
+      ui->l_error->setStyleSheet("QLabel { border : 1px solid red; color : red; }");
+      ui->l_error->setText("Mount failed with exit code " + QString::number(workspaceSwitchExitCode));
+  } else if(mpColmapWrapper->getSetupStatus() != ColmapWrapper::SETUP_OK) {
+      QString msg;
+      switch(mpColmapWrapper->getSetupStatus()){
+      case ColmapWrapper::ERR_EXE: msg="colmap executabel was not found or is not executable"; break;
+      case ColmapWrapper::ERR_SSH: msg="ssh connection failed"; break;
+      case ColmapWrapper::ERR_PATH: msg="path to workspace or local mount point does not exist"; break;
+      case ColmapWrapper::ERR_MOUNT: msg="remote workspace was not mounted correctly"; break;
+      default: msg = "unknown reason!";
+      }
+      ui->l_error->setStyleSheet("QLabel { border : 1px solid red; color : red; }");
+      ui->l_error->setText("Setup failed: " + msg);
+  } else {
+      ui->l_error->setStyleSheet("QLabel { border : 1px solid green; color : green; }");
+      ui->l_error->setText("Setup successfull");
       mpColmapWrapper->writeSettings();
       this->accept();
-  } else {
-      ui->l_error->setText("Mount failed with exit code " + QString::number(workspaceSwitchExitCode));
   }
 }
 
@@ -186,6 +205,22 @@ void SettingsDialog::onShow()
   ui->le_remoteWorkspace->setText(mpColmapWrapper->remoteWorkspacePath());
   ui->le_mntPnt->setText(mpColmapWrapper->mntPntRemoteWorkspacePath());
   ui->sb_syncInterval->setValue(mpColmapWrapper->syncInterval());
+
+  if(mpColmapWrapper->getSetupStatus() != ColmapWrapper::SETUP_OK) {
+        QString msg;
+        switch(mpColmapWrapper->getSetupStatus()){
+        case ColmapWrapper::ERR_EXE: msg="colmap executabel was not found or is not executable"; break;
+        case ColmapWrapper::ERR_SSH: msg="ssh connection failed"; break;
+        case ColmapWrapper::ERR_PATH: msg="path to workspace or local mount point does not exist"; break;
+        case ColmapWrapper::ERR_MOUNT: msg="remote workspace was not mounted correctly"; break;
+        default: msg = "unknown reason!";
+        }
+        ui->l_error->setStyleSheet("QLabel { border : 1px solid red; color : red; }");
+        ui->l_error->setText("Setup failed: " + msg);
+    } else {
+        ui->l_error->setStyleSheet("QLabel { border : 1px solid green; color : green; }");
+        ui->l_error->setText("Setup successfull");
+    }
 }
 
 

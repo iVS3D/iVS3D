@@ -95,6 +95,14 @@ class ColmapWrapper : public QObject
       MESHED_MODEL      /**< Meshed 3D model */
     };
 
+    enum ESetupStatus {
+        SETUP_OK = 0,   /**< Workspace and Colmap exe are setup */
+        ERR_MOUNT,      /**< The remote workspace is not mounted correctly */
+        ERR_EXE,        /**< The colmap executable is not found/not executable */
+        ERR_PATH,       /**< The workspace path or mountpoint path dont exist */
+        ERR_SSH         /**< ssh connection could not be established */
+    };
+
     //--- STRUCT DECLERATION ---//
 
   public:
@@ -186,6 +194,8 @@ class ColmapWrapper : public QObject
      *  3. Synchronizes the workspace and initally populates the list of available products.
      */
     void init();
+
+    void testSetup();
 
     QMultiMap<QString,QString> imageSequencePaths() const;
 
@@ -464,6 +474,11 @@ class ColmapWrapper : public QObject
     EWorkspaceStatus getWorkspaceStatus() const;
 
     /**
+     * @brief getSetupStatus returns the setup status.
+     */
+    ESetupStatus getSetupStatus() const;
+
+    /**
      * @brief Get path of file for given product in sequence.
      * @param[in] iSeqName Name of the sequence which holds the product.
      * @param[in] iProdType Product type for which the file path is to be returned.
@@ -658,6 +673,9 @@ class ColmapWrapper : public QObject
 
     /// Member for custom functionality to open product
     std::function<void(ColmapWrapper::EProductType, std::string)> mCustomProductOpenFn;
+
+    /// Member for setup status
+    ESetupStatus mSetupStatus;
 };
 
 namespace ui {
