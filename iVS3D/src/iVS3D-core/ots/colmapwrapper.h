@@ -305,7 +305,7 @@ class ColmapWrapper : public QObject
     /**
      * @brief switchWorkspace tries to switch to the local/remote workspace.
      */
-    int switchWorkspace();
+    void switchWorkspace();
 
   signals:
 
@@ -328,6 +328,11 @@ class ColmapWrapper : public QObject
      * @brief Signal that the state of the workspace has updated.
      */
     void workspaceStatusUpdate();
+
+    /**
+     * @brief Signal that the setup has changed.
+     */
+    void setupStatusUpdate();
 
   public slots:
     void setLocalPresetSequence(QString name, QString path);
@@ -765,6 +770,8 @@ namespace ui {
        */
       void updateToDarkTheme();
 
+      void enableNewProductButtons(bool enabled);
+
     private:
 
       /**
@@ -784,6 +791,8 @@ namespace ui {
        * @brief Slot to show "New Product" dialog.
        */
       void showNewProductDialog();
+
+      void onSetupChanged();
 
     private:
       /// Member pointer to MetashapeWrapper

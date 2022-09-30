@@ -96,12 +96,6 @@ void ColmapWrapper::init()
   connect(mpSyncProcess, static_cast<void(QProcess::*)(int, QProcess::ExitStatus)>(&QProcess::finished),
           this, &ColmapWrapper::importSeuences);
 
-  //--- mount remote workspace
-  if(!isRemoteWorkspaceMounted(mMntPntRemoteWorkspacePath) && mConnectionType != LOCAL)
-  {
-    mountRemoteWorkspace();
-  }
-
   testSetup();
 
   if(mConnectionType == LOCAL && !mLocalWorkspacePath.isEmpty() && !hasScriptFilesInstalled()){
@@ -130,35 +124,27 @@ void ColmapWrapper::testSetup()
     if(mConnectionType == LOCAL){
         if(!QDir(mLocalWorkspacePath).exists()){
             mSetupStatus = ERR_PATH;
+            emit setupStatusUpdate();
             return;
         }
         if(!QFile(mLocalColmapBinPath).exists() || !QFileInfo(mLocalColmapBinPath).isExecutable()){
             mSetupStatus = ERR_EXE;
+            emit setupStatusUpdate();
             return;
         }
         mSetupStatus = SETUP_OK;
+        emit setupStatusUpdate();
         return;
     }
     /// if CONNECTION_TYPE is SSH, then:
     /// -- check if local workspace exists
     /// -- check if mount point exists
-    /// -- try to write and read from mount point
     /// -- try to run ssh command
+    /// -- try to write and read from mount point
     if(mConnectionType == SSH){
         if(!QDir(mLocalWorkspacePath).exists() || !QDir(mMntPntRemoteWorkspacePath).exists()){
             mSetupStatus = ERR_PATH;
-            return;
-        }
-        QFile testFile(mMntPntRemoteWorkspacePath + QDir::separator() + "testFile.txt");
-        if(!testFile.open(QIODevice::WriteOnly)){
-            mSetupStatus = ERR_MOUNT;
-            return;
-        }
-        testFile.write(QByteArray("This is a test"));
-        testFile.close();
-        // eventually wait??
-        if(!testFile.exists()){
-            mSetupStatus = ERR_MOUNT;
+            emit setupStatusUpdate();
             return;
         }
         QStringList args;
@@ -168,11 +154,45 @@ void ColmapWrapper::testSetup()
         if(!p.waitForFinished(5000)){  // maximum 5 sec to respond
             // something went wrong!
             mSetupStatus = ERR_SSH;
+            emit setupStatusUpdate();
             qDebug() << p.readAllStandardError();
             qDebug() << p.readAllStandardOutput();
             return;
+        } else {
+            QString err(p.readAllStandardError());
+            if(!err.isEmpty()){
+                mSetupStatus = ERR_SSH;
+                emit setupStatusUpdate();
+                qDebug() << "SSH error: " << p.readAllStandardError();
+                return;
+            }
         }
+        //--- mount remote workspace
+        if(!isRemoteWorkspaceMounted(mMntPntRemoteWorkspacePath))
+        {
+            if(mountRemoteWorkspace() != 0){
+                mSetupStatus = ERR_MOUNT;
+                emit setupStatusUpdate();
+                return;
+            }
+        }
+        QFile testFile(mMntPntRemoteWorkspacePath + QDir::separator() + "testFile.txt");
+        if(!testFile.open(QIODevice::WriteOnly)){
+            mSetupStatus = ERR_MOUNT;
+            emit setupStatusUpdate();
+            return;
+        }
+        testFile.write(QByteArray("This is a test"));
+        testFile.close();
+        // eventually wait??
+        if(!testFile.exists()){
+            mSetupStatus = ERR_MOUNT;
+            emit setupStatusUpdate();
+            return;
+        }
+
         mSetupStatus = SETUP_OK;
+        emit setupStatusUpdate();
     }
 }
 
@@ -341,11 +361,15 @@ void ColmapWrapper::readWorkerStateFromFile()
     return;
   }
 
-  qDebug() << "Worker State File:";
+  /*
+   * This reading access is needed to prevent opencv from crashing.
+   * Seems to be an error related to syncing lokal and remote workspace.
+   */
   QFile f(inputFile);
   f.open(QIODevice::ReadOnly);
-  qDebug() << f.readAll();
+  f.readAll();
   f.close();
+
   //--- read information from file
   ColmapWrapper::SJob runningJob;
   cv::FileStorage fs = cv::FileStorage(inputFile.toStdString(), cv::FileStorage::READ);
@@ -499,18 +523,8 @@ void ColmapWrapper::clearCustomProductOpenFn()
     mCustomProductOpenFn = std::function<void(EProductType, std::string)>();
 }
 
-int ColmapWrapper::switchWorkspace()
+void ColmapWrapper::switchWorkspace()
 {
-    //--- mount remote workspace
-    if(!isRemoteWorkspaceMounted(mMntPntRemoteWorkspacePath) && mConnectionType != LOCAL)
-    {
-        int exitCode = mountRemoteWorkspace();
-        if(exitCode != 0){
-            return exitCode;
-        }
-
-    }
-
     testSetup();
 
     if(!hasScriptFilesInstalled()){
@@ -526,8 +540,6 @@ int ColmapWrapper::switchWorkspace()
       syncWorkspaceFromServer();
     else if( mConnectionType == LOCAL)
       importSeuences();
-
-    return 0;
 }
 
 //==================================================================================================
@@ -823,7 +835,7 @@ void ColmapWrapper::setLocalPresetSequence(QString name, QString path){
 void ColmapWrapper::setLocalColmapBinPath(const QString &colmapBinPath)
 {
   //--- check if path is valid
-  QFileInfo fileInfo(colmapBinPath);
+  /*QFileInfo fileInfo(colmapBinPath);
 
   if(!colmapBinPath.isEmpty() && !fileInfo.isExecutable())
   {
@@ -832,7 +844,8 @@ void ColmapWrapper::setLocalColmapBinPath(const QString &colmapBinPath)
     return;
   }
 
-  mLocalColmapBinPath = fileInfo.absoluteFilePath();
+  mLocalColmapBinPath = fileInfo.absoluteFilePath();*/
+    mLocalColmapBinPath = colmapBinPath;
 }
 
 //==================================================================================================
@@ -859,7 +872,7 @@ QString ColmapWrapper::localWorkspacePath() const
 void ColmapWrapper::setLocalWorkspacePath(const QString &localWorkspacePath)
 {
   //--- check if path is valid
-  QFileInfo fileInfo(localWorkspacePath);
+/*  QFileInfo fileInfo(localWorkspacePath);
 
   if(!localWorkspacePath.isEmpty() && !fileInfo.isDir())
   {
@@ -867,7 +880,8 @@ void ColmapWrapper::setLocalWorkspacePath(const QString &localWorkspacePath)
               << fileInfo.absoluteFilePath().toStdString();
     return;
   }
-  mLocalWorkspacePath = fileInfo.absoluteFilePath();
+  mLocalWorkspacePath = fileInfo.absoluteFilePath();*/
+    mLocalWorkspacePath = localWorkspacePath;
 }
 
 //==================================================================================================
@@ -1338,6 +1352,11 @@ QPushButton *ui::ColmapWrapperControlsFactory::createNewProductPushButton(ui::ET
   connect(pPushButton, &QPushButton::clicked,
           this, &ColmapWrapperControlsFactory::showNewProductDialog);
 
+  connect(this, &ColmapWrapperControlsFactory::enableNewProductButtons,
+          pPushButton, &QPushButton::setEnabled);
+
+  pPushButton->setEnabled(mpMsWrapper->getSetupStatus() == ColmapWrapper::SETUP_OK);
+
   return pPushButton;
 }
 
@@ -1485,7 +1504,7 @@ ui::ColmapWrapperControlsFactory::ColmapWrapperControlsFactory(ColmapWrapper *ip
   mpMsWrapper(ipColmapWrapper),
   mpMsWrapperSettingsDialog(nullptr)
 {
-
+    connect(mpMsWrapper, &ColmapWrapper::setupStatusUpdate, this, &ColmapWrapperControlsFactory::onSetupChanged);
 }
 
 //==================================================================================================
@@ -1515,6 +1534,11 @@ void ui::ColmapWrapperControlsFactory::showNewProductDialog()
     mpMsWrapper->writeWorkQueueToFile();
     mpMsWrapper->startProcessing();
   }
+}
+
+void ui::ColmapWrapperControlsFactory::onSetupChanged()
+{
+    emit enableNewProductButtons(mpMsWrapper->getSetupStatus() == ColmapWrapper::SETUP_OK);
 }
 
 } // namespace ots

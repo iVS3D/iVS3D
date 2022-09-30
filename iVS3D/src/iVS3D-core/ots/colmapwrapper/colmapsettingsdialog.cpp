@@ -164,12 +164,9 @@ void SettingsDialog::onAccepted()
   mpColmapWrapper->setMntPntRemoteWorkspacePath(ui->le_mntPnt->text());
   mpColmapWrapper->setSyncInterval(ui->sb_syncInterval->value());
 
-  int workspaceSwitchExitCode = mpColmapWrapper->switchWorkspace();
+  mpColmapWrapper->switchWorkspace();
 
-  if(workspaceSwitchExitCode != 0){
-      ui->l_error->setStyleSheet("QLabel { border : 1px solid red; color : red; }");
-      ui->l_error->setText("Mount failed with exit code " + QString::number(workspaceSwitchExitCode));
-  } else if(mpColmapWrapper->getSetupStatus() != ColmapWrapper::SETUP_OK) {
+  if(mpColmapWrapper->getSetupStatus() != ColmapWrapper::SETUP_OK) {
       QString msg;
       switch(mpColmapWrapper->getSetupStatus()){
       case ColmapWrapper::ERR_EXE: msg="colmap executabel was not found or is not executable"; break;
