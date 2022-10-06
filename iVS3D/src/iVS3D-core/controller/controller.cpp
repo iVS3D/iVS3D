@@ -85,6 +85,7 @@ Controller::Controller(QString inputPath, QString settingsPath, QString outputPa
 
 Controller::~Controller()
 {
+    delete m_colmapWrapper;
     TransformManager::instance().exit();
 }
 

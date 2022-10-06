@@ -81,7 +81,9 @@ ColmapWrapper::~ColmapWrapper()
 {
   // BUG: Causes crash in Abul4Configurator: ABUL-7398
   // this->writeSettings();
-
+    if(mConnectionType != LOCAL && isRemoteWorkspaceMounted(this->mMntPntRemoteWorkspacePath)){
+        unmountRemoteWorkspace();
+    }
   delete mpTempDir;
 }
 
@@ -176,6 +178,8 @@ void ColmapWrapper::testSetup()
                 return;
             }
         }
+        // TODO: instead copy a file with scp to the remote folder directly and see
+        // if it is available at the local mount point too!
         QFile testFile(mMntPntRemoteWorkspacePath + QDir::separator() + "testFile.txt");
         if(!testFile.open(QIODevice::WriteOnly)){
             mSetupStatus = ERR_MOUNT;

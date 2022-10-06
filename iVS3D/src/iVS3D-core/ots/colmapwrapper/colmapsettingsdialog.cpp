@@ -153,6 +153,8 @@ void SettingsDialog::onAccepted()
   ui->l_error->setStyleSheet("QLabel { border : 1px solid orange; color : orange; }");
   this->repaint();
 
+  mpColmapWrapper->unmountRemoteWorkspace();
+
   mpColmapWrapper->setLocalColmapBinPath(ui->le_localColmapBinary->text());
   mpColmapWrapper->setLocalWorkspacePath(ui->le_localWorkspace->text());
   mpColmapWrapper->setConnectionType(static_cast<ColmapWrapper::EConnectionType>(

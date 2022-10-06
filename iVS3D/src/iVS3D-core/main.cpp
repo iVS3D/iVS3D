@@ -92,7 +92,7 @@ int main(int argc, char *argv[])
         a.setApplicationVersion(QString(QUOTE(IVS3D_VER)));
         parser.process(a);
         a.installTranslator(translator);
-        Controller mainController(parser.value(inputPath), parser.value(autoPath), parser.value(outputPath));
+        Controller *mainController = new Controller(parser.value(inputPath), parser.value(autoPath), parser.value(outputPath));
         qApp->setProperty(stringContainer::UIIdentifier, true);
 
         //--- setup translation
@@ -102,7 +102,9 @@ int main(int argc, char *argv[])
         //lib3d::ots::Translations::load(&translator, systemLocale);
         //a.installTranslator(&translator);
 
-        return a.exec();
+        auto res = a.exec();
+        delete mainController;
+        return res;
     }
     else {
         //Disable all Messages comming from Qt
