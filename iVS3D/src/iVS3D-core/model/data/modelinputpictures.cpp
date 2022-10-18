@@ -30,6 +30,15 @@ ModelInputPictures::ModelInputPictures(QString inputPath)
     if (m_reader->isDir()) {
         loadMetaDataImages();
     }
+    else {
+        //if a video is loaded, search for a srt file with the same name and try to loadMetaData from it
+        QFileInfo info = QFileInfo (inputPath);
+        QDir dir = info.dir();
+        QString metaName = info.baseName().append(".srt");
+        if (dir.exists(metaName)) {
+            loadMetaData(QStringList(dir.filePath(metaName)));
+        }
+    }
 
     m_boundaries = QPoint(0,m_reader->getPicCount()-1);
     m_keyframes.reserve(m_reader->getPicCount());
