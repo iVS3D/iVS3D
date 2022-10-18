@@ -1,7 +1,7 @@
 #include "controller.h"
 
 
-Controller::Controller()
+Controller::Controller(QString inputPath, QString settingsPath, QString outputPath)
 {
     m_videoPlayerController = nullptr;
     m_algorithmController = nullptr;
@@ -54,7 +54,17 @@ Controller::Controller()
     connect(this, &Controller::sig_hasStatusMessage, m_mainWindow, &MainWindow::slot_displayStatusMessage);
 
     m_automaticController = new AutomaticController(m_mainWindow->getOutputWidget(), m_mainWindow->getAutoWidget(), m_mainWindow->getSamplingWidget(), m_dataManager);
+
     m_mainWindow->show();
+
+    if (inputPath != nullptr && !inputPath.isEmpty()) {
+        m_timer = QElapsedTimer();
+        m_timer.start();
+        createOpenMessage(m_dataManager->open(inputPath));
+    }
+
+    if(outputPath != nullptr && !outputPath.isEmpty())
+        m_mainWindow->getOutputWidget()->setOutputPath(outputPath);
 }
 
 Controller::~Controller()
