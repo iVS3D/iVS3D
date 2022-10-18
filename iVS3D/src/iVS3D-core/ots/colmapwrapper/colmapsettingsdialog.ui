@@ -386,6 +386,9 @@
           <property name="text">
            <string>ssh-copy-id -i .ssh/&lt;pub-key-file&gt; &lt;user&gt;@&lt;address&gt;</string>
           </property>
+          <property name="textInteractionFlags">
+           <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+          </property>
          </widget>
         </item>
        </layout>
