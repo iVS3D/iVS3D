@@ -16,6 +16,19 @@
     #include <Windows.h>
 #endif
 
+#ifndef IVS3D_VER
+#define IVS3D_VER unknown
+#endif
+
+#ifndef IVS3D_DAT
+#define IVS3D_DAT unknown
+#endif
+
+#ifndef QUOTE
+#define QUOTE(str) _QUOTE(str)
+#define _QUOTE(str) #str
+#endif
+
 
 void ignoreMessages(QtMsgType type, const QMessageLogContext &context, const QString &msg)
 {
@@ -40,12 +53,17 @@ int main(int argc, char *argv[])
     QCommandLineOption autoPath(QStringList() << "a" << "auto", "Load settings from <path>.", "path");
     QCommandLineOption outputPath(QStringList() << "o" << "out", "Save result to <path>.", "path");
 
+    parser.setApplicationDescription("intelligent video sampler 3d is designed to process image sequences and videos for 3d reconstruction. "
+                                     "enhance reconstruction quality by filtering out blurry images and masking dynamic objects such as people or cars. "
+                                     "speedup the reconstruction process by ignoring similar images and using only frames with significant camera movement in between. "
+                                     "use colmap on the local system or a remote server to reconstruct a 3d model from your input sequene. \n\n"
+                                     "Build date: " + QString(QUOTE(IVS3D_DAT)));
+    parser.addHelpOption();
+    parser.addVersionOption();
     parser.addOption(autoPath);
     parser.addOption(inputPath);
     parser.addOption(outputPath);
     parser.addOption(noGUI);
-
-    parser.addHelpOption();
 
     QStringList arguments;
     for(int i = 0; i < argc; ++i){
@@ -59,7 +77,9 @@ int main(int argc, char *argv[])
         #endif
 
         QApplication a( argc, argv );
-        parser.parse(arguments);
+        a.setApplicationName("iVS3D");
+        a.setApplicationVersion(QString(QUOTE(IVS3D_VER)));
+        parser.process(a);
         Controller mainController(parser.value(inputPath), parser.value(autoPath), parser.value(outputPath));
         qApp->setProperty(stringContainer::UIIdentifier, true);
 
@@ -69,7 +89,9 @@ int main(int argc, char *argv[])
         //Disable all Messages comming from Qt
         qInstallMessageHandler(ignoreMessages);
         QCoreApplication a( argc, argv );
-        parser.parse(arguments);
+        a.setApplicationName("iVS3D");
+        a.setApplicationVersion(QString(QUOTE(IVS3D_VER)));
+        parser.process(a);
         qApp->setProperty(stringContainer::UIIdentifier, false);
         noUIController* noUI = new noUIController(parser.value(inputPath), parser.value(autoPath), parser.value(outputPath));
         QTimer::singleShot(0, noUI, SLOT(exec()));
