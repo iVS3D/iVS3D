@@ -2,6 +2,9 @@
 
 NthFrame::NthFrame()
 {
+    QTranslator* translator = new QTranslator();
+    translator->load(QLocale::system(), "nth", "_", ":/translations", ".qm");
+    qApp->installTranslator(translator);
     m_N = 1;    // N initialized to stepwidth 1
     m_numFrames = 0;
     m_settingsWidget = nullptr;
@@ -49,7 +52,7 @@ std::vector<uint> NthFrame::sampleImages(const std::vector<unsigned int> &imageL
                     "slot_makeProgress",
                     Qt::DirectConnection,
                     Q_ARG(int, progress),
-                    Q_ARG(QString, "getting every n-th frame"));
+                    Q_ARG(QString, tr("getting every n-th frame")));
 
         ctr++;
 
@@ -69,13 +72,13 @@ std::vector<uint> NthFrame::sampleImages(const std::vector<unsigned int> &imageL
                               "slot_makeProgress",
                               Qt::DirectConnection,
                               Q_ARG(int, 100),
-                              Q_ARG(QString, "Nth-Frame progress"));
+                              Q_ARG(QString, tr("Nth-Frame progress")));
     return keyframes;
 }
 
 QString NthFrame::getName() const
 {
-    return "NthFrame";
+    return tr("NthFrame");
 }
 
 void NthFrame::initialize(Reader *reader, QMap<QString, QVariant>, signalObject *so)
@@ -144,7 +147,7 @@ void NthFrame::createSettingsWidget(QWidget *parent)
     w->setLayout(new QHBoxLayout(parent));
     w->layout()->setSpacing(0);
     w->layout()->setMargin(0);
-    w->layout()->addWidget(new QLabel("Select N ",parent));
+    w->layout()->addWidget(new QLabel(tr("Select N "),parent));
 
     m_spinBox = new QSpinBox(parent);
     m_spinBox->setMinimum(1);
@@ -156,17 +159,17 @@ void NthFrame::createSettingsWidget(QWidget *parent)
 
     m_settingsWidget->layout()->addWidget(w);
 
-    QLabel *txt = new QLabel(DESCRIPTION_TEXT_N);
+    QLabel *txt = new QLabel(tr("Every Nth frame is selected as keyframe."));
     txt->setStyleSheet(DESCRIPTION_STYLE);
     txt->setWordWrap(true);
     m_settingsWidget->layout()->addWidget(txt);
 
-    m_checkBox = new QCheckBox("keep lonely keyframes", parent);
+    m_checkBox = new QCheckBox(tr("keep lonely keyframes"), parent);
     m_checkBox->setChecked(m_keepLonely);
     connect(m_checkBox, &QCheckBox::toggled, this, &NthFrame::slot_checkboxToggled);
     m_settingsWidget->layout()->addWidget(m_checkBox);
 
-    QLabel *txt2 = new QLabel(DESCRIPTION_TEXT);
+    QLabel *txt2 = new QLabel(tr("When selecting strictly every Nth frame, lonely keyframes or small batches are unlikely to get selected for larger N. Select additional keyframes in thinly populated areas."));
     txt2->setStyleSheet(DESCRIPTION_STYLE);
     txt2->setWordWrap(true);
     m_settingsWidget->layout()->addWidget(txt2);

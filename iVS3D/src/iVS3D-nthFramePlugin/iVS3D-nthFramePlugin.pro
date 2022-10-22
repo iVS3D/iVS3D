@@ -2,7 +2,7 @@ QT += core gui
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-TARGET = NthFrame
+TARGET = 0_NthFrame
 
 CONFIG += c++11
 
@@ -33,6 +33,13 @@ HEADERS += \
 
 TEMPLATE = lib
 CONFIG += plugin
+
+TRANSLATIONS += \
+    $$PWD/translations/nth_en.ts \
+    $$PWD/translations/nth_de.ts
+
+RESOURCES += \
+    resources.qrc
 
 # Default rules for deployment.
 #qnx: target.path = /tmp/$${TARGET}/bin

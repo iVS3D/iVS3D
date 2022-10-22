@@ -125,7 +125,7 @@ void Controller::slot_openVideoDragAndDrop(QString filePath)
 
     if(m_exporting){
         QMessageBox msgBox;
-        msgBox.setText("Wait for export to finish before importing new files.");
+        msgBox.setText(tr("Wait for export to finish before importing new files."));
         msgBox.exec();
         return;
     }

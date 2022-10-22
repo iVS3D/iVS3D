@@ -22,4 +22,8 @@
         <file alias="prevIconB">resources/ic_skip_previous_black.png</file>
         <file alias="prevIconW">resources/ic_skip_previous_white.png</file>
     </qresource>
+    <qresource prefix="/">
+        <file>translations/core_de.qm</file>
+        <file>translations/core_en.qm</file>
+    </qresource>
 </RCC>

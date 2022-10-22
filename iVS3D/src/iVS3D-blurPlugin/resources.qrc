@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file>translations/blur_de.qm</file>
+        <file>translations/blur_en.qm</file>
+    </qresource>
+</RCC>

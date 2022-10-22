@@ -59,6 +59,13 @@ HEADERS += \
 TEMPLATE = lib
 CONFIG += plugin
 
+TRANSLATIONS += \
+    $$PWD/translations/stationary_en.ts \
+    $$PWD/translations/stationary_de.ts
+
+RESOURCES += \
+    resources.qrc
+
 # Default rules for deployment.
 #qnx: target.path = /tmp/$${TARGET}/bin
 #else: unix:!android: target.path = /opt/$${TARGET}/bin

@@ -25,6 +25,8 @@
 #include <iomanip>
 #include <QtConcurrent/QtConcurrentMap>
 #include <QThreadPool>
+#include <QTranslator>
+#include <QCoreApplication>
 #include <vector>
 #include <algorithm>
 #include <numeric>
@@ -37,15 +39,15 @@
 #include "flowcalculator.h"
 #include <opencv2/video.hpp>
 
-#define PLUGIN_NAME "Stationary Camera Detection"
+#define PLUGIN_NAME QObject::tr("Stationary Camera Detection")
 // widget
-#define SELECTOR_DROPDOWN "Mode"
-#define DOWNSAMPLE_LABEL_TEXT "Sampling resolution"
-#define DOWNSAMPLE_CHECKBOX_TEXT "Activate down sampling"
-#define DESCRIPTION_DOWNSAMPLE "If enabled a resolution of 720p will be used for the algorithm to speed up computation. This however will hurt the accuracy of the result slightly. It however won't change the export resolution. This parameter will be disabled if the input resolution is lower or equal than 720p."
-#define RESET_BT_TEXT "Reset Buffer"
-#define RESET_TEXT_PRE "Clears all already stored flow values. There are "
-#define RESET_TEXT_SUF " flow values currently buffered."
+#define SELECTOR_DROPDOWN QObject::tr("Mode")
+#define DOWNSAMPLE_LABEL_TEXT QObject::tr("Sampling resolution")
+#define DOWNSAMPLE_CHECKBOX_TEXT QObject::tr("Activate down sampling")
+#define DESCRIPTION_DOWNSAMPLE QObject::tr("If enabled a resolution of 720p will be used for the algorithm to speed up computation. This however will hurt the accuracy of the result slightly. It however won't change the export resolution. This parameter will be disabled if the input resolution is lower or equal than 720p.")
+#define RESET_BT_TEXT QObject::tr("Reset Buffer")
+#define RESET_TEXT_PRE QObject::tr("Clears all already stored flow values. There are ")
+#define RESET_TEXT_SUF QObject::tr(" flow values currently buffered.")
 #define DESCRIPTION_STYLE "color: rgb(58, 58, 58); border-left: 6px solid  rgb(58, 58, 58); border-top-right-radius: 5px; border-bottom-right-radius: 5px; background-color: lightblue;"
 #define INFO_STYLE "color: rgb(58, 58, 58); border-left: 6px solid  rgb(58, 58, 58); border-top-right-radius: 5px; border-bottom-right-radius: 5px; background-color: lightGreen;"
 // buffer

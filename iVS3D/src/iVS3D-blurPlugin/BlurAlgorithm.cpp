@@ -45,7 +45,7 @@ double BlurAlgorithm::parallelCalculation(cv::Mat image, std::vector<double> blu
     if (receiver != nullptr && n > m_currentProgress) {
         m_currentProgress = n;
         int progress = ((n - start) * 100 / picCount);
-        QString currentProgress = "Calculate blur of frame number " + QString::number(n - start) + " of " + QString::number(picCount) + " total frames";
+        QString currentProgress = tr("Calculate blur of frame number ") + QString::number(n - start) + tr(" of ") + QString::number(picCount) + tr(" total frames");
         QMetaObject::invokeMethod(
                     receiver,
                     "slot_makeProgress",

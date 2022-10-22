@@ -2,6 +2,9 @@
 
 OptFlowController::OptFlowController()
 {
+    QTranslator* translator = new QTranslator();
+    translator->load(QLocale::system(), "stationary", "_", ":/translations", ".qm");
+    qApp->installTranslator(translator);
 }
 
 QWidget *OptFlowController::getSettingsWidget(QWidget *parent)
@@ -23,7 +26,7 @@ std::vector<uint> OptFlowController::sampleImages(const std::vector<uint> &image
     KeyframeSelector::Settings selectorSettings = m_selectorSettingsMap.value(selectorName);
 
     // ---------- create all neccessary components ------------
-    reportProgress("Excluding buffered values from computation list", 0, receiver);
+    reportProgress(tr("Excluding buffered values from computation list"), 0, receiver);
     // create a vector that containst only indices that need to be gathered (futureFrames + indices with buffered values = imageList)
     std::vector<uint> futureFrames;
     for (uint imageListIdx = 0; imageListIdx < imageList.size() - 1; imageListIdx++) {
@@ -37,7 +40,7 @@ std::vector<uint> OptFlowController::sampleImages(const std::vector<uint> &image
     }
     futureFrames.erase(std::unique(futureFrames.begin(), futureFrames.end()), futureFrames.end()); // remove duplicates
 
-    reportProgress("Creating calculation units", 0, receiver);
+    reportProgress(tr("Creating calculation units"), 0, receiver);
     std::tuple<ImageGatherer*, FlowCalculator*, KeyframeSelector*> components = Factory::instance().createComponents(
             futureFrames,
             m_reader,
@@ -102,7 +105,7 @@ std::vector<uint> OptFlowController::sampleImages(const std::vector<uint> &image
         }
         // -------- progress and debug ------------
         int progress = ((toIter - imageList.begin()) * 100) / (int)imageList.size();
-        QString currOp = "Calculating flow between frame " + QString::number(*fromIter) + " and "+ QString::number(*toIter);
+        QString currOp = tr("Calculating flow between frame ") + QString::number(*fromIter) + tr(" and ") + QString::number(*toIter);
         reportProgress(currOp, progress, receiver);
         // ----------------------------------------
         fromIter = std::next(fromIter, 1);
@@ -125,7 +128,7 @@ std::vector<uint> OptFlowController::sampleImages(const std::vector<uint> &image
     logFile->startTimer(LF_TIMER_BUFFER);
     for (uint flowValuesIdx = 0; flowValuesIdx < flowValues.size() - 1; flowValuesIdx++) {
         int progress = (100.0f * flowValues.size()) / (flowValuesIdx + 1);
-        reportProgress("Buffering values", progress, receiver);
+        reportProgress(tr("Buffering values"), progress, receiver);
         if (m_bufferMat.ref<double>(imageList[flowValuesIdx], imageList[flowValuesIdx + 1]) <= 0.0)
             m_bufferMat.ref<double>(imageList[flowValuesIdx], imageList[flowValuesIdx + 1]) = flowValues[flowValuesIdx];
         // DEBUG write flow values in logFile

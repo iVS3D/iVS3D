@@ -8,6 +8,7 @@
 #include "cvmat_qmetadata.h"
 
 #include <QFlags>
+#include <QTranslator>
 
 #include <stdio.h>
 #include <iostream>
@@ -70,6 +71,10 @@ int main(int argc, char *argv[])
         arguments << argv[i];
     }
 
+
+    QTranslator* translator = new QTranslator();
+    translator->load(QLocale::system(), "core", "_", ":/translations", ".qm");
+
     if(!arguments.contains("--nogui")){
 
         #if defined(Q_OS_WIN)
@@ -80,6 +85,7 @@ int main(int argc, char *argv[])
         a.setApplicationName("iVS3D");
         a.setApplicationVersion(QString(QUOTE(IVS3D_VER)));
         parser.process(a);
+        a.installTranslator(translator);
         Controller mainController(parser.value(inputPath), parser.value(autoPath), parser.value(outputPath));
         qApp->setProperty(stringContainer::UIIdentifier, true);
 
@@ -92,6 +98,7 @@ int main(int argc, char *argv[])
         a.setApplicationName("iVS3D");
         a.setApplicationVersion(QString(QUOTE(IVS3D_VER)));
         parser.process(a);
+        a.installTranslator(translator);
         qApp->setProperty(stringContainer::UIIdentifier, false);
         noUIController* noUI = new noUIController(parser.value(inputPath), parser.value(autoPath), parser.value(outputPath));
         QTimer::singleShot(0, noUI, SLOT(exec()));

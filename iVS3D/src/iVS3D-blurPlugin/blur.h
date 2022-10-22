@@ -18,6 +18,8 @@
 #include <QDoubleSpinBox>
 #include <QGridLayout>
 #include <QComboBox>
+#include <QTranslator>
+#include <QCoreApplication>
 
 #include "ialgorithm.h"
 #include "reader.h"
@@ -28,7 +30,6 @@
 #include "logfile.h"
 
 
-#define PLUGIN_NAME "Blur"
 #define DESCRIPTION_STYLE "color: rgb(58, 58, 58); border-left: 6px solid  rgb(58, 58, 58); border-top-right-radius: 5px; border-bottom-right-radius: 5px; background-color: lightblue;"
 #define WINDOW_SIZE "Window size"
 #define LOCAL_DEVIATION "Local deviation"

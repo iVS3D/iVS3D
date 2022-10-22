@@ -18,14 +18,14 @@
 #include <QSpinBox>
 #include <QSizePolicy>
 #include <QCheckBox>
+#include <QTranslator>
+#include <QCoreApplication>
 
 #include "ialgorithm.h"
 #include "reader.h"
 #include "progressable.h"
 #include "signalobject.h"
 
-#define DESCRIPTION_TEXT_N "Every Nth frame is selected as keyframe."
-#define DESCRIPTION_TEXT "When selecting strictly every Nth frame, lonely keyframes or small batches are unlikely to get selected for larger N. Select additional keyframes in thinly populated areas."
 #define DESCRIPTION_STYLE "color: rgb(58, 58, 58); border-left: 6px solid  rgb(58, 58, 58); border-top-right-radius: 5px; border-bottom-right-radius: 5px; background-color: lightblue;"
 #define NAME_N "N"
 

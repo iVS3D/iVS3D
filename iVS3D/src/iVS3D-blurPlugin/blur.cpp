@@ -1,9 +1,11 @@
 #include "blur.h"
 
 
-
 Blur::Blur()
 {
+    QTranslator* translator = new QTranslator();
+    translator->load(QLocale::system(), "blur", "_", ":/translations", ".qm");
+    qApp->installTranslator(translator);
     m_settingsWidget = nullptr;
     m_blurAlgorithms.push_back(new BlurLaplacian());
     m_blurAlgorithms.push_back(new BlurSobel());
@@ -67,7 +69,7 @@ std::vector<uint> Blur::sampleImages(const std::vector<unsigned int> &imageList,
 
 QString Blur::getName() const
 {
-    return PLUGIN_NAME;
+    return tr("Blur");
 }
 
 
@@ -96,10 +98,10 @@ void Blur::initialize(Reader *reader, QMap<QString, QVariant> buffer, signalObje
             QVariant currentBuffer = m_buffer[m_usedBlur->getName()];
             double currentBlurValue = splitDoubleString(currentBuffer.toString())[0];
             QString info;
-            info = currentBlurValue == 0 ? "not calculated" : QString::number(currentBlurValue);
-            m_infoLabel->setText("Blur value for the current image is " + info);
+            info = currentBlurValue == 0 ? tr("not calculated") : QString::number(currentBlurValue);
+            m_infoLabel->setText(tr("Blur value for the current image is ") + info);
         } else {
-            m_infoLabel->setText("Blur value for the current image is not calculated");
+            m_infoLabel->setText(tr("Blur value for the current image is not calculated"));
         }
     }
     if(m_sigObj) connect(m_sigObj, SIGNAL(sig_selectedImageIndex(uint)), this, SLOT(slot_selectedImageIndex(uint)));
@@ -171,8 +173,8 @@ void Blur::slot_selectedImageIndex(uint index)
         QVariant currentBuffer = m_buffer[m_usedBlur->getName()];
         double currentBlurValue = splitDoubleString(currentBuffer.toString())[index];
         QString info;
-        info = currentBlurValue == 0 ? "not calculated" : QString::number(currentBlurValue);
-        m_infoLabel->setText("Blur value for the current image is " + info);
+        info = currentBlurValue == 0 ? tr("not calculated") : QString::number(currentBlurValue);
+        m_infoLabel->setText(tr("Blur value for the current image is ") + info);
     }
 }
 
@@ -188,7 +190,7 @@ void Blur::createSettingsWidget(QWidget *parent)
     w->setLayout(new QHBoxLayout(parent));
     w->layout()->setSpacing(0);
     w->layout()->setMargin(0);
-    w->layout()->addWidget(new QLabel("Select blur ",parent));
+    w->layout()->addWidget(new QLabel(tr("Select blur "),parent));
 
     m_comboBoxBlur = new QComboBox(parent);
     for (BlurAlgorithm* b : m_blurAlgorithms) {
@@ -199,7 +201,7 @@ void Blur::createSettingsWidget(QWidget *parent)
 
     m_settingsWidget->layout()->addWidget(w);
 
-    QLabel *LabelBlur = new QLabel("Blur algorithm to be used");
+    QLabel *LabelBlur = new QLabel(tr("Blur algorithm to be used"));
     LabelBlur->setStyleSheet(DESCRIPTION_STYLE);
     LabelBlur->setWordWrap(true);
     m_settingsWidget->layout()->addWidget(LabelBlur);
@@ -208,7 +210,7 @@ void Blur::createSettingsWidget(QWidget *parent)
     ws->setLayout(new QHBoxLayout(parent));
     ws->layout()->setSpacing(0);
     ws->layout()->setMargin(0);
-    ws->layout()->addWidget(new QLabel("Set window size",parent));
+    ws->layout()->addWidget(new QLabel(tr("Set window size"),parent));
 
     m_spinBoxWS = new QSpinBox(parent);
     m_spinBoxWS->setMinimum(1);
@@ -221,7 +223,7 @@ void Blur::createSettingsWidget(QWidget *parent)
     m_settingsWidget->layout()->addWidget(ws);
 
 
-    QLabel *windowSize = new QLabel("Number of images around the frame");
+    QLabel *windowSize = new QLabel(tr("Number of images around the frame"));
     windowSize->setStyleSheet(DESCRIPTION_STYLE);
     windowSize->setWordWrap(true);
     m_settingsWidget->layout()->addWidget(windowSize);
@@ -231,7 +233,7 @@ void Blur::createSettingsWidget(QWidget *parent)
     ld->setLayout(new QHBoxLayout(parent));
     ld->layout()->setSpacing(0);
     ld->layout()->setMargin(0);
-    ld->layout()->addWidget(new QLabel("Set local deviation",parent));
+    ld->layout()->addWidget(new QLabel(tr("Set local deviation"),parent));
 
     m_spinBoxLD = new QSpinBox(parent);
     m_spinBoxLD->setMinimum(1);
@@ -245,12 +247,12 @@ void Blur::createSettingsWidget(QWidget *parent)
 
 
 
-    QLabel *localDeviation = new QLabel("Deviation from the image to the window average blur");
+    QLabel *localDeviation = new QLabel(tr("Deviation from the image to the window average blur"));
     localDeviation->setStyleSheet(DESCRIPTION_STYLE);
     localDeviation->setWordWrap(true);
     m_settingsWidget->layout()->addWidget(localDeviation);
 
-    m_infoLabel = new QLabel("Blur value for the current image is not calculated");
+    m_infoLabel = new QLabel(tr("Blur value for the current image is not calculated"));
     m_infoLabel->setWordWrap(true);
     m_settingsWidget->layout()->addWidget(m_infoLabel);
 
@@ -292,7 +294,7 @@ std::vector<uint> Blur::sampleAllImages(Reader *reader,  Progressable *receiver,
 
         if (receiver != nullptr) {
             int progress = ((i - start) * 100 / picCount);
-            QString currentProgress = "Calculate blur of frame number " + QString::number(i - start) + " of " + QString::number(picCount) + " total frames";
+            QString currentProgress = tr("Calculate blur of frame number ") + QString::number(i - start) + tr(" of ") + QString::number(picCount) + tr(" total frames");
             QMetaObject::invokeMethod(receiver, "slot_makeProgress", Qt::DirectConnection, Q_ARG(int, progress), Q_ARG(QString, currentProgress));
         }
 
@@ -376,7 +378,7 @@ std::vector<uint> Blur::sampleKeyframes(Reader *reader,  Progressable *receiver,
 
         if (receiver != nullptr) {
             int progress = (i  * 100 / picCount);
-            QString currentProgress = "Calculate blur of Keyframe number " + QString::number(i) + " of " + QString::number(sharpImages.size()) + " total keyframes";
+            QString currentProgress = tr("Calculate blur of Keyframe number ") + QString::number(i) + tr(" of ") + QString::number(sharpImages.size()) + tr(" total keyframes");
             //receiver->slot_makeProgress(progress, currentProgress);
             QMetaObject::invokeMethod(
                         receiver,
@@ -415,7 +417,7 @@ std::vector<uint> Blur::sampleKeyframes(Reader *reader,  Progressable *receiver,
                 "slot_makeProgress",
                 Qt::DirectConnection,
                 Q_ARG(int, 100),
-                Q_ARG(QString, "Blur progress"));
+                Q_ARG(QString, tr("Blur progress")));
     return sampledImages;
 }
 

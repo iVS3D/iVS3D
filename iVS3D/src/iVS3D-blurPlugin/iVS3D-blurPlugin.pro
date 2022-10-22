@@ -58,3 +58,10 @@ unix {
 RPATH='\$$ORIGIN:\$$ORIGIN/../lib'
 QMAKE_LFLAGS += '-Wl,--rpath=\'$$RPATH\''
 }
+
+TRANSLATIONS += \
+    $$PWD/translations/blur_en.ts \
+    $$PWD/translations/blur_de.ts
+
+RESOURCES += \
+    resources.qrc
