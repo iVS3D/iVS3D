@@ -65,6 +65,9 @@ Controller::Controller(QString inputPath, QString settingsPath, QString outputPa
 
     if(outputPath != nullptr && !outputPath.isEmpty())
         m_mainWindow->getOutputWidget()->setOutputPath(outputPath);
+
+    //Disable 'create files for' widget when no transform plugins are found
+    m_mainWindow->getOutputWidget()->enableCreateFilesWidget(TransformManager::instance().getTransformCount() != 0);
 }
 
 Controller::~Controller()

@@ -149,3 +149,14 @@ bool ExportWidget::setSelectedITransforms(std::vector<bool> selection)
     }
     return true;
 }
+
+void ExportWidget::enableCreateFilesWidget(bool enable)
+{
+    if (enable) {
+        ui->createFilesWidget->show();
+    }
+    else {
+        ui->createFilesWidget->hide();
+    }
+}
+

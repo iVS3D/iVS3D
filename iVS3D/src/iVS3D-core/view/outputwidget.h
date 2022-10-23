@@ -96,6 +96,12 @@ public:
      */
     bool setSelectedITransformMasks(std::vector<bool> selection);
 
+    /**
+     * @brief disableCreateFilesWidget will disable the create files for widget on the exportWidget
+     * @param @a true shows the widget, @a false will hide it
+     */
+    void enableCreateFilesWidget(bool enable);
+
 signals:
     /**
      * @brief sig_resChanged gets emitted once the export resolution has been altered

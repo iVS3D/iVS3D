@@ -101,6 +101,12 @@ public:
      */
     bool setSelectedITransforms(std::vector<bool> selection);
 
+    /**
+     * @brief disableCreateFilesWidget will disable the create files for widget
+     * @param @a true shows the widget, @a false will hide it
+     */
+    void enableCreateFilesWidget(bool enable);
+
 signals:
 
     /**

@@ -90,6 +90,11 @@ bool OutputWidget::setSelectedITransformMasks(std::vector<bool> selection)
     return m_exportW->setSelectedITransforms(selection);
 }
 
+void OutputWidget::enableCreateFilesWidget(bool enable)
+{
+    m_exportW->enableCreateFilesWidget(enable);
+}
+
 void OutputWidget::slot_displayProgress(int progress, QString currentOperation)
 {
     m_progressW->slot_displayProgress(progress,currentOperation);
