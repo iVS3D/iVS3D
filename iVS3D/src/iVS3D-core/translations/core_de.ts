@@ -60,7 +60,7 @@
 <context>
     <name>Controller</name>
     <message>
-        <location filename="../controller/controller.cpp" line="128"/>
+        <location filename="../controller/controller.cpp" line="131"/>
         <source>Wait for export to finish before importing new files.</source>
         <translation>Auf Beending des Export warten, bevor neue Daten importiert werden.</translation>
     </message>
@@ -144,47 +144,47 @@
         <translation>Ausgabeauflösung</translation>
     </message>
     <message>
-        <location filename="../view/exportwidget.ui" line="95"/>
+        <location filename="../view/exportwidget.ui" line="96"/>
         <source>Create files for:</source>
         <translation>Dateien erstellen für:</translation>
     </message>
     <message>
-        <location filename="../view/exportwidget.ui" line="162"/>
+        <location filename="../view/exportwidget.ui" line="164"/>
         <source>Define ROI for export</source>
         <translation>ROI für die Ausgabe auswählen</translation>
     </message>
     <message>
-        <location filename="../view/exportwidget.ui" line="165"/>
+        <location filename="../view/exportwidget.ui" line="167"/>
         <source>Crop</source>
         <translation>Zuschneiden</translation>
     </message>
     <message>
-        <location filename="../view/exportwidget.ui" line="172"/>
+        <location filename="../view/exportwidget.ui" line="174"/>
         <source>Use crop</source>
         <translation>Geschnittene Ausgabe erstellen</translation>
     </message>
     <message>
-        <location filename="../view/exportwidget.ui" line="187"/>
+        <location filename="../view/exportwidget.ui" line="189"/>
         <source>Add export to batch processing</source>
         <translation>Export zur automatischen Ausführung hinzufügen</translation>
     </message>
     <message>
-        <location filename="../view/exportwidget.ui" line="202"/>
+        <location filename="../view/exportwidget.ui" line="204"/>
         <source>Export keyframes to output folder</source>
         <translation>Keyframes in den Ausgabeordner exportieren</translation>
     </message>
     <message>
-        <location filename="../view/exportwidget.ui" line="205"/>
+        <location filename="../view/exportwidget.ui" line="207"/>
         <source>Export</source>
         <translation>Exportieren</translation>
     </message>
     <message>
-        <location filename="../view/exportwidget.ui" line="212"/>
+        <location filename="../view/exportwidget.ui" line="214"/>
         <source>Open reconstruct settings</source>
         <translation>Einstellungen für die Rekonstruktion öffnen</translation>
     </message>
     <message>
-        <location filename="../view/exportwidget.ui" line="215"/>
+        <location filename="../view/exportwidget.ui" line="217"/>
         <source>Reconstruct</source>
         <translation>Rekonstruieren</translation>
     </message>

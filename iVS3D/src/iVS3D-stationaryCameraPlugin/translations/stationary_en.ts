@@ -58,5 +58,17 @@
         <source>Stationary Camera Detection</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Threshold</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>A resolution dependend threshold, that specifies when there was enough movement to set a new keyframe.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>If the rotation between two frames differs more than the defind percentage of the median rotation in the given frame sequence it is declared stationary.</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 </TS>

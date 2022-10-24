@@ -6,9 +6,8 @@
 #include "keyframeselector.h"
 #include "factory.h"
 
-#define THRESHOLD_LABEL_TEXT "Stationary camera threshold"
-#define THRESHOLD_NAME "Threshold"
-#define DESCRIPTION_THRESHOLD "If the rotation between two frames differs more than the defind percentage of the median rotation in the given frame sequence it is declared stationary."
+#define THRESHOLD_NAME QObject::tr("Threshold")
+#define DESCRIPTION_THRESHOLD QObject::tr("If the rotation between two frames differs more than the defind percentage of the median rotation in the given frame sequence it is declared stationary.")
 
 /**
  * @class StaticSelector
@@ -51,6 +50,6 @@ static KeyframeSelector::Settings settings = {
     KeyframeSelector::Parameter{THRESHOLD_NAME, DESCRIPTION_THRESHOLD, (double)0.3}
 };
 
-REGISTER_SELECTOR("static selector", StaticSelector, settings)
+REGISTER_SELECTOR("Static Selector", StaticSelector, settings)
 
 #endif // STATICSELECTOR_H

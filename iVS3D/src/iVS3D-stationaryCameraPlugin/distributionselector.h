@@ -6,8 +6,8 @@
 #include "keyframeselector.h"
 #include "factory.h"
 
-#define THRESHOLD_NAME "Threshold"
-#define THRESHOLD_DESCRIPTION "A resolution dependend threshold, that specifies when there was enough movement to set a new keyframe."
+#define THRESHOLD_NAME QObject::tr("Threshold")
+#define THRESHOLD_DESCRIPTION QObject::tr("A resolution dependend threshold, that specifies when there was enough movement to set a new keyframe.")
 
 
 /**
@@ -48,6 +48,6 @@ static KeyframeSelector::Settings settings = {
     KeyframeSelector::Parameter{THRESHOLD_NAME, THRESHOLD_DESCRIPTION, (double)2.0}
 };
 
-REGISTER_SELECTOR("distribution selector", DistributionSelector, settings)
+REGISTER_SELECTOR("Distribution Selector", DistributionSelector, settings)
 
 #endif // DISTRIBUTIONSELECTOR_H

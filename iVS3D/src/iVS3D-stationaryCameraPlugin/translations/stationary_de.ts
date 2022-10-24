@@ -17,7 +17,7 @@
     </message>
     <message>
         <source>Calculating flow between frame </source>
-        <translation>Berechnung des Flow zwischen Bild </translation>
+        <translation>Berechnung des optischen Flusses zwischen Bild </translation>
     </message>
     <message>
         <source> and </source>
@@ -52,15 +52,31 @@
     </message>
     <message>
         <source>Clears all already stored flow values. There are </source>
-        <translation>Löscht alle gespeicherten Flow Werte. Es sind aktuell </translation>
+        <translation>Löscht alle gespeicherten optischen Fluss Werte. Es sind aktuell </translation>
     </message>
     <message>
         <source> flow values currently buffered.</source>
-        <translation> Flow Werte gespeichert.</translation>
+        <translation> optische Fluss Werte gespeichert.</translation>
     </message>
     <message>
         <source>Stationary Camera Detection</source>
         <translation>Stationäre Kamera Erkennung</translation>
+    </message>
+    <message>
+        <source>distribution selector</source>
+        <translation type="vanished">Gleichverteilte Auswahl</translation>
+    </message>
+    <message>
+        <source>Threshold</source>
+        <translation>Schwellwert</translation>
+    </message>
+    <message>
+        <source>A resolution dependend threshold, that specifies when there was enough movement to set a new keyframe.</source>
+        <translation>Der Schwellwert ist abhängig von der Auflösung und bestimmt wann ein neuer Keyframe durch gegenügend Bewegung gesetzt wird.</translation>
+    </message>
+    <message>
+        <source>If the rotation between two frames differs more than the defind percentage of the median rotation in the given frame sequence it is declared stationary.</source>
+        <translation>Ein Frame wird als Keyframe deklariert falls eine geringe Drehung zwischen diesem und dem vorherigen Frame existiert. Der Schwellwert legt dabei fest wie viel Prozent des Medians an Rotation unterschritten werden müssen.</translation>
     </message>
 </context>
 <context>
