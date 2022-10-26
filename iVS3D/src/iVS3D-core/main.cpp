@@ -87,6 +87,13 @@ int main(int argc, char *argv[])
             FreeConsole();
         #endif
 
+        //--- setup translation
+        //QTranslator translator;
+        QString systemLocale = QLocale::system().name(); // e.g. "de_DE"
+        systemLocale.truncate(systemLocale.lastIndexOf('_')); // e.g. "de"
+        lib3d::ots::Translations::load(translator, systemLocale);
+        //a.installTranslator(&translator);
+
         QApplication a( argc, argv );
         a.setApplicationName("iVS3D");
         a.setApplicationVersion(QString(QUOTE(IVS3D_VER)));
@@ -95,12 +102,7 @@ int main(int argc, char *argv[])
         Controller *mainController = new Controller(parser.value(inputPath), parser.value(autoPath), parser.value(outputPath));
         qApp->setProperty(stringContainer::UIIdentifier, true);
 
-        //--- setup translation
-        //QTranslator translator;
-        //QString systemLocale = QLocale::system().name(); // e.g. "de_DE"
-        //systemLocale.truncate(systemLocale.lastIndexOf('_')); // e.g. "de"
-        //lib3d::ots::Translations::load(&translator, systemLocale);
-        //a.installTranslator(&translator);
+
 
         auto res = a.exec();
         delete mainController;
