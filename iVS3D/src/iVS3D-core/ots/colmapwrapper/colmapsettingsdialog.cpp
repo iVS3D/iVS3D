@@ -29,19 +29,21 @@ SettingsDialog::SettingsDialog(ColmapWrapper *ipWrapper,
           this, &SettingsDialog::onSelectMountPntPushButtonPressed);
   connect(ui->cb_connection, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
           this, &SettingsDialog::onConnectionComboBoxIdxChanged);
-  connect(ui->pb_mount, &QPushButton::clicked,
+/*  connect(ui->pb_mount, &QPushButton::clicked,
           this, &SettingsDialog::onMountPushButtonPressed);
   connect(ui->pb_unmount, &QPushButton::clicked,
           this, &SettingsDialog::onUnmountPushButtonPressed);
   connect(ui->pb_installScript, &QPushButton::clicked,
-           this, &SettingsDialog::onInstallScriptsPushButtonPressed);
-  connect(ui->buttonBox, &QDialogButtonBox::accepted,
+           this, &SettingsDialog::onInstallScriptsPushButtonPressed);*/
+  connect(ui->buttonBox->button(QDialogButtonBox::Apply), &QPushButton::pressed,
           this, &SettingsDialog::onAccepted);
   connect(ui->buttonBox, &QDialogButtonBox::close,
           this, &SettingsDialog::onCancel);
+  ui->buttonBox->button(QDialogButtonBox::Apply)->setEnabled(false);
 
   //--- hide remote settings (default)
   ui->f_remote->setVisible(false);
+  updateStatusMsg();
 }
 
 //==================================================================================================
@@ -60,8 +62,10 @@ void SettingsDialog::onLocalBinaryPushButtonPressed()
                                            QApplication::applicationDirPath() :
                                            QFileInfo(filePath).absoluteDir().absolutePath());
 
-  if(!filePath.isEmpty())
-    ui->le_localColmapBinary->setText(filePath);
+  if(!filePath.isEmpty()){
+      ui->le_localColmapBinary->setText(filePath);
+      settingsChanged();
+  }
 }
 
 //==================================================================================================
@@ -74,8 +78,10 @@ void SettingsDialog::onLocalWorkspacePushButtonPressed()
                                            QApplication::applicationDirPath() :
                                            dirPath);
 
-  if(!dirPath.isEmpty())
+  if(!dirPath.isEmpty()){
     ui->le_localWorkspace->setText(dirPath);
+    settingsChanged();
+  }
 
 }
 
@@ -89,8 +95,10 @@ void SettingsDialog::onSelectMountPntPushButtonPressed()
                                            QApplication::applicationDirPath() :
                                            dirPath);
 
-  if(!dirPath.isEmpty())
+  if(!dirPath.isEmpty()){
     ui->le_mntPnt->setText(dirPath);
+    settingsChanged();
+  }
 }
 
 //==================================================================================================
@@ -113,6 +121,7 @@ void SettingsDialog::onConnectionComboBoxIdxChanged(int currentIdx)
     }
     break;
   }
+  settingsChanged();
 }
 
 //==================================================================================================
@@ -168,28 +177,44 @@ void SettingsDialog::onAccepted()
 
   mpColmapWrapper->switchWorkspace();
 
-  if(mpColmapWrapper->getSetupStatus() != ColmapWrapper::SETUP_OK) {
-      QString msg;
-      switch(mpColmapWrapper->getSetupStatus()){
-      case ColmapWrapper::ERR_EXE: msg="colmap executabel was not found or is not executable"; break;
-      case ColmapWrapper::ERR_SSH: msg="ssh connection failed"; break;
-      case ColmapWrapper::ERR_PATH: msg="path to workspace or local mount point does not exist"; break;
-      case ColmapWrapper::ERR_MOUNT: msg="remote workspace was not mounted correctly"; break;
-      default: msg = "unknown reason!";
-      }
-      ui->l_error->setStyleSheet("QLabel { border : 1px solid red; color : red; }");
-      ui->l_error->setText("Setup failed: " + msg);
-  } else {
-      ui->l_error->setStyleSheet("QLabel { border : 1px solid green; color : green; }");
-      ui->l_error->setText("Setup successfull");
-      mpColmapWrapper->writeSettings();
-      this->accept();
-  }
+  updateStatusMsg();
 }
 
 void SettingsDialog::onCancel()
 {
     mpColmapWrapper->readSettings();
+    ui->buttonBox->button(QDialogButtonBox::Apply)->setEnabled(false);
+    ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
+}
+
+void SettingsDialog::settingsChanged()
+{
+    ui->buttonBox->button(QDialogButtonBox::Apply)->setEnabled(true);
+    ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
+    ui->l_error->setStyleSheet("QLabel { border : none; }");
+    ui->l_error->setText("");
+}
+
+void SettingsDialog::updateStatusMsg()
+{
+    if(mpColmapWrapper->getSetupStatus() != ColmapWrapper::SETUP_OK) {
+        QString msg;
+        switch(mpColmapWrapper->getSetupStatus()){
+        case ColmapWrapper::ERR_EXE: msg="colmap executabel was not found or is not executable"; break;
+        case ColmapWrapper::ERR_SSH: msg="ssh connection failed"; break;
+        case ColmapWrapper::ERR_PATH: msg="path to workspace or local mount point does not exist"; break;
+        case ColmapWrapper::ERR_MOUNT: msg="remote workspace was not mounted correctly"; break;
+        default: msg = "unknown reason!";
+        }
+        ui->l_error->setStyleSheet("QLabel { border : 1px solid red; color : red; }");
+        ui->l_error->setText("Setup failed: " + msg);
+    } else {
+        ui->l_error->setStyleSheet("QLabel { border : 1px solid green; color : green; }");
+        ui->l_error->setText("Setup successfull");
+        mpColmapWrapper->writeSettings();
+        ui->buttonBox->button(QDialogButtonBox::Apply)->setEnabled(false);
+        ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
+    }
 }
 
 //==================================================================================================
@@ -205,21 +230,10 @@ void SettingsDialog::onShow()
   ui->le_mntPnt->setText(mpColmapWrapper->mntPntRemoteWorkspacePath());
   ui->sb_syncInterval->setValue(mpColmapWrapper->syncInterval());
 
-  if(mpColmapWrapper->getSetupStatus() != ColmapWrapper::SETUP_OK) {
-        QString msg;
-        switch(mpColmapWrapper->getSetupStatus()){
-        case ColmapWrapper::ERR_EXE: msg="colmap executabel was not found or is not executable"; break;
-        case ColmapWrapper::ERR_SSH: msg="ssh connection failed"; break;
-        case ColmapWrapper::ERR_PATH: msg="path to workspace or local mount point does not exist"; break;
-        case ColmapWrapper::ERR_MOUNT: msg="remote workspace was not mounted correctly"; break;
-        default: msg = "unknown reason!";
-        }
-        ui->l_error->setStyleSheet("QLabel { border : 1px solid red; color : red; }");
-        ui->l_error->setText("Setup failed: " + msg);
-    } else {
-        ui->l_error->setStyleSheet("QLabel { border : 1px solid green; color : green; }");
-        ui->l_error->setText("Setup successfull");
-    }
+  ui->buttonBox->button(QDialogButtonBox::Apply)->setEnabled(false);
+  ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
+
+  updateStatusMsg();
 }
 
 

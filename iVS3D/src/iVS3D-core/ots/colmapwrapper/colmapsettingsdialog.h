@@ -49,6 +49,9 @@ class SettingsDialog : public QDialog
     /// Member pointer to wrapper
     lib3d::ots::ColmapWrapper* mpColmapWrapper;
 
+    void settingsChanged();
+    void updateStatusMsg();
+
 };
 
 } // namespace colmapwrapper
