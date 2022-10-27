@@ -10,8 +10,6 @@
 #include <QFileDialog>
 #include <QProgressDialog>
 
-#include "../subsamplingdialog.h"
-
 namespace lib3d {
 namespace ots {
 namespace ui {
@@ -30,10 +28,6 @@ NewProductDialog::NewProductDialog(ColmapWrapper *ipWrapper, QWidget *parent) :
   //--- connections
   connect(ui->pb_selectImagePath, &QPushButton::clicked,
           this, &NewProductDialog::onPbSelectImageDirectoryClicked);
-  connect(ui->pb_importImagePath, &QPushButton::clicked,
-          this, &NewProductDialog::onPbImportImagesClicked);
-  connect(ui->cb_sequenceName, &QComboBox::editTextChanged,
-          this, &NewProductDialog::onCbEditTextChanged);
   connect(ui->cb_sequenceName, &QComboBox::currentTextChanged,
           this, &NewProductDialog::onCbCurrentTextChanged);
   connect(ui->cb_prodCameraPoses, &QCheckBox::clicked,
@@ -139,119 +133,6 @@ void NewProductDialog::onPbSelectImageDirectoryClicked()
 
   if(!dirPath.isEmpty())
     ui->le_imagePath->setText(dirPath);
-}
-
-//==================================================================================================
-void NewProductDialog::onPbImportImagesClicked()
-{
-  ui->le_imagePath->clear();
-
-  //--- compute image path from sequence name
-  QString genericDirPath = "%1/" + ui->cb_sequenceName->currentText() + ".images";
-  QString displayDirPath = genericDirPath.arg(
-        QUrl((mpColmapWrapper->connectionType() == ColmapWrapper::LOCAL) ?
-          mpColmapWrapper->localWorkspacePath() : mpColmapWrapper->remoteWorkspacePath()).
-        toString(QUrl::StripTrailingSlash));
-  QString importDirPath = genericDirPath.arg(
-        QUrl((mpColmapWrapper->connectionType() == ColmapWrapper::LOCAL) ?
-          mpColmapWrapper->localWorkspacePath() : mpColmapWrapper->mntPntRemoteWorkspacePath()).
-        toString(QUrl::StripTrailingSlash));
-
-  //--- subsampling
-  uint nthFrameToImport = 1;
-
-  //--- if custom import function is set, call it.
-  //--- Otherwise call dfault import procedure, i.e. copying of image files.
-  bool successful = false;
-  std::function<bool(std::string, uint)> custImportFn = mpColmapWrapper->customImportFn();
-  if(custImportFn)
-  {
-    //--- subsampling
-    QSharedPointer<SubsamplingDialog> subsampl =
-        QSharedPointer<SubsamplingDialog>(new SubsamplingDialog(this));
-    subsampl->setModal(true);
-
-    int retVal = subsampl->exec();
-
-    if(static_cast<QDialog::DialogCode>(retVal) == QDialog::Accepted)
-    {
-      //--- get subsampling rate if accepted
-      if(subsampl->isSubsamplingActivated())
-        nthFrameToImport = subsampl->getNthFrameValue();
-
-      successful = custImportFn(importDirPath.toStdString(), nthFrameToImport);
-    }
-  }
-  else
-  {
-    //--- default import routine: Select directory and copy all image files into destination
-    QString srcDirPath = QFileDialog::getExistingDirectory(this, tr("Select image directory"),
-                                                        QApplication::applicationDirPath());
-
-    if(!srcDirPath.isEmpty())
-    {
-      QDir srcDir(srcDirPath);
-
-      //--- create destination directory if not exists
-      QDir destDir(importDirPath);
-      if(!destDir.exists())
-        destDir.mkpath(".");
-
-      //--- list all image files in directory
-      QStringList imgFiles = srcDir.entryList(QStringList() << "*.jpg" << "*.JPG"
-                                                            << "*.jepg" << "*.JEPG"
-                                                            << "*.png" << "*.PNG"
-                                                            << "*.bmp" << "*.BMP"
-                                                            << "*.tiff" << "*.tiff",
-                                              QDir::Files);
-
-      //--- copy files
-      if(imgFiles.size() > 0)
-      {
-        //--- subsampling
-        QSharedPointer<SubsamplingDialog> subsampl =
-            QSharedPointer<SubsamplingDialog>(new SubsamplingDialog(this));
-        subsampl->setModal(true);
-
-        int retVal = subsampl->exec();
-        if(static_cast<QDialog::DialogCode>(retVal) == QDialog::Accepted)
-        {
-          if(subsampl->isSubsamplingActivated())
-            nthFrameToImport = subsampl->getNthFrameValue();
-
-          QProgressDialog progress(tr("Copying files..."), tr("Abort Copy"), 0, imgFiles.size(), this);
-          progress.setWindowModality(Qt::WindowModal);
-          progress.setMinimumDuration(500);
-
-          bool isCanceled = false;
-          for(int i = 0; i < imgFiles.size(); i += nthFrameToImport)
-          {
-            progress.setValue(i);
-
-            //--- if progress was canceled
-            if (progress.wasCanceled())
-            {
-              //--- remove already copied files
-              for(int j = i - 1; j >= 0; --j)
-                QFile::remove(importDirPath + QDir::separator() + imgFiles[j]);
-
-              isCanceled = true;
-              break;
-            }
-
-            QFile::copy(srcDirPath + QDir::separator() + imgFiles[i], importDirPath + QDir::separator() + imgFiles[i]);
-          }
-          progress.setValue(imgFiles.size());
-
-
-          successful = (true && !isCanceled);
-        }
-      }
-    }
-  }
-
-  if(successful)
-    ui->le_imagePath->setText(displayDirPath);
 }
 
 //==================================================================================================
@@ -409,14 +290,12 @@ void NewProductDialog::onAccepted()
 //==================================================================================================
 void NewProductDialog::onUpdateToDarkTheme()
 {
-  ui->pb_importImagePath->setIcon(QIcon(":/assets/icons/glyphicons-359-file-import-dark.png"));
   ui->pb_selectImagePath->setIcon(QIcon(":/assets/icons/glyphicons-145-folder-open-dark.png"));
 }
 
 //==================================================================================================
 void NewProductDialog::onUpdateToLightTheme()
 {
-  ui->pb_importImagePath->setIcon(QIcon(":/assets/icons/glyphicons-359-file-import.png"));
   ui->pb_selectImagePath->setIcon(QIcon(":/assets/icons/glyphicons-145-folder-open.png"));
 }
 
@@ -462,16 +341,6 @@ void NewProductDialog::onShow()
       ui->cb_sequenceName->setEditText(QString::fromStdString(mpColmapWrapper->getLocalPresetSequence().name));
       ui->le_imagePath->setText(QString::fromStdString(mpColmapWrapper->getLocalPresetSequence().imagePath));
   }
-}
-
-//==================================================================================================
-void NewProductDialog::onCbEditTextChanged(QString editText)
-{
-  //--- if edit text is not empty, enable push button to import images
-  if(!editText.isEmpty())
-    ui->pb_importImagePath->setEnabled(true);
-  else
-    ui->pb_importImagePath->setEnabled(false);
 }
 
 //==================================================================================================

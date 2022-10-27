@@ -42,14 +42,12 @@ class NewProductDialog : public QDialog
 
   private slots:
 
-    void onCbEditTextChanged(QString editText);
     void onCbCurrentTextChanged(QString currentText);
     void onProdCameraPosesClicked();
     void onProdPointCloudClicked();
     void onProdMeshClicked();
 
     void onPbSelectImageDirectoryClicked();
-    void onPbImportImagesClicked();
 
     void updateSettingsVisibility();
 

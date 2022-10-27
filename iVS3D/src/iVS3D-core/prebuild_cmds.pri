@@ -15,6 +15,7 @@ system(lrelease $$PWD/translations/*.ts)
   message("PRE-BUILD: running pyinstaller for ColmapWorker")
   system(python3 -m PyInstaller --distpath $$PWD/ots/colmapwrapper/ --specpath $$PWD/ots/colmapwrapper/ \
         --hidden-import=pyproj.datadir \
+        --copy-metadata pyproj \
         --onefile --name ColmapWorker $$PY_COLMAP_WRAPPER_SOURCE)
 }
 
@@ -26,5 +27,6 @@ system(lrelease $$PWD/translations/*.ts)
   message("PRE-BUILD: running pyinstaller for ExctractGpsReferenceData")
   system(python3 -m PyInstaller --distpath $$PWD/ots/colmapwrapper/ --specpath $$PWD/ots/colmapwrapper/ \
         --hidden-import=pyproj.datadir \
+        --copy-metadata pyproj \
         --onefile --name ExctractGpsReferenceData $$PY_EXTRACT_GPS_SOURCE)
 }

@@ -142,47 +142,6 @@
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="pb_importImagePath">
-           <property name="enabled">
-            <bool>true</bool>
-           </property>
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>25</width>
-             <height>0</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>25</width>
-             <height>16777215</height>
-            </size>
-           </property>
-           <property name="toolTip">
-            <string>Import image path...</string>
-           </property>
-           <property name="text">
-            <string/>
-           </property>
-           <property name="icon">
-            <iconset resource="../../../lib3D_ots.qrc">
-             <normaloff>:/assets/icons/glyphicons-359-file-import.png</normaloff>:/assets/icons/glyphicons-359-file-import.png</iconset>
-           </property>
-           <property name="iconSize">
-            <size>
-             <width>16</width>
-             <height>16</height>
-            </size>
-           </property>
-          </widget>
-         </item>
-         <item>
           <widget class="QPushButton" name="pb_selectImagePath">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
@@ -209,7 +168,7 @@
             <string/>
            </property>
            <property name="icon">
-            <iconset resource="../../../lib3D_ots.qrc">
+            <iconset resource="../../lib3D_ots.qrc">
              <normaloff>:/assets/icons/glyphicons-145-folder-open.png</normaloff>:/assets/icons/glyphicons-145-folder-open.png</iconset>
            </property>
           </widget>
@@ -318,7 +277,7 @@
            <x>0</x>
            <y>0</y>
            <width>532</width>
-           <height>379</height>
+           <height>387</height>
           </rect>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_5">
@@ -739,7 +698,7 @@
   </layout>
  </widget>
  <resources>
-  <include location="../../../lib3D_ots.qrc"/>
+  <include location="../../lib3D_ots.qrc"/>
  </resources>
  <connections>
   <connection>
