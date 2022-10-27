@@ -55,7 +55,7 @@ MainWindow::MainWindow(QWidget *parent, bool dark, int cuda, bool createLog, QSt
     ui->menuView->addAction(dock->toggleViewAction());
 
 #ifdef HIDE_INPUT_WIDGET
-    dock->toggleViewAction()->setChecked(false);
+    dock->setVisible(false);
 #endif
 
     QDockWidget *d2 = dock;

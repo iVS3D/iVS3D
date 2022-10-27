@@ -104,4 +104,3 @@ TRANSLATIONS += \
 
 OTHER_FILES += \
     copy_to_install_dir/colmap/* \
-

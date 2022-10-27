@@ -15,7 +15,8 @@ void ApplicationSettings::loadSettings()
     QSettings settings("Fraunhofer", "iVS3D");
     m_standardInputPath = settings.value(stringContainer::standardInputPathIdentifier).value<QString>();
     m_darkStyle = settings.value(stringContainer::darkStyleIdentifier).value<bool>();
-    m_useCuda = settings.value(stringContainer::useCudaIdentifier).value<bool>();
+    if(settings.contains(stringContainer::useCudaIdentifier))
+        m_useCuda = settings.value(stringContainer::useCudaIdentifier).value<bool>();
     QVariantMap reconstructMap = settings.value(stringContainer::reconstructSoftwareIdentifier).value<QVariantMap>();
     QMapIterator<QString, QVariant> mapIt(reconstructMap);
     m_reconstructPath.clear();
