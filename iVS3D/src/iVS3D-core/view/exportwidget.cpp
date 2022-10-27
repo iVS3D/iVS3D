@@ -50,7 +50,7 @@ void ExportWidget::enableExport(bool enabled)
 
 void ExportWidget::enableReconstruct(bool enabled)
 {
-    ui->pushButton_reconstruct->setEnabled(enabled);
+    //ui->pushButton_reconstruct->setEnabled(enabled);
 }
 
 void ExportWidget::setResolutionValid(bool valid)

@@ -28,7 +28,7 @@ void ApplicationSettings::loadSettings()
 
 void ApplicationSettings::saveSettings()
 {
-    QSettings settings("Fraunhofer", "iVS3D");
+    QSettings settings("Fraunhofer IOSB", "iVS3D");
     settings.setValue(stringContainer::standardInputPathIdentifier, m_standardInputPath);
     settings.setValue(stringContainer::darkStyleIdentifier, m_darkStyle);
     settings.setValue(stringContainer::useCudaIdentifier, m_useCuda);

@@ -51,7 +51,7 @@ namespace ots {
 //==================================================================================================
 ColmapWrapper::ColmapWrapper(const QString iSettingsFile, const bool iSettingsOnly)  :
   QObject(),
-  mSettings(iSettingsFile, QSettings::IniFormat),
+  mSettings(/*iSettingsFile, */QSettings::IniFormat, QSettings::UserScope, "Fraunhofer IOSB", iSettingsFile),
   mpTempDir(new QTemporaryDir()),
   mpPyWorkerProcess(new QProcess()),
   mpMountProcess(new QProcess()),

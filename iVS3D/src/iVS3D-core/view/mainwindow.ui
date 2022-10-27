@@ -49,7 +49,7 @@
      <x>0</x>
      <y>0</y>
      <width>1024</width>
-     <height>20</height>
+     <height>23</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -68,7 +68,6 @@
     <property name="title">
      <string>Settings</string>
     </property>
-    <addaction name="actionSet_Reconstructiontool_Path"/>
     <addaction name="actionSet_Input_Path"/>
     <addaction name="separator"/>
     <addaction name="actionuse_DarkStyle"/>

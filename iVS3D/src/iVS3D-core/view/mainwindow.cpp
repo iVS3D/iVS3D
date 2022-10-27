@@ -54,6 +54,10 @@ MainWindow::MainWindow(QWidget *parent, bool dark, int cuda, bool createLog, QSt
     addDockWidget(Qt::BottomDockWidgetArea, dock);
     ui->menuView->addAction(dock->toggleViewAction());
 
+#ifdef HIDE_INPUT_WIDGET
+    dock->toggleViewAction()->setChecked(false);
+#endif
+
     QDockWidget *d2 = dock;
     dock = new QDockWidget(tr("Batch processing"), this);
     dock->setObjectName("Batch");
@@ -163,7 +167,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
-    QSettings settings("Fraunhofer", "iVS3D");
+    QSettings settings("Fraunhofer IOSB", "iVS3D");
     settings.setValue("windowGeometry", QVariant(geometry()));
     settings.setValue("windowState", saveState());
     settings.setValue("maximized", this->isMaximized());
@@ -172,7 +176,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
 void MainWindow::readSettings()
 {
-    QSettings settings("Fraunhofer", "iVS3D");
+    QSettings settings("Fraunhofer IOSB", "iVS3D");
     if(!settings.value("windowGeometry").isNull()){
         setGeometry(settings.value("windowGeometry").value<QRect>());
         restoreState(settings.value("windowState").toByteArray());
