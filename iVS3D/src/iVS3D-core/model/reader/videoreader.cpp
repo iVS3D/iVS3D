@@ -3,7 +3,7 @@
 VideoReader::VideoReader(const QString &path) : m_path(path.toUtf8().constData())
 {
     cv::VideoCapture prev(m_path, cv::CAP_FFMPEG);
-    m_numImages = prev.get(cv::CAP_PROP_FRAME_COUNT) - 1;
+    m_numImages = prev.get(cv::CAP_PROP_FRAME_COUNT);
     m_fps = prev.get(cv::CAP_PROP_FPS);
     m_cap = prev;
     if (m_numImages > 0) {
