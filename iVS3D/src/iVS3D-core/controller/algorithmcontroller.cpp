@@ -47,7 +47,7 @@ void AlgorithmController::slot_selectAlgorithm(int idx)
     // clear queue for transformations
     m_fQueue = std::make_tuple<cv::Mat*, int, int>(nullptr, NO_IMAGE,NO_TRANSFORM);
 
-    emit sig_hasStatusMessage("Selected algorithm: " + AlgorithmManager::instance().getAlgorithmList()[idx]);
+    emit sig_hasStatusMessage(tr("Selected algorithm: ") + AlgorithmManager::instance().getAlgorithmList()[idx]);
     TransformManager::instance().selectTransform(UINT_MAX);
 }
 
@@ -59,7 +59,7 @@ void AlgorithmController::slot_selectTransform(int idx)
 
     m_samplingWidget->showAlgorithmSettings(TransformManager::instance().getSettingsWidget(m_samplingWidget, idx));
 
-    emit sig_hasStatusMessage("Selected transformation: " + TransformManager::instance().getTransformList()[idx]);
+    emit sig_hasStatusMessage(tr("Selected transformation: ") + TransformManager::instance().getTransformList()[idx]);
     TransformManager::instance().selectTransform(idx);
 }
 
@@ -128,14 +128,14 @@ void AlgorithmController::slot_startGenerateSettings()
 void AlgorithmController::slot_algorithmAborted()
 {
     auto duration_ms = m_timer.elapsed();
-    emit sig_hasStatusMessage(AlgorithmManager::instance().getAlgorithmList()[m_pluginIdx] + " aborted after " + QString::number(duration_ms) + "ms");
+    emit sig_hasStatusMessage(AlgorithmManager::instance().getAlgorithmList()[m_pluginIdx] + tr(" aborted after ") + QString::number(duration_ms) + tr("ms"));
     m_algorithmProgressDialog->close();
 }
 
 
 void AlgorithmController::slot_previewStateChanged(bool enabled)
 {
-    emit sig_hasStatusMessage(enabled ? "Preview enabled." : "Preview disabled.");
+    emit sig_hasStatusMessage(enabled ? tr("Preview enabled.") : tr("Preview disabled."));
     TransformManager::instance().setTransformationEnabled(enabled);
 }
 
@@ -164,13 +164,13 @@ void AlgorithmController::startNextTransform()
 {
     m_future = m_fQueue;
     m_fQueue = std::make_tuple<cv::Mat*, int, int>(nullptr, NO_IMAGE, NO_TRANSFORM);
-    emit sig_hasStatusMessage("Computing preview ...");
+    emit sig_hasStatusMessage(tr("Computing preview ..."));
 }
 
 void AlgorithmController::slot_algorithmFinished(int)
 {
     auto duration_ms = m_timer.elapsed();
-    emit sig_hasStatusMessage(AlgorithmManager::instance().getAlgorithmList()[m_pluginIdx] + " finished after " + QString::number(duration_ms) + "ms");
+    emit sig_hasStatusMessage(AlgorithmManager::instance().getAlgorithmList()[m_pluginIdx] + tr(" finished after ") + QString::number(duration_ms) + tr("ms"));
     m_dataManager->getHistory()->slot_save();
     m_algorithmProgressDialog->close();
 }

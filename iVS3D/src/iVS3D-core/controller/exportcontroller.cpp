@@ -205,7 +205,7 @@ void ExportController::slot_export()
     QDir exportDir;
     if (!exportDir.mkpath(m_path)) {
         qDebug() << "Couldn't create Export Directory " << m_path;
-        emit sig_hasStatusMessage(QString("Couldn't create Export Directory: %1").arg(m_path));
+        emit sig_hasStatusMessage(QString(tr("Couldn't create Export Directory: %1")).arg(m_path));
         return;
     }
 
@@ -379,7 +379,7 @@ void ExportController::slot_resolutionChange(const QString &res)
 void ExportController::slot_exportAborted()
 {
     auto duration_ms = m_timer.elapsed();
-    emit sig_hasStatusMessage("Export aborted after " + QString::number(duration_ms) + "ms");
+    emit sig_hasStatusMessage(tr("Export aborted after ") + QString::number(duration_ms) + tr("ms"));
     // disconnect GUI to export executor
     disconnect(m_exportExec, &ExportExecutor::sig_exportAborted, this, &ExportController::slot_exportAborted);
     disconnect(m_exportExec, &ExportExecutor::sig_exportFinished, this, &ExportController::slot_exportFinished);
@@ -399,13 +399,13 @@ void ExportController::slot_exportFinished(int result)
     m_outputWidget->showExportOptions(); // swap OutputWidget to display result
 
     if (result == -1) {
-        emit sig_hasStatusMessage("Export failed. Maybe the path is invalid");
+        emit sig_hasStatusMessage(tr("Export failed. Maybe the path is invalid"));
         emit sig_exportFinished();
         return;
     }
 
     auto duration_ms = m_timer.elapsed();
-    emit sig_hasStatusMessage("Export finished after " + QString::number(duration_ms) + "ms");
+    emit sig_hasStatusMessage(tr("Export finished after ") + QString::number(duration_ms) + tr("ms"));
 
     // now we have an export, so enable reconstruct
     m_outputWidget->enableReconstruct(true);
@@ -698,12 +698,12 @@ bool ExportController::startReconstruct()
             }
         }
         if (reconstructProcess.startDetached("explorer.exe " + exportDirReverse)) {
-            emit sig_hasStatusMessage("start of explorer successful");
+            emit sig_hasStatusMessage(tr("start of explorer successful"));
             return true;
         }
         else {
             qDebug() << "Couldn't start explorer process!";
-            emit sig_hasStatusMessage("failed to start Reconstruction Software!");
+            emit sig_hasStatusMessage(tr("failed to start Reconstruction Software!"));
         }
     }
 

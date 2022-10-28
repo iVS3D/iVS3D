@@ -23,7 +23,7 @@ SamplingWidget::SamplingWidget(QWidget *parent, QStringList algorithmList, QStri
     connect(ui->pushButton, &QPushButton::pressed, this, &SamplingWidget::slot_startSamplingPressed);
     connect(ui->pushButton_2, &QPushButton::pressed, this, &SamplingWidget::slot_startGeneratePressed);
 
-    m_cbPreviewTransform = new QCheckBox("Enable preview", parent);
+    m_cbPreviewTransform = new QCheckBox(tr("Enable preview"), parent);
     m_cbPreviewTransform->setVisible(false);
     connect(m_cbPreviewTransform, &QCheckBox::stateChanged, this, &SamplingWidget::slot_enablePreviewChanged);
 

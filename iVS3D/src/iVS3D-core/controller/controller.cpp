@@ -98,13 +98,13 @@ void Controller::slot_openInputFolder()
 {
     if(m_exporting){
         QMessageBox msgBox;
-        msgBox.setText("Wait for export to finish before importing new images.");
+        msgBox.setText(tr("Wait for export to finish before importing new images."));
         msgBox.exec();
         return;
     }
-    QString folderPath = QFileDialog::getExistingDirectory(m_mainWindow, "Choose Folder", ApplicationSettings::instance().getStandardInputPath(), QFileDialog::DontUseNativeDialog);
+    QString folderPath = QFileDialog::getExistingDirectory(m_mainWindow, tr("Choose Folder"), ApplicationSettings::instance().getStandardInputPath(), QFileDialog::DontUseNativeDialog);
     if (folderPath == nullptr) {
-        emit sig_hasStatusMessage("Input canceled");
+        emit sig_hasStatusMessage(tr("Input canceled"));
         return;
     }
     m_timer = QElapsedTimer();
@@ -116,14 +116,14 @@ void Controller::slot_openInputVideo()
 {
     if(m_exporting){
         QMessageBox msgBox;
-        msgBox.setText("Wait for export to finish before importing a new video.");
+        msgBox.setText(tr("Wait for export to finish before importing a new video."));
         msgBox.exec();
         return;
     }
     QString selectedFilter = "";
-    QString folderPath = QFileDialog::getOpenFileName(m_mainWindow, "Choose Video", ApplicationSettings::instance().getStandardInputPath(), "*.mp4 *.mov *.avi", &selectedFilter, QFileDialog::DontUseNativeDialog);
+    QString folderPath = QFileDialog::getOpenFileName(m_mainWindow, tr("Choose Video"), ApplicationSettings::instance().getStandardInputPath(), "*.mp4 *.mov *.avi", &selectedFilter, QFileDialog::DontUseNativeDialog);
     if (folderPath == nullptr) {
-        emit sig_hasStatusMessage("Input canceled");
+        emit sig_hasStatusMessage(tr("Input canceled"));
         return;
     }
 
@@ -173,12 +173,12 @@ void Controller::slot_openProject()
 {
     if(m_exporting){
         QMessageBox msgBox;
-        msgBox.setText("Wait for export to finish before importing new project.");
+        msgBox.setText(tr("Wait for export to finish before importing new project."));
         msgBox.exec();
         return;
     }
     QString selectedFilter = "";
-    QString folderPath = QFileDialog::getOpenFileName(m_mainWindow, "Choose project file", ApplicationSettings::instance().getStandardInputPath(), "*.json", &selectedFilter, QFileDialog::DontUseNativeDialog);
+    QString folderPath = QFileDialog::getOpenFileName(m_mainWindow, tr("Choose project file"), ApplicationSettings::instance().getStandardInputPath(), "*.json", &selectedFilter, QFileDialog::DontUseNativeDialog);
 
     if (folderPath != nullptr) {
 
@@ -193,16 +193,16 @@ void Controller::slot_openProject()
         m_openExec->open();
     }
     else {
-       emit sig_hasStatusMessage("Input canceled");
+       emit sig_hasStatusMessage(tr("Input canceled"));
     }
 }
 
 void Controller::slot_saveProjectAs()
 {
     QString selectedFilter = "";
-    QString projectPath = QFileDialog::QFileDialog::getSaveFileName (m_mainWindow, "Save project", ApplicationSettings::instance().getStandardInputPath(), "*.json", &selectedFilter, QFileDialog::DontUseNativeDialog);
+    QString projectPath = QFileDialog::QFileDialog::getSaveFileName (m_mainWindow, tr("Save project"), ApplicationSettings::instance().getStandardInputPath(), "*.json", &selectedFilter, QFileDialog::DontUseNativeDialog);
     if (projectPath == nullptr) {
-        emit sig_hasStatusMessage("Input canceled");
+        emit sig_hasStatusMessage(tr("Input canceled"));
         return;
     }
 
@@ -211,14 +211,14 @@ void Controller::slot_saveProjectAs()
     }
     m_dataManager->saveProjectAs(getNameFromPath(projectPath, ".json"), projectPath);
     m_mainWindow->showProjectTitle(m_dataManager->getProjectPath());
-    emit sig_hasStatusMessage("Project saved");
+    emit sig_hasStatusMessage(tr("Project saved"));
 }
 
 void Controller::slot_saveProject()
 {
     if (m_dataManager->isProjectLoaded()) {
         m_dataManager->saveProject();
-        emit sig_hasStatusMessage("Project saved");
+        emit sig_hasStatusMessage(tr("Project saved"));
         return;
     }
     slot_saveProjectAs();
@@ -233,20 +233,20 @@ void Controller::slot_addReconstructPath()
 
 void Controller::slot_changeDefaultInputPath()
 {
-    QString folderPath = QFileDialog::getExistingDirectory(m_mainWindow, "Choose standard input path", ApplicationSettings::instance().getStandardInputPath(), QFileDialog::DontUseNativeDialog);
+    QString folderPath = QFileDialog::getExistingDirectory(m_mainWindow, tr("Choose standard input path"), ApplicationSettings::instance().getStandardInputPath(), QFileDialog::DontUseNativeDialog);
     if (folderPath == nullptr) {
-        emit sig_hasStatusMessage("Input canceled");
+        emit sig_hasStatusMessage(tr("Input canceled"));
         return;
     }
     ApplicationSettings::instance().setStandardInputPath(folderPath);
 
-    emit sig_hasStatusMessage("Standard input path changed");
+    emit sig_hasStatusMessage(tr("Standard input path changed"));
 }
 
 void Controller::slot_changeDarkStyle(bool dark)
 {
     ApplicationSettings::instance().setDarkStyle(dark);
-    emit sig_hasStatusMessage("GUI changed to " + QString((dark ? "dark" : "light")) + " style -- restart to activate changes");
+    emit sig_hasStatusMessage(tr("GUI changed to ") + QString((dark ? tr("dark") : tr("light"))) + tr(" style -- restart to activate changes"));
 }
 
 void Controller::slot_changeUseCuda(bool useCuda)
@@ -255,13 +255,13 @@ void Controller::slot_changeUseCuda(bool useCuda)
     if(!m_exporting){
         TransformManager::instance().enableCuda(ApplicationSettings::instance().getUseCuda());
     }
-    emit sig_hasStatusMessage(useCuda ? "CUDA enabled" : "CUDA disabled");
+    emit sig_hasStatusMessage(useCuda ? tr("CUDA enabled") : tr("CUDA disabled"));
 }
 
 void Controller::slot_changeCreateLogFile(bool createLog)
 {
     ApplicationSettings::instance().setCreateLogs(createLog);
-    QString msg = "Create log files" + (QString)(createLog ? " enabled" : " disabled");
+    QString msg = tr("Create log files") + (QString)(createLog ? tr(" enabled") : tr(" disabled"));
     LogManager::instance().toggleLog(createLog);
     emit sig_hasStatusMessage(msg);
 }
@@ -269,13 +269,13 @@ void Controller::slot_changeCreateLogFile(bool createLog)
 void Controller::slot_openMetaData()
 {
     QString selectedFilter = "";
-    QString filePath = QFileDialog::getOpenFileName(m_mainWindow, "Choose Meta Data", ApplicationSettings::instance().getStandardInputPath(), "*.srt *.jpeg *.jpg", &selectedFilter, QFileDialog::DontUseNativeDialog);
+    QString filePath = QFileDialog::getOpenFileName(m_mainWindow, tr("Choose Meta Data"), ApplicationSettings::instance().getStandardInputPath(), "*.srt *.jpeg *.jpg", &selectedFilter, QFileDialog::DontUseNativeDialog);
     if (filePath == nullptr) {
-        emit sig_hasStatusMessage("Input canceled");
+        emit sig_hasStatusMessage(tr("Input canceled"));
         return;
     }
     int n = m_dataManager->getModelInputPictures()->loadMetaData(QStringList(filePath));
-    QString msg = "Loaded " + QString::number(n) + " meta data feature" + QString(n > 1 ? "s" : "");
+    QString msg = tr("Loaded ") + QString::number(n) + tr(" meta data feature") + QString(n > 1 ? tr("s") : "");
     emit sig_hasStatusMessage(msg);
 
 }
@@ -324,7 +324,7 @@ void Controller::createOpenMessage(int numPics)
 {
     auto duration_ms = m_timer.elapsed();
     if (numPics <= 0) {
-        emit sig_hasStatusMessage("No images found after " + QString::number(duration_ms) + "ms");
+        emit sig_hasStatusMessage(tr("No images found after ") + QString::number(duration_ms) + tr("ms"));
         onFailedOpen();
     }
     else {
@@ -336,12 +336,12 @@ void Controller::createOpenMessage(int numPics)
         }
 
         if (metaDataCount != 0) {
-            emit sig_hasStatusMessage("Import of " + QString::number(numPics) + " images and "
-                                      + QString::number(metaDataCount) + " meta data feature" + QString(metaDataCount > 1 ? "s" : "")
-                                      + " finished after " + QString::number(duration_ms) + "ms");
+            emit sig_hasStatusMessage(tr("Import of ") + QString::number(numPics) + tr(" images and ")
+                                      + QString::number(metaDataCount) + tr(" meta data feature") + QString(metaDataCount > 1 ? tr("s") : "")
+                                      + tr(" finished after ") + QString::number(duration_ms) + tr("ms"));
         }
         else {
-            emit sig_hasStatusMessage("Import of " + QString::number(numPics) + " images finished after " + QString::number(duration_ms) + "ms");
+            emit sig_hasStatusMessage(tr("Import of ") + QString::number(numPics) + tr(" images finished after ") + QString::number(duration_ms) + tr("ms"));
         }
         onSuccessfulOpen();
     }
@@ -360,16 +360,16 @@ QString Controller::getNameFromPath(QString path, QString dataFormat) {
 void Controller::setInputWidgetInfo() {
     QMap<QString, QString> info;
     QString picCount = QString::number(m_dataManager->getModelInputPictures()->getPicCount());
-    info.insert("#Frames  ", picCount);
+    info.insert(tr("#Frames  "), picCount);
     QString x = QString::number(m_dataManager->getModelInputPictures()->getInputResolution().x());
     QString y = QString::number(m_dataManager->getModelInputPictures()->getInputResolution().y());
     QString resolution = x + " x " + y;
-    info.insert("Resolution  ", resolution);
+    info.insert(tr("Resolution  "), resolution);
     info.insert(stringContainer::inputPathIdentifier, m_dataManager->getModelInputPictures()->getPath());
     Reader* currentReader = m_dataManager->getModelInputPictures()->getReader();
     if(currentReader->getFPS() != -1) {
-        info.insert("FPS ", QString::number(currentReader->getFPS()));
-        info.insert("Video duration ", QString::number(currentReader->getVideoDuration()) + "s");
+        info.insert(tr("FPS "), QString::number(currentReader->getFPS()));
+        info.insert(tr("Video duration "), QString::number(currentReader->getVideoDuration()) + "s");
     }
     m_mainWindow->getInputWidget()->setInfo(info);
 }
@@ -428,8 +428,8 @@ void Controller::onSuccessfulOpen()
     m_mainWindow->enableRedo(false);
     if(m_dataManager->isProjectLoaded()){
         m_mainWindow->showProjectTitle(m_dataManager->getProjectPath());
-        emit sig_hasStatusMessage("Project " + m_dataManager->getProjectName() + " with "
-                                  + QString::number(m_dataManager->getModelInputPictures()->getPicCount()) + " images loaded");
+        emit sig_hasStatusMessage(tr("Project ") + m_dataManager->getProjectName() + tr(" with ")
+                                  + QString::number(m_dataManager->getModelInputPictures()->getPicCount()) + tr(" images loaded"));
     } else {
         m_mainWindow->showProjectTitle();
     }

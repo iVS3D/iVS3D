@@ -17,8 +17,8 @@ About::About(QWidget *parent) :
     ui(new Ui::About)
 {
     ui->setupUi(this);
-    ui->l_date->setText("build date: " + QString(QUOTE(IVS3D_DAT)));
-    ui->l_version->setText("build version: " + QString(QUOTE(IVS3D_VER)));
+    ui->l_date->setText(tr("build date: ") + QString(QUOTE(IVS3D_DAT)));
+    ui->l_version->setText(tr("build version: ") + QString(QUOTE(IVS3D_VER)));
 }
 
 About::~About()
