@@ -159,6 +159,12 @@ public slots:
      * @brief slot_onKeyframesChanged triggered by MIP if keyframes change
      */
     void slot_onKeyframesChanged();
+    /**
+     * @brief slot_nextImageOnPlayer triggered when a new image is shown on the video player
+     * @param image mat of the image
+     * @param id id of the image
+     */
+    void slot_nextImageOnPlayer(uint idx);
 
 private:
     /**
@@ -201,6 +207,7 @@ private:
     QMap<QString, QString> m_currentExports;
     // export runtime
     QElapsedTimer m_timer;
+    uint m_imageOnPlayerId;
 
 #if defined(Q_OS_LINUX)
     lib3d::ots::ColmapWrapper *m_colmap;

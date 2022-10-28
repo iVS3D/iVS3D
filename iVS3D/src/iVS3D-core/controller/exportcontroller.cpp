@@ -339,7 +339,7 @@ void ExportController::slot_export()
 
 void ExportController::slot_cropExport()
 {
-    const cv::Mat* img = m_dataManager->getModelInputPictures()->getPic(1);
+    const cv::Mat* img = m_dataManager->getModelInputPictures()->getPic(m_imageOnPlayerId);
     m_cropDialog = new CropExport(m_outputWidget, img, m_roi);
     connect(m_cropDialog, &CropExport::finished, this, &ExportController::slot_closeCropExport);
     m_cropDialog->open();
@@ -430,6 +430,11 @@ void ExportController::slot_showExportSettings(QMap<QString, QVariant> exportSet
 void ExportController::slot_onKeyframesChanged()
 {
     m_outputWidget->enableExport(m_dataManager->getModelInputPictures()->getKeyframeCount(true) > 0);
+}
+
+void ExportController::slot_nextImageOnPlayer(uint idx)
+{
+    m_imageOnPlayerId = idx;
 }
 
 QPoint ExportController::parseResolution(QString resolutionString)

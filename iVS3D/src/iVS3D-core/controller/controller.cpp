@@ -481,7 +481,7 @@ void Controller::onSuccessfulOpen()
     connect(m_exportController, &ExportController::sig_exportStarted, this, &Controller::slot_exportStarted);
     connect(m_exportController, &ExportController::sig_exportFinished, this, &Controller::slot_exportFinished);
     connect(m_exportController, &ExportController::sig_exportAborted, this, &Controller::slot_exportFinished);
-
+    connect(m_videoPlayerController, &VideoPlayerController::sig_read, m_exportController, &ExportController::slot_nextImageOnPlayer);
 
     //AutoExecutor is used for the automatic Execution
     m_automaticController->setExporController(m_exportController);

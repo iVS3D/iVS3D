@@ -17,7 +17,7 @@ CropExport::CropExport(QWidget *parent,const cv::Mat* img, QRect roi) :
     ui->graphicsView ->setScene(m_scene);
     ui->graphicsView->setAcceptDrops(false);
     m_scene->clear();
-
+    m_oldROI = roi;
     QPixmap pixmap;
 
     pixmap = QPixmap::fromImage(qImageFromCvMat(img, true));
@@ -57,7 +57,7 @@ void CropExport::triggerResize()
 
 QRect CropExport::getROI()
 {
-    if(m_rect != nullptr) {
+    if(m_rect != nullptr && (start != QPointF(0,0) && end != QPointF(0,0))) {
         //Set correct borders
         QRectF drawnROI = QRectF(start, end);
 
@@ -69,7 +69,9 @@ QRect CropExport::getROI()
         return intersection.toRect();
 
     }
-
+    else if (m_oldROI != QRect(0,0,0,0)) {
+        return m_oldROI;
+    }
     return QRect(0,0,0,0);
 }
 

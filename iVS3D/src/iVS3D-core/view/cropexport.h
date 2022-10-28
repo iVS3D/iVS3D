@@ -75,6 +75,7 @@ private:
     QGraphicsRectItem* m_rect = nullptr;
     QRect image;
     QPoint imageSize;
+    QRect m_oldROI;
 };
 
 #endif // CROPEXPORT_H
