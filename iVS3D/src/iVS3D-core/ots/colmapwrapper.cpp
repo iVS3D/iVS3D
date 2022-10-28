@@ -1486,7 +1486,7 @@ QAction *ui::ColmapWrapperControlsFactory::createSettingsAction(ui::ETheme iThem
     QAction* pAction = (!rhs) ? new QAction(parent) : rhs;
     pAction->setToolTip(QObject::tr("Open COLMAP Wrapper Settings"));
     pAction->setCheckable(false);
-    pAction->setText("Colmap Wrapper Settings");
+    pAction->setText(tr("Colmap Wrapper Settings"));
 
     if(iTheme == DARK)
     {

@@ -936,15 +936,15 @@ p, li { white-space: pre-wrap; }
 <context>
     <name>QObject</name>
     <message>
-        <location filename="../ots/colmapwrapper.cpp" line="1335"/>
-        <location filename="../ots/colmapwrapper.cpp" line="1373"/>
+        <location filename="../ots/colmapwrapper.cpp" line="1360"/>
+        <location filename="../ots/colmapwrapper.cpp" line="1398"/>
         <source>Create new product to be processed by COLMAP</source>
         <translation>Create new product to be processed by COLMAP</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper.cpp" line="1405"/>
-        <location filename="../ots/colmapwrapper.cpp" line="1435"/>
-        <location filename="../ots/colmapwrapper.cpp" line="1462"/>
+        <location filename="../ots/colmapwrapper.cpp" line="1430"/>
+        <location filename="../ots/colmapwrapper.cpp" line="1460"/>
+        <location filename="../ots/colmapwrapper.cpp" line="1487"/>
         <source>Open COLMAP Wrapper Settings</source>
         <translation>Open ColmapWrapper Settings</translation>
     </message>
@@ -1245,14 +1245,19 @@ p, li { white-space: pre-wrap; }
 <context>
     <name>lib3d::ots::ui::ColmapWrapperControlsFactory</name>
     <message>
-        <location filename="../ots/colmapwrapper.cpp" line="1338"/>
+        <location filename="../ots/colmapwrapper.cpp" line="1363"/>
         <source> New Product</source>
         <translation> New Product</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper.cpp" line="1408"/>
+        <location filename="../ots/colmapwrapper.cpp" line="1433"/>
         <source>Settings</source>
         <translation>Settings</translation>
+    </message>
+    <message>
+        <location filename="../ots/colmapwrapper.cpp" line="1489"/>
+        <source>Colmap Wrapper Settings</source>
+        <translation type="unfinished">ColmapWrapper - Settings</translation>
     </message>
 </context>
 <context>
@@ -1557,6 +1562,41 @@ p, li { white-space: pre-wrap; }
         <location filename="../ots/colmapwrapper/colmapsettingsdialog.cpp" line="93"/>
         <source>Select mountpoint of remote  workspace directory</source>
         <translation>Select mountpoint of remote workspace directory ...</translation>
+    </message>
+    <message>
+        <location filename="../ots/colmapwrapper/colmapsettingsdialog.cpp" line="203"/>
+        <source>colmap executabel was not found or is not executable</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ots/colmapwrapper/colmapsettingsdialog.cpp" line="204"/>
+        <source>ssh connection failed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ots/colmapwrapper/colmapsettingsdialog.cpp" line="205"/>
+        <source>path to workspace or local mount point does not exist</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ots/colmapwrapper/colmapsettingsdialog.cpp" line="206"/>
+        <source>remote workspace was not mounted correctly</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ots/colmapwrapper/colmapsettingsdialog.cpp" line="207"/>
+        <source>unknown reason!</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ots/colmapwrapper/colmapsettingsdialog.cpp" line="210"/>
+        <source>Setup failed: </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ots/colmapwrapper/colmapsettingsdialog.cpp" line="213"/>
+        <source>Setup successfull</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>

@@ -200,17 +200,17 @@ void SettingsDialog::updateStatusMsg()
     if(mpColmapWrapper->getSetupStatus() != ColmapWrapper::SETUP_OK) {
         QString msg;
         switch(mpColmapWrapper->getSetupStatus()){
-        case ColmapWrapper::ERR_EXE: msg="colmap executabel was not found or is not executable"; break;
-        case ColmapWrapper::ERR_SSH: msg="ssh connection failed"; break;
-        case ColmapWrapper::ERR_PATH: msg="path to workspace or local mount point does not exist"; break;
-        case ColmapWrapper::ERR_MOUNT: msg="remote workspace was not mounted correctly"; break;
-        default: msg = "unknown reason!";
+        case ColmapWrapper::ERR_EXE: msg=tr("colmap executabel was not found or is not executable"); break;
+        case ColmapWrapper::ERR_SSH: msg=tr("ssh connection failed"); break;
+        case ColmapWrapper::ERR_PATH: msg=tr("path to workspace or local mount point does not exist"); break;
+        case ColmapWrapper::ERR_MOUNT: msg=tr("remote workspace was not mounted correctly"); break;
+        default: msg = tr("unknown reason!");
         }
         ui->l_error->setStyleSheet("QLabel { border : 1px solid red; color : red; }");
-        ui->l_error->setText("Setup failed: " + msg);
+        ui->l_error->setText(tr("Setup failed: ") + msg);
     } else {
         ui->l_error->setStyleSheet("QLabel { border : 1px solid green; color : green; }");
-        ui->l_error->setText("Setup successfull");
+        ui->l_error->setText(tr("Setup successfull"));
         mpColmapWrapper->writeSettings();
         ui->buttonBox->button(QDialogButtonBox::Apply)->setEnabled(false);
         ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
