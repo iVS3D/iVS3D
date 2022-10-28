@@ -11,6 +11,7 @@
 #include <QtConcurrent/QtConcurrentMap>
 #include <QMutex>
 #include <QMutexLocker>
+#include <fstream>
 
 #include "logfile.h"
 #include "stringcontainer.h"
