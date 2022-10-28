@@ -23,7 +23,9 @@
 #include "controller/videoplayercontroller.h"
 #include "controller/automaticcontroller.h"
 
-#include "colmapwrapper.h"
+#if defined(Q_OS_LINUX)
+    #include "colmapwrapper.h"
+#endif
 
 #include "plugin/algorithmmanager.h"
 #include "plugin/transformmanager.h"
@@ -146,7 +148,9 @@ private:
     MainWindow* m_mainWindow;
     DataManager* m_dataManager;
     OpenExecutor *m_openExec;
-    lib3d::ots::ColmapWrapper *m_colmapWrapper;
+    #if defined(Q_OS_LINUX)
+        lib3d::ots::ColmapWrapper *m_colmapWrapper;
+    #endif
     bool m_exporting = false;
     //Prevents multiple drag and drops at the same time
     bool m_isImporting = false;

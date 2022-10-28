@@ -11,8 +11,6 @@ RC_ICONS = resources/ivs3dIcon.ico
 # In order to do so, uncomment the following line.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
-unix:include(prebuild_cmds.pri)
-
 src_files = $$files(*.cpp, true)
 message($$src_files)
 for(file, src_files) {
@@ -42,8 +40,12 @@ TRANSLATIONS = \
 
 RESOURCES += \
     darkstyle.qrc \
-    resources.qrc \
-    lib3D_ots.qrc
+    resources.qrc
+
+unix {
+    RESOURCES += lib3D_ots.qrc
+    include(prebuild_cmds.pri)
+}
 
 CONFIG(debug, debug|release){
     VARIANT = debug
@@ -104,3 +106,23 @@ TRANSLATIONS += \
 
 OTHER_FILES += \
     copy_to_install_dir/colmap/* \
+
+win32 {
+    INCLUDEPATH -= ots \
+                   ots/colmapwrapper
+    SOURCES -=  ots/colmapwrapper/colmapnewproductdialog.cpp \
+                ots/colmapwrapper/colmapqueueitem.cpp \
+                ots/colmapwrapper/colmapsettingsdialog.cpp \
+                ots/colmapwrapper/colmapviewwidget.cpp \
+                ots/colmapwrapper.cpp \
+                ots/translations.cpp
+
+    HEADERS -=  ots/colmapwrapper/colmapnewproductdialog.h \
+                ots/colmapwrapper/colmapqueueitem.h \
+                ots/colmapwrapper/colmapsettingsdialog.h \
+                ots/colmapwrapper/colmapviewwidget.h \
+                ots/colmapwrapper.h \
+                ots/translations.h \
+                ots/global.h
+}
+

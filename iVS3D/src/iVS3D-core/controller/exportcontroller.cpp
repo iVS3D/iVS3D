@@ -1,47 +1,91 @@
 #include "exportcontroller.h"
 
-ExportController::ExportController(OutputWidget *outputWidget, DataManager *dataManager, lib3d::ots::ColmapWrapper *colmap) : m_roi(0,0,0,0)
-{
+#if defined(Q_OS_LINUX)
+    ExportController::ExportController(OutputWidget *outputWidget, DataManager *dataManager, lib3d::ots::ColmapWrapper *colmap) : m_roi(0,0,0,0)
+    {
 
-    m_exportExec = nullptr;
-    m_reconstructDialog = nullptr;
-    m_cropDialog = nullptr;
-    m_currentExports.clear();
+        m_exportExec = nullptr;
+        m_reconstructDialog = nullptr;
+        m_cropDialog = nullptr;
+        m_currentExports.clear();
 
-    m_outputWidget = outputWidget;
-    m_dataManager = dataManager;
-    m_colmap = colmap;
+        m_outputWidget = outputWidget;
+        m_dataManager = dataManager;
+        m_colmap = colmap;
 
-    connect(m_outputWidget, &OutputWidget::sig_reconstruct, this, &ExportController::slot_reconstruct);
-    connect(m_outputWidget, &OutputWidget::sig_export, this, &ExportController::slot_export);
-    connect(m_outputWidget, &OutputWidget::sig_cropExport, this, &ExportController::slot_cropExport);
-    connect(m_outputWidget, &OutputWidget::sig_resChanged, this, &ExportController::slot_resolutionChange);
-    connect(m_outputWidget, &OutputWidget::sig_pathChanged, this, &ExportController::slot_outputPathChanged);
+        connect(m_outputWidget, &OutputWidget::sig_reconstruct, this, &ExportController::slot_reconstruct);
+        connect(m_outputWidget, &OutputWidget::sig_export, this, &ExportController::slot_export);
+        connect(m_outputWidget, &OutputWidget::sig_cropExport, this, &ExportController::slot_cropExport);
+        connect(m_outputWidget, &OutputWidget::sig_resChanged, this, &ExportController::slot_resolutionChange);
+        connect(m_outputWidget, &OutputWidget::sig_pathChanged, this, &ExportController::slot_outputPathChanged);
 
-    connect(m_dataManager->getModelInputPictures(), &ModelInputPictures::sig_mipChanged, this, &ExportController::slot_onKeyframesChanged);
+        connect(m_dataManager->getModelInputPictures(), &ModelInputPictures::sig_mipChanged, this, &ExportController::slot_onKeyframesChanged);
 
-    m_outputWidget->setEnabled(true);
+        m_outputWidget->setEnabled(true);
 
-    // set standard (input) resolution
-    m_resolution = m_dataManager->getModelInputPictures()->getInputResolution();
-    QStringList resList = QString(RESOLUTION_LIST).split("|");
-    resList.push_front(QString::number(m_resolution.x()) + " x " + QString::number(m_resolution.y()) + " (input res)");
-    m_outputWidget->setResolutionList(resList, 0);
+        // set standard (input) resolution
+        m_resolution = m_dataManager->getModelInputPictures()->getInputResolution();
+        QStringList resList = QString(RESOLUTION_LIST).split("|");
+        resList.push_front(QString::number(m_resolution.x()) + " x " + QString::number(m_resolution.y()) + " (input res)");
+        m_outputWidget->setResolutionList(resList, 0);
 
-    // set standard (input) path
-    m_path = m_dataManager->getModelInputPictures()->getPath();
-    if(!m_dataManager->getModelInputPictures()->getReader()->isDir()){
-        QStringList pathList = m_path.split("/");
-        pathList.removeLast();
-        m_path = pathList.join("/");
+        // set standard (input) path
+        m_path = m_dataManager->getModelInputPictures()->getPath();
+        if(!m_dataManager->getModelInputPictures()->getReader()->isDir()){
+            QStringList pathList = m_path.split("/");
+            pathList.removeLast();
+            m_path = pathList.join("/");
+        }
+        m_path += "/export";
+        m_outputWidget->setOutputPath(m_path);
+        m_outputWidget->setCropStatus(false);
+
+        m_outputWidget->enableReconstruct(false);
+
     }
-    m_path += "/export";
-    m_outputWidget->setOutputPath(m_path);
-    m_outputWidget->setCropStatus(false);
+#elif defined(Q_OS_WIN)
+    ExportController::ExportController(OutputWidget *outputWidget, DataManager *dataManager) : m_roi(0,0,0,0)
+    {
 
-    m_outputWidget->enableReconstruct(false);
+        m_exportExec = nullptr;
+        m_reconstructDialog = nullptr;
+        m_cropDialog = nullptr;
+        m_currentExports.clear();
 
-}
+        m_outputWidget = outputWidget;
+        m_dataManager = dataManager;
+
+        connect(m_outputWidget, &OutputWidget::sig_reconstruct, this, &ExportController::slot_reconstruct);
+        connect(m_outputWidget, &OutputWidget::sig_export, this, &ExportController::slot_export);
+        connect(m_outputWidget, &OutputWidget::sig_cropExport, this, &ExportController::slot_cropExport);
+        connect(m_outputWidget, &OutputWidget::sig_resChanged, this, &ExportController::slot_resolutionChange);
+        connect(m_outputWidget, &OutputWidget::sig_pathChanged, this, &ExportController::slot_outputPathChanged);
+
+        connect(m_dataManager->getModelInputPictures(), &ModelInputPictures::sig_mipChanged, this, &ExportController::slot_onKeyframesChanged);
+
+        m_outputWidget->setEnabled(true);
+
+        // set standard (input) resolution
+        m_resolution = m_dataManager->getModelInputPictures()->getInputResolution();
+        QStringList resList = QString(RESOLUTION_LIST).split("|");
+        resList.push_front(QString::number(m_resolution.x()) + " x " + QString::number(m_resolution.y()) + " (input res)");
+        m_outputWidget->setResolutionList(resList, 0);
+
+        // set standard (input) path
+        m_path = m_dataManager->getModelInputPictures()->getPath();
+        if(!m_dataManager->getModelInputPictures()->getReader()->isDir()){
+            QStringList pathList = m_path.split("/");
+            pathList.removeLast();
+            m_path = pathList.join("/");
+        }
+        m_path += "/export";
+        m_outputWidget->setOutputPath(m_path);
+        m_outputWidget->setCropStatus(false);
+
+        m_outputWidget->enableReconstruct(false);
+
+    }
+#endif
 
 ExportController::~ExportController()
 {
@@ -372,8 +416,9 @@ void ExportController::slot_exportFinished(int result)
     }
     //Save current exportPath and name
     m_currentExports.insert(m_path.split("/").last(), m_path);
-    m_colmap->setLocalPresetSequence(m_path.split("/").last(), m_path + "/images");
-
+    #if defined(Q_OS_LINUX)
+        m_colmap->setLocalPresetSequence(m_path.split("/").last(), m_path + "/images");
+    #endif
     emit sig_exportFinished();
 }
 

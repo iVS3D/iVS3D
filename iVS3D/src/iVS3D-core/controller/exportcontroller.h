@@ -13,7 +13,10 @@
 #include "logfile.h"
 #include "logmanager.h"
 #include "stringcontainer.h"
-#include "colmapwrapper.h"
+
+#if defined(Q_OS_LINUX)
+    #include "colmapwrapper.h"
+#endif
 
 #include <QObject>
 #include <QDebug>
@@ -46,6 +49,7 @@ class ExportController : public QObject
 {
     Q_OBJECT
 public:
+#if defined(Q_OS_LINUX)
     /**
      * @brief ExportController is created with a prepared outputWidget and dataManager pointer
      * Connects to GUI, initializes member pointers
@@ -53,6 +57,16 @@ public:
      * @param dataManager
      */
     ExportController(OutputWidget *outputWidget, DataManager *dataManager, lib3d::ots::ColmapWrapper *colmap);
+#elif defined(Q_OS_WIN)
+    /**
+     * @brief ExportController is created with a prepared outputWidget and dataManager pointer
+     * Connects to GUI, initializes member pointers
+     * @param outputWidget
+     * @param dataManager
+     */
+    ExportController(OutputWidget *outputWidget, DataManager *dataManager);
+#endif
+
     /**
      * @brief ExportController::~ExportController
      */
@@ -188,7 +202,10 @@ private:
     // export runtime
     QElapsedTimer m_timer;
 
+#if defined(Q_OS_LINUX)
     lib3d::ots::ColmapWrapper *m_colmap;
+#endif
+
 };
 
 #endif // EXPORTCONTROLLER_H

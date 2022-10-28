@@ -86,13 +86,13 @@ int main(int argc, char *argv[])
         #if defined(Q_OS_WIN)
             FreeConsole();
         #endif
-
-        //--- setup translation
-        //QTranslator translator;
-        QString systemLocale = QLocale::system().name(); // e.g. "de_DE"
-        systemLocale.truncate(systemLocale.lastIndexOf('_')); // e.g. "de"
-        lib3d::ots::Translations::load(translator, systemLocale);
-        //a.installTranslator(&translator);
+        #if defined(Q_OS_LINUX)
+            //--- setup translation
+            //QTranslator translator;
+            QString systemLocale = QLocale::system().name(); // e.g. "de_DE"
+            systemLocale.truncate(systemLocale.lastIndexOf('_')); // e.g. "de"
+            lib3d::ots::Translations::load(translator, systemLocale);
+         #endif
 
         QApplication a( argc, argv );
         a.setApplicationName("iVS3D");

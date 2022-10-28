@@ -1,7 +1,10 @@
 #include "controller.h"
 
 
-Controller::Controller(QString inputPath, QString settingsPath, QString outputPath) : m_colmapWrapper(new lib3d::ots::ColmapWrapper)
+Controller::Controller(QString inputPath, QString settingsPath, QString outputPath)
+    #if defined(Q_OS_LINUX)
+        : m_colmapWrapper(new lib3d::ots::ColmapWrapper)
+    #endif
 {
     m_videoPlayerController = nullptr;
     m_algorithmController = nullptr;
@@ -24,20 +27,20 @@ Controller::Controller(QString inputPath, QString settingsPath, QString outputPa
     m_mainWindow->enableUndo(false);
     m_mainWindow->enableRedo(false);
     m_mainWindow->enableTools(false);
+    #if defined(Q_OS_LINUX)
+        const auto otsTheme = ApplicationSettings::instance().getDarkStyle() ? lib3d::ots::ui::ETheme::DARK : lib3d::ots::ui::ETheme::LIGHT;
 
-    const auto otsTheme = ApplicationSettings::instance().getDarkStyle() ? lib3d::ots::ui::ETheme::DARK : lib3d::ots::ui::ETheme::LIGHT;
+        QWidget *otsWidget = new QWidget;
+        otsWidget->setLayout(new QVBoxLayout);
+        //otsWidget->layout()->addWidget(m_colmapWrapper->getOrCreateUiControlsFactory()->createSettingsPushButton());
+        otsWidget->layout()->addWidget(m_colmapWrapper->getOrCreateUiControlsFactory()->createViewWidget(m_mainWindow));
+        otsWidget->layout()->addWidget(m_colmapWrapper->getOrCreateUiControlsFactory()->createNewProductPushButton(otsTheme, m_mainWindow));
+        m_mainWindow->addOtsWindow(otsWidget);
 
-    QWidget *otsWidget = new QWidget;
-    otsWidget->setLayout(new QVBoxLayout);
-    //otsWidget->layout()->addWidget(m_colmapWrapper->getOrCreateUiControlsFactory()->createSettingsPushButton());
-    otsWidget->layout()->addWidget(m_colmapWrapper->getOrCreateUiControlsFactory()->createViewWidget(m_mainWindow));
-    otsWidget->layout()->addWidget(m_colmapWrapper->getOrCreateUiControlsFactory()->createNewProductPushButton(otsTheme, m_mainWindow));
-    m_mainWindow->addOtsWindow(otsWidget);
+        m_mainWindow->addSettingsAction(m_colmapWrapper->getOrCreateUiControlsFactory()->createSettingsAction(otsTheme, m_mainWindow));
 
-    m_mainWindow->addSettingsAction(m_colmapWrapper->getOrCreateUiControlsFactory()->createSettingsAction(otsTheme, m_mainWindow));
-
-    m_colmapWrapper->getOrCreateUiControlsFactory()->updateIconTheme(otsTheme);
-
+        m_colmapWrapper->getOrCreateUiControlsFactory()->updateIconTheme(otsTheme);
+    #endif
     if(AlgorithmManager::instance().getAlgorithmCount() + TransformManager::instance().getTransformCount() >0){
         displayPluginSettings();
     }
@@ -85,7 +88,9 @@ Controller::Controller(QString inputPath, QString settingsPath, QString outputPa
 
 Controller::~Controller()
 {
-    delete m_colmapWrapper;
+    #if defined(Q_OS_LINUX)
+        delete m_colmapWrapper;
+    #endif
     TransformManager::instance().exit();
 }
 
@@ -466,7 +471,11 @@ void Controller::onSuccessfulOpen()
     connect(m_algorithmController, &AlgorithmController::sig_stopPlay, m_videoPlayerController, &VideoPlayerController::slot_stopPlay);
 
     // ExportController manages algorithm used widget and reconstruct widget and delegates export of images and 3d-reconstruction
-    m_exportController = new ExportController(m_mainWindow->getOutputWidget(), m_dataManager, m_colmapWrapper);
+    #if defined(Q_OS_LINUX)
+        m_exportController = new ExportController(m_mainWindow->getOutputWidget(), m_dataManager, m_colmapWrapper);
+    #elif defined(Q_OS_WIN)
+        m_exportController = new ExportController(m_mainWindow->getOutputWidget(), m_dataManager);
+    #endif
     connect(m_exportController, &ExportController::sig_hasStatusMessage, m_mainWindow, &MainWindow::slot_displayStatusMessage);
     connect(m_exportController, &ExportController::sig_stopPlay, m_videoPlayerController, &VideoPlayerController::slot_stopPlay);
     connect(m_exportController, &ExportController::sig_exportStarted, this, &Controller::slot_exportStarted);
