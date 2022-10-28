@@ -69,7 +69,7 @@ public:
      * @param algorithmList holds identifier(names) of all loaded plugins(algorithms)
 	 * @param transformList holds identifier(names) of all loaded transform plugins
      */
-    MainWindow(QWidget *parent = nullptr, bool dark = false, int cuda = -1, bool createLog = false, QStringList algorithmList = QStringList("no algorithm"), QStringList transformList = QStringList(""));
+    MainWindow(QWidget *parent = nullptr, bool dark = false, int cuda = -1, bool createLog = false, QStringList algorithmList = QStringList(tr("no algorithm")), QStringList transformList = QStringList(""));
 
     /**
       * @brief delete members and disconnect connections
@@ -80,7 +80,7 @@ public:
      *
      * @param title project file path or default "not saved"
      */
-    void showProjectTitle(const QString &title = "not saved");
+    void showProjectTitle(const QString &title = tr("not saved"));
     /**
      * @brief getInputWidget getter for the widget which displays all input data
      *

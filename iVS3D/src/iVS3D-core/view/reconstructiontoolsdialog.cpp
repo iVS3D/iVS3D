@@ -42,7 +42,7 @@ void ReconstructionToolsDialog::on_pushButton_add_clicked()
 #elif defined(Q_OS_LINUX)
     QString execTypes = "*.sh *";
 #endif
-    QString reconstructPath = QFileDialog::getOpenFileName (this, "Choose reconstruction software", ApplicationSettings::instance().getStandardInputPath(), execTypes, &selectedFilter, QFileDialog::DontUseNativeDialog);
+    QString reconstructPath = QFileDialog::getOpenFileName (this, tr("Choose reconstruction software"), ApplicationSettings::instance().getStandardInputPath(), execTypes, &selectedFilter, QFileDialog::DontUseNativeDialog);
     if (reconstructPath == nullptr) {
         return;
     }
@@ -84,7 +84,7 @@ void ReconstructionToolsDialog::on_listView_doubleClicked(const QModelIndex &ind
     bool ok;
     QString name = getKey(m_model->data(index).toString());
     QString text = QInputDialog::getText(this, tr("Change display name"),
-                                             QString("Display name for ").append(name), QLineEdit::Normal,
+                                             QString(tr("Display name for ")).append(name), QLineEdit::Normal,
                                              name, &ok);
     if (ok && !text.isEmpty()){
         QString path = ApplicationSettings::instance().getReconstructPath()[name];

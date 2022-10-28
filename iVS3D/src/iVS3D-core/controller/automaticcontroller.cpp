@@ -46,7 +46,7 @@ void AutomaticController::slot_setAlgorithm(int index)
 void AutomaticController::slot_saveConfiguration()
 {
     QString selectedFilter = "";
-    QString savePath = QFileDialog::QFileDialog::getSaveFileName (m_autoWidget, "Save configuration", ApplicationSettings::instance().getStandardInputPath(), "*.json", &selectedFilter, QFileDialog::DontUseNativeDialog);
+    QString savePath = QFileDialog::QFileDialog::getSaveFileName (m_autoWidget, tr("Save configuration"), ApplicationSettings::instance().getStandardInputPath(), "*.json", &selectedFilter, QFileDialog::DontUseNativeDialog);
     if (savePath == nullptr) {
         return;
     }
@@ -56,7 +56,7 @@ void AutomaticController::slot_saveConfiguration()
 void AutomaticController::slot_loadConfiguration()
 {
     QString selectedFilter = "";
-    QString savePath = QFileDialog::getOpenFileName(m_autoWidget, "Choose configuration", ApplicationSettings::instance().getStandardInputPath(), "*.json", &selectedFilter, QFileDialog::DontUseNativeDialog);
+    QString savePath = QFileDialog::getOpenFileName(m_autoWidget, tr("Choose configuration"), ApplicationSettings::instance().getStandardInputPath(), "*.json", &selectedFilter, QFileDialog::DontUseNativeDialog);
     if (savePath == nullptr) {
         return;
     }

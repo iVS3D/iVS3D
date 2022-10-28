@@ -28,6 +28,109 @@
         <source>vX.X.X</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <location filename="../view/about.cpp" line="20"/>
+        <source>build date: </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../view/about.cpp" line="21"/>
+        <source>build version: </source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>AlgorithmController</name>
+    <message>
+        <location filename="../controller/algorithmcontroller.cpp" line="50"/>
+        <source>Selected algorithm: </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../controller/algorithmcontroller.cpp" line="62"/>
+        <source>Selected transformation: </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../controller/algorithmcontroller.cpp" line="131"/>
+        <source> aborted after </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../controller/algorithmcontroller.cpp" line="131"/>
+        <location filename="../controller/algorithmcontroller.cpp" line="173"/>
+        <source>ms</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../controller/algorithmcontroller.cpp" line="138"/>
+        <source>Preview enabled.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../controller/algorithmcontroller.cpp" line="138"/>
+        <source>Preview disabled.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../controller/algorithmcontroller.cpp" line="167"/>
+        <source>Computing preview ...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../controller/algorithmcontroller.cpp" line="173"/>
+        <source> finished after </source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>AlgorithmExecutor</name>
+    <message>
+        <location filename="../model/sampling/algorithmexecutor.cpp" line="71"/>
+        <source> extracted </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../model/sampling/algorithmexecutor.cpp" line="71"/>
+        <source> images</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../model/sampling/algorithmexecutor.cpp" line="79"/>
+        <source>Generated settings for </source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>AutomaticController</name>
+    <message>
+        <location filename="../controller/automaticcontroller.cpp" line="49"/>
+        <source>Save configuration</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../controller/automaticcontroller.cpp" line="59"/>
+        <source>Choose configuration</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>AutomaticExecutor</name>
+    <message>
+        <location filename="../model/automaticExecution/automaticexecutor.cpp" line="85"/>
+        <source>Finished </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../model/automaticExecution/automaticexecutor.cpp" line="85"/>
+        <source> sampling algorithms</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../model/automaticExecution/automaticexecutor.cpp" line="103"/>
+        <source>Aborted batch processing</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>AutomaticWidget</name>
@@ -60,8 +163,204 @@
 <context>
     <name>Controller</name>
     <message>
+        <location filename="../controller/controller.cpp" line="101"/>
+        <source>Wait for export to finish before importing new images.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../controller/controller.cpp" line="105"/>
+        <source>Choose Folder</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../controller/controller.cpp" line="107"/>
+        <location filename="../controller/controller.cpp" line="126"/>
+        <location filename="../controller/controller.cpp" line="196"/>
+        <location filename="../controller/controller.cpp" line="205"/>
+        <location filename="../controller/controller.cpp" line="238"/>
+        <location filename="../controller/controller.cpp" line="274"/>
+        <source>Input canceled</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../controller/controller.cpp" line="119"/>
+        <source>Wait for export to finish before importing a new video.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../controller/controller.cpp" line="124"/>
+        <source>Choose Video</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location filename="../controller/controller.cpp" line="150"/>
         <source>Wait for export to finish before importing new files.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../controller/controller.cpp" line="176"/>
+        <source>Wait for export to finish before importing new project.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../controller/controller.cpp" line="181"/>
+        <source>Choose project file</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../controller/controller.cpp" line="203"/>
+        <source>Save project</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../controller/controller.cpp" line="214"/>
+        <location filename="../controller/controller.cpp" line="221"/>
+        <source>Project saved</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../controller/controller.cpp" line="236"/>
+        <source>Choose standard input path</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../controller/controller.cpp" line="243"/>
+        <source>Standard input path changed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../controller/controller.cpp" line="249"/>
+        <source>GUI changed to </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../controller/controller.cpp" line="249"/>
+        <source>dark</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../controller/controller.cpp" line="249"/>
+        <source>light</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../controller/controller.cpp" line="249"/>
+        <source> style -- restart to activate changes</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../controller/controller.cpp" line="258"/>
+        <source>CUDA enabled</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../controller/controller.cpp" line="258"/>
+        <source>CUDA disabled</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../controller/controller.cpp" line="264"/>
+        <source>Create log files</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../controller/controller.cpp" line="264"/>
+        <source> enabled</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../controller/controller.cpp" line="264"/>
+        <source> disabled</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../controller/controller.cpp" line="272"/>
+        <source>Choose Meta Data</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../controller/controller.cpp" line="278"/>
+        <source>Loaded </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../controller/controller.cpp" line="278"/>
+        <location filename="../controller/controller.cpp" line="340"/>
+        <source> meta data feature</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../controller/controller.cpp" line="278"/>
+        <location filename="../controller/controller.cpp" line="340"/>
+        <source>s</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../controller/controller.cpp" line="327"/>
+        <source>No images found after </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../controller/controller.cpp" line="327"/>
+        <location filename="../controller/controller.cpp" line="341"/>
+        <location filename="../controller/controller.cpp" line="344"/>
+        <source>ms</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../controller/controller.cpp" line="339"/>
+        <location filename="../controller/controller.cpp" line="344"/>
+        <source>Import of </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../controller/controller.cpp" line="339"/>
+        <source> images and </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../controller/controller.cpp" line="341"/>
+        <source> finished after </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../controller/controller.cpp" line="344"/>
+        <source> images finished after </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../controller/controller.cpp" line="363"/>
+        <source>#Frames  </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../controller/controller.cpp" line="367"/>
+        <source>Resolution  </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../controller/controller.cpp" line="371"/>
+        <source>FPS </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../controller/controller.cpp" line="372"/>
+        <source>Video duration </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../controller/controller.cpp" line="431"/>
+        <source>Project </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../controller/controller.cpp" line="431"/>
+        <source> with </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../controller/controller.cpp" line="432"/>
+        <source> images loaded</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -108,6 +407,53 @@
     <message>
         <location filename="../view/emptyfolderdialog.ui" line="134"/>
         <source>Abort</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>ExportController</name>
+    <message>
+        <location filename="../controller/exportcontroller.cpp" line="208"/>
+        <source>Couldn&apos;t create Export Directory: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../controller/exportcontroller.cpp" line="382"/>
+        <source>Export aborted after </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../controller/exportcontroller.cpp" line="382"/>
+        <location filename="../controller/exportcontroller.cpp" line="408"/>
+        <source>ms</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../controller/exportcontroller.cpp" line="402"/>
+        <source>Export failed. Maybe the path is invalid</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../controller/exportcontroller.cpp" line="408"/>
+        <source>Export finished after </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../controller/exportcontroller.cpp" line="701"/>
+        <source>start of explorer successful</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../controller/exportcontroller.cpp" line="706"/>
+        <source>failed to start Reconstruction Software!</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>ExportThread</name>
+    <message>
+        <location filename="../model/export/exportthread.cpp" line="157"/>
+        <source>Exporting images</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -176,6 +522,11 @@
     <message>
         <location filename="../view/exportwidget.ui" line="207"/>
         <source>Export</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../view/exportwidget.cpp" line="106"/>
+        <source>choose output folder</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -525,6 +876,21 @@ p, li { white-space: pre-wrap; }
         <source>Output</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <location filename="../view/mainwindow.cpp" line="263"/>
+        <source>Reconstruction</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../view/mainwindow.h" line="72"/>
+        <source>no algorithm</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../view/mainwindow.h" line="83"/>
+        <source>not saved</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>ProgressDialog</name>
@@ -543,6 +909,11 @@ p, li { white-space: pre-wrap; }
         <source>Abort</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <location filename="../view/progressdialog.cpp" line="48"/>
+        <source>Aborting</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>ProgressWidget</name>
@@ -554,6 +925,11 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../view/progresswidget.ui" line="94"/>
         <source>Abort</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../view/progresswidget.cpp" line="40"/>
+        <source>Aborting</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -678,8 +1054,18 @@ p, li { white-space: pre-wrap; }
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <location filename="../view/reconstructiontoolsdialog.cpp" line="45"/>
+        <source>Choose reconstruction software</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location filename="../view/reconstructiontoolsdialog.cpp" line="86"/>
         <source>Change display name</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../view/reconstructiontoolsdialog.cpp" line="87"/>
+        <source>Display name for </source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -733,6 +1119,11 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../view/samplingwidget.ui" line="150"/>
         <source>Sampling</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../view/samplingwidget.cpp" line="26"/>
+        <source>Enable preview</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -814,6 +1205,16 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../view/videoplayer.ui" line="338"/>
         <source>Stepsize for play</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../view/videoplayer.cpp" line="73"/>
+        <source>Clear Keyframe</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../view/videoplayer.cpp" line="73"/>
+        <source>Set Keyframe</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -1225,6 +1626,86 @@ p, li { white-space: pre-wrap; }
         <location filename="../ots/colmapwrapper/colmapviewwidget.cpp" line="363"/>
         <source>Öffnen</source>
         <translation>Open</translation>
+    </message>
+</context>
+<context>
+    <name>noUIController</name>
+    <message>
+        <location filename="../controller/nouicontroller.cpp" line="31"/>
+        <source>Auto settings file (-a), input (-i) and output (-o) need to be provided.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../controller/nouicontroller.cpp" line="50"/>
+        <source>Start import</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../controller/nouicontroller.cpp" line="56"/>
+        <source>Opend no files. Please check your input path.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../controller/nouicontroller.cpp" line="61"/>
+        <source>Opend </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../controller/nouicontroller.cpp" line="61"/>
+        <source> images</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../controller/nouicontroller.cpp" line="66"/>
+        <source>Loaded the following plugin settings:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../controller/nouicontroller.cpp" line="72"/>
+        <source>Imported no settings. Please check your settings file.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../controller/nouicontroller.cpp" line="77"/>
+        <source>
+### Start Computation ###
+</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../controller/nouicontroller.cpp" line="96"/>
+        <source>Sampled </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../controller/nouicontroller.cpp" line="96"/>
+        <source> keyframes.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../controller/nouicontroller.cpp" line="98"/>
+        <source>
+### Finished Computation ###
+</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../controller/nouicontroller.cpp" line="99"/>
+        <source>Finished in </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../controller/nouicontroller.cpp" line="99"/>
+        <source>s</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>noUIExport</name>
+    <message>
+        <location filename="../model/export/nouiexport.cpp" line="128"/>
+        <source>Export failed. Maybe the path is invalid</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 </TS>

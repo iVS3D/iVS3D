@@ -154,7 +154,7 @@ void ExportThread::reportProgress() {
     m_progress++;
     if (m_receiver) {
         int percentProgress = m_progress * 100 / (int)m_keyframes.size();
-        m_receiver->slot_makeProgress(percentProgress, "Exporting images");
+        m_receiver->slot_makeProgress(percentProgress, tr("Exporting images"));
     }
 
 }

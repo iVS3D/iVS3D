@@ -260,7 +260,7 @@ void MainWindow::enableTools(bool status)
 
 void MainWindow::addOtsWindow(QWidget *otsWidget)
 {
-    QDockWidget *dock = new QDockWidget("Reconstruction", this);
+    QDockWidget *dock = new QDockWidget(tr("Reconstruction"), this);
     dock->setObjectName("Reconstruction");
     dock->setAllowedAreas(
                 Qt::BottomDockWidgetArea |

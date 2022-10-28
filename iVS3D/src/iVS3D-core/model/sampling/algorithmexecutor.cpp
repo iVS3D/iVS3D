@@ -68,7 +68,7 @@ void AlgorithmExecutor::slot_pluginFinished()
     if (m_currentThread == m_sampleThread) {
         // if sampling finished set new parameters in DataManager
         std::vector<uint> keyframes = m_sampleThread->getOutput();
-        QString message = AlgorithmManager::instance().getPluginNameToIndex(m_pluginIndex) + " extracted " + QString::number(keyframes.size()) + " images";
+        QString message = AlgorithmManager::instance().getPluginNameToIndex(m_pluginIndex) + tr(" extracted ") + QString::number(keyframes.size()) + tr(" images");
         slot_displayMessage(message);
         m_mip->updateMIP(keyframes);
 
@@ -76,7 +76,7 @@ void AlgorithmExecutor::slot_pluginFinished()
         // if generateSettings finished
         QMap<QString, QVariant> generatedSettings = m_settingsThread->getOutput();
         QString pluginName = AlgorithmManager::instance().getPluginNameToIndex(m_pluginIndex);
-        QString message("Generated settings for " + pluginName + ": ");
+        QString message(tr("Generated settings for ") + pluginName + ": ");
         slot_displayMessage(message);
         QMapIterator<QString, QVariant> iter(generatedSettings);
         while(iter.hasNext()) {

@@ -125,7 +125,7 @@ void noUIExport::runExport()
 void noUIExport::slot_exportFinished(int result)
 {
     if (result == -1) {
-        m_receiver->slot_displayMessage("Export failed. Maybe the path is invalid");
+        m_receiver->slot_displayMessage(tr("Export failed. Maybe the path is invalid"));
     }
     disconnect(m_exportExec,&ExportExecutor::sig_progress, this, &noUIExport::slot_displayProgress);
     disconnect(m_exportExec, &ExportExecutor::sig_message, this, &noUIExport::slot_displayMessage);

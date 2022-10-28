@@ -82,7 +82,7 @@ void AutomaticExecutor::slot_samplingFinished()
     }
     else {
         // cleanup because every step of the batch processing is down now
-        emit sig_hasStatusMessage("Finished " + QString::number(m_stepCount) + " sampling algorithms");
+        emit sig_hasStatusMessage(tr("Finished ") + QString::number(m_stepCount) + tr(" sampling algorithms"));
 
         //Reset the algoExecutor and the progressDialog
         emit sig_deleteProgress();
@@ -100,7 +100,7 @@ void AutomaticExecutor::slot_samplingFinished()
 
 void AutomaticExecutor::slot_algoAbort()
 {
-    emit sig_hasStatusMessage("Aborted batch processing");
+    emit sig_hasStatusMessage(tr("Aborted batch processing"));
     emit sig_deleteProgress();
     m_step = 0;
 }
