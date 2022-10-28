@@ -71,6 +71,10 @@ MainWindow::MainWindow(QWidget *parent, bool dark, int cuda, bool createLog, QSt
     ui->menuView->addAction(dock->toggleViewAction());
     splitDockWidget(d2,dock,Qt::Vertical);
 
+#ifdef HIDE_INPUT_WIDGET
+    dock->setVisible(false);
+#endif
+
     dock = new QDockWidget(tr("Sampling"), this);
     dock->setObjectName("Sampling");
     dock->setAllowedAreas(
