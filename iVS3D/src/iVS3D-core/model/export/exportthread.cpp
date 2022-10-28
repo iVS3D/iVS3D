@@ -120,7 +120,6 @@ void ExportThread::run(){
         if (m_result == -1) {
             return;
         }
-        reportProgress();
 
         cv::Mat currentImage;
         while (currentImage.empty()) {
@@ -131,6 +130,7 @@ void ExportThread::run(){
         if (!success) {
             m_result = -1;
         }
+        reportProgress();
         return;
     };
     m_logFile->startTimer(stringContainer::lfExportFrames);
