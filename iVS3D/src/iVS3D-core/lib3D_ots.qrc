@@ -1,7 +1,5 @@
 <RCC>
     <qresource prefix="/">
-        <file>translations/lib3D_ots_en.qm</file>
-        <file>translations/lib3D_ots_de.qm</file>
         <file>assets/icons/glyphicons-359-file-import.svg</file>
         <file>assets/icons/glyphicons-281-settings.svg</file>
         <file>assets/icons/glyphicons-145-folder-open.svg</file>
