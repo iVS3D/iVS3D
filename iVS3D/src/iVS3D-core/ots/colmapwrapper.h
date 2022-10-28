@@ -197,6 +197,8 @@ class ColmapWrapper : public QObject
 
     void testSetup();
 
+    void findColmap();
+
     QMultiMap<QString,QString> imageSequencePaths() const;
 
     /**

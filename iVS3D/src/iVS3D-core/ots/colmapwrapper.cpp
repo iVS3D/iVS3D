@@ -71,6 +71,16 @@ ColmapWrapper::ColmapWrapper(const QString iSettingsFile, const bool iSettingsOn
 {
   this->readSettings();
 
+  if(mLocalColmapBinPath.isEmpty()){
+      findColmap();
+  }
+  if(mLocalWorkspacePath.isEmpty()){
+      QDir defaultDir(QCoreApplication::applicationDirPath());
+      defaultDir.mkdir("Default_Workspace");
+      defaultDir.cd("Default_Workspace");
+      mLocalWorkspacePath = defaultDir.path();
+  }
+
   //--- if settings only == false init
   if(!iSettingsOnly)
     init();
@@ -197,6 +207,21 @@ void ColmapWrapper::testSetup()
 
         mSetupStatus = SETUP_OK;
         emit setupStatusUpdate();
+    }
+}
+
+void ColmapWrapper::findColmap()
+{
+    QString path(qgetenv("PATH"));
+    qDebug() << "PATH: " << path;
+    auto dirPaths = path.split(":");
+    for (auto dirPath : dirPaths) {
+        QDir dir(dirPath);
+        if(dir.exists() && !dir.entryList(QStringList() << "colmap").isEmpty()){
+            mLocalColmapBinPath = QString(dir.path() + QDir::separator() + "colmap");
+            qDebug() << mLocalColmapBinPath;
+            return;
+        }
     }
 }
 
