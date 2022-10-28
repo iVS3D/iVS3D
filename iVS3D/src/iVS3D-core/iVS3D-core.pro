@@ -34,10 +34,6 @@ include(../../3rdparty.pri)
 
 DISTFILES +=
 
-#TRANSLATIONS = \
-#    $$PWD/translations/lib3D_ots_de.ts \
-#    $$PWD/translations/lib3D_ots_en.ts
-
 RESOURCES += \
     darkstyle.qrc \
     resources.qrc
