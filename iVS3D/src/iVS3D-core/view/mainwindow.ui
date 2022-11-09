@@ -49,7 +49,7 @@
      <x>0</x>
      <y>0</y>
      <width>1024</width>
-     <height>23</height>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -235,10 +235,10 @@
   </action>
   <action name="actionDelete_All_Keyframes">
    <property name="text">
-    <string>Delete All Keyframes</string>
+    <string>Reset Keyframes</string>
    </property>
    <property name="toolTip">
-    <string>Delete all keyframes</string>
+    <string>Resets keyframes to default</string>
    </property>
    <property name="shortcut">
     <string>Shift+Del</string>
@@ -246,7 +246,7 @@
   </action>
   <action name="actionDelete_Keyframes">
    <property name="text">
-    <string>Delete Keyframes</string>
+    <string>Delete Keyframes inside boundaries</string>
    </property>
    <property name="toolTip">
     <string>Delete keyframes within boundaries</string>

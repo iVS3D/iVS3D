@@ -439,12 +439,12 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/exportcontroller.cpp" line="701"/>
+        <location filename="../controller/exportcontroller.cpp" line="706"/>
         <source>start of explorer successful</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/exportcontroller.cpp" line="706"/>
+        <location filename="../controller/exportcontroller.cpp" line="711"/>
         <source>failed to start Reconstruction Software!</source>
         <translation type="unfinished"></translation>
     </message>
@@ -828,22 +828,22 @@ p, li { white-space: pre-wrap; }
     </message>
     <message>
         <location filename="../view/mainwindow.ui" line="238"/>
-        <source>Delete All Keyframes</source>
+        <source>Reset Keyframes</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/mainwindow.ui" line="241"/>
-        <source>Delete all keyframes</source>
+        <source>Resets keyframes to default</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../view/mainwindow.ui" line="249"/>
+        <source>Delete Keyframes inside boundaries</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/mainwindow.ui" line="244"/>
         <source>Shift+Del</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../view/mainwindow.ui" line="249"/>
-        <source>Delete Keyframes</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -867,17 +867,22 @@ p, li { white-space: pre-wrap; }
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.cpp" line="74"/>
+        <location filename="../view/mainwindow.cpp" line="78"/>
         <source>Sampling</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.cpp" line="85"/>
+        <location filename="../view/mainwindow.cpp" line="89"/>
         <source>Output</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.cpp" line="263"/>
+        <location filename="../view/mainwindow.cpp" line="103"/>
+        <source>Reset Layout</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../view/mainwindow.cpp" line="267"/>
         <source>Reconstruction</source>
         <translation type="unfinished"></translation>
     </message>

@@ -439,12 +439,12 @@
         <translation>Export beendet nach </translation>
     </message>
     <message>
-        <location filename="../controller/exportcontroller.cpp" line="701"/>
+        <location filename="../controller/exportcontroller.cpp" line="706"/>
         <source>start of explorer successful</source>
         <translation>Explorer erfolgreich gestartet</translation>
     </message>
     <message>
-        <location filename="../controller/exportcontroller.cpp" line="706"/>
+        <location filename="../controller/exportcontroller.cpp" line="711"/>
         <source>failed to start Reconstruction Software!</source>
         <translation>Rekonsturktions Software konnte nicht gestartet werden!</translation>
     </message>
@@ -828,13 +828,26 @@ p, li { white-space: pre-wrap; }
     </message>
     <message>
         <location filename="../view/mainwindow.ui" line="238"/>
-        <source>Delete All Keyframes</source>
-        <translation>Alle Keyframes löschen</translation>
+        <source>Reset Keyframes</source>
+        <translation>Keyframes zurücksetzten</translation>
     </message>
     <message>
         <location filename="../view/mainwindow.ui" line="241"/>
+        <source>Resets keyframes to default</source>
+        <translation>Setzt alle Keyframes auf den Ausgangszustand zurück</translation>
+    </message>
+    <message>
+        <location filename="../view/mainwindow.ui" line="249"/>
+        <source>Delete Keyframes inside boundaries</source>
+        <translation>Keyframes innerhalb der Klammern löschen</translation>
+    </message>
+    <message>
+        <source>Delete All Keyframes</source>
+        <translation type="vanished">Alle Keyframes löschen</translation>
+    </message>
+    <message>
         <source>Delete all keyframes</source>
-        <translation>Alle Keyframes löschen</translation>
+        <translation type="vanished">Alle Keyframes löschen</translation>
     </message>
     <message>
         <location filename="../view/mainwindow.ui" line="244"/>
@@ -842,9 +855,8 @@ p, li { white-space: pre-wrap; }
         <translation></translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.ui" line="249"/>
         <source>Delete Keyframes</source>
-        <translation>Keyframes löschen</translation>
+        <translation type="vanished">Keyframes löschen</translation>
     </message>
     <message>
         <location filename="../view/mainwindow.ui" line="252"/>
@@ -867,17 +879,22 @@ p, li { white-space: pre-wrap; }
         <translation>Automatische Ausführung</translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.cpp" line="74"/>
+        <location filename="../view/mainwindow.cpp" line="78"/>
         <source>Sampling</source>
         <translation>Ausführung</translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.cpp" line="85"/>
+        <location filename="../view/mainwindow.cpp" line="89"/>
         <source>Output</source>
         <translation>Ausgabe</translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.cpp" line="263"/>
+        <location filename="../view/mainwindow.cpp" line="103"/>
+        <source>Reset Layout</source>
+        <translation>Layout zurücksetzten</translation>
+    </message>
+    <message>
+        <location filename="../view/mainwindow.cpp" line="267"/>
         <source>Reconstruction</source>
         <translation>Rekonstruktion</translation>
     </message>

@@ -100,7 +100,7 @@ MainWindow::MainWindow(QWidget *parent, bool dark, int cuda, bool createLog, QSt
 
     // store default layout state and add action to reset to this default state
     const auto defaultDockLayout = saveState();
-    ui->menuView->addAction("Reset Layout", [this,defaultDockLayout](){
+    ui->menuView->addAction(tr("Reset Layout"), [this,defaultDockLayout](){
         this->restoreState(defaultDockLayout);
         if(this->m_reconstructDock) {
             qDebug() << "resetting reconstruct";
