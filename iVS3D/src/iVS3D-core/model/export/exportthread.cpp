@@ -110,6 +110,13 @@ void ExportThread::run(){
     m_logFile->stopTimer();
     //End of preparation
 
+    /*
+     * This Code section was intended to export multiple images in parallel, but introduced multiple bugs such as:
+     * - Deadlock if less images then threads
+     * - Crash if aborting export with only few images
+     * Also execution time increased extremely (more than 1 min per 1080p image)
+     * Replaced with for loop for simplicity
+     *
     m_reader->initMultipleAccess(m_keyframes);
 
     std::function<void(const int)> doExport = [this, useResize, roi, useRoi, iTransformCopiesSize, fileName, isDirImages, imageFiles](const int &n) {
@@ -138,13 +145,76 @@ void ExportThread::run(){
     QtConcurrent::blockingMap(m_keyframes, doExport);
     m_logFile->stopTimer();
     m_logFile->setResultsInfo(m_keyframes);
+    */
 
+    struct ExportStats{
+        enum EStep { S_READ = 0, S_RESIZE, S_WRITE };
+        enum EType { S_VIDEO = 0, S_IMAGES };
+
+        unsigned long totalTimeMeasured = 0; // ms
+        EType type = S_IMAGES;
+
+        struct ExportStepStats {
+            unsigned long totalTime = 0; // ms
+            unsigned long minTime = ULONG_MAX; // ms
+            unsigned long maxTime = 0; // ms
+        } steps[3];
+
+        void addStepEntry(unsigned long t, EStep step){
+            auto s = &steps[step];
+            s->totalTime += t;
+            if(t < s->minTime) s->minTime = t;
+            if(t > s->maxTime) s->maxTime = t;
+        }
+    } stats;
+    stats.type = isDirImages ? ExportStats::S_IMAGES : ExportStats::S_VIDEO;
+
+    QElapsedTimer timer;
+    QElapsedTimer totalTimer;
+    totalTimer.start();
+    for (uint kf : m_keyframes){
+
+        // abort current export if abort flag is set
+        if (*m_stopped) {
+            m_result = 1;
+            return;
+        }
+
+        // get image from reader
+        timer.start();
+        cv::Mat img = m_reader->getPic(kf);
+        stats.addStepEntry(timer.restart(), ExportStats::S_READ);
+
+        // resize and crop
+        cv::Mat imgToExport = resizeCrop(img, cv::Size(m_resolution.x(), m_resolution.y()), useResize, roi, useRoi);
+        stats.addStepEntry(timer.restart(), ExportStats::S_RESIZE);
+
+        // write images and masks
+        bool success = exportImages(imgToExport, iTransformCopiesSize, fileName, isDirImages, kf, imageFiles);
+        stats.addStepEntry(timer.restart(), ExportStats::S_WRITE);
+        if (!success) {
+            m_result = -1;
+        }
+        reportProgress();
+    }
+    stats.totalTimeMeasured = totalTimer.elapsed();
 
     if (m_receiver) {
         m_receiver->slot_makeProgress(100, "Exporting images");
         QString message = "Exported " + QString::number(totalTasks) + " images";
         m_receiver->slot_displayMessage(message);
     }
+
+#if 1
+    qDebug() << "Export stats";
+    qDebug() << "------------";
+    qDebug() << ">  total (ms):  " << stats.totalTimeMeasured;
+    qDebug() << ">  read (ms):   " << stats.steps[ExportStats::S_READ].totalTime << "  min (ms): " << stats.steps[ExportStats::S_READ].minTime << "  max (ms): " << stats.steps[ExportStats::S_READ].maxTime;
+    qDebug() << ">  resize (ms): " << stats.steps[ExportStats::S_RESIZE].totalTime << "  min (ms): " << stats.steps[ExportStats::S_RESIZE].minTime << "  max (ms): " << stats.steps[ExportStats::S_RESIZE].maxTime;
+    qDebug() << ">  write (ms):  " << stats.steps[ExportStats::S_WRITE].totalTime << "  min (ms): " << stats.steps[ExportStats::S_WRITE].minTime << "  max (ms): " << stats.steps[ExportStats::S_WRITE].maxTime;
+    qDebug() << ">  input-type:  " << (stats.type == ExportStats::S_VIDEO ? "video" : "images");
+    qDebug() << "";
+#endif
 
     m_progress = 0;
     return;

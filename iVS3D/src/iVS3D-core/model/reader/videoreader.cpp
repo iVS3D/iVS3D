@@ -3,7 +3,7 @@
 VideoReader::VideoReader(const QString &path) : m_path(path.toUtf8().constData())
 {
     cv::VideoCapture prev(m_path, cv::CAP_FFMPEG);
-    m_numImages = prev.get(cv::CAP_PROP_FRAME_COUNT);
+    m_numImages = prev.get(cv::CAP_PROP_FRAME_COUNT)-1;
     m_fps = prev.get(cv::CAP_PROP_FPS);
     m_cap = prev;
     if (m_numImages > 0) {
@@ -58,7 +58,7 @@ cv::Mat VideoReader::getPic(unsigned int index, bool useMultipleAccess)
 
     QMutexLocker locker(&mutex);
     //Prevent invalid request
-    if(index > getPicCount()){
+    if(index >= getPicCount()){
         cv::Mat empty;
         return empty;
     }
