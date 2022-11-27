@@ -452,7 +452,8 @@
 <context>
     <name>ExportThread</name>
     <message>
-        <location filename="../model/export/exportthread.cpp" line="157"/>
+        <location filename="../model/export/exportthread.cpp" line="37"/>
+        <location filename="../model/export/exportthread.cpp" line="228"/>
         <source>Exporting images</source>
         <translation type="unfinished"></translation>
     </message>

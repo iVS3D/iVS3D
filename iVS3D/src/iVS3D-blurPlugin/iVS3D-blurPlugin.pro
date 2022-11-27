@@ -63,5 +63,7 @@ TRANSLATIONS += \
     $$PWD/translations/blur_en.ts \
     $$PWD/translations/blur_de.ts
 
+unix:system(lrelease $$PWD/translations/*.ts)
+
 RESOURCES += \
     resources.qrc

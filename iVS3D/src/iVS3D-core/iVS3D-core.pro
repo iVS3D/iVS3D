@@ -100,6 +100,8 @@ TRANSLATIONS += \
     $$PWD/translations/core_en.ts \
     $$PWD/translations/core_de.ts
 
+unix:system(lrelease $$PWD/translations/*.ts)
+
 OTHER_FILES += \
     copy_to_install_dir/colmap/* \
 

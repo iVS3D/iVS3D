@@ -38,6 +38,8 @@ TRANSLATIONS += \
     $$PWD/translations/nth_en.ts \
     $$PWD/translations/nth_de.ts
 
+unix:system(lrelease $$PWD/translations/*.ts)
+
 RESOURCES += \
     resources.qrc
 

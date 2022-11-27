@@ -63,6 +63,8 @@ TRANSLATIONS += \
     $$PWD/translations/stationary_en.ts \
     $$PWD/translations/stationary_de.ts
 
+unix:system(lrelease $$PWD/translations/*.ts)
+
 RESOURCES += \
     resources.qrc
 
