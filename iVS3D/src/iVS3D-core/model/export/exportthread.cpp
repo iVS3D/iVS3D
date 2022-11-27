@@ -34,6 +34,7 @@ int ExportThread::getResult(){
 void ExportThread::run(){
     //Prepare export
     m_result = 0;
+    m_receiver->slot_makeProgress(0, tr("Exporting images"));
     m_logFile->startTimer(stringContainer::lfExportPreprocessing);
     int totalTasks = (int)m_keyframes.size();
 
