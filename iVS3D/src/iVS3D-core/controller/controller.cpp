@@ -15,32 +15,38 @@ Controller::Controller(QString inputPath, QString settingsPath, QString outputPa
         useCuda = ApplicationSettings::instance().getUseCuda();
     }
 
+    QWidget *otsWidget = nullptr;
+#if defined(Q_OS_LINUX)
+    const auto otsTheme = ApplicationSettings::instance().getDarkStyle() ? lib3d::ots::ui::ETheme::DARK : lib3d::ots::ui::ETheme::LIGHT;
+
+    otsWidget = new QWidget;
+    otsWidget->setLayout(new QVBoxLayout);
+    //otsWidget->layout()->addWidget(m_colmapWrapper->getOrCreateUiControlsFactory()->createSettingsPushButton());
+    otsWidget->layout()->addWidget(m_colmapWrapper->getOrCreateUiControlsFactory()->createViewWidget(nullptr));
+    otsWidget->layout()->addWidget(m_colmapWrapper->getOrCreateUiControlsFactory()->createNewProductPushButton(otsTheme, nullptr));
+
+#endif
+
     m_mainWindow = new MainWindow(
                 nullptr,
                 ApplicationSettings::instance().getDarkStyle(),
                 useCuda,
                 ApplicationSettings::instance().getCreateLogs(),
                 algorithms,
-                transforms
+                transforms,
+                otsWidget
                 );
 
     m_mainWindow->enableUndo(false);
     m_mainWindow->enableRedo(false);
     m_mainWindow->enableTools(false);
-    #if defined(Q_OS_LINUX)
-        const auto otsTheme = ApplicationSettings::instance().getDarkStyle() ? lib3d::ots::ui::ETheme::DARK : lib3d::ots::ui::ETheme::LIGHT;
 
-        QWidget *otsWidget = new QWidget;
-        otsWidget->setLayout(new QVBoxLayout);
-        //otsWidget->layout()->addWidget(m_colmapWrapper->getOrCreateUiControlsFactory()->createSettingsPushButton());
-        otsWidget->layout()->addWidget(m_colmapWrapper->getOrCreateUiControlsFactory()->createViewWidget(m_mainWindow));
-        otsWidget->layout()->addWidget(m_colmapWrapper->getOrCreateUiControlsFactory()->createNewProductPushButton(otsTheme, m_mainWindow));
-        m_mainWindow->addOtsWindow(otsWidget);
+#if defined(Q_OS_LINUX)
+    m_mainWindow->addSettingsAction(m_colmapWrapper->getOrCreateUiControlsFactory()->createSettingsAction(otsTheme, nullptr));
 
-        m_mainWindow->addSettingsAction(m_colmapWrapper->getOrCreateUiControlsFactory()->createSettingsAction(otsTheme, m_mainWindow));
+    m_colmapWrapper->getOrCreateUiControlsFactory()->updateIconTheme(otsTheme);
+#endif
 
-        m_colmapWrapper->getOrCreateUiControlsFactory()->updateIconTheme(otsTheme);
-    #endif
     if(AlgorithmManager::instance().getAlgorithmCount() + TransformManager::instance().getTransformCount() >0){
         displayPluginSettings();
     }

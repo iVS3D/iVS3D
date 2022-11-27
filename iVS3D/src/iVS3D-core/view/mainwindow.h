@@ -69,7 +69,7 @@ public:
      * @param algorithmList holds identifier(names) of all loaded plugins(algorithms)
 	 * @param transformList holds identifier(names) of all loaded transform plugins
      */
-    MainWindow(QWidget *parent = nullptr, bool dark = false, int cuda = -1, bool createLog = false, QStringList algorithmList = QStringList(tr("no algorithm")), QStringList transformList = QStringList(""));
+    MainWindow(QWidget *parent = nullptr, bool dark = false, int cuda = -1, bool createLog = false, QStringList algorithmList = QStringList(tr("no algorithm")), QStringList transformList = QStringList(""), QWidget *otsWidget = nullptr);
 
     /**
       * @brief delete members and disconnect connections

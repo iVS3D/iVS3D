@@ -18,7 +18,7 @@
 
 
 
-MainWindow::MainWindow(QWidget *parent, bool dark, int cuda, bool createLog, QStringList algorithmList, QStringList transformList)
+MainWindow::MainWindow(QWidget *parent, bool dark, int cuda, bool createLog, QStringList algorithmList, QStringList transformList, QWidget *otsWidget)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
@@ -98,15 +98,18 @@ MainWindow::MainWindow(QWidget *parent, bool dark, int cuda, bool createLog, QSt
     addDockWidget(Qt::BottomDockWidgetArea, dock);
     ui->menuView->addAction(dock->toggleViewAction());
 
+    if(otsWidget) {
+        addOtsWindow(otsWidget);
+    }
     // store default layout state and add action to reset to this default state
     const auto defaultDockLayout = saveState();
     ui->menuView->addAction(tr("Reset Layout"), [this,defaultDockLayout](){
         this->restoreState(defaultDockLayout);
-        if(this->m_reconstructDock) {
+        /*if(this->m_reconstructDock) {
             qDebug() << "resetting reconstruct";
             this->tabifyDockWidget(this->m_outputDock, this->m_reconstructDock);
             m_outputDock->raise();
-        }
+        }*/
     });
 
     // read layout and geometry from last session if available
