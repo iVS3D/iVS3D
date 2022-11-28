@@ -207,7 +207,7 @@ private:
     QMap<QString, QString> m_currentExports;
     // export runtime
     QElapsedTimer m_timer;
-    uint m_imageOnPlayerId;
+    uint m_imageOnPlayerId = 0;
 
 #if defined(Q_OS_LINUX)
     lib3d::ots::ColmapWrapper *m_colmap;
