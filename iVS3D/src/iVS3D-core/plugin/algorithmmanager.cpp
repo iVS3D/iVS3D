@@ -41,6 +41,11 @@ QString AlgorithmManager::getPluginNameToIndex(int index)
     return m_algorithmList[index]->getName();
 }
 
+QString AlgorithmManager::getPluginFileNameToIndex(int index)
+{
+    return m_pluginFileNames[index];
+}
+
 int AlgorithmManager::getAlgorithmCount()
 {
     return (int)m_algorithmList.size();
@@ -138,6 +143,7 @@ void AlgorithmManager::loadPlugins(){
                 m_algorithmList.push_back(algorithm);
                 connect(algorithm, &IAlgorithm::updateKeyframes, this, &AlgorithmManager::slot_updateKeyframes);
                 connect(algorithm, &IAlgorithm::updateBuffer, this, &AlgorithmManager::slot_updateBuffer);
+                m_pluginFileNames.append(QFileInfo(fileName).baseName());
             } else {
                 pluginLoader.unload();
             }

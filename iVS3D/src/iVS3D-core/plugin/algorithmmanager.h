@@ -60,11 +60,17 @@ public:
      */
     QStringList getAlgorithmList();
     /**
-     * @brief getIndexToPluginName Takes the index of a plugin and returns it's name.
+     * @brief getIndexToPluginName Takes the index of a plugin and returns it's translated name.
      * @param index Index of the plugin
-     * @return Name of the plugin
+     * @return (possibly) translated name of the plugin
      */
     QString getPluginNameToIndex(int index);
+    /**
+     * @brief getPluginFileNameToIndex Takes the index of a plugin and returns it's file name.
+     * @param index Index of the plugin
+     * @return Name of the plugin file
+     */
+    QString getPluginFileNameToIndex(int index);
     /**
      * @brief getAlgorithmCount returns the number of loaded IAlgorithms
      * @return The number of loaded IAlgorithms
@@ -116,6 +122,7 @@ private:
     AlgorithmManager();
     void loadPlugins();
     signalObject* m_sigObj;
+    QStringList m_pluginFileNames;
 };
 
 #endif // ALGORITHMMANAGER_H
