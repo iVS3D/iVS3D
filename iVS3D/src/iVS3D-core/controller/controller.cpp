@@ -281,6 +281,9 @@ void Controller::slot_openMetaData()
         return;
     }
     int n = m_dataManager->getModelInputPictures()->loadMetaData(QStringList(filePath));
+    if (n > 0) {
+        AlgorithmManager::instance().notifyNewMetaData();
+    }
     QString msg = tr("Loaded ") + QString::number(n) + tr(" meta data feature") + QString(n > 1 ? tr("s") : "");
     emit sig_hasStatusMessage(msg);
 
@@ -441,8 +444,12 @@ void Controller::onSuccessfulOpen()
     }
 
     //init plugins and notify about current keyframes
-    AlgorithmManager::instance().initializePlugins(m_dataManager->getModelInputPictures()->getReader(), m_dataManager->getModelAlgorithm()->getPluginBuffer());
+    Reader* currentReader = m_dataManager->getModelInputPictures()->getReader();
+    AlgorithmManager::instance().initializePlugins(currentReader, m_dataManager->getModelAlgorithm()->getPluginBuffer());
     AlgorithmManager::instance().notifyKeyframesChanged(m_dataManager->getModelInputPictures()->getAllKeyframes(false));
+    if (currentReader->getMetaData() != nullptr && currentReader->getMetaData()->availableMetaData().size() > 0) {
+        AlgorithmManager::instance().notifyNewMetaData();
+    }
 
     // remove old controllers if existing
     if(m_videoPlayerController)

@@ -254,9 +254,6 @@ int ModelInputPictures::loadMetaData(QStringList paths)
     m_metaDataManager->initMetaDataVideo(paths, m_reader->getPicCount(), m_reader->getFPS());
     m_reader->addMetaData(m_metaDataManager);
     int metaDataLoaded =  m_metaDataManager->availableMetaData().size() - oldMetaCount;
-    if (metaDataLoaded > 0) {
-        AlgorithmManager::instance().notifyNewMetaData();
-    }
     return metaDataLoaded;
 }
 
@@ -265,9 +262,6 @@ int ModelInputPictures::loadMetaDataImages()
     m_metaDataManager->initMetaDataImages(m_reader->getFileVector());
     m_reader->addMetaData(m_metaDataManager);
     int metaDataLoaded = m_metaDataManager->availableMetaData().size();
-    if (metaDataLoaded > 0) {
-        AlgorithmManager::instance().notifyNewMetaData();
-    }
     return metaDataLoaded;
 }
 
