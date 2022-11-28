@@ -306,7 +306,7 @@ bool ExportThread::exportImages(cv::Mat image, int iTransformCopiesSize, const Q
 
         }
     }
-#ifdef Q_OS_LINUX
+
     //save gps data
     QList<MetaDataReader*> mdList =  MetaDataManager::instance().loadAllMetaData();
     bool readerFound = false;
@@ -554,9 +554,8 @@ bool ExportThread::exportImages(cv::Mat image, int iTransformCopiesSize, const Q
     std::memcpy(&newData[33], &exifData[0], 140);
     std::memcpy(&newData[33+140], &fileData[33], fileSize - 33);
 
-    std::ofstream f(imgPath.toStdString().c_str());
+    std::ofstream f(imgPath.toStdString().c_str(), std::ofstream::binary);
     f.write((char *)&newData[0], fileSize + 140);
     qDebug() << "Time needed: " << timer.elapsed();
-#endif
     return true;
 }
