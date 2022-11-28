@@ -101,6 +101,7 @@ TRANSLATIONS += \
     $$PWD/translations/core_de.ts
 
 unix:system(lrelease $$PWD/translations/*.ts)
+win32::system(lrelease-pro $$PWD/../../iVS3D.pro)
 
 OTHER_FILES += \
     copy_to_install_dir/colmap/* \
