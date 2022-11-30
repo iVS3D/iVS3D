@@ -256,8 +256,9 @@ bool ExportThread::exportImages(cv::Mat image, int iTransformCopiesSize, const Q
             if (isDirImages) {
                 //Get name of the current keyframe
                 QString keyframeName = QString::fromStdString(imageFiles[currentKeyframe]);
-                QStringList splitedName = keyframeName.split("/");
-                imgPath.append(splitedName.back());
+                QFileInfo file(keyframeName);
+                QString newFileName = file.baseName().append(".png");
+                imgPath.append(newFileName);
             }
             else {
                 //If input is a video images are numbered based on their index
