@@ -115,6 +115,9 @@ iVS3D/src/iVS3D-core/ots/colmapwrapper/ExctractGpsReferenceData.spec
 
 iVS3D/src/iVS3D-core/build
 
+### releases ###
+Releases
+
 ### allowed files ###
 !*resourceloader.pri
 !*setrpath.pri
