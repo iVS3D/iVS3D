@@ -25,6 +25,10 @@ MainWindow::MainWindow(QWidget *parent, bool dark, int cuda, bool createLog, QSt
     ui->setupUi(this);
     ui->actionuse_DarkStyle->setCheckable(true);
 
+#if defined(Q_OS_WIN)
+    addSettingsAction(ui->actionSet_Reconstructiontool_Path);
+#endif
+
     // --- create GUI Elements VideoPlayer, Timeline and Info-Widgets with Buttons
     // --- for sampling and export of images or 3d-reconstruction
 

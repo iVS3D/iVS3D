@@ -12,6 +12,11 @@ ExportWidget::ExportWidget(QWidget *parent, QStringList transformList) :
         m_checkboxes.push_back(cb);
         ui->verticalLayout_transforms->addWidget(cb);
     }
+#if defined(Q_OS_WIN)
+    m_reconstructBtn = new QPushButton(tr("reconstruct"));
+    ui->horizontalLayout->addWidget(m_reconstructBtn);
+    connect(m_reconstructBtn, &QPushButton::clicked, this, &ExportWidget::on_pushButton_reconstruct_clicked);
+#endif
 }
 
 ExportWidget::~ExportWidget()
@@ -50,7 +55,7 @@ void ExportWidget::enableExport(bool enabled)
 
 void ExportWidget::enableReconstruct(bool enabled)
 {
-    //ui->pushButton_reconstruct->setEnabled(enabled);
+    m_reconstructBtn->setEnabled(enabled);
 }
 
 void ExportWidget::setResolutionValid(bool valid)

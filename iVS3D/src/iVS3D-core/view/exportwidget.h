@@ -4,6 +4,7 @@
 #include <QWidget>
 #include <QFileDialog>
 #include <QCheckBox>
+#include <QPushButton>
 
 #include "applicationsettings.h" // used to determin text color depending on GUI style
 
@@ -154,6 +155,9 @@ private slots:
 private:
     Ui::ExportWidget *ui;
     std::vector<QCheckBox*> m_checkboxes;
+#if defined(Q_OS_WIN)
+    QPushButton *m_reconstructBtn;
+#endif
 };
 
 #endif // EXPORTWIDGET_H

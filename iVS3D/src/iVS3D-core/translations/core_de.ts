@@ -163,203 +163,203 @@
 <context>
     <name>Controller</name>
     <message>
-        <location filename="../controller/controller.cpp" line="101"/>
+        <location filename="../controller/controller.cpp" line="107"/>
         <source>Wait for export to finish before importing new images.</source>
         <translation>Auf Beending des Export warten, bevor neue Bilder importiert werden.</translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="105"/>
+        <location filename="../controller/controller.cpp" line="111"/>
         <source>Choose Folder</source>
         <translation>Ordner auswählen</translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="107"/>
-        <location filename="../controller/controller.cpp" line="126"/>
-        <location filename="../controller/controller.cpp" line="196"/>
-        <location filename="../controller/controller.cpp" line="205"/>
-        <location filename="../controller/controller.cpp" line="238"/>
-        <location filename="../controller/controller.cpp" line="274"/>
+        <location filename="../controller/controller.cpp" line="113"/>
+        <location filename="../controller/controller.cpp" line="132"/>
+        <location filename="../controller/controller.cpp" line="202"/>
+        <location filename="../controller/controller.cpp" line="211"/>
+        <location filename="../controller/controller.cpp" line="244"/>
+        <location filename="../controller/controller.cpp" line="280"/>
         <source>Input canceled</source>
         <translation>Eingabe abgebrochen</translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="119"/>
+        <location filename="../controller/controller.cpp" line="125"/>
         <source>Wait for export to finish before importing a new video.</source>
         <translation>Auf Beending des Export warten, bevor ein neues Video importiert wird.</translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="124"/>
+        <location filename="../controller/controller.cpp" line="130"/>
         <source>Choose Video</source>
         <translation>Video auswählen</translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="150"/>
+        <location filename="../controller/controller.cpp" line="156"/>
         <source>Wait for export to finish before importing new files.</source>
         <translation>Auf Beending des Export warten, bevor neue Daten importiert werden.</translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="176"/>
+        <location filename="../controller/controller.cpp" line="182"/>
         <source>Wait for export to finish before importing new project.</source>
         <translation>Auf Beending des Export warten, bevor ein neues Projekt importiert wird.</translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="181"/>
+        <location filename="../controller/controller.cpp" line="187"/>
         <source>Choose project file</source>
         <translation>Projekt Datei auswählen</translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="203"/>
+        <location filename="../controller/controller.cpp" line="209"/>
         <source>Save project</source>
         <translation>Projekt speichern</translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="214"/>
-        <location filename="../controller/controller.cpp" line="221"/>
+        <location filename="../controller/controller.cpp" line="220"/>
+        <location filename="../controller/controller.cpp" line="227"/>
         <source>Project saved</source>
         <translation>Projekt gespeichert</translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="236"/>
+        <location filename="../controller/controller.cpp" line="242"/>
         <source>Choose standard input path</source>
         <translation>Standart Eingabepfad auswählen</translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="243"/>
+        <location filename="../controller/controller.cpp" line="249"/>
         <source>Standard input path changed</source>
         <translation>Standart Eingabepfad wurde geändert</translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="249"/>
+        <location filename="../controller/controller.cpp" line="255"/>
         <source>GUI changed to </source>
         <translation>Oberfläche geändert zu </translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="249"/>
+        <location filename="../controller/controller.cpp" line="255"/>
         <source>dark</source>
         <translation>dunklem</translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="249"/>
+        <location filename="../controller/controller.cpp" line="255"/>
         <source>light</source>
         <translation>hellem</translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="249"/>
+        <location filename="../controller/controller.cpp" line="255"/>
         <source> style -- restart to activate changes</source>
         <translation> Modus -- Neustarten um Änderungen anzuzeigen</translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="258"/>
+        <location filename="../controller/controller.cpp" line="264"/>
         <source>CUDA enabled</source>
         <translation>CUDA aktiviert</translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="258"/>
+        <location filename="../controller/controller.cpp" line="264"/>
         <source>CUDA disabled</source>
         <translation>CUDA deaktiviert</translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="264"/>
+        <location filename="../controller/controller.cpp" line="270"/>
         <source>Create log files</source>
         <translation>Erstellung von log Dateien</translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="264"/>
+        <location filename="../controller/controller.cpp" line="270"/>
         <source> enabled</source>
         <translation> aktiviert</translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="264"/>
+        <location filename="../controller/controller.cpp" line="270"/>
         <source> disabled</source>
         <translation> deaktiviert</translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="272"/>
+        <location filename="../controller/controller.cpp" line="278"/>
         <source>Choose Meta Data</source>
         <translation>Meta Daten wauswählen</translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="278"/>
+        <location filename="../controller/controller.cpp" line="287"/>
         <source>Loaded </source>
         <translation>Laden von </translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="278"/>
-        <location filename="../controller/controller.cpp" line="340"/>
+        <location filename="../controller/controller.cpp" line="287"/>
+        <location filename="../controller/controller.cpp" line="349"/>
         <source> meta data feature</source>
         <translation> Meta Daten Eigenschaft</translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="278"/>
-        <location filename="../controller/controller.cpp" line="340"/>
+        <location filename="../controller/controller.cpp" line="287"/>
+        <location filename="../controller/controller.cpp" line="349"/>
         <source>s</source>
         <translation>en</translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="327"/>
+        <location filename="../controller/controller.cpp" line="336"/>
         <source>No images found after </source>
         <translation>Keine Bilder gefunden nach </translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="327"/>
-        <location filename="../controller/controller.cpp" line="341"/>
-        <location filename="../controller/controller.cpp" line="344"/>
+        <location filename="../controller/controller.cpp" line="336"/>
+        <location filename="../controller/controller.cpp" line="350"/>
+        <location filename="../controller/controller.cpp" line="353"/>
         <source>ms</source>
         <translation>ms</translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="339"/>
-        <location filename="../controller/controller.cpp" line="344"/>
+        <location filename="../controller/controller.cpp" line="348"/>
+        <location filename="../controller/controller.cpp" line="353"/>
         <source>Import of </source>
         <translation>Import von </translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="339"/>
+        <location filename="../controller/controller.cpp" line="348"/>
         <source> images and </source>
         <translation> Bildern und </translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="341"/>
+        <location filename="../controller/controller.cpp" line="350"/>
         <source> finished after </source>
         <translation> abgeschlossen nach </translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="344"/>
+        <location filename="../controller/controller.cpp" line="353"/>
         <source> images finished after </source>
         <translation> Bildern abgeschlossen nach </translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="363"/>
+        <location filename="../controller/controller.cpp" line="372"/>
         <source>#Frames  </source>
         <translation>#Bilder  </translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="367"/>
+        <location filename="../controller/controller.cpp" line="376"/>
         <source>Resolution  </source>
         <translation>Auflösung  </translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="371"/>
+        <location filename="../controller/controller.cpp" line="380"/>
         <source>FPS </source>
         <translation>FPS </translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="372"/>
+        <location filename="../controller/controller.cpp" line="381"/>
         <source>Video duration </source>
         <translation>Videolänge </translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="431"/>
+        <location filename="../controller/controller.cpp" line="440"/>
         <source>Project </source>
         <translation>Projekt </translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="431"/>
+        <location filename="../controller/controller.cpp" line="440"/>
         <source> with </source>
         <translation> mit </translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="432"/>
+        <location filename="../controller/controller.cpp" line="441"/>
         <source> images loaded</source>
         <translation> Bildern geladen</translation>
     </message>
@@ -526,7 +526,12 @@
         <translation>Exportieren</translation>
     </message>
     <message>
-        <location filename="../view/exportwidget.cpp" line="106"/>
+        <location filename="../view/exportwidget.cpp" line="16"/>
+        <source>reconstruct</source>
+        <translation>3D Rekonstruktion</translation>
+    </message>
+    <message>
+        <location filename="../view/exportwidget.cpp" line="111"/>
         <source>choose output folder</source>
         <translation>Ausgabeordner auswählen</translation>
     </message>
@@ -870,32 +875,32 @@ p, li { white-space: pre-wrap; }
         <translation></translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.cpp" line="45"/>
+        <location filename="../view/mainwindow.cpp" line="49"/>
         <source>Input</source>
         <translation>Eingabe</translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.cpp" line="62"/>
+        <location filename="../view/mainwindow.cpp" line="66"/>
         <source>Batch processing</source>
         <translation>Automatische Ausführung</translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.cpp" line="78"/>
+        <location filename="../view/mainwindow.cpp" line="82"/>
         <source>Sampling</source>
         <translation>Ausführung</translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.cpp" line="89"/>
+        <location filename="../view/mainwindow.cpp" line="93"/>
         <source>Output</source>
         <translation>Ausgabe</translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.cpp" line="103"/>
+        <location filename="../view/mainwindow.cpp" line="110"/>
         <source>Reset Layout</source>
         <translation>Layout zurücksetzten</translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.cpp" line="267"/>
+        <location filename="../view/mainwindow.cpp" line="274"/>
         <source>Reconstruction</source>
         <translation>Rekonstruktion</translation>
     </message>
