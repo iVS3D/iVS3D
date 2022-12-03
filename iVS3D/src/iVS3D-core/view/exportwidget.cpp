@@ -55,7 +55,11 @@ void ExportWidget::enableExport(bool enabled)
 
 void ExportWidget::enableReconstruct(bool enabled)
 {
+#if defined(Q_OS_WIN)
     m_reconstructBtn->setEnabled(enabled);
+#else
+    (void)enabled;
+#endif
 }
 
 void ExportWidget::setResolutionValid(bool valid)
