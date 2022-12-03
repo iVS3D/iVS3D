@@ -37,100 +37,65 @@ There are currently 4 plugins implemented:
 | Plugin | Description |
 | ------ | ------ |
 | NthFrame Plugin | Selects every N-th frame |
-| CameraMovement Plugin | Selects images based on camera movement |
+| Stationary Camera Plugin | Selects images based on camera movement |
 | Blur Plugin | Avoids blurry images |
 | SemanticSegmentation Plugin | Masks images |
+
+These plugins show different approches to selecting keyframes. iVS3D is build with an open plugin interface for adding new plugins. See [here](doc/create_plugin.md) on how to create your own plugin.
+
+## 3D Reconstruction
+iVS3D does prepare the data for 3D reconstruction. For now we do not perform the reconstruction itself. On windows iVS3D provides functionality to configure and start [COLMAP] which performs the reconstruction on the prepared data. This saves time and simplifies the reconstruction process. 
+
+> the next section is linux only: OTS integration of colmap is not supported on windows yet!
+
+With the latest update we introduce a seemless integration of [COLMAP] in our software. In the new *Reconstruction* tab you can configure and start colmap reconstructions, view the reconstruction progress, manage the queue and open the finished products.
+
+Reconstruction can be configured to be executed on the local machine or on a remote machine such as a GPU server. Further information:
+- [local colmap execution](doc/local_colmap_execution.md)
+- [remote colmap execution](doc/remote_colmap_execution.md)
 
 ## Dependencies
 
 iVS3D and the baseline plugins use:
 - [OpenCV] 4.5.0
-- [Qt] Framework 5.9.1
+- [Qt] Framework 5.15.2
 
 For CUDA support:
 - [NVIDIA CUDA Toolkit API] 10.1
 - [cuDNN] 8.0
 
-The used compiler is [MSVC] 2015.
+For windows we use [MSVC] 2015 compiler. On linux we use [Gcc] compiler.
 
 The required dependencies can be imported using the _3rdParty.pri_ file.
 
-## Ready to use builds for Windows 10 x64 and Linux
+## Ready to use builds for Windows and Linux
 
-We provide Windows 10 x64 builds with and without CUDA as well as Linux builds with and without CUDA. To use the included plugin for semantic segmentation you can download the models we used in our paper:
+We provide builds with and without CUDA for multiple platforms and distributions:
+- Windows 10
+- Debian 10
+- Debian 11
+- Ubuntu 18.04
+- Ubuntu 22
+
+To use the included plugin for semantic segmentation you can download the models we used in our paper:
 [Link to models]
 
 To use other models, they have to be in the .onnx format. In addition, the plug-in requires a file that maps the classes to specific colors.
 
-*compatible with the following CUDA compute capabilities:
-| CUDA version 	| GPUs (exemplary) |
-|---------------|---------------------|
-|	5.0    	|	GeForce GTX 760/770/780, GeForce MX130, GeForce 945M
-|	5.2    	|	GeForce GTX 960/970/980
-|	6.1	|    	GeForce GTX 1050/1050Ti/1060/1070/1080/1080Ti, GeForce GT 1030
-|	7.5	|    	GeForce RTX 2060/2070/2080
+The CUDA compute capabilities vary depending on the platform:
+| CUDA version 	| GPUs (exemplary)    | Windows | Debian | Ubuntu
+|---------------|---------------------|---------|--------|-----
+|	5.0    	    |	GeForce GTX 7XX   | ✅      | -    | -
+|	5.2    	    |	GeForce GTX 9XX   | ✅      | -    | -
+|	6.1	        |   GeForce GTX 10XX  | ✅      | -    | -
+|	7.5	        |   GeForce RTX 20XX  | ✅      | -    | -
+|   8.6         |   GeForce RTX 30XX  | -        | ✅  | -
 
-## Compile from source without CUDA
+## Build from source
 
-[Qt] 5.9.1 Creator and [MSVC] 2015 have to be installed. Clone the intelligent-video-sampler repository.
-Download [OpenCV] 4.5.0 and include it using the _3rdParty.pri_ file. Therefore duplicate the 3rdparty.txt inside 
-the iVS3D directory and change the file type to .pri. In this file change the path inside the ```include(...)```
-to your local OpenCV path. It is recommended to add the OpenCV bin and lib directories to your path variable so the 
-compiler and linker can find all necessary dependencies. If OpenCV is not added to the path variable the .dlls need to be
-placed in the same directory as the iVS3D-core.exe in order to run it!
+[Build from source for windows](doc/build_win.md)
 
-
-Open the iVS3D.pro within QtCreator. Now you can run iVS3D within Qt Creator in debug or release configuration.
-
-To deploy iVS3D as a standalone executable some build steps need to bee added to your build configuration. Therefore open the
-Projects tab and select Build under Build & Run.
-
-### Steps on Windows
-
-- clone your Release configuration and choose a name for your deploy configuration
-- under the general tab change the build directory to your desired output folder
-- under build steps add ```"CONFIG+=with_dependencies"``` as additional argument to the qmake step. This will copy all necessary .dlls for OpenCV to your build folder.
-- add a new build step, select make and add ```install``` as make argument. Make sure you have two make steps, the first one without additional arguments!
-- add a new build step, select make and add ```clean``` as make argument. This will remove temporary files of the build process.
-- add a new build step, select Custom Process Step and enter windeployqt.exe as command. As arguments enter ```%{buildDir}\src\iVS3D-core\release\iVS3D-core.exe```. This will add the necessary .dlls for Qt to your build folder
-- add a new build step, select Custom Process Step and enter iVS3D-deploy.bat as command. As arguments enter ```%{buildDir}```. This will remove empty folders and clean up the folder structure by removing folders like release and src.
-
-Now you can deploy iVS3D by clicking the hammer icon in the bottom left corner. The iVS3D-core.exe
-can be run outside of qt creator and all necessary dlls from opencv, qt and msvc are located in the same direcototy as the iVS3D-core.exe.
-
-### Steps on Linux
-
-- clone your Release configuration and choose a name for your deploy configuration
-- under the general tab change the build directory to your desired output folder
-- add a new build step, select make and add ```install``` as make argument. Make sure you have two make steps, the first one without additional arguments!
-- add a new build step, select make and add ```clean``` as make argument. This will remove temporary files of the build process.
-- add a new build step, select Custom Process Step and enter iVS3D-deploy.sh as command. As arguments enter ```%{buildDir}/iVS3D-core```. Optionally you can enter the path to linuxdeployqt-executable as the second argument and the path to the linux-dependencies.txt file as a third argument. This will remove empty folders and clean up the folder structure by removing folders like release and src. linuxdeployqt adds the necessary .so files from Qt and OpenCV. Additional dependencies from the txt file are added as well.
-
-Now you can deploy iVS3D by clicking the hammer icon in the bottom left corner. The iVS3D-core executable within
-can be run outside of qt creator and all necessary .so files from opencv, qt and the system are located in the lib directory.
-
-## Compile from source with CUDA
-
-To use CUDA a CUDA compatible OpenCV version has to be used and included in _3rdParty.pri_ file:
-
-```sd
-with_cuda{
-    include([path_to_opencv]/opencv-4.5.0-msvc2015-cuda.pri)
-}
-```
-
-To copy all CUDA .dll files to the build folder, the .dll files have to be included in the _3rdParty.pri_ file as well:
-
-```sd
-with_cuda {
-    CUDA_BIN_PATH = C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v10.1\bin
-    CUDA_BIN_FILES = *.dll
-}
-```
-
-To build with CUDA support simply add  ```"CONFIG+=with_cuda"``` as an qmake argument to your build steps.
-
-
+[Build from source for linux](doc/build_linux.md)
 
 ## Tests
 
@@ -140,9 +105,8 @@ Now you can run the tests within the Test Result tab in Qt Creator.
 [Link to our test data]
 
 ## Future Work
-- [ ] Make use of provided Meta Data such as GPS Data
-- [ ] Speed up export
-- [ ] Speed up optical flow calculations
+- [ ] Add remote colmap execution for windows
+- [ ] Add seemless colmap integration for windows
 
 ## Licence
 
@@ -157,8 +121,6 @@ Fraunhofer IOSB, Karlsruhe
 Supervisor: Max Hermann & Thomas Pollok
 
 Created as part of PSE at the Karlsruhe Institut of Technlogy in the winter term 2020/21
-
-[//]: # (These are reference links used in the body of this note and get stripped out when the markdown processor does its job. There is no need to format nicely because it shouldn't be seen. Thanks SO - http://stackoverflow.com/questions/4823468/store-comments-in-markdown-syntax)
 
   [COLMAP]: <https://demuc.de/colmap/>
   [OpenCV]: <https://github.com/opencv>
