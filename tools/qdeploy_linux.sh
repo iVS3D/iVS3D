@@ -151,6 +151,7 @@ deployapp() {
   do
     addlibs $qmlfile "$INSTALL_PATH/install/lib"
   done
+  rm -f $INSTALL_PATH/install/lib/libGL.so*
 }
 
 create3rdpartypri() {
