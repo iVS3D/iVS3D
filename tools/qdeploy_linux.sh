@@ -152,6 +152,13 @@ deployapp() {
     addlibs $qmlfile "$INSTALL_PATH/install/lib"
   done
   rm -f $INSTALL_PATH/install/lib/libGL.so*
+  cat > $INSTALL_PATH/install/qt.conf << EOL
+    [Paths]
+    Prefix = ./
+    Plugins = plugins
+    Imports = qml
+    Qml2Imports = qml
+  EOL
 }
 
 create3rdpartypri() {
