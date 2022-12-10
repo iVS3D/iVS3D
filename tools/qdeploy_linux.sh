@@ -86,7 +86,7 @@ deployapp() {
   echo "--------------------------------"
 
   addlibs iVS3D-core "$INSTALL_PATH/install/lib"
-  chrpath -r '$ORIGIN:$ORIGIN/lib' iVS3D-core
+  patchelf --set-rpath '$ORIGIN:$ORIGIN/lib' iVS3D-core
 
   echo " "
   echo "--------------------------------"
@@ -101,7 +101,7 @@ deployapp() {
     echo " -- plugin: $plug"
     echo "--------------------------------"
     addlibs $plug "$INSTALL_PATH/install/lib"
-    chrpath -r '$ORIGIN:$ORIGIN/..:$ORIGIN/../lib' $plug
+    patchelf --set-rpath '$ORIGIN:$ORIGIN/..:$ORIGIN/../lib' $plug
   done
 
   echo " "
@@ -137,7 +137,7 @@ deployapp() {
 
   for OCV_FILE in lib/libopencv_*
   do
-    chrpath -r '$ORIGIN' $OCV_FILE
+    patchelf --set-rpath '$ORIGIN' $OCV_FILE
   done
   
   echo " "
