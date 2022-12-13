@@ -77,7 +77,6 @@ int main(int argc, char *argv[])
         arguments << argv[i];
     }
 
-
     QTranslator* translator = new QTranslator();
     translator->load(QLocale::system(), "core", "_", ":/translations", ".qm");
 
@@ -92,6 +91,19 @@ int main(int argc, char *argv[])
         a.setApplicationVersion(QString(QUOTE(IVS3D_VER)));
         parser.process(a);
         a.installTranslator(translator);
+
+#if defined(Q_OS_WIN)
+        QDir appDir(QApplication::applicationDirPath());
+        QApplication::addLibraryPath(appDir.absolutePath());
+
+        QStringList dirs = {"bin", "qml", "plugins" };
+        for(auto dir : dirs){
+            QDir d(QApplication::applicationDirPath());
+            if(d.cd(dir)) QApplication::addLibraryPath(d.absolutePath());
+            else qDebug() << "Missing library directory: " << dir;
+        }
+        qDebug() << "Library search paths: " << QApplication::libraryPaths();
+#endif
         Controller *mainController = new Controller(parser.value(inputPath), parser.value(autoPath), parser.value(outputPath));
         qApp->setProperty(stringContainer::UIIdentifier, true);
 
@@ -109,6 +121,20 @@ int main(int argc, char *argv[])
         a.setApplicationVersion(QString(QUOTE(IVS3D_VER)));
         parser.process(a);
         a.installTranslator(translator);
+
+#if defined(Q_OS_WIN)
+        QDir appDir(QCoreApplication::applicationDirPath());
+        QCoreApplication::addLibraryPath(appDir.absolutePath());
+
+        QStringList dirs = {"bin", "qml", "plugins" };
+        for(auto dir : dirs){
+            QDir d(QCoreApplication::applicationDirPath());
+            if(d.cd(dir)) QCoreApplication::addLibraryPath(d.absolutePath());
+            else qDebug() << "Missing library directory: " << dir;
+        }
+        qDebug() << "Library search paths: " << QCoreApplication::libraryPaths();
+#endif
+
         qApp->setProperty(stringContainer::UIIdentifier, false);
         noUIController* noUI = new noUIController(parser.value(inputPath), parser.value(autoPath), parser.value(outputPath));
         QTimer::singleShot(0, noUI, SLOT(exec()));
