@@ -58,13 +58,13 @@ Reconstruction can be configured to be executed on the local machine or on a rem
 
 iVS3D and the baseline plugins use:
 - [OpenCV] 4.5.0
-- [Qt] Framework 5.15.2
+- [Qt] Framework 5.12
 
 For CUDA support:
 - [NVIDIA CUDA Toolkit API] 10.1
 - [cuDNN] 8.0
 
-For windows we use [MSVC] 2015 compiler. On linux we use [Gcc] compiler.
+For windows we use [MSVC] 2015 compiler. On linux we use [GCC] compiler.
 
 The required dependencies can be imported using the _3rdParty.pri_ file.
 
@@ -74,7 +74,7 @@ We provide builds with and without CUDA for multiple platforms and distributions
 - Windows 10
 - Debian 10
 - Debian 11
-- Ubuntu 18.04
+- Ubuntu 18
 - Ubuntu 22
 
 To use the included plugin for semantic segmentation you can download the models we used in our paper:
@@ -96,6 +96,8 @@ The CUDA compute capabilities vary depending on the platform:
 [Build from source for windows](doc/build_win.md)
 
 [Build from source for linux](doc/build_linux.md)
+
+[Build from source with Qt Creator](doc/build_qtcreator.md)
 
 ## Tests
 
@@ -126,6 +128,7 @@ Created as part of PSE at the Karlsruhe Institut of Technlogy in the winter term
   [OpenCV]: <https://github.com/opencv>
   [Qt]:     <https://www.qt.io>
   [MSVC]:   <https://www.microsoft.com/de-de/download/details.aspx?id=48159>
+  [GCC]:    <https://gcc.gnu.org>
   [NVIDIA CUDA Toolkit API]:    <https://developer.nvidia.com/cuda-zone>
   [cuDNN]:  <https://developer.nvidia.com/cudnn>
   [Link to paper]: <https://arxiv.org/abs/2110.11810>
