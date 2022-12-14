@@ -5,7 +5,37 @@ To build the project from source on a windows machine you can use the terminal o
 
 [Qt] 5.12 and [MSVC] 2015 have to be installed. Clone the iVS3D repository from our GitHub and download [OpenCV] 4.5.0. To build with CUDA you need an OpenCV build which supports CUDA. In this case download [NVIDIA CUDA Toolkit API] as well.
 
-Copy the _3rdparty.txt_ file, rename to 3rdparty.pri and set the paths to OpenCV and CUDA (if needed) there. 
+Copy the _3rdparty.txt_ file, rename to 3rdparty.pri and set the paths to OpenCV and CUDA (if needed) there. The file should look something like this:
+
+```sh
+#path to MSVC2015 dlls
+MSVC_BIN_PATH = $$(windir)/System32
+MSVC_BIN_FILES += \
+    msvcp_win.dll \
+    msvcp140.dll \
+    vcruntime140.dll \
+    vcruntime140_1.dll
+
+with_cuda{
+    message(USING OPENCV WITH CUDA)
+
+# path to OpenCV 4.5.0 with CUDA dlls
+    include(C:\OpenCV\opencv-4.5.0-msvc2015-cuda-install\opencv-4.5.0-msvc2015-cuda.pri)
+    OPENCV_BIN_PATH = $$OPENCV_LIB_PATH/../bin
+    OPENCV_BIN_FILES = *.dll
+
+#path to CUDA 10.1 with cuDNN 8.0.5
+    CUDA_BIN_PATH = $$(CUDA_PATH_V10_1)/bin
+    CUDA_BIN_FILES = *.dll
+} else {
+    message(USING OPENCV WITHOUT CUDA)
+
+#path to OpenCV 4.5.0 without CUDA dlls
+    include(P:\OpenCV\opencv_4.5.0_msvc2015_x86_64\opencv_4.5.0_msvc2015_x86_64.pri)
+    OPENCV_BIN_PATH = $$OPENCV_LIB_PATH/../bin
+    OPENCV_BIN_FILES = *.dll
+}
+```
 
 Open the deploy.bat file we provide in the tools folder and set your paths in the variables-section:
 

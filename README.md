@@ -54,20 +54,6 @@ Reconstruction can be configured to be executed on the local machine or on a rem
 - [local colmap execution](doc/local_colmap_execution.md)
 - [remote colmap execution](doc/remote_colmap_execution.md)
 
-## Dependencies
-
-iVS3D and the baseline plugins use:
-- [OpenCV] 4.5.0
-- [Qt] Framework 5.12
-
-For CUDA support:
-- [NVIDIA CUDA Toolkit API] 10.1
-- [cuDNN] 8.0
-
-For windows we use [MSVC] 2015 compiler. On linux we use [GCC] compiler.
-
-The required dependencies can be imported using the _3rdParty.pri_ file.
-
 ## Ready to use builds for Windows and Linux
 
 We provide builds with and without CUDA for multiple platforms and distributions:
@@ -77,24 +63,47 @@ We provide builds with and without CUDA for multiple platforms and distributions
 - Ubuntu 18
 - Ubuntu 22
 
-To use the included plugin for semantic segmentation you can download the models we used in our paper:
+<!-- To use the included plugin for semantic segmentation you can download the models we used in our paper:
 [Link to models]
 
-To use other models, they have to be in the .onnx format. In addition, the plug-in requires a file that maps the classes to specific colors.
+To use other models, they have to be in the .onnx format. In addition, the plug-in requires a file that maps the classes to specific colors. -->
 
 The CUDA compute capabilities vary depending on the platform:
 | CUDA version 	| GPUs (exemplary)    | Windows | Debian | Ubuntu
 |---------------|---------------------|---------|--------|-----
-|	5.0    	    |	GeForce GTX 7XX   | ✅      | -    | -
-|	5.2    	    |	GeForce GTX 9XX   | ✅      | -    | -
-|	6.1	        |   GeForce GTX 10XX  | ✅      | -    | -
-|	7.5	        |   GeForce RTX 20XX  | ✅      | -    | -
-|   8.6         |   GeForce RTX 30XX  | -        | ✅  | -
+|	5.0    	    |	GeForce GTX 7XX   | ✅      | -     | -
+|	5.2    	    |	GeForce GTX 9XX   | ✅      | -     | ✅
+|	6.1	        |   GeForce GTX 10XX  | ✅      | ✅    | ✅
+|	7.5	        |   GeForce RTX 20XX  | ✅      | ✅    | ✅
+|   8.6         |   GeForce RTX 30XX  | -       | ✅    | ✅
 
 ## Build from source
+### Dependencies
+
+iVS3D and the baseline plugins use:
+- [OpenCV] 4.5.0
+- [Qt] Framework 5.12
+- [Python] 3.9
+
+For CUDA support:
+- [NVIDIA CUDA Toolkit API] 10.1
+- [cuDNN] 8.0
+
+For windows we use [MSVC] 2015 compiler. On linux we use [GCC] 7 compiler.
+
+The required dependencies can be imported using the _3rdParty.pri_ file. Further information about including dependencies like OpenCV and CUDA using _.pri_ files can be found [here](doc/3rdparty.md).
+
+Make sure the python dependencies from the _iVS3D/src/iVS3D-core/ots/colmapwrapper/py_requirements.txt_ are installed:
+```sd
+pip install --upgrade -r iVS3D/src/iVS3D-core/ots/colmapwrapper/py_requirements.txt
+```
+For linux use ```pip3``` instead. Make sure these dependencies are installed correctly!
+
+### Build iVS3D
 
 [Build from source with Qt Creator](doc/build_qtcreator.md)
 
+### Deploy iVS3D
 [Deploy from source for windows](doc/build_win.md)
 
 [Deploy from source for linux](doc/build_linux.md)
