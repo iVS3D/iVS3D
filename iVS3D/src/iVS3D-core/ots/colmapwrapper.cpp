@@ -24,6 +24,7 @@
 #include "colmapwrapper/colmapviewwidget.h"
 #include "colmapwrapper/colmapnewproductdialog.h"
 
+#include "stringcontainer.h"
 
 static QString WORK_QUEUE_FILE_NAME = "colmap_work_queue.yaml";
 static QString WORKER_STATE_FILE_NAME = "colmap_worker_state.yaml";
@@ -51,7 +52,7 @@ namespace ots {
 //==================================================================================================
 ColmapWrapper::ColmapWrapper(const QString iSettingsFile, const bool iSettingsOnly)  :
   QObject(),
-  mSettings(/*iSettingsFile, */QSettings::IniFormat, QSettings::UserScope, "Fraunhofer IOSB", iSettingsFile),
+  mSettings(/*iSettingsFile, */QSettings::IniFormat, QSettings::UserScope, stringContainer::settingsCompany, iSettingsFile),
   mpTempDir(new QTemporaryDir()),
   mpPyWorkerProcess(new QProcess()),
   mpMountProcess(new QProcess()),

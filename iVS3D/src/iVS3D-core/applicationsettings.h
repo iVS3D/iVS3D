@@ -12,8 +12,6 @@
 #include "opencv2/core/cuda.hpp"
 #endif
 
-
-
 /**
  * @class ApplicationSettings
  *

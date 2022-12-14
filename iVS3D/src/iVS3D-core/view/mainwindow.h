@@ -29,12 +29,11 @@
 #include "view/about.h"
 #include "view/darkstyle/DarkStyle.h"
 
+#include "stringcontainer.h"
 
 //for debug
 #include <opencv2/core.hpp>
 #include <QDebug>
-
-
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }

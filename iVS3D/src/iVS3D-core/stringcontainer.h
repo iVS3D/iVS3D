@@ -15,6 +15,9 @@
 
 struct stringContainer
 {
+    // config settings (QSettings)
+    static const QString settingsCompany;
+    static const QString settingsProgramm;
     // log
     static const QString dirLogFile;
     // Identifier for UI flag

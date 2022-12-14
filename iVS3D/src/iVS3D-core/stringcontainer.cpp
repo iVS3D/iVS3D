@@ -1,5 +1,9 @@
 #include "stringcontainer.h"
 
+// config settings (QSettings)
+const QString stringContainer::settingsCompany = "IOSB-Fraunhofer";
+const QString stringContainer::settingsProgramm = "iVS3D";
+
 // log file strings
 const QString stringContainer::dirLogFile = "logs";
 // Identifier for UI flag

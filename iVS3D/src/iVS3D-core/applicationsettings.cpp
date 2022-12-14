@@ -12,7 +12,7 @@ ApplicationSettings::ApplicationSettings()
 
 void ApplicationSettings::loadSettings()
 {
-    QSettings settings("Fraunhofer", "iVS3D");
+    QSettings settings(stringContainer::settingsCompany, stringContainer::settingsProgramm);
     m_standardInputPath = settings.value(stringContainer::standardInputPathIdentifier).value<QString>();
     m_darkStyle = settings.value(stringContainer::darkStyleIdentifier).value<bool>();
     if(settings.contains(stringContainer::useCudaIdentifier))
@@ -29,7 +29,7 @@ void ApplicationSettings::loadSettings()
 
 void ApplicationSettings::saveSettings()
 {
-    QSettings settings("Fraunhofer IOSB", "iVS3D");
+    QSettings settings(stringContainer::settingsCompany, stringContainer::settingsProgramm);
     settings.setValue(stringContainer::standardInputPathIdentifier, m_standardInputPath);
     settings.setValue(stringContainer::darkStyleIdentifier, m_darkStyle);
     settings.setValue(stringContainer::useCudaIdentifier, m_useCuda);

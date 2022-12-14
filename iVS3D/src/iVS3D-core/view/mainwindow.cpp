@@ -178,7 +178,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
-    QSettings settings("Fraunhofer IOSB", "iVS3D");
+    QSettings settings(stringContainer::settingsCompany, stringContainer::settingsProgramm);
     settings.setValue("windowGeometry", QVariant(geometry()));
     settings.setValue("windowState", saveState());
     settings.setValue("maximized", this->isMaximized());
@@ -187,7 +187,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
 void MainWindow::readSettings()
 {
-    QSettings settings("Fraunhofer IOSB", "iVS3D");
+    QSettings settings(stringContainer::settingsCompany, stringContainer::settingsProgramm);
     if(!settings.value("windowGeometry").isNull()){
         setGeometry(settings.value("windowGeometry").value<QRect>());
         restoreState(settings.value("windowState").toByteArray());
