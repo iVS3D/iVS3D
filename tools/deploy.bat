@@ -1,4 +1,5 @@
 @echo off
+setlocal
 :: build tool locations - EDIT THEM!
 set QTDIR=C:\Qt\5.12.12\msvc2015_64
 set JOM=C:/Qt/Tools/QtCreator/bin/jom/jom.exe
@@ -13,7 +14,9 @@ set USE_CUDA=1
 :: output location (edit if you want to)
 set INSTALL_PATH=%cd%\..\Releases\iVS3D-%APP_VERSION%
 
-:: NO NEED TO TOUCH TH REST!
+:: NO NEED TO TOUCH THE REST!
+
+SET PATH=%PATH%;%QTDIR%\bin\
 
 if %USE_CUDA%==1 (set WITH_CUDA=with_cuda) else (set WITH_CUDA= )
 
