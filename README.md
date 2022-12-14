@@ -75,7 +75,7 @@ The CUDA compute capabilities vary depending on the platform:
 |	5.2    	    |	GeForce GTX 9XX   | ✅      | -     | ✅
 |	6.1	        |   GeForce GTX 10XX  | ✅      | ✅    | ✅
 |	7.5	        |   GeForce RTX 20XX  | ✅      | ✅    | ✅
-|   8.6         |   GeForce RTX 30XX  | -       | ✅    | ✅
+|   8.6         |   GeForce RTX 30XX  | -       | ✅    | -
 
 ## Build from source
 ### Dependencies
