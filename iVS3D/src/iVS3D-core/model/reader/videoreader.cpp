@@ -2,6 +2,11 @@
 
 VideoReader::VideoReader(const QString &path) : m_path(path.toUtf8().constData())
 {
+    QFileInfo info(path);
+    if (!info.isFile()) {
+        m_isValid = false;
+        return;
+    }
     cv::VideoCapture prev(m_path, cv::CAP_FFMPEG);
     m_numImages = prev.get(cv::CAP_PROP_FRAME_COUNT)-1;
     m_fps = prev.get(cv::CAP_PROP_FPS);
