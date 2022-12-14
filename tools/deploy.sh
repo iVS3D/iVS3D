@@ -20,5 +20,6 @@ export INSTALL_PATH=$PWD/../Releases/iVS3D-${APP_VERSION}
 # path to iVS3D.pro and 3rdparty.pri, no need to touch this
 export PRO_PATH=$PWD/../iVS3D/iVS3D.pro
 export PRI_FILE="$(dirname "$PRO_PATH")/3rdparty.pri"
+export PATH=$QT_PATH/bin:$PATH
 
 ./qdeploy_linux.sh

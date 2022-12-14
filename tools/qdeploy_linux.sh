@@ -184,6 +184,8 @@ check3rdpartypri() {
         * ) echo "Please answer yes or no.";;
       esac
     done
+  else
+    create3rdpartypri;
   fi
 }
 
