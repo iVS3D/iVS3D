@@ -93,11 +93,11 @@ The CUDA compute capabilities vary depending on the platform:
 
 ## Build from source
 
-[Build from source for windows](doc/build_win.md)
-
-[Build from source for linux](doc/build_linux.md)
-
 [Build from source with Qt Creator](doc/build_qtcreator.md)
+
+[Deploy from source for windows](doc/build_win.md)
+
+[Deploy from source for linux](doc/build_linux.md)
 
 ## Tests
 

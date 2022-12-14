@@ -1,15 +1,15 @@
-[Documentation](../README.md) / Build from source for linux
+[Documentation](../README.md) / Deploy from source for linux
 
-# Build from source for linux
-To build the project from source on a linux machine you can use the terminal or download Qt Creator from the official Qt website. If you want to use the Qt Creator follow our windows instructions [here](build_win.md). To use the terminal follow the instructions in this document.
+# Deploy from source for linux
+To build the project from source on a linux machine you can use the terminal or download Qt Creator from the official Qt website. If you want to use the Qt Creator follow our instructions [here](build_qtcreator.md). To use the terminal follow the instructions in this document.
 
-[Qt] 5.15.2 and [Gcc] have to be installed. Clone the iVS3D repository from our GitHub and download [OpenCV] 4.5.0. To build with CUDA you need an OpenCV build which supports CUDA. In this case download [NVIDIA CUDA Toolkit API] as well.
+[Qt] 5.12 and [Gcc] 7 have to be installed. Clone the iVS3D repository from our GitHub and download [OpenCV] 4.5.0. To build with CUDA you need an OpenCV build which supports CUDA. In this case download [NVIDIA CUDA Toolkit API] as well.
 
 Open the deploy.sh file we provide in the tools folder and set your paths in the variables-section:
 
 | variable     | value                     | required |
 |--------------|---------------------------|----------|
-| QT_PATH      | path/to/Qt/5.15.2/gcc_64  | yes      |
+| QT_PATH      | path/to/Qt/5.12/gcc_64    | yes      |
 | USE_CUDA     | ```true``` or ```false``` | yes      |
 | CUDA_PRI     | path/to/cuda.pri          | if USE_CUDA=```true``` |
 | OCV_PRI      | path/to/opencv.pri        | yes      |
@@ -20,7 +20,7 @@ Open the deploy.sh file we provide in the tools folder and set your paths in the
 
 Make sure you add the lib folders of OpenCV and Qt to your LD_LIBRARY_PATH above the variables as well!
 
-Save the changes and run it to deploy the application.
+Save the changes and run it to deploy the application. This script will automatically generate a _3rdparty.pri_ file with the information provided in the variables-section. 
 
 
   [OpenCV]: <https://github.com/opencv>
