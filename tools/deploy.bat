@@ -39,5 +39,9 @@ xcopy /s "build\src\plugins" "install\plugins\"
 
 cd install
 call "%QTDIR%\bin\windeployqt.exe" --libdir . --plugindir plugins iVS3D-core.exe
+for %%f in (plugins\*.dll) do (
+  call "%QTDIR%\bin\windeployqt.exe" --libdir . --plugindir plugins %%f
+)
+
 
 PAUSE
