@@ -20,6 +20,11 @@ echo "--------------------"
 echo "  $LD_LIBRARY_PATH"
 echo "--------------------"
 
+# Absolute path to this script, e.g. /home/user/bin/foo.sh
+SCRIPT=$(readlink -f "$0")
+# Absolute path this script is in, thus /home/user/bin
+SCRIPTPATH=$(dirname "$SCRIPT")
+
 buildapp() {
   mkdir -p $INSTALL_PATH/build
   cd $INSTALL_PATH/build
@@ -59,9 +64,11 @@ do
   then
     if [ ! -f "$2/$lib" ]
     then
-      echo "> cp $path $2/$lib"
-      cp "$path" "$2/$lib"
-      addlibs "lib/$lib" "$INSTALL_PATH/install/lib"
+      if ! grep -q "$lib" $SCRIPTPATH/excluded-libs.txt; then
+        echo "> cp $path $2/$lib"
+        cp "$path" "$2/$lib"
+        addlibs "lib/$lib" "$INSTALL_PATH/install/lib"
+      fi
     fi
   fi
 done
@@ -129,16 +136,6 @@ deployapp() {
         addlibs $files "$INSTALL_PATH/install/lib"
     done
   done
-
-  echo " "
-  echo "--------------------------------"
-  echo "--   setting opencv rpath     --"
-  echo "--------------------------------"
-
-  for OCV_FILE in lib/libopencv_*
-  do
-    patchelf --set-rpath '$ORIGIN' $OCV_FILE
-  done
   
   echo " "
   echo "--------------------------------"
@@ -151,7 +148,17 @@ deployapp() {
   do
     addlibs $qmlfile "$INSTALL_PATH/install/lib"
   done
-  rm -f $INSTALL_PATH/install/lib/libGL.so*
+
+  echo " "
+  echo "--------------------------------"
+  echo "--   setting rpath to ORIGIN  --"
+  echo "--------------------------------"
+
+  for OCV_FILE in "lib/*.so*"
+  do
+    patchelf --set-rpath '$ORIGIN' $OCV_FILE
+  done
+
   cat > $INSTALL_PATH/install/qt.conf << EOL
 [Paths]
 Prefix = ./

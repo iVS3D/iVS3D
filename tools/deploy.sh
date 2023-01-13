@@ -14,12 +14,17 @@ export OCV_PRI=/path/to/opencv.pri
 export APP_VERSION=1.3.3
 export APP_DATE=2022-12-03
 
+# Absolute path to this script, e.g. /home/user/bin/foo.sh
+SCRIPT=$(readlink -f "$0")
+# Absolute path this script is in, thus /home/user/bin
+SCRIPTPATH=$(dirname "$SCRIPT")
+
 # feel free to change the output path
-export INSTALL_PATH=$PWD/../Releases/iVS3D-${APP_VERSION}
+export INSTALL_PATH=$SCRIPTPATH/../Releases/iVS3D-${APP_VERSION}
 
 # path to iVS3D.pro and 3rdparty.pri, no need to touch this
-export PRO_PATH=$PWD/../iVS3D/iVS3D.pro
+export PRO_PATH=$SCRIPTPATH/../iVS3D/iVS3D.pro
 export PRI_FILE="$(dirname "$PRO_PATH")/3rdparty.pri"
 export PATH=$QT_PATH/bin:$PATH
 
-./qdeploy_linux.sh
+$SCRIPTPATH/qdeploy_linux.sh
