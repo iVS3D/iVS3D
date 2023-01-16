@@ -1,11 +1,9 @@
 #include "gpsreader.h"
 
-
-
-QList<QPointF> GPSReader::normaliseGPS(QList<QPointF> GPSvalues, double timeItervall, double fps, uint imageNumber)
+void GPSReader::normaliseGPS(double timeItervall, double fps, uint imageNumber)
 {
-
-    QList<QPointF> interpolatedGPS;
+    QList<QHash<QString, QVariant>> GPSHashsOld = m_GPSHashs;
+    m_GPSHashs.clear();
     //Caculate the timestamp of every frame
     QList<double> indexToTime;
     for (int i = 0; i < imageNumber; i++) {
@@ -18,20 +16,89 @@ QList<QPointF> GPSReader::normaliseGPS(QList<QPointF> GPSvalues, double timeIter
         //Calculate how far the timestamp is away from the first gps value -> for above value we need to interpolate with t=0.78 betwenn value 5 and 6
         double deltaT = (t / timeItervall) - aValue;
         //do the actuall interpolation
-        interpolatedGPS.append(interpolate(GPSvalues[aValue], GPSvalues[aValue+1], deltaT, timeItervall));
+        interpolate(GPSHashsOld.at(aValue), GPSHashsOld.at(aValue + 1), deltaT, timeItervall);
     }
 
-    return interpolatedGPS;
+}
+
+QVariant GPSReader::getImageMetaData(uint index)
+{
+    return m_GPSHashs[index];
+}
+
+QList<QVariant> GPSReader::getAllMetaData()
+{
+    QList<QVariant> values;
+    for (int i = 0; i < m_GPSHashs.size(); i++) {
+        values.append(m_GPSHashs[i]);
+    }
+    return values;
 }
 
 
-QPointF GPSReader::interpolate(QPointF a, QPointF b, double t, double stepsize) {
+void GPSReader::interpolate(QHash<QString, QVariant> a, QHash<QString, QVariant> b, double t, double stepsize)
+{
     //linear interpolation between values a and b
     Q_ASSERT(t <= stepsize);
-    double latitude = ((stepsize-t) * a.x()) + (t * b.x());
-    double longitude = ((stepsize-t) * a.y()) + (t * b.y());
+    //Get values and their ref
+    bool useAltitude = a.find(stringContainer::altitudeIdentifier) != a.end();
+    double latitudeA_abs = a.find(stringContainer::latitudeIdentifier).value().toDouble();
+    double latitudeA = (a.find(stringContainer::latitudeRefIdentifier).value().toString() == "N") ? latitudeA_abs : latitudeA_abs * -1;
+    double longitudeA_abs = a.find(stringContainer::longitudeIdentifier).value().toDouble();
+    double longitudeA = (a.find(stringContainer::longitudeRefIdentifier).value().toString() == "E") ? longitudeA_abs : longitudeA_abs * -1;
+    double altitudeA_abs = a.find(stringContainer::altitudeIdentifier).value().toDouble();
+    double altitudeA = (a.find(stringContainer::altitudeRefIdentifier).value().toString() == "0") ? altitudeA_abs : altitudeA_abs * -1;
+
+    double latitudeB_abs = b.find(stringContainer::latitudeIdentifier).value().toDouble();
+    double latitudeB = (b.find(stringContainer::latitudeRefIdentifier).value().toString() == "N") ? latitudeB_abs : latitudeB_abs * -1;
+    double longitudeB_abs = b.find(stringContainer::longitudeIdentifier).value().toDouble();
+    double longitudeB = (b.find(stringContainer::longitudeRefIdentifier).value().toString() == "E") ? longitudeB_abs : longitudeB_abs * -1;
+    double altitudeB_abs = b.find(stringContainer::altitudeIdentifier).value().toDouble();
+    double altitudeB = (b.find(stringContainer::altitudeRefIdentifier).value().toString() == "0") ? altitudeB_abs : altitudeB_abs * -1;
+
+    //interpolate lat,long and alt according to stepsize
+    double latitude = ((stepsize-t) * latitudeA) + (t * latitudeB);
+    double longitude = ((stepsize-t) * longitudeA) + (t * longitudeB);
+    double altitude = ((stepsize-t) * altitudeA) + (t * altitudeB);
     //round to 5 decimal places
     latitude = roundf(latitude * 100000) / 100000;
     longitude = roundf(longitude * 100000) / 100000;
-    return QPointF(latitude, longitude);
+    altitude = roundf(altitude * 100000) / 100000;
+
+    if (useAltitude) {
+        addGPSValue(latitude, longitude, altitude);
+    }
+    else {
+        addGPSValue(latitude, longitude);
+    }
+}
+
+void GPSReader::addGPSValue(double latitude, double longitude)
+{
+    QHash<QString, QVariant> newGPSHash;
+    QString latRef = (latitude > 0) ? stringContainer::latitudeNorth : stringContainer::latitudeSouth;
+    QString longRef = (longitude > 0) ? stringContainer::longitudeEast : stringContainer::longitudeWest;
+    //abs to safe positive values. latRef and longRef show orientation
+    newGPSHash.insert(stringContainer::latitudeIdentifier, QVariant(abs(latitude)));
+    newGPSHash.insert(stringContainer::longitudeIdentifier, QVariant(abs(longitude)));
+    newGPSHash.insert(stringContainer::latitudeRefIdentifier, QVariant(latRef));
+    newGPSHash.insert(stringContainer::longitudeRefIdentifier, QVariant(longRef));
+    m_GPSHashs.push_back(newGPSHash);
+}
+
+void GPSReader::addGPSValue(double latitude, double longitude, double altitude)
+{
+    QHash<QString, QVariant> newGPSHash;
+    QString latRef = (latitude > 0) ? stringContainer::latitudeNorth : stringContainer::latitudeSouth;
+    QString longRef = (longitude > 0) ? stringContainer::longitudeEast : stringContainer::longitudeWest;
+    QString altRef = (altitude > 0) ? stringContainer::altitudeAboveSea : stringContainer::altitudeBelowSea;
+    //abs to safe positive values. latRef and longRef show orientation
+    newGPSHash.insert(stringContainer::latitudeIdentifier, QVariant(abs(latitude)));
+    newGPSHash.insert(stringContainer::longitudeIdentifier, QVariant(abs(longitude)));
+    newGPSHash.insert(stringContainer::latitudeRefIdentifier, QVariant(latRef));
+    newGPSHash.insert(stringContainer::longitudeRefIdentifier, QVariant(longRef));
+    newGPSHash.insert(stringContainer::altitudeIdentifier, QVariant(abs(altitude)));
+    newGPSHash.insert(stringContainer::altitudeRefIdentifier, QVariant(altRef));
+
+    m_GPSHashs.push_back(newGPSHash);
 }

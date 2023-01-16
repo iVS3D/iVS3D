@@ -1,4 +1,5 @@
 #include "gpsreaderdji.h"
+#include "qdebug.h"
 
 
 
@@ -9,8 +10,7 @@ GPSReaderDJI::GPSReaderDJI()
 
 GPSReaderDJI::~GPSReaderDJI()
 {
-    m_GPSvalues.clear();
-    m_GPSvaluesInterpolated.clear();
+    m_GPSHashs.clear();
 }
 
 QString GPSReaderDJI::getName()
@@ -18,19 +18,6 @@ QString GPSReaderDJI::getName()
     return m_name;
 }
 
-QVariant GPSReaderDJI::getImageMetaData(uint index)
-{
-    return m_GPSvaluesInterpolated[index];
-}
-
-QList<QVariant> GPSReaderDJI::getAllMetaData()
-{
-    QList<QVariant> values;
-    for (int i = 0; i < m_GPSvaluesInterpolated.size(); i++) {
-        values.append(m_GPSvaluesInterpolated[i]);
-    }
-    return values;
-}
 
 bool GPSReaderDJI::parseDataVideo(QString path, int picCount, double fps)
 {
@@ -38,7 +25,7 @@ bool GPSReaderDJI::parseDataVideo(QString path, int picCount, double fps)
     if (fps == -1) {
         return false;
     }
-    m_GPSvalues.clear();
+    m_GPSHashs.clear();
     QFile metaFile(path);
 
     if (!metaFile.open(QIODevice::ReadOnly | QIODevice::Text))
@@ -66,22 +53,60 @@ bool GPSReaderDJI::parseDataVideo(QString path, int picCount, double fps)
         }
 
     }
-    m_GPSvaluesInterpolated = normaliseGPS(m_GPSvalues, 1, fps, picCount);
-    return m_GPSvaluesInterpolated.size() == picCount;
+    normaliseGPS(1, fps, picCount);
+    return m_GPSHashs.size() == picCount;
 }
 
 
 bool GPSReaderDJI::parseLine(QString line)
 {
-    QRegularExpression matchGPS("(\\d{0,2}.\\d{4}),(\\d{0,2}.\\d{4})");
+    QHash<QString, QVariant> newGPSHash;
+    QRegularExpression matchAltitudeGPS("BAROMETER:(\\d{1,5}.\\d{1,5})M");
+    QRegularExpressionMatch matchAltitude = matchAltitudeGPS.match(line);
+    double altitude;
+    double latitude;
+    double longitude;
+    bool useAltitude = false;
+    if (matchAltitude.hasMatch()) {
+        useAltitude = true;
+        altitude = matchAltitude.captured(1).toDouble();
+    }
+    QRegularExpression matchGPS("(-{0,1}\\d{0,2}.\\d{4}),(-{0,1}\\d{0,2}.\\d{4})");
     QRegularExpressionMatch match = matchGPS.match(line);
     if (match.hasMatch()) {
-        double latitude = match.captured(1).toDouble();
-        double longitude = match.captured(2).toDouble();
-        m_GPSvalues.append(QPointF(latitude, longitude));
+        latitude = match.captured(1).toDouble();
+        longitude = match.captured(2).toDouble();
+
+        if (useAltitude) {
+            addGPSValue(latitude, longitude, altitude);
+        }
+        else {
+            addGPSValue(latitude, longitude);
+        }
         return true;
     }
     else return false;
 
 
+}
+
+void GPSReaderDJI::print(QList<QHash<QString, QVariant> > a, QString path)
+{
+    QString line;
+    for(QHash<QString, QVariant> values : a) {
+        double latitudeA = values.find(stringContainer::latitudeIdentifier).value().toDouble();
+        double longitudeA = values.find(stringContainer::longitudeIdentifier).value().toDouble();
+        double altitudeA = values.find(stringContainer::altitudeIdentifier).value().toDouble();
+        line.append(QString::number(latitudeA));
+        line.append(",");
+        line.append(QString::number(longitudeA));
+        line.append(",");
+        line.append(QString::number(altitudeA));
+        line.append("\n");
+    }
+    QFile file(path);
+    if (file.open(QIODevice::WriteOnly)) {
+      QTextStream out(&file); out << line;
+      file.close();
+    }
 }

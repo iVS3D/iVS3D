@@ -77,3 +77,16 @@ const QString stringContainer::logKeyframesIdentifier = "Keyframes";
 //      custom area
 const QString stringContainer::logCustomIdentifier = "Custom";
 const QString stringContainer::logTypeIdentifier = "Type";
+//      GPS meta data
+const QString stringContainer::latitudeIdentifier = "GPSLatitude";
+const QString stringContainer::longitudeIdentifier = "GPSLongitude";
+const QString stringContainer::altitudeIdentifier = "GPSAltitude";
+const QString stringContainer::altitudeRefIdentifier = "GPSAltitudeRef";
+const QString stringContainer::latitudeRefIdentifier = "GPSLatitudeRef";
+const QString stringContainer::longitudeRefIdentifier = "GPSLongitudeRef";
+const QString stringContainer::latitudeSouth = "S";
+const QString stringContainer::latitudeNorth = "N";
+const QString stringContainer::longitudeEast = "E";
+const QString stringContainer::longitudeWest = "W";
+const QString stringContainer::altitudeAboveSea = "0";
+const QString stringContainer::altitudeBelowSea = "1";

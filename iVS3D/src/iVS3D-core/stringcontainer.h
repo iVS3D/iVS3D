@@ -89,6 +89,19 @@ struct stringContainer
     //      custom area
     static const QString logCustomIdentifier;
     static const QString logTypeIdentifier;
+    //      GPS meta data
+    static const QString latitudeIdentifier;
+    static const QString longitudeIdentifier;
+    static const QString altitudeIdentifier;
+    static const QString latitudeRefIdentifier;
+    static const QString longitudeRefIdentifier;
+    static const QString altitudeRefIdentifier;
+    static const QString latitudeSouth;
+    static const QString latitudeNorth;
+    static const QString longitudeEast;
+    static const QString longitudeWest;
+    static const QString altitudeAboveSea;
+    static const QString altitudeBelowSea;
 };
 
 #endif // STRINGCONTAINER_H

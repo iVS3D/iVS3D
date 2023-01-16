@@ -3,6 +3,7 @@
 
 #include "gpsreader.h"
 #include "metadatamanager.h"
+#include "stringcontainer.h"
 #include <QVariant>
 #include <QFile>
 #include <QRegularExpression>
@@ -31,17 +32,7 @@ public:
      * @return Name of meta data
      */
     QString getName();
-    /**
-     * @brief getImageMetaData Returns parsed meta data from the index images
-     * @param index Index of the image to get the meat data from
-     * @return QVaraint containing the meta data
-     */
-    QVariant getImageMetaData(uint index);
-    /**
-     * @brief getAllMetaData Returns all meta data in the same order as the images ar
-     * @return QList with the meta data from all images
-     */
-    QList<QVariant> getAllMetaData();
+
     /**
      * @brief parseData Tries to load meta data from the given file
      * @param path Path to the meat data file
@@ -54,10 +45,7 @@ public:
 private:
     bool parseLine(QString line);
     QString m_name = "GPSReaderDJI";
-    QString m_path;
-    QList<QPointF> m_GPSvalues;
-    QList<QPointF> m_GPSvaluesInterpolated;
-
+    void print(QList<QHash<QString, QVariant>> a, QString path);
 };
 
 REGISTER_METAREADER("GPSReaderDJI", GPSReaderDJI)

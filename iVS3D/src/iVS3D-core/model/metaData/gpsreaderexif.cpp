@@ -8,7 +8,7 @@ GPSReaderExif::GPSReaderExif()
 
 GPSReaderExif::~GPSReaderExif()
 {
-    m_GPSvalues.clear();
+    m_GPSHashs.clear();
 }
 
 QString GPSReaderExif::getName()
@@ -16,19 +16,6 @@ QString GPSReaderExif::getName()
     return m_name;
 }
 
-QVariant GPSReaderExif::getImageMetaData(uint index)
-{
-    return m_GPSvalues[index];
-}
-
-QList<QVariant> GPSReaderExif::getAllMetaData()
-{
-    QList<QVariant> values;
-    for (int i = 0; i < m_GPSvalues.size(); i++) {
-        values.append(m_GPSvalues[i]);
-    }
-    return values;
-}
 
 bool GPSReaderExif::parseDataImage(std::vector<std::string> paths)
 {
@@ -56,11 +43,13 @@ bool GPSReaderExif::parseDataImage(std::vector<std::string> paths)
           return false;
         }
 
-        QPointF gps = QPointF(data.GeoLocation.Latitude, data.GeoLocation.Longitude);
-        if (gps.x() == 0 && gps.y() == 0) {
-            return false;
+        if (data.GeoLocation.Altitude == 0) {
+            addGPSValue(data.GeoLocation.Latitude, data.GeoLocation.Longitude);
         }
-        m_GPSvalues.append(gps);
+        else {
+           addGPSValue(data.GeoLocation.Latitude, data.GeoLocation.Longitude, data.GeoLocation.Altitude);
+        }
+
     }
     return true;
 }
