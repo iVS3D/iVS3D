@@ -18,6 +18,7 @@
 #include "modelinputpictures.h"
 #include "itransform.h"
 #include "progressable.h"
+#include "exportexif.h"
 
 
 /**
@@ -72,6 +73,7 @@ private:
     std::vector<ITransform*> m_iTransformCopies;
     LogFile *m_logFile;
     int m_progress = 0;
+    ExportExif* m_exportExif;
 
     void reportProgress();
     cv::Mat resizeCrop(cv::Mat image, cv::Size resize, bool useResize, cv::Rect crop, bool useCrop);

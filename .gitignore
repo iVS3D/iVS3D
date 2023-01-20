@@ -122,3 +122,6 @@ Releases
 !*resourceloader.pri
 !*setrpath.pri
 !*prebuild_cmds.pri
+
+*_private.cpp
+*_private.h

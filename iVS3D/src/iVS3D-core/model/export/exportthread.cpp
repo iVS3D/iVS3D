@@ -16,6 +16,8 @@ ExportThread::ExportThread(Progressable* receiver, ModelInputPictures* mip, QPoi
 
     // log general info
     m_logFile->setInputInfo(m_keyframes);
+
+    m_exportExif = new ExportExif();
 }
 
 ExportThread::~ExportThread()
@@ -256,9 +258,11 @@ bool ExportThread::exportImages(cv::Mat image, int iTransformCopiesSize, const Q
             if (isDirImages) {
                 //Get name of the current keyframe
                 QString keyframeName = QString::fromStdString(imageFiles[currentKeyframe]);
-                QFileInfo file(keyframeName);
-                QString newFileName = file.baseName().append(".png");
-                imgPath.append(newFileName);
+                QStringList splitedName = keyframeName.split("/");
+                imgPath.append(splitedName.back());
+                //QFileInfo file(keyframeName);
+                //QString newFileName = file.baseName().append(".png");
+                //imgPath.append(newFileName);
             }
             else {
                 //If input is a video images are numbered based on their index
@@ -298,7 +302,7 @@ bool ExportThread::exportImages(cv::Mat image, int iTransformCopiesSize, const Q
                     iTransformOutPath.append(splitedName.back());
                 }
                 else {
-                    iTransformOutPath.append(QString::number(currentKeyframe, 10).rightJustified(8, '0').append(".png"));
+                    iTransformOutPath.append(QString::number(currentKeyframe, 10).rightJustified(8, '0').append(".jpeg"));
                 }
 
                 //write image on disk
@@ -325,215 +329,14 @@ bool ExportThread::exportImages(cv::Mat image, int iTransformCopiesSize, const Q
     }
 
 
-    QPointF gpsData = gpsReader->getImageMetaData(currentKeyframe).toPointF();
+    QVariant gpsData = gpsReader->getImageMetaData(currentKeyframe);
     QMutexLocker locker(&m_mutex);
 
     QElapsedTimer timer;
     timer.start();
 
-    double latitude = gpsData.x();
-    double degreeLatitude = int(latitude);
-    double minutesLatitude = int((latitude - degreeLatitude) * 60);
-    double secondsLatitude = int((latitude - degreeLatitude - (minutesLatitude/60)) * 3600);
-    //If latitude > 0 it is in the north, south otherwise
-    char latitudeRef = (latitude > 0) ? 'N' : 'S';
+    char* exifData = m_exportExif->saveExif(imgPath, gpsData);
 
-
-    double longitude = gpsData.y();
-    double degreeLongitude = int(longitude);
-    double minutesLongitude= int((longitude - degreeLongitude) * 60);
-    double secondsLongitude= int((longitude - degreeLongitude - (minutesLongitude/60)) * 3600);
-    //If longitude > 0 it is in the east, south west
-    char longitudeRef = (longitude > 0) ? 'E' : 'W';
-
-
-    unsigned char * exifData = new unsigned char[140];
-    //4Bytes length of Data Only (without this, tag and crc) --> 137 - 9 = 128 (Big endian)
-    exifData[0] = 0x00;
-    exifData[1] = 0x00;
-    exifData[2] = 0x00;
-    exifData[3] = 0x80;
-    //eXIf Tag PNG --> eXIf
-    exifData[4] = 101;
-    exifData[5] = 88;
-    exifData[6] = 73;
-    exifData[7] = 102;
-    //Start of Data
-    // II tag
-    exifData[8] = 0x49;
-    exifData[9] = 0x49;
-    //Algin bytes 0x2A00
-    exifData[10] = 0x2A;
-    exifData[11] = 0x00;
-    //Offset to first ifd (4 Bytes) --> total of 8 bytes offset
-    exifData[12] = 0x08;
-    exifData[13] = 0x00;
-    exifData[14] = 0x00;
-    exifData[15] = 0x00;
-    //Count of IFD, 2 bytes --> only gps ifd
-    exifData[16] = 0x01;
-    exifData[17] = 0x00;
-    //GPS IFD Tag , 12Bytes
-    exifData[18] = 0x25;
-    exifData[19] = 0x88;
-    //Type
-    exifData[20] = 0x04;
-    exifData[21] = 0x00;
-    //Count
-    exifData[22] = 0x01;
-    exifData[23] = 0x00;
-    exifData[24] = 0x00;
-    exifData[25] = 0x00;
-    //Value -> Pointer to gps tags
-    exifData[26] = 0x1A;
-    exifData[27] = 0x00;
-    exifData[28] = 0x00;
-    exifData[29] = 0x00;
-    //4 Byte offset to new segment
-    exifData[30] = 0x00;
-    exifData[31] = 0x00;
-    exifData[32] = 0x00;
-    exifData[33] = 0x00;
-    //Count of new segment = 4 (Lat, LatRef, Long, LongRef)
-    exifData[34] = 0x04;
-    exifData[35] = 0x00;
-    //GPS LatitudeRef -> 12 bytes, tag 01
-    exifData[36] = 0x01;
-    exifData[37] = 0x00;
-    //Ascii type
-    exifData[38] = 0x02;
-    exifData[39] = 0x00;
-    //Count 2
-    exifData[40] = 0x02;
-    exifData[41] = 0x00;
-    exifData[42] = 0x00;
-    exifData[43] = 0x00;
-    //Value -> N or S
-    exifData[44] = latitudeRef;
-    exifData[45] = 0x00;
-    exifData[46] = 0x00;
-    exifData[47] = 0x00;
-    //GPS Latitude -> 12 bytes, tag 02
-    exifData[48] = 0x02;
-    exifData[49] = 0x00;
-    //rational type
-    exifData[50] = 0x05;
-    exifData[51] = 0x00;
-    //Count 3 (deg,h,s)
-    exifData[52] = 0x03;
-    exifData[53] = 0x00;
-    exifData[54] = 0x00;
-    exifData[55] = 0x00;
-    //Pointer to actual values (This should always fit here)
-    exifData[56] = 0x50;
-    exifData[57] = 0x00;
-    exifData[58] = 0x00;
-    exifData[59] = 0x00;
-    //GPS LongitudeRef -> 12 bytes, tag 03
-    exifData[60] = 0x03;
-    exifData[61] = 0x00;
-    //Ascii type
-    exifData[62] = 0x02;
-    exifData[63] = 0x00;
-    //Count 2
-    exifData[64] = 0x02;
-    exifData[65] = 0x00;
-    exifData[66] = 0x00;
-    exifData[67] = 0x00;
-    //Value -> E or W
-    exifData[68] = longitudeRef;
-    exifData[69] = 0x00;
-    exifData[70] = 0x00;
-    exifData[71] = 0x00;
-    //GPS Longitude -> 12 bytes, tag 04
-    exifData[72] = 0x04;
-    exifData[73] = 0x00;
-    //Rational type
-    exifData[74] = 0x05;
-    exifData[75] = 0x00;
-    //Count 3 (deg,h,s)
-    exifData[76] = 0x03;
-    exifData[77] = 0x00;
-    exifData[78] = 0x00;
-    exifData[79] = 0x00;
-    //Pointer to actual values (This should always fit here)
-    exifData[80] = 0x68;
-    exifData[81] = 0x00;
-    exifData[82] = 0x00;
-    exifData[83] = 0x00;
-    //4 byte offset to data segment
-    exifData[84] = 0x00;
-    exifData[85] = 0x00;
-    exifData[86] = 0x00;
-    exifData[87] = 0x00;
-    //Pointer to Latitude Data -> 3 rational with 2x4 bytes each -> second 4 byte block is always 1
-    //Degree numerator
-    exifData[88] = degreeLatitude;
-    exifData[89] = 0x00;
-    exifData[90] = 0x00;
-    exifData[91] = 0x00;
-    //Degree denumerator
-    exifData[92] = 0x01;
-    exifData[93] = 0x00;
-    exifData[94] = 0x00;
-    exifData[95] = 0x00;
-    //Minutes numerator TODO
-    exifData[96] = minutesLatitude;
-    exifData[97] = 0x00;
-    exifData[98] = 0x00;
-    exifData[99] = 0x00;
-    //Minutes denumerator
-    exifData[100] = 0x01;
-    exifData[101] = 0x00;
-    exifData[102] = 0x00;
-    exifData[103] = 0x00;
-    //Seconds numerator
-    exifData[104] = secondsLatitude;
-    exifData[105] = 0x00;
-    exifData[106] = 0x00;
-    exifData[107] = 0x00;
-    //Seconds denumerator
-    exifData[108] = 0x01;
-    exifData[109] = 0x00;
-    exifData[110] = 0x00;
-    exifData[111] = 0x00;
-    //Pointer to Longitude Data -> 3 rational with 2x4 bytes each -> second 4 byte block is always 1
-    //Degree numerator TODO
-    exifData[112] = degreeLongitude;
-    exifData[113] = 0x00;
-    exifData[114] = 0x00;
-    exifData[115] = 0x00;
-    //Degree denumerator
-    exifData[116] = 0x01;
-    exifData[117] = 0x00;
-    exifData[118] = 0x00;
-    exifData[119] = 0x00;
-    //Minutes numerator
-    exifData[120] = minutesLongitude;
-    exifData[121] = 0x00;
-    exifData[122] = 0x00;
-    exifData[123] = 0x00;
-    //Minutes denumerator
-    exifData[124] = 0x01;
-    exifData[125] = 0x00;
-    exifData[126] = 0x00;
-    exifData[127] = 0x00;
-    //Seconds numerator
-    exifData[128] = secondsLongitude;
-    exifData[129] = 0x00;
-    exifData[130] = 0x00;
-    exifData[131] = 0x00;
-    //Seconds denumerator
-    exifData[132] = 0x01;
-    exifData[133] = 0x00;
-    exifData[134] = 0x00;
-    exifData[135] = 0x00;
-    //End of Data
-    //CRC over exifData --> without length field
-    exifData[136] = 0x00;//0x26;
-    exifData[137] = 0x00;//0x69;
-    exifData[138] = 0x00;//0x47;
-    exifData[139] = 0x00;//0x8B;
 
     std::FILE *file = std::fopen(imgPath.toStdString().c_str(), "rb");
     if (!file) {
@@ -549,14 +352,33 @@ bool ExportThread::exportImages(cv::Mat image, int iTransformCopiesSize, const Q
     }
     std::fclose(file);
 
-    char* newData= new char[fileSize + 140];
-    //8Byte start png + 4byte IHDR length + 4byte IHDR tag + 13byte IHDR data + 4 byte IHDR crc = 33 byte
-    std::memcpy(&newData[0], &fileData[0], 33);
-    std::memcpy(&newData[33], &exifData[0], 140);
-    std::memcpy(&newData[33+140], &fileData[33], fileSize - 33);
+    char* newData;
+    int size = m_exportExif->getExifSize();
+    QFileInfo info(imgPath);
+    QString fileExtension = info.completeSuffix().toLower();
+    if (fileExtension == "jpeg" || fileExtension == "jpg") {
+        //JPEG
+        newData= new char[fileSize + size];
+        //2Byte Offset : FF D8
+        std::memcpy(&newData[0], &fileData[0], 2);
+        std::memcpy(&newData[2], &exifData[0], size);
+        std::memcpy(&newData[2 + size], &fileData[2], fileSize - 2);
+    }
+    else if (fileExtension == "png") {
+        //PNG
+        newData= new char[fileSize + size];
+        //8Byte start png + 4byte IHDR length + 4byte IHDR tag + 13byte IHDR data + 4 byte IHDR crc = 33 byte Offset
+        std::memcpy(&newData[0], &fileData[0], 33);
+        std::memcpy(&newData[33], &exifData[0], size);
+        std::memcpy(&newData[33 + size], &fileData[33], fileSize - 33);
+    }
+    else {
+        return true;
+    }
+
 
     std::ofstream f(imgPath.toStdString().c_str(), std::ofstream::binary);
-    f.write((char *)&newData[0], fileSize + 140);
+    f.write((char *)&newData[0], fileSize + 170);
     qDebug() << "Time needed: " << timer.elapsed();
     return true;
 }
