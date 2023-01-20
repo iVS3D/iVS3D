@@ -5,6 +5,7 @@
 #include <QVariant>
 #include <QFileInfo>
 #include "stringcontainer.h"
+#include <cstring>
 
 class ExportExif
 {
