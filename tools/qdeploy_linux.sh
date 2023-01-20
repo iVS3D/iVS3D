@@ -154,8 +154,10 @@ deployapp() {
   echo "--   setting rpath to ORIGIN  --"
   echo "--------------------------------"
 
-  for OCV_FILE in "lib/*.so*"
+  LIB_FILES="$INSTALL_PATH/install/lib/lib*"
+  for OCV_FILE in $LIB_FILES
   do
+    echo "adding rpath to $OCV_FILE"
     patchelf --set-rpath '$ORIGIN' $OCV_FILE
   done
 
