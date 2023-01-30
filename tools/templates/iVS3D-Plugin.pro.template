@@ -1,0 +1,46 @@
+QT += core gui
+
+greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+
+TARGET = <NAME>
+
+CONFIG += c++11
+
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../iVS3D-core/release -liVS3D-pluginInterface
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../iVS3D-core/debug -liVS3D-pluginInterface
+else:unix: LIBS += -L$$OUT_PWD/../iVS3D-core -liVS3D-pluginInterface
+
+INCLUDEPATH += \
+    ../iVS3D-pluginInterface \
+    ../iVS3D-core \
+    ../iVS3D-core/model \
+    ../iVS3D-core/model/reader \
+    ../iVS3D-core/model/metaData \
+    ../iVS3D-core/model/log \
+    ../iVS3D-core/plugin
+
+SOURCES += \
+    <NAME_LOWER>.cpp
+
+HEADERS += \
+    cvmat_qmetadata.h \
+    <NAME_LOWER>.h
+
+TEMPLATE = lib
+CONFIG += plugin
+
+TRANSLATIONS += \
+    $$PWD/translations/<NAME_LOWER>_en.ts \
+    $$PWD/translations/<NAME_LOWER>_de.ts
+
+unix:system(lrelease $$PWD/translations/*.ts)
+
+RESOURCES += \
+    resources.qrc
+
+# create .dll in plugins folder
+DESTDIR = ../plugins
+
+include(../../3rdparty.pri)
+
+FORMS +=
