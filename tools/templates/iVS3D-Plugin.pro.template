@@ -2,7 +2,7 @@ QT += core gui
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-TARGET = <NAME>
+TARGET = <-NAME->
 
 CONFIG += c++11
 
@@ -20,18 +20,18 @@ INCLUDEPATH += \
     ../iVS3D-core/plugin
 
 SOURCES += \
-    <NAME_LOWER>.cpp
+    <-NAME_LOWER->.cpp
 
 HEADERS += \
     cvmat_qmetadata.h \
-    <NAME_LOWER>.h
+    <-NAME_LOWER->.h
 
 TEMPLATE = lib
 CONFIG += plugin
 
 TRANSLATIONS += \
-    $$PWD/translations/<NAME_LOWER>_en.ts \
-    $$PWD/translations/<NAME_LOWER>_de.ts
+    $$PWD/translations/<-NAME_LOWER->_en.ts \
+    $$PWD/translations/<-NAME_LOWER->_de.ts
 
 unix:system(lrelease $$PWD/translations/*.ts)
 

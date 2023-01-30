@@ -6,7 +6,7 @@ if [%NAME%]==[] (
     goto end
 )
 
-set MODULE_PATH=%cd%\..\iVS3D\src\iVS3D-%NAME%Plugin
+set MODULE_PATH=%~dp0\..\iVS3D\src\iVS3D-%NAME%Plugin
 if exist %MODULE_PATH%\ (
     echo A plugin with this name already exists: '%MODULE_PATH%'!
     echo Use a unique name!
@@ -28,7 +28,7 @@ mkdir %MODULE_PATH%
 
 :: Create PRO-file:
 echo Creating pro-file
-set TEMPLATE_FILE_PRO=%cd%\templates\iVS3D-Plugin.pro.template
+set TEMPLATE_FILE_PRO=%~dp0\templates\iVS3D-Plugin.pro.template
 :: Create new empty file
 type nul > "%MODULE_PATH%/iVS3D-%NAME%Plugin.pro"
 
@@ -37,9 +37,9 @@ SETLOCAL DisableDelayedExpansion
 FOR /F "usebackq delims=" %%a in (`"findstr /n ^^ %TEMPLATE_FILE_PRO%"`) do (
     set "var=%%a"
     SETLOCAL EnableDelayedExpansion
-    :: replace <NAME>, <NAME_LOWER> and format
-    set "var=!var:<NAME>=%NAME%!"
-    set "var=!var:<NAME_LOWER>=%NAME_LOWER%!"
+    :: replace <-NAME->, <-NAME_LOWER-> and format
+    set "var=!var:<-NAME->=%NAME%!"
+    set "var=!var:<-NAME_LOWER->=%NAME_LOWER%!"
     set "var=!var:*:=!"
     :: write updated line to pro file
     if [!var!]==[] (echo: >> "%MODULE_PATH%/iVS3D-%NAME%Plugin.pro") else (echo !var! >> "%MODULE_PATH%/iVS3D-%NAME%Plugin.pro")
@@ -48,7 +48,7 @@ FOR /F "usebackq delims=" %%a in (`"findstr /n ^^ %TEMPLATE_FILE_PRO%"`) do (
 
 :: Create QRC-file:
 echo Creating resources.qrc-file
-set TEMPLATE_FILE_QRC=%cd%\templates\resources.qrc.template
+set TEMPLATE_FILE_QRC=%~dp0\templates\resources.qrc.template
 :: Create new empty file
 type nul > "%MODULE_PATH%/resources.qrc"
 
@@ -57,9 +57,9 @@ SETLOCAL DisableDelayedExpansion
 FOR /F "usebackq delims=" %%a in (`"findstr /n ^^ %TEMPLATE_FILE_QRC%"`) do (
     set "var=%%a"
     SETLOCAL EnableDelayedExpansion
-    :: replace <NAME>, <NAME_LOWER> and format
-    set "var=!var:<NAME>=%NAME%!"
-    set "var=!var:<NAME_LOWER>=%NAME_LOWER%!"
+    :: replace <-NAME->, <-NAME_LOWER-> and format
+    set "var=!var:<-NAME->=%NAME%!"
+    set "var=!var:<-NAME_LOWER->=%NAME_LOWER%!"
     set "var=!var:*:=!"
     :: write updated line to pro file
     if [!var!]==[] (echo: >> "%MODULE_PATH%/resources.qrc") else (echo !var! >> "%MODULE_PATH%/resources.qrc")
@@ -70,10 +70,50 @@ FOR /F "usebackq delims=" %%a in (`"findstr /n ^^ %TEMPLATE_FILE_QRC%"`) do (
 echo Creating translations-folder
 mkdir %MODULE_PATH%\translations
 
+:: Create translations-DE:
+echo Creating translations-DE
+set TEMPLATE_FILE_DE=%~dp0\templates\translations_de.ts.template
+:: Create new empty file
+type nul > "%MODULE_PATH%\translations\%NAME_LOWER%_de.ts"
+
+:: iterate template line by line
+SETLOCAL DisableDelayedExpansion
+FOR /F "usebackq delims=" %%a in (`"findstr /n ^^ %TEMPLATE_FILE_DE%"`) do (
+    set "var=%%a"
+    SETLOCAL EnableDelayedExpansion
+    :: replace <-NAME->, <-NAME_LOWER-> and format
+    set "var=!var:<-NAME->=%NAME%!"
+    set "var=!var:<-NAME_LOWER->=%NAME_LOWER%!"
+    set "var=!var:*:=!"
+    :: write updated line to pro file
+    if [!var!]==[] (echo: >> "%MODULE_PATH%\translations\%NAME_LOWER%_de.ts") else (echo !var! >> "%MODULE_PATH%\translations\%NAME_LOWER%_de.ts")
+    ENDLOCAL
+)
+
+:: Create translations-EN:
+echo Creating translations-EN
+set TEMPLATE_FILE_EN=%~dp0\templates\translations_en.ts.template
+:: Create new empty file
+type nul > "%MODULE_PATH%\translations\%NAME_LOWER%_en.ts"
+
+:: iterate template line by line
+SETLOCAL DisableDelayedExpansion
+FOR /F "usebackq delims=" %%a in (`"findstr /n ^^ %TEMPLATE_FILE_EN%"`) do (
+    set "var=%%a"
+    SETLOCAL EnableDelayedExpansion
+    :: replace <-NAME->, <-NAME_LOWER-> and format
+    set "var=!var:<-NAME->=%NAME%!"
+    set "var=!var:<-NAME_LOWER->=%NAME_LOWER%!"
+    set "var=!var:*:=!"
+    :: write updated line to pro file
+    if [!var!]==[] (echo: >> "%MODULE_PATH%\translations\%NAME_LOWER%_en.ts") else (echo !var! >> "%MODULE_PATH%\translations\%NAME_LOWER%_en.ts")
+    ENDLOCAL
+)
+
 :: Create Header-files:
 echo Creating .h-file
 
-set TEMPLATE_FILE_H=%cd%\templates\plugin.h.template
+set TEMPLATE_FILE_H=%~dp0\templates\plugin.h.template
 :: Create new empty file
 type nul > "%MODULE_PATH%/%NAME_LOWER%.h"
 :: iterate template line by line
@@ -81,10 +121,10 @@ SETLOCAL DisableDelayedExpansion
 FOR /F "usebackq delims=" %%a in (`"findstr /n ^^ %TEMPLATE_FILE_H%"`) do (
     set "var=%%a"
     SETLOCAL EnableDelayedExpansion
-    :: replace <NAME>, <NAME_LOWER> and format
-    set "var=!var:<NAME>=%NAME%!"
-    set "var=!var:<NAME_LOWER>=%NAME_LOWER%!"
-    set "var=!var:<NAME_UPPER>=%NAME_UPPER%!"
+    :: replace <-NAME->, <-NAME_LOWER-> and format
+    set "var=!var:<-NAME->=%NAME%!"
+    set "var=!var:<-NAME_LOWER->=%NAME_LOWER%!"
+    set "var=!var:<-NAME_UPPER->=%NAME_UPPER%!"
     set "var=!var:*:=!"
     :: write updated line to pro file
     if [!var!]==[] (echo: >> "%MODULE_PATH%/%NAME_LOWER%.h") else (echo !var! >> "%MODULE_PATH%/%NAME_LOWER%.h")
@@ -94,7 +134,7 @@ FOR /F "usebackq delims=" %%a in (`"findstr /n ^^ %TEMPLATE_FILE_H%"`) do (
 :: Create Source-files:
 echo Creating .cpp-file
 
-set TEMPLATE_FILE_CPP=%cd%\templates\plugin.cpp.template
+set TEMPLATE_FILE_CPP=%~dp0\templates\plugin.cpp.template
 :: Create new empty file
 type nul > "%MODULE_PATH%/%NAME_LOWER%.cpp"
 :: iterate template line by line
@@ -102,10 +142,10 @@ SETLOCAL DisableDelayedExpansion
 FOR /F "usebackq delims=" %%a in (`"findstr /n ^^ %TEMPLATE_FILE_CPP%"`) do (
     set "var=%%a"
     SETLOCAL EnableDelayedExpansion
-    :: replace <NAME>, <NAME_LOWER> and format
-    set "var=!var:<NAME>=%NAME%!"
-    set "var=!var:<NAME_LOWER>=%NAME_LOWER%!"
-    set "var=!var:<NAME_UPPER>=%NAME_UPPER%!"
+    :: replace <-NAME->, <-NAME_LOWER-> and format
+    set "var=!var:<-NAME->=%NAME%!"
+    set "var=!var:<-NAME_LOWER->=%NAME_LOWER%!"
+    set "var=!var:<-NAME_UPPER->=%NAME_UPPER%!"
     set "var=!var:*:=!"
     :: write updated line to pro file
     if [!var!]==[] (echo: >> "%MODULE_PATH%/%NAME_LOWER%.cpp") else (echo !var! >> "%MODULE_PATH%/%NAME_LOWER%.cpp")
@@ -113,8 +153,8 @@ FOR /F "usebackq delims=" %%a in (`"findstr /n ^^ %TEMPLATE_FILE_CPP%"`) do (
 )
 
 :: add as subdir project to iVS3D/src/src.pro
-echo SUBDIRS += iVS3D-%NAME%Plugin >> %cd%\..\iVS3D\src\src.pro
-echo iVS3D-%NAME%Plugin.depends = iVS3D-pluginInterface >> %cd%\..\iVS3D\src\src.pro
+echo SUBDIRS += iVS3D-%NAME%Plugin >> %~dp0\..\iVS3D\src\src.pro
+echo iVS3D-%NAME%Plugin.depends = iVS3D-pluginInterface >> %~dp0\..\iVS3D\src\src.pro
 
 :end
 pause

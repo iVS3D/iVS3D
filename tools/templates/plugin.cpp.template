@@ -1,20 +1,20 @@
-#include "<NAME_LOWER>.h" 
+#include "<-NAME_LOWER->.h" 
 
-<NAME>::<NAME>() 
+<-NAME->::<-NAME->() 
 { 
     QTranslator* translator = new QTranslator(); 
-    translator->load(QLocale::system(), "<NAME_LOWER>", "_", ":/translations", ".qm"); 
+    translator->load(QLocale::system(), "<-NAME_LOWER->", "_", ":/translations", ".qm"); 
     qApp->installTranslator(translator); 
     m_survivalProbability = 1.0;
     m_settingsWidget = nullptr; 
 } 
 
-<NAME>::~<NAME>() 
+<-NAME->::~<-NAME->() 
 { 
 
 } 
 
-QWidget* <NAME>::getSettingsWidget(QWidget *parent) 
+QWidget* <-NAME->::getSettingsWidget(QWidget *parent) 
 { 
     if(!m_settingsWidget){ 
         createSettingsWidget(parent); 
@@ -23,7 +23,7 @@ QWidget* <NAME>::getSettingsWidget(QWidget *parent)
     return m_settingsWidget; 
 } 
 
-std::vector<uint> <NAME>::sampleImages(const std::vector<unsigned int> &imageList, Progressable *receiver, volatile bool *stopped, bool, LogFileParent *logFile) 
+std::vector<uint> <-NAME->::sampleImages(const std::vector<unsigned int> &imageList, Progressable *receiver, volatile bool *stopped, bool, LogFileParent *logFile) 
 { 
     // make an log file entry to measure performance (computation time in this routine)
     logFile->startTimer(LF_TOTAL); 
@@ -70,12 +70,12 @@ std::vector<uint> <NAME>::sampleImages(const std::vector<unsigned int> &imageLis
     return keyframes; 
 } 
 
-QString <NAME>::getName() const 
+QString <-NAME->::getName() const 
 { 
-    return tr("<NAME>"); 
+    return tr("<-NAME->"); 
 } 
 
-void <NAME>::initialize(Reader *reader, QMap<QString, QVariant>, signalObject *so) 
+void <-NAME->::initialize(Reader *reader, QMap<QString, QVariant>, signalObject *so) 
 { 
     // this routine runs if new images have been loaded, it should be performant
     // as it is executed on image load for every plugin
@@ -87,7 +87,7 @@ void <NAME>::initialize(Reader *reader, QMap<QString, QVariant>, signalObject *s
         m_spinBox->setValue(m_survivalProbability);
 } 
 
-void <NAME>::setSettings(QMap<QString, QVariant> settings) 
+void <-NAME->::setSettings(QMap<QString, QVariant> settings) 
 { 
     QMap<QString, QVariant>::iterator iterator = settings.find(NAME_SURVIVAL_PROBABILITY);
     if (iterator != settings.end()) { 
@@ -97,7 +97,7 @@ void <NAME>::setSettings(QMap<QString, QVariant> settings)
     } 
 } 
 
-QMap<QString, QVariant> <NAME>::generateSettings(Progressable *receiver, bool useCuda, volatile bool* stopped) 
+QMap<QString, QVariant> <-NAME->::generateSettings(Progressable *receiver, bool useCuda, volatile bool* stopped) 
 { 
     // this routine runs if the user activly wants to generate optimal settings for the given images. It can be
     // slow or heavy computation here, the user is prompted with an progress bar.
@@ -115,7 +115,7 @@ QMap<QString, QVariant> <NAME>::generateSettings(Progressable *receiver, bool us
     return settings;
 } 
 
-QMap<QString, QVariant> <NAME>::getSettings() 
+QMap<QString, QVariant> <-NAME->::getSettings() 
 { 
    QString value = QString::number(m_survivalProbability);
    QMap<QString, QVariant> settings; 
@@ -123,12 +123,12 @@ QMap<QString, QVariant> <NAME>::getSettings()
    return settings; 
 } 
 
-void <NAME>::slot_survivalProbChanged(double probability)
+void <-NAME->::slot_survivalProbChanged(double probability)
 { 
     m_survivalProbability = probability;
 } 
 
-void <NAME>::createSettingsWidget(QWidget *parent) 
+void <-NAME->::createSettingsWidget(QWidget *parent) 
 { 
     m_settingsWidget = new QWidget(parent); 
     m_settingsWidget->setLayout(new QVBoxLayout()); 
@@ -148,7 +148,7 @@ void <NAME>::createSettingsWidget(QWidget *parent)
     m_spinBox->setValue(m_survivalProbability);
     m_spinBox->setAlignment(Qt::AlignRight); 
     w->layout()->addWidget(m_spinBox); 
-    QObject::connect(m_spinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &<NAME>::slot_survivalProbChanged);
+    QObject::connect(m_spinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &<-NAME->::slot_survivalProbChanged);
 
     m_settingsWidget->layout()->addWidget(w); 
 

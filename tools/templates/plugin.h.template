@@ -1,7 +1,7 @@
-#ifndef <NAME_UPPER>_H 
-#define <NAME_UPPER>_H 
+#ifndef <-NAME_UPPER->_H 
+#define <-NAME_UPPER->_H 
 
-/** @defgroup <NAME>Plugin <NAME>Plugin 
+/** @defgroup <-NAME->Plugin <-NAME->Plugin 
  * 
  * @ingroup Plugin 
  * 
@@ -33,23 +33,23 @@
 
 
 /** 
- * @class <NAME> 
+ * @class <-NAME-> 
  * 
- * @ingroup <NAME>Plugin 
+ * @ingroup <-NAME->Plugin 
  * 
  * @brief Short description. 
  * 
  * @author Author 
  */ 
-class <NAME> : public IAlgorithm 
+class <-NAME-> : public IAlgorithm 
 { 
     Q_OBJECT 
     Q_PLUGIN_METADATA(IID "iVS3D.IAlgorithm") // implement interface as plugin, use the iid as identifier 
     Q_INTERFACES(IAlgorithm)    // declare this as implementation of IAlgorithm interface 
 
 public: 
-    <NAME>(); 
-    ~<NAME>(); 
+    <-NAME->(); 
+    ~<-NAME->(); 
 
     /** 
      * @brief returns a widget to change parameters of this plugin. 
@@ -72,7 +72,7 @@ public:
     std::vector<uint> sampleImages(const std::vector<unsigned int> &imageList, Progressable *receiver, volatile bool *stopped, bool useCuda, LogFileParent* logFile) override; 
     /** 
      * @brief getName Returns the plugin name 
-     * @return "<NAME>" 
+     * @return "<-NAME->" 
      */ 
     QString getName() const override; 
     /** 
@@ -115,4 +115,4 @@ private:
     QDoubleSpinBox* m_spinBox = nullptr;
 }; 
 
-#endif // <NAME_UPPER>_H 
+#endif // <-NAME_UPPER->_H 

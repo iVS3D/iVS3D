@@ -2,29 +2,29 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="de_DE">
 <context>
-    <name><NAME></name>
+    <name><-NAME-></name>
     <message>
-        <location filename="../<NAME_LOWER>.cpp" line="50"/>
+        <location filename="../<-NAME_LOWER->.cpp" line="50"/>
         <source>processing...</source>
         <translation>Wird verarbeitet...</translation>
     </message>
     <message>
-        <location filename="../<NAME_LOWER>.cpp" line="69"/>
+        <location filename="../<-NAME_LOWER->.cpp" line="69"/>
         <source>Done!</source>
         <translation>Fertig!</translation>
     </message>
     <message>
-        <location filename="../r<NAME_LOWER>.cpp" line="75"/>
-        <source><NAME></source>
+        <location filename="../<-NAME_LOWER->.cpp" line="75"/>
+        <source><-NAME-></source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../<NAME_LOWER>.cpp" line="142"/>
+        <location filename="../<-NAME_LOWER->.cpp" line="142"/>
         <source>Select survival probability</source>
         <translation>Überlebenswahrscheinlichkeit festlegen</translation>
     </message>
     <message>
-        <location filename="../<NAME_LOWER>.cpp" line="155"/>
+        <location filename="../<-NAME_LOWER->.cpp" line="155"/>
         <source>The probability for each keyframe to be selected as keyframe again.</source>
         <translation>Die Wahrscheinlichkeit eines Bildes als Keyframe gewählt zu werden.</translation>
     </message>
