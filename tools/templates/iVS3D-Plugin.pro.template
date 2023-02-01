@@ -6,9 +6,9 @@ TARGET = <-NAME->
 
 CONFIG += c++11
 
-win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../iVS3D-core/release -liVS3D-pluginInterface
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../iVS3D-core/debug -liVS3D-pluginInterface
-else:unix: LIBS += -L$$OUT_PWD/../iVS3D-core -liVS3D-pluginInterface
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../iVS3D-core/release -L$$PWD -liVS3D-pluginInterface
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../iVS3D-core/debug -L$$PWD -liVS3D-pluginInterface
+else:unix: LIBS += -L$$OUT_PWD/../iVS3D-core -L$$PWD -liVS3D-pluginInterface
 
 INCLUDEPATH += \
     ../iVS3D-pluginInterface \

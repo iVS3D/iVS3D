@@ -40,13 +40,13 @@ Open the iVS3D.pro file as usual.
 
 Next you can run the build step and your new plugin will be compiled and deployed to the plugin folder.
 
-If the Qt version and iVS3D version of your new build match with another existing iVS3D build, then you can simply copy your plugins `NAME`.dll to the other builds plugin folder to use it with this build as well.
+If the Qt version and iVS3D version of your new build match with another existing iVS3D build, then you can simply copy your plugins `NAME`.dll (or `NAME`.so on linux) to the other builds plugin folder to use it with this build as well.
 
 ### Compile the plugin for an existing iVS3D build
 To build the Plugin we open the src/iVS3D-`NAME`Plugin/iVS3D-`NAME`Plugin.pro file with qt creator. You should be using Qt 5.12 for compatibility with our prebuilds, however if you also build the core yourself you should go with the same version of qt for both.
 
 > On windows make sure you create the translations by running Extras/Extern/Linguist/lrelease in Qt Creator! 
 
-Next we can run qmake step to setup the build folder. However you will not be able to build the plugin right away as the iVS3D-pluginInterface is missing. Form your existing iVS3D build, copy the iVS3D-pluginInterface.lib to your build folder. Now run your build step again to compile your plugin. It will be placed in the plugins-folder outside your build folder.
+Next we can run qmake step to setup the build folder. However you will not be able to build the plugin right away as the iVS3D-pluginInterface is missing. Form your existing iVS3D build, copy the iVS3D-pluginInterface.lib (or libiVS3D-pluginInterface.so on Linux) to your src/iVS3D-`NAME`Plugin folder. Now run your build step again to compile your plugin. It will be placed in the plugins-folder outside your build folder. By default in Qt Creator this located at src/plugins.
 
-To use the plugin with the existing iVS3D-build, copy the `NAME`.dll file you just created from the plugins folder to the plugin folder inside your iVS3D-build.
+To use the plugin with the existing iVS3D-build, copy the `NAME`.dll file you just created from the plugins folder to the plugin folder inside your existing iVS3D-build.
