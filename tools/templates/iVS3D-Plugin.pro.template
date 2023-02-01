@@ -43,4 +43,10 @@ DESTDIR = ../plugins
 
 include(../../3rdparty.pri)
 
+unix {
+# set rpath
+RPATH='\$$ORIGIN:\$$ORIGIN/../lib'
+QMAKE_LFLAGS += '-Wl,--rpath=\'$$RPATH\''
+}
+
 FORMS +=
