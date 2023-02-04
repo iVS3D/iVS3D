@@ -333,6 +333,37 @@ char* ExportExif::saveExif(QString path, QVariant exif)
     PNGCRC[2] = 0x00;//0x47;
     PNGCRC[3] = 0x00;//0x8B;
 
+    unsigned char* exifData;
+    if (useAltitude) {
+        //18B GPSIFD + 2B GPSTagCount + 6*12 GPSTags + 4B Data Offset + 2*24B + 8B Data = 152B
+        exifData = new unsigned char[152];
+        std::memcpy(&exifData[0], &GPSIFD[0], 18);
+        std::memcpy(&exifData[18], &GPSTagCount[0], 2);
+        std::memcpy(&exifData[20], &LatitudeRefTag[0], 12);
+        std::memcpy(&exifData[32], &LatitudeTag[0], 12);
+        std::memcpy(&exifData[44], &LongitudeRefTag[0], 12);
+        std::memcpy(&exifData[56], &LongitudeTag[0], 12);
+        std::memcpy(&exifData[68], &AltitudeRefTag[0], 12);
+        std::memcpy(&exifData[80], &AltitudeTag[0], 12);
+        std::memcpy(&exifData[92], &offestToGPSData[0], 4);
+        std::memcpy(&exifData[96], &LatitudeData[0], 24);
+        std::memcpy(&exifData[120], &LongitudeData[0], 24);
+        std::memcpy(&exifData[144], &AltitudeData[0], 8);
+    }
+    else {
+        //18B GPSIFD + 2B GPSTagCount + 4*12 GPSTags + 4B Data Offset + 2*24B = 120
+        exifData = new unsigned char[120];
+        std::memcpy(&exifData[0], &GPSIFD[0], 18);
+        std::memcpy(&exifData[18], &GPSTagCount[0], 2);
+        std::memcpy(&exifData[20], &LatitudeRefTag[0], 12);
+        std::memcpy(&exifData[32], &LatitudeTag[0], 12);
+        std::memcpy(&exifData[44], &LongitudeRefTag[0], 12);
+        std::memcpy(&exifData[56], &LongitudeTag[0], 12);
+        std::memcpy(&exifData[68], &offestToGPSData[0], 4);
+        std::memcpy(&exifData[72], &LatitudeData[0], 24);
+        std::memcpy(&exifData[96], &LongitudeData[0], 24);
+    }
+
     if (useAltitude && usePNG) {
         //8Byte PNGChunk + 8B TIFFHeader + 18B GPSIFD + 2B GPSTagCount + 6*12 GPSTags + 4B Data Offset + 2*24B + 8B Data + 4B CRC = 172B
         PNGChunkHeader[3] = 0xA0;
@@ -340,18 +371,7 @@ char* ExportExif::saveExif(QString path, QVariant exif)
         char* newData = new char[exifSize];
         std::memcpy(&newData[0], &PNGChunkHeader[0], 8);
         std::memcpy(&newData[8], &TIFFHeader[0], 8);
-        std::memcpy(&newData[16], &GPSIFD[0], 18);
-        std::memcpy(&newData[34], &GPSTagCount[0], 2);
-        std::memcpy(&newData[36], &LatitudeRefTag[0], 12);
-        std::memcpy(&newData[48], &LatitudeTag[0], 12);
-        std::memcpy(&newData[60], &LongitudeRefTag[0], 12);
-        std::memcpy(&newData[72], &LongitudeTag[0], 12);
-        std::memcpy(&newData[84], &AltitudeRefTag[0], 12);
-        std::memcpy(&newData[96], &AltitudeTag[0], 12);
-        std::memcpy(&newData[108], &offestToGPSData[0], 4);
-        std::memcpy(&newData[112], &LatitudeData[0], 24);
-        std::memcpy(&newData[136], &LongitudeData[0], 24);
-        std::memcpy(&newData[160], &AltitudeData[0], 8);
+        std::memcpy(&newData[16], &exifData[0], 152);
         std::memcpy(&newData[168], &PNGCRC[0], 4);
         return newData;
     }
@@ -363,18 +383,7 @@ char* ExportExif::saveExif(QString path, QVariant exif)
         char* newData = new char[exifSize];
         std::memcpy(&newData[0], &JPEGMarker[0], 10);
         std::memcpy(&newData[10], &TIFFHeader[0], 8);
-        std::memcpy(&newData[18], &GPSIFD[0], 18);
-        std::memcpy(&newData[36], &GPSTagCount[0], 2);
-        std::memcpy(&newData[38], &LatitudeRefTag[0], 12);
-        std::memcpy(&newData[50], &LatitudeTag[0], 12);
-        std::memcpy(&newData[62], &LongitudeRefTag[0], 12);
-        std::memcpy(&newData[74], &LongitudeTag[0], 12);
-        std::memcpy(&newData[86], &AltitudeRefTag[0], 12);
-        std::memcpy(&newData[98], &AltitudeTag[0], 12);
-        std::memcpy(&newData[110], &offestToGPSData[0], 4);
-        std::memcpy(&newData[114], &LatitudeData[0], 24);
-        std::memcpy(&newData[138], &LongitudeData[0], 24);
-        std::memcpy(&newData[162], &AltitudeData[0], 8);
+        std::memcpy(&newData[18], &exifData[0], 152);
         return newData;
     }
     else if (!useAltitude && usePNG) {
@@ -385,15 +394,7 @@ char* ExportExif::saveExif(QString path, QVariant exif)
         char* newData = new char[exifSize];
         std::memcpy(&newData[0], &PNGChunkHeader[0], 8);
         std::memcpy(&newData[8], &TIFFHeader[0], 8);
-        std::memcpy(&newData[16], &GPSIFD[0], 18);
-        std::memcpy(&newData[34], &GPSTagCount[0], 2);
-        std::memcpy(&newData[36], &LatitudeRefTag[0], 12);
-        std::memcpy(&newData[48], &LatitudeTag[0], 12);
-        std::memcpy(&newData[60], &LongitudeRefTag[0], 12);
-        std::memcpy(&newData[72], &LongitudeTag[0], 12);
-        std::memcpy(&newData[84], &offestToGPSData[0], 4);
-        std::memcpy(&newData[88], &LatitudeData[0], 24);
-        std::memcpy(&newData[112], &LongitudeData[0], 24);
+        std::memcpy(&newData[16], &exifData[0], 120);
         std::memcpy(&newData[136], &PNGCRC[0], 4);
         return newData;
     }
@@ -406,16 +407,7 @@ char* ExportExif::saveExif(QString path, QVariant exif)
         char* newData = new char[exifSize];
         std::memcpy(&newData[0], &JPEGMarker[0], 10);
         std::memcpy(&newData[10], &TIFFHeader[0], 8);
-        std::memcpy(&newData[18], &GPSIFD[0], 18);
-        std::memcpy(&newData[36], &GPSTagCount[0], 2);
-        std::memcpy(&newData[38], &LatitudeRefTag[0], 12);
-        std::memcpy(&newData[50], &LatitudeTag[0], 12);
-        std::memcpy(&newData[62], &LongitudeRefTag[0], 12);
-        std::memcpy(&newData[74], &LongitudeTag[0], 12);
-        std::memcpy(&newData[86], &offestToGPSData[0], 4);
-        std::memcpy(&newData[90], &LatitudeData[0], 24);
-        std::memcpy(&newData[114], &LongitudeData[0], 24);
-
+        std::memcpy(&newData[18], &exifData[0], 120);
         return newData;
     }
 
