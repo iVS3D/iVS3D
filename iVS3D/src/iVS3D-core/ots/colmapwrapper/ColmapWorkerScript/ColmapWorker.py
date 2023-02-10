@@ -2,13 +2,14 @@ import time
 import os
 import sys
 import argparse
-import re
-from os import walk
+import subprocess
 
 from GpsEntry import GpsEntry
 
-import yaml
-import pyproj
+from yaml import Loader, Dumper, dump, YAMLError, safe_load
+
+
+
 import exifread
 
 COLMAP_BIN = ""
@@ -23,8 +24,8 @@ LAST_PROGRESS_UPDATE_TIME = 0
 #---------------------------------------------------------------------------------------------------------------------
 # Class to dump YAML files prepared to be read by OpenCV.
 # OpenCV FileStorage expects more indentations.
-# Subclasses yaml.Dumper
-class OpenCvYamlDumper(yaml.Dumper):
+# Subclasses Dumper
+class OpenCvYamlDumper(Dumper):
 
     def increase_indent(self, flow=False, indentless=False):
         return super(OpenCvYamlDumper, self).increase_indent(flow, False)
@@ -112,53 +113,183 @@ def computeGpsRefernceList(colmapProjectDirPath: str, sequenceName: str, geoDir:
     return int(gps_sum) != 0
 
 ######################################################################################################################
+# Compute ETA (expected time of arrival) 
+# Inits stop watch and data structures
+# Returns: closure function, which retruns eta in ms for specific future time step calculated based one gathered previous time steps
+# Estimation is based on the mean of the last 20 iterations
+# Performs linear approximation
+# TODO add option for quadratic approximation
+def init_eta_calculation():
+    cumulative_times = []
+    step_times = []
+    start_time = int(time.time() * 1000)
+
+    def calculate_eta(eta_for_step):
+        nonlocal cumulative_times, step_times
+        last_times = step_times[-20:]
+        sum = 0
+        for times_for_step in last_times: sum += times_for_step
+        return int(cumulative_times[-1] + (eta_for_step - len(cumulative_times)) * (sum / len(last_times)))   
+
+    def get_eta_after_step(eta_for_step):
+        nonlocal start_time, cumulative_times, step_times 
+
+        if len(cumulative_times) == 0:
+            step_times.append(int(time.time() * 1000 - start_time))
+        else:
+            step_times.append(int(time.time() * 1000 - start_time) - cumulative_times[-1])  
+
+        cumulative_times.append(int(time.time() * 1000 - start_time))
+        eta = calculate_eta(eta_for_step) - int(time.time() * 1000 - start_time)       
+        eta = eta if eta > 0 else 0
+        return eta
+        
+    return get_eta_after_step
+
+
+######################################################################################################################
 # Compute camera poses for given parameter list.
 # Returns: True, if successful. False otherwise
-def computeCameraPoses(colmapDatabaseFilePath: str, projectImageDir: str, colmapProjectDirPath: str, projectOutputDirPath: str, sequenceName: str, parameterList: dict) -> bool:
+def computeCameraPoses(colmapDatabaseFilePath: str, projectImageDir: str, colmapProjectDirPath: str, projectOutputDirPath: str, sequenceName: str, parameterList: dict, robust_mode: bool) -> bool:
     global COLMAP_BIN
 
     print(' COMPUTING CAMERA POSES...')
-
-    progressCallback(0)
+    progressCallback(0, force_Write = True, step=1)
 
     camModel = parameterList['camera_model']
     singleCam = parameterList['single_camera']
     multiModels = parameterList['multiple_models']
     gpus = parameterList['gpus']
+    max_focal_length_ratio = parameterList['max_focal_length_ratio']
 
     # run feature extraction
     print('\t> Running feature extractor...')
-    cmd=('{} feature_extractor '
-         '--database_path {} '
-         '--image_path {} '
-         '--ImageReader.camera_model {} '
-         '--ImageReader.single_camera {} '
-         '--SiftExtraction.gpu_index {}').format(COLMAP_BIN, colmapDatabaseFilePath, projectImageDir,
-         camModel, singleCam, gpus)
-    os.system(cmd)
+    p = subprocess.Popen([COLMAP_BIN, 
+        "feature_extractor", 
+        "--database_path", colmapDatabaseFilePath, 
+        "--image_path", projectImageDir, 
+        "--ImageReader.camera_model", camModel,
+        "--ImageReader.single_camera", singleCam,
+        "--SiftExtraction.gpu_index", gpus], stdout=subprocess.PIPE)     
 
-    progressCallback(25)
+    number_of_images = 0
+    get_eta_after_step = init_eta_calculation()
+    while p.poll() is None:
+        output = p.stdout.readline()
+        if output != b"":
+            line = output.strip().decode("utf-8")
+            print(line)
+            # Scanning COLMAP stdout for progress
+            if "Processed file" in line:               
+                current_images = line[16:-1].split("/")
+                if len(current_images) == 2:
+                    current_image_number, number_of_images = current_images
+                    current_image_number = int(current_image_number)
+                    number_of_images = int(number_of_images)
+                    eta = get_eta_after_step(number_of_images)
+                    progressCallback(round(10 * current_image_number / number_of_images), str(current_image_number) + "/" + str(number_of_images),
+                        eta=eta, step=1)
+
+    if p.poll() != 0:
+        return False    
+
+    progressCallback(10, force_Write = True)
 
     # run feature matching
-    print('\t> Running exhaustive matcher...')
-    cmd=('{} exhaustive_matcher '
-         '--database_path {} '
-         '--SiftMatching.gpu_index {}').format(COLMAP_BIN, colmapDatabaseFilePath, gpus)
-    os.system(cmd)
+    p = subprocess.Popen([COLMAP_BIN, 
+        "exhaustive_matcher", 
+        "--database_path", colmapDatabaseFilePath,  
+        "--ExhaustiveMatching.block_size", "10",
+        "--SiftMatching.gpu_index", gpus], stdout=subprocess.PIPE)     
 
-    progressCallback(50)
+    get_eta_after_step = init_eta_calculation()
+    while p.poll() is None:
+        output = p.stdout.readline()
+        if output != b"":
+            line = output.strip().decode("utf-8")
+            print(line)
+            # Scanning COLMAP stdout for progress
+            if "Matching block" in line:               
+                blocks = line[16:-11].split(", ")                            
+                if len(blocks) == 2:
+                    block1_1, block1_2 = blocks[0].split("/")
+                    block2_1, block2_2 = blocks[1].split("/")
+                    current_iteration = int(block2_1) + (int(block1_1) - 1) * int(block1_2)
+                    max_iteration = int(block1_2) ** 2
+                    eta = get_eta_after_step(max_iteration)
+                    progressCallback(10 + round(35 * current_iteration / max_iteration), str(current_iteration) + "/" + str(max_iteration), 
+                        eta=eta, step=2)
+
+    if p.poll() != 0:
+        return False   
+
+    progressCallback(45, force_Write = True)
 
     # run sparse mapping
+    # in robust mode the estimation of distortion params is omitted to help with convergence (less params to estimate)
+    refine_extra_params = "1" if not robust_mode else "0"
     print('\t> Running mapper...')
-    cmd=('{} mapper '
-         '--database_path {} '
-         '--image_path {} '
-         '--output_path {}/01_sparse '
-         '--Mapper.multiple_models {}').format(COLMAP_BIN, colmapDatabaseFilePath,
-         projectImageDir, colmapProjectDirPath, multiModels)
-    os.system(cmd)
+    p = subprocess.Popen([COLMAP_BIN, 
+        "mapper", 
+        "--database_path", colmapDatabaseFilePath,  
+        "--image_path", projectImageDir,
+        "--output_path", colmapProjectDirPath + "/01_sparse",
+        "--Mapper.max_focal_length_ratio", max_focal_length_ratio,
+        "--Mapper.ba_refine_extra_params", refine_extra_params,
+        "--Mapper.ba_local_max_num_iterations", "25",
+        "--Mapper.ba_global_max_num_iterations", "50",
+        "--Mapper.multiple_models", multiModels], stdout=subprocess.PIPE)     
 
-    progressCallback(75)
+    max_number_of_registered_images = 0
+    get_eta_after_step = init_eta_calculation()
+
+    while p.poll() is None:
+        output = p.stdout.readline()
+        if output != b"":
+            line = output.strip().decode("utf-8")
+            print(line)
+            # Scanning COLMAP stdout for progress
+            if "Registering image" in line:  
+                number_of_registered_images = int(line[18:].split("(")[-1][:-1])
+                if max_number_of_registered_images < number_of_registered_images:
+                    max_number_of_registered_images = number_of_registered_images
+                    eta = get_eta_after_step(number_of_images)
+                    progressCallback(45 + round(45 * max_number_of_registered_images / number_of_images), 
+                        str(max_number_of_registered_images) + "/" + str(number_of_images), eta=eta, step=3)
+                         
+    if p.poll() != 0 or not os.path.exists(colmapProjectDirPath + "/01_sparse/0"):
+        return False
+
+    # In robust mode the estimation of distortion params is only performed in a downstream bundle adjustment after mapping succeeded
+    # in the first two iterations distortion and principal point are refined on their own, then the intrinsics are refined together
+    # In the last step, intrinsics and extrinsics are refined together.
+    if robust_mode:
+        print('\t> Running robust bundle adjustment...')
+        param_list = [["0","0","1","0"],["0","1","0","0"],["1","1","1","0"],["1","1","1","1"]]
+        get_eta_after_step = init_eta_calculation()
+        for i in range(len(param_list)):
+            params = param_list[i]
+            p = subprocess.Popen([COLMAP_BIN, 
+                "bundle_adjuster", 
+                "--input_path", colmapProjectDirPath + "/01_sparse/0",
+                "--output_path", colmapProjectDirPath + "/01_sparse/0",
+                "--BundleAdjustment.max_num_iterations", "1000",
+                "--BundleAdjustment.refine_focal_length", params[0],
+                "--BundleAdjustment.refine_principal_point", params[1],
+                "--BundleAdjustment.refine_extra_params", params[2],
+                "--BundleAdjustment.refine_extrinsics", params[3]], stdout=subprocess.PIPE) 
+                
+            while p.poll() is None:
+                output = p.stdout.readline()
+                if output != b"":
+                    line = output.strip().decode("utf-8")
+                    print(line)  
+            
+            eta = get_eta_after_step(len(param_list))
+            progressCallback(90 + i +1 , force_Write = True, eta=eta, step=3)
+
+
+    progressCallback(95, force_Write = True)
 
     # run georegistration
     os.system('mkdir -p {}/01_sparse/geo/sparse_in/'.format(colmapProjectDirPath))
@@ -195,7 +326,7 @@ def computeCameraPoses(colmapDatabaseFilePath: str, projectImageDir: str, colmap
         os.system('cp {}/01_sparse/geo/sparse_in/images.bin '
                 '{}/{}_images.bin'.format(colmapProjectDirPath, projectOutputDirPath, sequenceName))
 
-    progressCallback(100)
+    progressCallback(100, force_Write = True)
 
     return True
 
@@ -215,42 +346,101 @@ def computeDenseCloud(projectImageDir: str, colmapProjectDirPath: str, projectOu
 
     # run image undistorter
     print('\t> Running image undistorter...')
-    cmd=('{} image_undistorter '
-         '--image_path {} '
-         '--input_path {}/01_sparse/0 '
-         '--output_path {}/02_dense/ '
-         '--output_type COLMAP '
-         '--max_image_size {}').format(COLMAP_BIN, projectImageDir, colmapProjectDirPath,
-         colmapProjectDirPath, maxImgSize)
-    os.system(cmd)
+    p = subprocess.Popen([COLMAP_BIN, 
+        "image_undistorter", 
+        "--image_path", projectImageDir,
+        "--input_path", colmapProjectDirPath + "/01_sparse/0",
+        "--output_path", colmapProjectDirPath + "/02_dense/",
+        "--output_type", "COLMAP",
+        "--max_image_size", maxImgSize], stdout=subprocess.PIPE)     
 
-    progressCallback(25)
+    get_eta_after_step = init_eta_calculation()
+    while p.poll() is None:
+        output = p.stdout.readline()
+        if output != b"":
+            line = output.strip().decode("utf-8")
+            print(line)
+            # Scanning COLMAP stdout for progress
+            if "Undistorting image" in line:   
+                current_images = line[20:-1].split("/")
+                if len(current_images) == 2:
+                    current_image_number, number_of_images = current_images
+                    current_image_number = int(current_image_number)
+                    number_of_images = int(number_of_images)
+                    eta = get_eta_after_step(number_of_images)
+                    progressCallback(round(5 * current_image_number / number_of_images), str(current_image_number) + "/" + str(number_of_images),
+                        eta=eta, step=1)
+
+    if p.poll() != 0:
+        return False   
+
+    progressCallback(5, force_Write=True)
 
     # run patch match stereo
     print('\t> Running patch match stereo...')
-    cmd=('{} patch_match_stereo '
-         '--workspace_path {}/02_dense/ '
-         '--workspace_format COLMAP '
-         '--PatchMatchStereo.gpu_index {} '
-         '--PatchMatchStereo.geom_consistency true '
-         '--PatchMatchStereo.cache_size {}').format(COLMAP_BIN, colmapProjectDirPath, gpus, cacheSize)
-    os.system(cmd)
+    p = subprocess.Popen([COLMAP_BIN, 
+        "patch_match_stereo", 
+        "--workspace_path", colmapProjectDirPath + "/02_dense/",
+        "--workspace_format", "COLMAP",
+        "--PatchMatchStereo.gpu_index", gpus,
+        "--PatchMatchStereo.geom_consistency", "1",
+        "--PatchMatchStereo.cache_size", cacheSize], stdout=subprocess.PIPE)     
 
-    progressCallback(50)
+    get_eta_after_step = init_eta_calculation()
+    current_image_number = 0
+    while p.poll() is None:
+        output = p.stdout.readline()
+        if output != b"":
+            line = output.strip().decode("utf-8")
+            print(line)   
+            # Scanning COLMAP stdout for progress
+            if "Processing view" in line:   
+                current_images = line[16:].split(" / ")
+                if len(current_images) == 2:                
+                    _, number_of_images = current_images
+                    current_image_number += 1
+                    number_of_images = int(number_of_images)
+                    eta = get_eta_after_step(number_of_images * 2)
+                    progressCallback(round(5 + 65 * current_image_number / number_of_images * 2), str(current_image_number) + "/" + str(number_of_images * 2),
+                        eta=eta, step=2)
+
+    if p.poll() != 0:
+        return False 
+
+    progressCallback(70, force_Write=True)
+    os.system('mkdir -p {}/02_dense/fused_model'.format(colmapProjectDirPath))
 
     # run stereo fusion
     print('\t> Running stereo fusion...')
-    os.system('mkdir -p {}/02_dense/fused_model'.format(colmapProjectDirPath))
-    cmd=('{} stereo_fusion '
-         '--workspace_path {}/02_dense/ '
-         '--workspace_format COLMAP '
-         '--input_type geometric '
-         '--output_path {}/02_dense/fused_model/{}_dense_cloud.ply '
-         '--StereoFusion.cache_size {}').format(COLMAP_BIN, colmapProjectDirPath, colmapProjectDirPath, sequenceName,
-                                                cacheSize)
-    os.system(cmd)
+    p = subprocess.Popen([COLMAP_BIN, 
+        "stereo_fusion", 
+        "--workspace_path", colmapProjectDirPath + "/02_dense/",
+        "--workspace_format", "COLMAP",
+        "--input_type", "geometric",
+        "--output_path", colmapProjectDirPath + "/02_dense/fused_model/" + sequenceName + "_dense_cloud.ply",
+        "--StereoFusion.cache_size", cacheSize], stdout=subprocess.PIPE)     
 
-    progressCallback(75)
+    get_eta_after_step = init_eta_calculation()
+    while p.poll() is None:
+        output = p.stdout.readline()
+        if output != b"":
+            line = output.strip().decode("utf-8")
+            print(line)   
+            # Scanning COLMAP stdout for progress
+            if "Fusing image" in line:   
+                current_images = line[14:].split("]")[0].split("/")
+                if len(current_images) == 2:                
+                    current_image_number, number_of_images = current_images
+                    current_image_number = int(current_image_number)
+                    number_of_images = int(number_of_images)
+                    eta = get_eta_after_step(number_of_images)
+                    progressCallback(round(70 + 25 * current_image_number / number_of_images), str(current_image_number) + "/" + str(number_of_images),
+                        eta=eta, step=3)
+
+    if p.poll() != 0:
+        return False 
+
+    progressCallback(95, force_Write=True)
 
     # run georegistration
     os.system('mkdir -p {}/02_dense/geo/dense_in/'.format(colmapProjectDirPath))
@@ -356,8 +546,8 @@ def loadYaml(yamlFilePath: str):
     with open(yamlFilePath, 'r') as iStream:
         data = iStream.read()
         try:
-            yamlObj = yaml.safe_load(data[len(OPENCV_YAML_HEADER):]) # handle opencv header
-        except yaml.YAMLError as exc:
+            yamlObj = safe_load(data[len(OPENCV_YAML_HEADER):]) # handle opencv header
+        except YAMLError as exc:
             print(exc)
 
     # remove lock file
@@ -380,8 +570,8 @@ def writeYaml(yamlFilePath: str, yamlObj):
     with open(yamlFilePath, 'w') as oStream:
         oStream.write(OPENCV_YAML_HEADER)  # handle opencv header
         try:
-            yaml.dump(yamlObj, oStream, Dumper=OpenCvYamlDumper)
-        except yaml.YAMLError as exc:
+            dump(yamlObj, oStream, Dumper=OpenCvYamlDumper)
+        except YAMLError as exc:
             print(exc)
 
     # remove lock file
@@ -390,7 +580,7 @@ def writeYaml(yamlFilePath: str, yamlObj):
 ######################################################################################################################
 # Process given job
 # Returns: True if job is processed. False otherwise
-def processJob(workspacePath: str, currentJob: Job) -> bool:
+def processJob(workspacePath: str, currentJob: Job, robust_mode: bool) -> bool:
     print("-- Processing Job ...")
 
     colmapDatabaseFilePath = os.path.join(workspacePath , currentJob.sequenceName + ".db")
@@ -420,7 +610,7 @@ def processJob(workspacePath: str, currentJob: Job) -> bool:
             return False
 
         # compute camera poses
-        success = computeCameraPoses(colmapDatabaseFilePath, projectImageDir, colmapProjectDirPath, projectOutputDirPath, currentJob.sequenceName, currentJob.parameterList)
+        success = computeCameraPoses(colmapDatabaseFilePath, projectImageDir, colmapProjectDirPath, projectOutputDirPath, currentJob.sequenceName, currentJob.parameterList, robust_mode)
 
         if( not success ):
             return False
@@ -453,7 +643,7 @@ def processJob(workspacePath: str, currentJob: Job) -> bool:
 
 ######################################################################################################################
 # Pop first item from job queue
-# Returns: True and Object of Job Entry if queue has job. Fals and empty entry othewise.
+# Returns: True and Object of Job Entry if queue has job. False and empty entry othewise.
 def popFirstJobFromQueue(yamlFilePath: str) -> Job:
     global WORKER_STATE_YAML_PATH
 
@@ -504,7 +694,7 @@ def writeCurrentJobToStateFile(yamlFilePath: str, currentJobYamlObj):
 
 ######################################################################################################################
 # Method to write currently running job to state files
-def progressCallback(progress: float):
+def progressCallback(progress: float, comment = "", force_Write = False, step=1, eta=0):
     global LAST_PROGRESS_UPDATE_TIME
     global WORKER_STATE_YAML_PATH
 
@@ -512,7 +702,7 @@ def progressCallback(progress: float):
     if(os.path.exists(WORKER_STATE_YAML_PATH + ".lock")):
         return
 
-    if ((time.time() - LAST_PROGRESS_UPDATE_TIME) > YAML_REFRESH_SECS):
+    if (force_Write or (time.time() - LAST_PROGRESS_UPDATE_TIME) > YAML_REFRESH_SECS):
 
         yamlObj = loadYaml(WORKER_STATE_YAML_PATH)
         if yamlObj is None:
@@ -524,6 +714,9 @@ def progressCallback(progress: float):
         # store global progress in yaml file
         yamlJobEntry = yamlObj["runningJob"][0]
         yamlJobEntry["progress"] = progress
+        yamlJobEntry["comment"] = comment
+        yamlJobEntry["step"] = step
+        yamlJobEntry["eta"] = eta
 
         writeYaml(WORKER_STATE_YAML_PATH, yamlObj)
 
@@ -541,7 +734,9 @@ def parseArguments():
     parser.add_argument("colmap_bin", help="Path to COLMAP binary.")
     parser.add_argument("worker_state_yaml_path", help="Path to YAML file holding worker state.")
     parser.add_argument("work_queue_yaml_path", help="Path to YAML file holding work queue.")
-
+    parser.add_argument("--robust_mode", default=1, help="robust mode tries to reconstruct 3d model " 
+        "with fixed distortion params and then tries to estimate distorsion params with bundle " 
+        "adjustment after sparse mapping (usefull for difficult images with high focal length or poor quality). ")
     return parser.parse_args()
 
 
@@ -560,6 +755,7 @@ if __name__ == "__main__":
     COLMAP_BIN = args.colmap_bin
     WORKER_STATE_YAML_PATH = args.worker_state_yaml_path
     WORK_QUEUE_YAML_PATH = args.work_queue_yaml_path
+    ROBUST_MODE = bool(args.robust_mode)
 
     if not os.path.exists(COLMAP_BIN):
         print('ERROR: {} does not exist!').format(COLMAP_BIN)
@@ -573,10 +769,12 @@ if __name__ == "__main__":
         print('ERROR: {} does not exist!').format(WORK_QUEUE_YAML_PATH)
         sys.exit()
 
+
     # load work queue yaml and change into workspace directory
     workQueueFileObj = loadYaml(WORK_QUEUE_YAML_PATH)
     if( workQueueFileObj == 0 ):
         sys.exit()
+
 
     workspacePath = workQueueFileObj["workspace"]
     #os.chdir(workspacePath)
@@ -588,7 +786,7 @@ if __name__ == "__main__":
     while(isJobInList):
 
         # process current job
-        success = processJob(workspacePath, currentJob)
+        success = processJob(workspacePath, currentJob, ROBUST_MODE)
         if(not success):
             print("ERROR: Something went wrong when trying to process job {}".format(currentJob))
 

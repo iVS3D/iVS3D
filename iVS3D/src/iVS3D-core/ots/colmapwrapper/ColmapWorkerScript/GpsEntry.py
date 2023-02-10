@@ -1,12 +1,5 @@
-import time
-import os
-import sys
-import argparse
 import re
-from os import walk
-
-import pyproj
-import exifread
+import pymap3d as pm
 
 #---------------------------------------------------------------------------------------------------------------------
 # Class representing Gps Entry
@@ -15,8 +8,7 @@ class GpsEntry:
         self.lat = latitude
         self.long = longitude
         self.alt = altitude
-        self.__llaProj = pyproj.Proj(proj='latlong', ellps='WGS84', datum='WGS84')
-        self.__ecefProj = pyproj.Proj(proj='geocent', ellps='WGS84', datum='WGS84', units='m')
+
         self.isValid = True
 
     def __str__(self):
@@ -72,10 +64,10 @@ class GpsEntry:
             self.isValid = False
 
     # return coordinates as WGS84 ECEF with unit length of m
-    def toWGS84Ecef(self):
-        return pyproj.transform(self.__llaProj, self.__ecefProj, self.long, self.lat, self.alt)
+    def toWGS84Ecef(self): 
+        return pm.geodetic2ecef(self.lat, self.long, self.alt)
 
     # create entry from WGS84 ECEF with unit length of m
     def fromWGS84ECEF(self, ECEF_X, ECEF_Y, ECEF_Z):
-        self.long, self.lat, self.alt = pyproj.transform(self.__ecefProj, self.__llaProj, ECEF_X, ECEF_Y, ECEF_Z)
+        self.long, self.lat, self.alt = pm.ecef2geodetic(ECEF_X, ECEF_Y, ECEF_Z)
 #---------------------------------------------------------------------------------------------------------------------
