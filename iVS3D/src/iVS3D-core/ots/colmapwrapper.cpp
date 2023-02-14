@@ -351,6 +351,8 @@ void ColmapWrapper::readSettings()
   setRemoteAddr(mSettings.value("RemoteAddr").toString());
   setRemoteUsr(mSettings.value("RemoteUsr").toString());
   setSyncInterval(mSettings.value("SyncInterval").toInt());
+  setUseRobustMode(mSettings.value("useRobustMode").toBool());
+
   mSettings.endGroup();
 }
 
@@ -578,6 +580,9 @@ void ColmapWrapper::importJob(const cv::FileNode &iFileNode,
   oJob.product = static_cast<EProductType>(static_cast<int>(iFileNode["productType"]));
   oJob.state = static_cast<EJobState>(static_cast<int>(iFileNode["jobState"]));
   oJob.progress = static_cast<uint>(static_cast<int>(iFileNode["progress"]));
+  oJob.step = static_cast<uint>(static_cast<int>(iFileNode["step"]));
+  oJob.eta = static_cast<uint>(static_cast<int>(iFileNode["eta"]));
+
   cv::FileNode params = iFileNode["parameters"];
   for(cv::FileNodeIterator itr = params.begin(); itr != params.end(); ++itr)
   {
@@ -784,6 +789,17 @@ void ColmapWrapper::setSyncInterval(int syncInterval)
   {
     mCheckWorkerTimer.setInterval(mSyncInterval * 1000);
   }
+}
+
+//==================================================================================================
+bool ColmapWrapper::useRobustMode() const
+{
+  return mUseRobustMode;
+}
+
+//==================================================================================================
+void ColmapWrapper::setUseRobustMode(bool robustMode){
+    mUseRobustMode = robustMode;
 }
 
 //==================================================================================================
@@ -1358,6 +1374,8 @@ void ColmapWrapper::startProcessing()
     text.replace(QString("<+bin+>"), mRemoteColmapBinPath);
   }
 
+  text.replace(QString("<+useRobustMode+>"), QString::number(int(mUseRobustMode)));
+
   file.seek(0); // go to the beginning of the file
   file.write(text.toUtf8()); // write the new text back to the file
   file.close(); // close the file handle.
@@ -1403,65 +1421,74 @@ void ColmapWrapper::installScriptFilesIntoWorkspace()
   qDebug() << "Time: " << QDateTime::currentDateTime().toString();
   qDebug() << __PRETTY_FUNCTION__;
 
-  //--- defince ressource list that needs to be installed
-  QStringList ressourceList;
-  ressourceList << ":/ots/colmapwrapper/ColmapWorker"
-           << ":/ots/colmapwrapper/colmap_work_queue.yaml"
-           << ":/ots/colmapwrapper/colmap_worker_state.yaml";
+
 
   QString outputPath = (mConnectionType == LOCAL) ?
         mLocalWorkspacePath : mMntPntRemoteWorkspacePath;
-  for(QString res : ressourceList)
-  {
-    //--- compute output file path
-    QString outputFile = outputPath + QDir::separator() + QFileInfo(res).baseName();
-    outputFile += (QFileInfo(res).completeSuffix() != "") ? "." + QFileInfo(res).completeSuffix() : "";
 
-    //--- copy file and set permissions
-    if(QFile::exists(outputFile))
-      QFile::remove(outputFile);
-    QFile::copy(res, outputFile);
-    QFile::setPermissions(outputFile,
-                          QFileDevice::ReadUser|QFileDevice::WriteUser|QFileDevice::ExeUser);
+  //--- iterate over all resource files and filter for relevant files (*.yaml and *.py in ots folder)
+  QDirIterator it(":", QDirIterator::Subdirectories);
+  while (it.hasNext()) {
+    QString res = it.next();
 
-    //--- adjust content of script
-    QByteArray fileData;
-    QFile file(outputFile);
-    file.open(QIODevice::ReadWrite|QIODevice::Text); // open for read and write
-    fileData = file.readAll(); // read all the data into the byte array
+    if(res.startsWith(":/ots") && (res.endsWith(".yaml") || res.endsWith(".py"))){
+        //--- compute output file path
+        QString outputFile = outputPath + QDir::separator() + QFileInfo(res).filePath().replace(":/ots/colmapwrapper/","");
 
-    QString text(fileData); // add to text string for easy string replace
+        //--- copy file and set permissions
+        if(QFile::exists(outputFile))
+          QFile::remove(outputFile);
 
-    // replace text in string
-    text.replace(QString("<+workspace+>"), (mConnectionType == LOCAL) ?
-                   QUrl(mLocalWorkspacePath).toString(QUrl::StripTrailingSlash) :
-                   QUrl(mRemoteWorkspacePath).toString(QUrl::StripTrailingSlash));
+        const QString pathToContainingDir = QFileInfo(outputFile).absolutePath();
+        if(!QFile::exists(pathToContainingDir)){
+            const QDir dir;
+            dir.mkpath(pathToContainingDir);
+        }
 
-    file.seek(0); // go to the beginning of the file
-    file.write(text.toUtf8()); // write the new text back to the file
-    file.close(); // close the file handle.
+
+        QFile::copy(res, outputFile);
+        QFile::setPermissions(outputFile,
+                              QFileDevice::ReadUser|QFileDevice::WriteUser|QFileDevice::ExeUser);
+
+        //--- adjust content of script
+        QByteArray fileData;
+        QFile file(outputFile);
+        file.open(QIODevice::ReadWrite|QIODevice::Text); // open for read and write
+        fileData = file.readAll(); // read all the data into the byte array
+
+        QString text(fileData); // add to text string for easy string replace
+
+        // replace text in string
+        text.replace(QString("<+workspace+>"), (mConnectionType == LOCAL) ?
+                       QUrl(mLocalWorkspacePath).toString(QUrl::StripTrailingSlash) :
+                       QUrl(mRemoteWorkspacePath).toString(QUrl::StripTrailingSlash));
+
+        file.seek(0); // go to the beginning of the file
+        file.write(text.toUtf8()); // write the new text back to the file
+        file.close(); // close the file handle.
+    }
   }
 }
 
 bool ColmapWrapper::hasScriptFilesInstalled()
 {
-    //--- defince ressource list that needs to be installed
-      QStringList ressourceList;
-      ressourceList << ":/ots/colmapwrapper/ColmapWorker"
-               << ":/ots/colmapwrapper/colmap_work_queue.yaml"
-               << ":/ots/colmapwrapper/colmap_worker_state.yaml";
-
       QString outputPath = (mConnectionType == LOCAL) ?
             mLocalWorkspacePath : mMntPntRemoteWorkspacePath;
-      for(QString res : ressourceList)
-      {
-          //--- compute output file path
-          QString outputFile = outputPath + QDir::separator() + QFileInfo(res).baseName();
-          outputFile += (QFileInfo(res).completeSuffix() != "") ? "." + QFileInfo(res).completeSuffix() : "";
 
-          //--- copy file and set permissions
-          if(!QFile::exists(outputFile))
-            return false;
+      //--- iterate over all resource files and filter for relevant files (*.yaml and *.py in ots folder)
+      QDirIterator it(":", QDirIterator::Subdirectories);
+      while (it.hasNext()) {
+          QString res = it.next();
+
+          if(res.startsWith(":/ots") && (res.endsWith(".yaml") || res.endsWith(".py"))){
+
+              //--- compute output file path
+              QString outputFile = outputPath + QDir::separator() + QFileInfo(res).filePath().replace(":/ots/colmapwrapper/","");
+
+              //--- copy file and set permissions
+              if(!QFile::exists(outputFile))
+                return false;
+          }
       }
       return true;
 }

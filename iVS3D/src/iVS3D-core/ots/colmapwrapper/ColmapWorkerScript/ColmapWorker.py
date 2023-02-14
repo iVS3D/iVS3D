@@ -3,13 +3,11 @@ import os
 import sys
 import argparse
 import subprocess
+import shutil
+from pathlib import Path
 
 from GpsEntry import GpsEntry
-
-from yaml import Loader, Dumper, dump, YAMLError, safe_load
-
-
-
+import yaml 
 import exifread
 
 COLMAP_BIN = ""
@@ -25,7 +23,7 @@ LAST_PROGRESS_UPDATE_TIME = 0
 # Class to dump YAML files prepared to be read by OpenCV.
 # OpenCV FileStorage expects more indentations.
 # Subclasses Dumper
-class OpenCvYamlDumper(Dumper):
+class OpenCvYamlDumper(yaml.Dumper):
 
     def increase_indent(self, flow=False, indentless=False):
         return super(OpenCvYamlDumper, self).increase_indent(flow, False)
@@ -51,7 +49,7 @@ class Job:
         return productNames[self.productType]
 
     def getJobStateStr(self) -> str:
-        stateNames = ['JOB_DONE', 'JOB_RUNNING', 'JOB_PENDING']
+        stateNames = ['JOB_DONE', 'JOB_RUNNING', 'JOB_PENDING', 'JOB_FAILED']
         return stateNames[self.jobState]
 #---------------------------------------------------------------------------------------------------------------------
 
@@ -60,9 +58,9 @@ class Job:
 def computeGpsRefernceList(colmapProjectDirPath: str, sequenceName: str, geoDir: str):
 
     # open gps output file
-    fout_ecef = open('{}/ImgGpsList_ecef.txt'.format(geoDir) , 'w+')
-    fout_offset = open('{}/GpsEcefOffset.txt'.format(geoDir) , 'w+')
-    fout_wgs84 = open('{}/ImgGpsList_wgs84.txt'.format(geoDir) , 'w+')
+    fout_ecef = open(os.path.join(geoDir, "ImgGpsList_ecef.txt") , 'w+')
+    fout_offset = open(os.path.join(geoDir, "GpsEcefOffset.txt"), 'w+')
+    fout_wgs84 = open(os.path.join(geoDir, "ImgGpsList_wgs84.txt"), 'w+')
     # write header to files
     fout_ecef.write('# FILENAME ECEF_X ECEF_Y ECEF_Z\r\n')
     fout_ecef.flush()
@@ -72,7 +70,7 @@ def computeGpsRefernceList(colmapProjectDirPath: str, sequenceName: str, geoDir:
     fout_wgs84.flush()
 
     # loop over image files
-    fileList = listImgFiles('{}/../{}.images/'.format(colmapProjectDirPath, sequenceName))
+    fileList = listImgFiles(os.path.join(colmapProjectDirPath, "..", sequenceName + ".images"))
     fileList.sort()
     i = 0
     #sum of all gps entries to detect empty gps data
@@ -187,8 +185,7 @@ def computeCameraPoses(colmapDatabaseFilePath: str, projectImageDir: str, colmap
                     current_image_number = int(current_image_number)
                     number_of_images = int(number_of_images)
                     eta = get_eta_after_step(number_of_images)
-                    progressCallback(round(10 * current_image_number / number_of_images), str(current_image_number) + "/" + str(number_of_images),
-                        eta=eta, step=1)
+                    progressCallback(round(10 * current_image_number / number_of_images), eta=eta, step=1)
 
     if p.poll() != 0:
         return False    
@@ -217,8 +214,7 @@ def computeCameraPoses(colmapDatabaseFilePath: str, projectImageDir: str, colmap
                     current_iteration = int(block2_1) + (int(block1_1) - 1) * int(block1_2)
                     max_iteration = int(block1_2) ** 2
                     eta = get_eta_after_step(max_iteration)
-                    progressCallback(10 + round(35 * current_iteration / max_iteration), str(current_iteration) + "/" + str(max_iteration), 
-                        eta=eta, step=2)
+                    progressCallback(10 + round(35 * current_iteration / max_iteration), eta=eta, step=2)
 
     if p.poll() != 0:
         return False   
@@ -233,7 +229,7 @@ def computeCameraPoses(colmapDatabaseFilePath: str, projectImageDir: str, colmap
         "mapper", 
         "--database_path", colmapDatabaseFilePath,  
         "--image_path", projectImageDir,
-        "--output_path", colmapProjectDirPath + "/01_sparse",
+        "--output_path", os.path.join(colmapProjectDirPath, "01_sparse"),
         "--Mapper.max_focal_length_ratio", max_focal_length_ratio,
         "--Mapper.ba_refine_extra_params", refine_extra_params,
         "--Mapper.ba_local_max_num_iterations", "25",
@@ -255,9 +251,9 @@ def computeCameraPoses(colmapDatabaseFilePath: str, projectImageDir: str, colmap
                     max_number_of_registered_images = number_of_registered_images
                     eta = get_eta_after_step(number_of_images)
                     progressCallback(45 + round(45 * max_number_of_registered_images / number_of_images), 
-                        str(max_number_of_registered_images) + "/" + str(number_of_images), eta=eta, step=3)
+                        eta=eta, step=3)
                          
-    if p.poll() != 0 or not os.path.exists(colmapProjectDirPath + "/01_sparse/0"):
+    if p.poll() != 0 or not os.path.exists(os.path.join(colmapProjectDirPath, "01_sparse", "0")):
         return False
 
     # In robust mode the estimation of distortion params is only performed in a downstream bundle adjustment after mapping succeeded
@@ -271,8 +267,8 @@ def computeCameraPoses(colmapDatabaseFilePath: str, projectImageDir: str, colmap
             params = param_list[i]
             p = subprocess.Popen([COLMAP_BIN, 
                 "bundle_adjuster", 
-                "--input_path", colmapProjectDirPath + "/01_sparse/0",
-                "--output_path", colmapProjectDirPath + "/01_sparse/0",
+                "--input_path", os.path.join(colmapProjectDirPath, "01_sparse", "0"),
+                "--output_path", os.path.join(colmapProjectDirPath, "01_sparse", "0"),
                 "--BundleAdjustment.max_num_iterations", "1000",
                 "--BundleAdjustment.refine_focal_length", params[0],
                 "--BundleAdjustment.refine_principal_point", params[1],
@@ -292,39 +288,43 @@ def computeCameraPoses(colmapDatabaseFilePath: str, projectImageDir: str, colmap
     progressCallback(95, force_Write = True)
 
     # run georegistration
-    os.system('mkdir -p {}/01_sparse/geo/sparse_in/'.format(colmapProjectDirPath))
-    os.system('mkdir -p {}/01_sparse/geo/sparse_out/'.format(colmapProjectDirPath))
+    sparse_in_path = os.path.join(colmapProjectDirPath, "01_sparse", "geo", "sparse_in")
+    if not os.path.exists(sparse_in_path):
+        os.makedirs(sparse_in_path)
+    
+    sparse_out_path = os.path.join(colmapProjectDirPath, "01_sparse", "geo", "sparse_out")
+    if not os.path.exists(sparse_out_path):
+        os.makedirs(sparse_out_path)
 
     # copy data
-    os.system('cp {}/01_sparse/0/* '
-              '{}/01_sparse/geo/sparse_in/'.format(colmapProjectDirPath, colmapProjectDirPath))
+    shutil.copytree(os.path.join(colmapProjectDirPath, "01_sparse", "0"), os.path.join(colmapProjectDirPath, "01_sparse", "geo", "sparse_in"), dirs_exist_ok=True) 
+ 
 
     # compute reference informaion
-    success = computeGpsRefernceList(colmapProjectDirPath, sequenceName, '{}/01_sparse/geo/'.format(colmapProjectDirPath))
+    success = computeGpsRefernceList(colmapProjectDirPath, sequenceName, os.path.join(colmapProjectDirPath, "01_sparse", "geo"))
 
     # running model aligner if computeGpsRefernceList was successfull
     if success:
         # run model aligner
         print('\t> Running model aligner...')
         cmd=('{} model_aligner '
-            '--input_path {}/01_sparse/geo/sparse_in/ '
-            '--output_path {}/01_sparse/geo/sparse_out/ '
-            '--ref_images_path {}/01_sparse/geo/ImgGpsList_ecef.txt '
-            '--robust_alignment 0').format(COLMAP_BIN, colmapProjectDirPath, colmapProjectDirPath,
-            colmapProjectDirPath)
+            '--input_path ' + sparse_in_path + " ",
+            '--output_path ' + sparse_out_path + " ",
+            '--ref_images_path ' + os.path.join(colmapProjectDirPath, "01_sparse", "geo", "ImgGpsList_ecef.txt") + " ",
+            '--robust_alignment 0').format(COLMAP_BIN)
         os.system(cmd)    
 
         # copy output data
-        os.system('cp {}/01_sparse/geo/sparse_out/cameras.bin '
-                '{}/{}_cameras.bin'.format(colmapProjectDirPath, projectOutputDirPath, sequenceName))
-        os.system('cp {}/01_sparse/geo/sparse_out/images.bin '
-                '{}/{}_images.bin'.format(colmapProjectDirPath, projectOutputDirPath, sequenceName))
+        shutil.copy(os.path.join(colmapProjectDirPath, "01_sparse", "geo", "sparse_out", "cameras.bin"), 
+            os.path.join(projectOutputDirPath, sequenceName + "_cameras.bin")) 
+        shutil.copy(os.path.join(colmapProjectDirPath, "01_sparse", "geo", "sparse_out", "images.bin"), 
+            os.path.join(projectOutputDirPath, sequenceName + "_images.bin")) 
     else:
         # copy output data
-        os.system('cp {}/01_sparse/geo/sparse_in/cameras.bin '
-                '{}/{}_cameras.bin'.format(colmapProjectDirPath, projectOutputDirPath, sequenceName))
-        os.system('cp {}/01_sparse/geo/sparse_in/images.bin '
-                '{}/{}_images.bin'.format(colmapProjectDirPath, projectOutputDirPath, sequenceName))
+        shutil.copy(os.path.join(colmapProjectDirPath, "01_sparse", "geo", "sparse_in", "cameras.bin"), 
+            os.path.join(projectOutputDirPath, sequenceName + "_cameras.bin")) 
+        shutil.copy(os.path.join(colmapProjectDirPath, "01_sparse", "geo", "sparse_in", "images.bin"), 
+            os.path.join(projectOutputDirPath, sequenceName + "_images.bin")) 
 
     progressCallback(100, force_Write = True)
 
@@ -349,8 +349,8 @@ def computeDenseCloud(projectImageDir: str, colmapProjectDirPath: str, projectOu
     p = subprocess.Popen([COLMAP_BIN, 
         "image_undistorter", 
         "--image_path", projectImageDir,
-        "--input_path", colmapProjectDirPath + "/01_sparse/0",
-        "--output_path", colmapProjectDirPath + "/02_dense/",
+        "--input_path", os.path.join(colmapProjectDirPath, "01_sparse", "0"),
+        "--output_path", os.path.join(colmapProjectDirPath, "02_dense"),
         "--output_type", "COLMAP",
         "--max_image_size", maxImgSize], stdout=subprocess.PIPE)     
 
@@ -368,8 +368,7 @@ def computeDenseCloud(projectImageDir: str, colmapProjectDirPath: str, projectOu
                     current_image_number = int(current_image_number)
                     number_of_images = int(number_of_images)
                     eta = get_eta_after_step(number_of_images)
-                    progressCallback(round(5 * current_image_number / number_of_images), str(current_image_number) + "/" + str(number_of_images),
-                        eta=eta, step=1)
+                    progressCallback(round(5 * current_image_number / number_of_images), eta=eta, step=1)
 
     if p.poll() != 0:
         return False   
@@ -380,7 +379,7 @@ def computeDenseCloud(projectImageDir: str, colmapProjectDirPath: str, projectOu
     print('\t> Running patch match stereo...')
     p = subprocess.Popen([COLMAP_BIN, 
         "patch_match_stereo", 
-        "--workspace_path", colmapProjectDirPath + "/02_dense/",
+        "--workspace_path", os.path.join(colmapProjectDirPath, "02_dense"),
         "--workspace_format", "COLMAP",
         "--PatchMatchStereo.gpu_index", gpus,
         "--PatchMatchStereo.geom_consistency", "1",
@@ -401,23 +400,25 @@ def computeDenseCloud(projectImageDir: str, colmapProjectDirPath: str, projectOu
                     current_image_number += 1
                     number_of_images = int(number_of_images)
                     eta = get_eta_after_step(number_of_images * 2)
-                    progressCallback(round(5 + 65 * current_image_number / number_of_images * 2), str(current_image_number) + "/" + str(number_of_images * 2),
-                        eta=eta, step=2)
+                    progressCallback(round(5 + 65 * current_image_number / (number_of_images * 2)), eta=eta, step=2)
 
     if p.poll() != 0:
         return False 
 
     progressCallback(70, force_Write=True)
-    os.system('mkdir -p {}/02_dense/fused_model'.format(colmapProjectDirPath))
+
+    fused_model_path = os.path.join(colmapProjectDirPath, "02_dense", "fused_model")
+    if not os.path.exists(fused_model_path):
+        os.makedirs(fused_model_path)
 
     # run stereo fusion
     print('\t> Running stereo fusion...')
     p = subprocess.Popen([COLMAP_BIN, 
         "stereo_fusion", 
-        "--workspace_path", colmapProjectDirPath + "/02_dense/",
+        "--workspace_path", os.path.join(colmapProjectDirPath, "02_dense"),
         "--workspace_format", "COLMAP",
         "--input_type", "geometric",
-        "--output_path", colmapProjectDirPath + "/02_dense/fused_model/" + sequenceName + "_dense_cloud.ply",
+        "--output_path", os.path.join(colmapProjectDirPath, "02_dense", "fused_model", sequenceName + "_dense_cloud.ply"),
         "--StereoFusion.cache_size", cacheSize], stdout=subprocess.PIPE)     
 
     get_eta_after_step = init_eta_calculation()
@@ -434,8 +435,7 @@ def computeDenseCloud(projectImageDir: str, colmapProjectDirPath: str, projectOu
                     current_image_number = int(current_image_number)
                     number_of_images = int(number_of_images)
                     eta = get_eta_after_step(number_of_images)
-                    progressCallback(round(70 + 25 * current_image_number / number_of_images), str(current_image_number) + "/" + str(number_of_images),
-                        eta=eta, step=3)
+                    progressCallback(round(70 + 25 * current_image_number / number_of_images), eta=eta, step=3)
 
     if p.poll() != 0:
         return False 
@@ -443,47 +443,47 @@ def computeDenseCloud(projectImageDir: str, colmapProjectDirPath: str, projectOu
     progressCallback(95, force_Write=True)
 
     # run georegistration
-    os.system('mkdir -p {}/02_dense/geo/dense_in/'.format(colmapProjectDirPath))
-    os.system('mkdir -p {}/02_dense/geo/dense_out/'.format(colmapProjectDirPath))
+    dense_in_path = os.path.join(colmapProjectDirPath, "02_dense", "geo", "dense_in")
+    if not os.path.exists(dense_in_path):
+        os.makedirs(dense_in_path)
+
+    dense_out_path = os.path.join(colmapProjectDirPath, "02_dense", "geo", "dense_out")
+    if not os.path.exists(dense_out_path):
+        os.makedirs(dense_out_path)
 
     # copy data
-    os.system('cp {}/02_dense/fused_model/* '
-              '{}/02_dense/geo/dense_in/'.format(colmapProjectDirPath, colmapProjectDirPath))
-    os.system('cp {}/02_dense/sparse/* '
-              '{}/02_dense/geo/dense_in/'.format(colmapProjectDirPath, colmapProjectDirPath))
+    shutil.copytree(os.path.join(colmapProjectDirPath, "02_dense", "fused_model"), os.path.join(colmapProjectDirPath, "02_dense", "geo", "dense_in"), dirs_exist_ok=True) 
+    shutil.copytree(os.path.join(colmapProjectDirPath, "02_dense", "sparse"), os.path.join(colmapProjectDirPath, "02_dense", "geo", "dense_in"), dirs_exist_ok=True) 
 
     # compute reference informaion
-    success = computeGpsRefernceList(colmapProjectDirPath, sequenceName, '{}/02_dense/geo/'.format(colmapProjectDirPath))
+    success = computeGpsRefernceList(colmapProjectDirPath, sequenceName, os.path.join(colmapProjectDirPath, "02_dense", "geo"))
 
     # running model aligner if computeGpsRefernceList was successfull
     if success:
         # run model aligner
         print('\t> Running model aligner...')
         cmd=('{} model_aligner '
-            '--input_path {}/02_dense/geo/dense_in/ '
-            '--output_path {}/02_dense/geo/dense_out/ '
-            '--ref_images_path {}/02_dense/geo/ImgGpsList_ecef.txt '
-            '--robust_alignment 0').format(COLMAP_BIN, colmapProjectDirPath, colmapProjectDirPath,
-            colmapProjectDirPath)
+            '--input_path ' + dense_in_path + " ",
+            '--output_path '+ dense_out_path + " ",
+            '--ref_images_path ' + os.path.join(colmapProjectDirPath, "02_dense", "geo", "ImgGpsList_ecef.txt") + " ", 
+            '--robust_alignment 0').format(COLMAP_BIN)
         os.system(cmd)
 
         # run model_converter fusion
         print('\t> Running model converter...')
         cmd=('{} model_converter '
-            '--input_path {}/02_dense/geo/dense_out/ '
-            '--output_path {}/02_dense/{}_dense_cloud.ply '
-            '--output_type PLY').format(COLMAP_BIN, colmapProjectDirPath, colmapProjectDirPath,
-            sequenceName, cacheSize)
+            '--input_path ' + dense_out_path + " ",
+            '--output_path ' + os.path.join(colmapProjectDirPath, "02_dense", sequenceName+"_dense_cloud.ply") + " ",
+            '--output_type PLY').format(COLMAP_BIN)
         os.system(cmd)
     else:
-        os.system('cp {}/02_dense/fused_model/{}_dense_cloud.ply '
-              '{}/02_dense/{}_dense_cloud.ply '.format(colmapProjectDirPath, sequenceName, colmapProjectDirPath, sequenceName))
+        shutil.copy(os.path.join(colmapProjectDirPath, "02_dense", "fused_model", sequenceName+"_dense_cloud.ply"), 
+            os.path.join(colmapProjectDirPath, "02_dense", sequenceName+"_dense_cloud.ply")) 
+
 
     # copy result
-    cmd=('cp {}/02_dense/{}_dense_cloud.ply '
-         '{}/02_dense/geo/GpsEcefOffset.txt '
-         '{}/').format(colmapProjectDirPath, sequenceName, colmapProjectDirPath, projectOutputDirPath)
-    os.system(cmd)
+    shutil.copy(os.path.join(colmapProjectDirPath, "02_dense", sequenceName+"_dense_cloud.ply"), projectOutputDirPath) 
+    shutil.copy(os.path.join(colmapProjectDirPath, "02_dense", "geo", "GpsEcefOffset.txt"), projectOutputDirPath) 
 
     progressCallback(100)
 
@@ -502,14 +502,13 @@ def computeMeshedModel(colmapProjectDirPath: str, projectOutputDirPath: str, seq
     # run poisson mesher
     print('\t> Running poisson mesher...')
     cmd=('{} poisson_mesher '
-         '--input_path {}/02_dense/{}_dense_cloud.ply '
-         '--output_path {}/02_dense/{}_meshed_model.ply').format(COLMAP_BIN, colmapProjectDirPath,
-         sequenceName, colmapProjectDirPath, sequenceName)
+         '--input_path ' + os.path.join(colmapProjectDirPath, "02_dense", sequenceName + "_dense_cloud.ply") + " ",
+         '--output_path ' + os.path.join(colmapProjectDirPath, "02_dense", sequenceName + "_meshed_model.ply") + " "
+         ).format(COLMAP_BIN)
     os.system(cmd)
 
-    cmd=('cp {}/02_dense/{}_meshed_model.ply '
-         '{}/').format(colmapProjectDirPath, sequenceName, projectOutputDirPath)
-    os.system(cmd)
+    # copy result
+    shutil.copy(os.path.join(colmapProjectDirPath, "02_dense", sequenceName+"_meshed_model.ply"), projectOutputDirPath)  
 
     progressCallback(100)
 
@@ -541,17 +540,17 @@ def loadYaml(yamlFilePath: str):
         time.sleep(0.1)
 
     # create lock file
-    os.system('touch {}'.format(yamlLockFilePath))
+    Path(yamlLockFilePath).touch()
 
     with open(yamlFilePath, 'r') as iStream:
         data = iStream.read()
         try:
-            yamlObj = safe_load(data[len(OPENCV_YAML_HEADER):]) # handle opencv header
-        except YAMLError as exc:
+            yamlObj = yaml.safe_load(data[len(OPENCV_YAML_HEADER):]) # handle opencv header
+        except yaml.YAMLError as exc:
             print(exc)
 
     # remove lock file
-    os.system('rm {}'.format(yamlLockFilePath))
+    os.remove(yamlLockFilePath)
 
     return yamlObj
 
@@ -565,17 +564,17 @@ def writeYaml(yamlFilePath: str, yamlObj):
         time.sleep(0.1)
 
     # create lock file
-    os.system('touch {}'.format(yamlLockFilePath))
+    Path(yamlLockFilePath).touch()
 
     with open(yamlFilePath, 'w') as oStream:
         oStream.write(OPENCV_YAML_HEADER)  # handle opencv header
         try:
-            dump(yamlObj, oStream, Dumper=OpenCvYamlDumper)
-        except YAMLError as exc:
+            yaml.dump(yamlObj, oStream, Dumper=OpenCvYamlDumper)
+        except yaml.YAMLError as exc:
             print(exc)
 
     # remove lock file
-    os.system('rm {}'.format(yamlLockFilePath))
+    os.remove(yamlLockFilePath)
 
 ######################################################################################################################
 # Process given job
@@ -588,10 +587,19 @@ def processJob(workspacePath: str, currentJob: Job, robust_mode: bool) -> bool:
     colmapProjectDirPath = os.path.join(workspacePath , currentJob.sequenceName + ".files")
     projectOutputDirPath = os.path.join(workspacePath , currentJob.sequenceName + ".output")
 
-    os.system('mkdir -p {}'.format(projectImageDir))
-    os.system('mkdir -p {}/01_sparse'.format(colmapProjectDirPath))
-    os.system('mkdir -p {}/02_dense'.format(colmapProjectDirPath))
-    os.system('mkdir -p {}'.format(projectOutputDirPath))
+    if not os.path.exists(projectImageDir):
+        os.makedirs(projectImageDir)
+
+    sparse_path = os.path.join(colmapProjectDirPath, "01_sparse")
+    if not os.path.exists(sparse_path):
+        os.makedirs(sparse_path)
+
+    dense_path = os.path.join(colmapProjectDirPath, "02_dense")
+    if not os.path.exists(dense_path):
+        os.makedirs(dense_path)
+    
+    if not os.path.exists(projectOutputDirPath):
+        os.makedirs(projectOutputDirPath)
 
     # if current product type of job is CAMERA_POSES handle creation of project
     if( currentJob.getProductTypeStr() == 'CAMERA_POSES' ):
@@ -599,9 +607,11 @@ def processJob(workspacePath: str, currentJob: Job, robust_mode: bool) -> bool:
         # if image path in job description is not in project directory copy into project directory
         if( projectImageDir != currentJob.parameterList["image_path"] ):
             print("Images are outside of project dir. Copying {} -> {}".format(currentJob.parameterList["image_path"], projectImageDir))
-            os.system('rm -rf {}/*'.format(projectImageDir))
-            os.system('mkdir -p {}'.format(projectImageDir))
-            os.system('cp {}/* {}'.format(currentJob.parameterList["image_path"], projectImageDir))
+            
+            shutil.rmtree(projectImageDir)
+            os.makedirs(projectImageDir)
+            shutil.copytree(os.path.join(currentJob.parameterList["image_path"]), projectImageDir, dirs_exist_ok=True)  
+
         # end if projectImageDir != image_path
 
         imgList = listImgFiles(projectImageDir)
@@ -668,7 +678,7 @@ def popFirstJobFromQueue(yamlFilePath: str) -> Job:
     print("Current Job: {}".format(job))
 
     # write modified yamlObj back to file
-    writeYaml(yamlFilePath, yamlObj)
+    writeYaml(yamlFilePath , yamlObj)
 
     return True, job
 
@@ -694,7 +704,7 @@ def writeCurrentJobToStateFile(yamlFilePath: str, currentJobYamlObj):
 
 ######################################################################################################################
 # Method to write currently running job to state files
-def progressCallback(progress: float, comment = "", force_Write = False, step=1, eta=0):
+def progressCallback(progress: float, force_Write = False, step=1, eta=0):
     global LAST_PROGRESS_UPDATE_TIME
     global WORKER_STATE_YAML_PATH
 
@@ -714,13 +724,27 @@ def progressCallback(progress: float, comment = "", force_Write = False, step=1,
         # store global progress in yaml file
         yamlJobEntry = yamlObj["runningJob"][0]
         yamlJobEntry["progress"] = progress
-        yamlJobEntry["comment"] = comment
         yamlJobEntry["step"] = step
         yamlJobEntry["eta"] = eta
 
         writeYaml(WORKER_STATE_YAML_PATH, yamlObj)
 
         LAST_PROGRESS_UPDATE_TIME = time.time()
+
+######################################################################################################################
+# Method to set failed state to failed job
+def setFailedStateToJob():
+    global WORKER_STATE_YAML_PATH
+
+    yamlObj = loadYaml(WORKER_STATE_YAML_PATH)
+    if yamlObj is None:
+        return
+
+    yamlJobEntry = yamlObj["runningJob"][0]
+    yamlJobEntry["jobState"] = 3
+
+    writeYaml(WORKER_STATE_YAML_PATH, yamlObj)
+
 
 ###############################################################################
 # Initialize argument parser and synopsis
@@ -734,7 +758,7 @@ def parseArguments():
     parser.add_argument("colmap_bin", help="Path to COLMAP binary.")
     parser.add_argument("worker_state_yaml_path", help="Path to YAML file holding worker state.")
     parser.add_argument("work_queue_yaml_path", help="Path to YAML file holding work queue.")
-    parser.add_argument("--robust_mode", default=1, help="robust mode tries to reconstruct 3d model " 
+    parser.add_argument("--robust_mode", default=0, help="robust mode tries to reconstruct 3d model " 
         "with fixed distortion params and then tries to estimate distorsion params with bundle " 
         "adjustment after sparse mapping (usefull for difficult images with high focal length or poor quality). ")
     return parser.parse_args()
@@ -755,7 +779,7 @@ if __name__ == "__main__":
     COLMAP_BIN = args.colmap_bin
     WORKER_STATE_YAML_PATH = args.worker_state_yaml_path
     WORK_QUEUE_YAML_PATH = args.work_queue_yaml_path
-    ROBUST_MODE = bool(args.robust_mode)
+    ROBUST_MODE = bool(int(args.robust_mode))
 
     if not os.path.exists(COLMAP_BIN):
         print('ERROR: {} does not exist!').format(COLMAP_BIN)
@@ -786,9 +810,17 @@ if __name__ == "__main__":
     while(isJobInList):
 
         # process current job
-        success = processJob(workspacePath, currentJob, ROBUST_MODE)
-        if(not success):
-            print("ERROR: Something went wrong when trying to process job {}".format(currentJob))
+        try:
+            success = processJob(workspacePath, currentJob, ROBUST_MODE)
+            if(not success):
+                raise Exception("ERROR: Something went wrong when trying to process job {}".format(currentJob))
+
+        except Exception as e:             
+                # write failed job state to file and exit
+                print("ERROR: Something went wrong when trying to process job {}".format(currentJob))
+                setFailedStateToJob()
+                raise e
+
 
         # get next job in queue
         isJobInList, currentJob = popFirstJobFromQueue(WORK_QUEUE_YAML_PATH)

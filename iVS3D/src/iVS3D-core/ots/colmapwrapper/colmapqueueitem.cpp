@@ -2,7 +2,7 @@
 
 // std
 #include <stdio.h>
-
+#include <iostream>
 // Qt
 #include <QPushButton>
 
@@ -84,8 +84,22 @@ QueueItemActive::QueueItemActive(ColmapWrapper::SJob job, QWidget *parent) :
 {
     this->job = job;
     ui->setupUi(this);
+
+    uint milliseconds = job.eta;
+    uint seconds      = milliseconds / 1000;
+    milliseconds     = milliseconds % 1000;
+    uint minutes      = seconds / 60;
+    seconds          = seconds % 60;
+    uint hours        = minutes / 60;
+    minutes          = minutes % 60;
+
+    QTime time;
+    time.setHMS(hours, minutes, seconds, milliseconds);
+
     ui->l_name->setText(QString::fromStdString(job.sequenceName).
-                        append(": ").append(ColmapWrapper::EProductType2QString(job.product)));
+                        append(": ").append(ColmapWrapper::EProductType2QString(job.product))
+                        .append(" ETA for step ").append(QString::number(job.step)).append(" ")
+                        .append(time.toString("hh:mm:ss")));
 }
 
 //==================================================================================================

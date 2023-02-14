@@ -259,7 +259,12 @@ void NewProductDialog::onAccepted()
                                               ui->cb_multiModels->isChecked() ? "1" : "0" ));
     camParamsJob.parameters.insert(
           std::pair<std::string, std::string>("gpus", ui->le_poseGpus->text().toStdString()));
+
+    camParamsJob.parameters.insert(
+        std::pair<std::string, std::string>("max_focal_length_ratio",
+                                            ui->cb_highFocalLength->isChecked() ? "1000" : "10" ));
     mNewJobList.push_back(camParamsJob);
+
   }
 
   //--- create job to compute dense point cloud if applicable
@@ -285,6 +290,9 @@ void NewProductDialog::onAccepted()
 
     mNewJobList.push_back(meshJob);
   }
+
+  mpColmapWrapper->setUseRobustMode(ui->cb_useRobustMode->isChecked());
+
 }
 
 //==================================================================================================
@@ -308,10 +316,12 @@ void NewProductDialog::onShow()
   ui->cb_prodCameraPoses->setEnabled(true);
   ui->cb_prodPointCloud->setChecked(false);
   ui->cb_prodPointCloud->setEnabled(true);
+  ui->cb_useRobustMode->setChecked(false);
   ui->cb_prodMesh->setChecked(false);
   ui->gb_settingsCamPoses->setVisible(false);
   ui->gb_settingsPointCloud->setVisible(false);
   ui->gb_settingsMesh->setVisible(false);
+
 
   //--- get list of sequences already defined, i.e. in finished seq and pending jobs
   mAvailableSeqs = mpColmapWrapper->getFinishedSequenceList();

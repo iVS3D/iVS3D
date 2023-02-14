@@ -3,6 +3,7 @@
 
 // Qt
 #include <QWidget>
+#include <QTime>
 
 #include "../colmapwrapper.h"
 

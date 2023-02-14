@@ -67,7 +67,9 @@ class ColmapWrapper : public QObject
     enum EJobState {
       JOB_DONE = 0, /**< Job is done. */
       JOB_RUNNING,  /**< Job is running. */
-      JOB_PENDING   /**< Job is waiting to be processed. */
+      JOB_PENDING,   /**< Job is waiting to be processed. */
+      JOB_FAILED   /**< Job failed to be processed. */
+
     };
 
     /**
@@ -125,6 +127,12 @@ class ColmapWrapper : public QObject
 
         /// Progress of this job (in %).
         uint progress = 0;
+
+        /// current step of job.
+        uint step = 0;
+
+        /// ETA (expected time of arrival) for current step in ms
+        uint eta = 0;
     };
 
     /**
@@ -304,6 +312,11 @@ class ColmapWrapper : public QObject
     bool getSetupSuccessful();
 
     /**
+     * @brief Returns wether robustMode should be used.
+     */
+    bool useRobustMode() const;
+
+    /**
      * @brief Returns true, if remote workspace is mounted. False, otherwise.
      */
     bool isRemoteWorkspaceMounted(QString iRemoteWorkspacePath) const;
@@ -439,6 +452,11 @@ class ColmapWrapper : public QObject
      * @brief Set interval (in seconds) in which the client and server should be synchronized.
      */
     void setSyncInterval(int intervalInSeconds);
+
+    /**
+     * @brief Set wether to use robustMode.
+     */
+    void setUseRobustMode(bool useRobustMode);
 
     /**
      * @brief Mount remote workspace into path specified with setMntPntRemoteWorkspacePath().
@@ -711,6 +729,9 @@ class ColmapWrapper : public QObject
 
     /// Interval of background synchronization between server and client
     int mSyncInterval;
+
+    /// Use robust mode for higher probability for success versus quality
+    bool mUseRobustMode;
 
     /// Status of workspace
     EWorkspaceStatus mWorkspaceStatus;
