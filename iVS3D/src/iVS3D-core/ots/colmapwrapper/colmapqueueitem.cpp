@@ -9,6 +9,7 @@
 #include "ui_colmapqueueitem.h"
 #include "ui_colmapqueueitem_running.h"
 #include "ui_colmapqueueitem_finished.h"
+#include "ui_colmapqueueitem_failed.h"
 
 namespace lib3d {
 namespace ots {
@@ -166,6 +167,45 @@ void QueueItemFinished::onBtnDeleteClicked()
 {
     emit deleteJob(job);
 }
+
+//==================================================================================================
+QueueItemFailed::QueueItemFailed(ColmapWrapper::SJob job, QWidget *parent) :
+    QWidget(parent),
+    ui(new Ui::QueueItemFailed)
+{
+  this->job = job;
+  ui->setupUi(this);
+
+  ui->l_name->setText(QString::fromStdString(job.sequenceName).
+                      append(": ").append(ColmapWrapper::EProductType2QString(job.product)));
+  connect(ui->btnDelete, &QPushButton::clicked, this, &QueueItemFailed::onBtnDeleteClicked);
+
+}
+
+//==================================================================================================
+QueueItemFailed::~QueueItemFailed()
+{
+  delete ui;
+}
+
+//==================================================================================================
+void QueueItemFailed::onUpdateToDarkTheme()
+{
+  ui->btnDelete->setIcon(QIcon(":/assets/icons/glyphicons-17-bin-dark.png"));
+}
+
+//==================================================================================================
+void QueueItemFailed::onUpdateToLightTheme()
+{
+  ui->btnDelete->setIcon(QIcon(":/assets/icons/glyphicons-17-bin.png"));
+}
+
+//==================================================================================================
+void QueueItemFailed::onBtnDeleteClicked()
+{
+    emit deleteJob(job);
+}
+
 
 } // namespace colmapwrapper
 } // namespace ui

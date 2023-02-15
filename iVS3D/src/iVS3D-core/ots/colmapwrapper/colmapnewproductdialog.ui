@@ -482,7 +482,7 @@
                <item>
                 <widget class="QLabel" name="l_useRobustMode">
                  <property name="text">
-                  <string>Robust Mode (Probability for success over quality):</string>
+                  <string>Robust Mode (Higher Probability for success over quality):</string>
                  </property>
                 </widget>
                </item>
@@ -513,7 +513,7 @@
                <item>
                 <widget class="QLabel" name="l_highFocalLength">
                  <property name="text">
-                  <string>Images have high focal length:</string>
+                  <string>Images could have high focal length:</string>
                  </property>
                 </widget>
                </item>
@@ -534,6 +534,9 @@
                 <widget class="QCheckBox" name="cb_highFocalLength">
                  <property name="text">
                   <string/>
+                 </property>
+                 <property name="checked">
+                  <bool>true</bool>
                  </property>
                 </widget>
                </item>

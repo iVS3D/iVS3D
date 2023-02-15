@@ -604,6 +604,11 @@ class ColmapWrapper : public QObject
     void writeWorkQueueToFile();
 
     /**
+     * @brief Clear worker state file (colmap_worker_state.yaml) in workspace.
+     */
+    void clearWorkerStateFile();
+
+    /**
      * @brief Read work queue from file (colmap_work_queue.yaml) in workspace.
      */
     void readWorkQueueFromFile();

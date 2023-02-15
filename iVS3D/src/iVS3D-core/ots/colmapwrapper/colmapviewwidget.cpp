@@ -122,7 +122,6 @@ void ViewWidget::refreshJobQueue()
     ui->lw_queue->addItem(item);
     switch(jobItr->state)
     {
-      default:
       case ColmapWrapper::JOB_PENDING:
       {
         QueueItem *jqi = new QueueItem(*jobItr);
@@ -162,6 +161,22 @@ void ViewWidget::refreshJobQueue()
         jqi->setProgress(jobItr->progress);
         ui->lw_queue->setItemWidget(item, jqi);
         item->setSizeHint(jqi->minimumSize());
+        if(mCurrentTheme == DARK)
+          jqi->onUpdateToDarkTheme();
+        else
+          jqi->onUpdateToLightTheme();
+      }
+      break;
+
+      //case ColmapWrapper::JOB_FAILED:
+      default:
+      {
+        QueueItemFailed *jqi = new QueueItemFailed(*jobItr);
+        item->setSizeHint(jqi->minimumSize());
+        ui->lw_queue->setItemWidget(item, jqi);
+        item->setSizeHint(jqi->minimumSize());
+        QObject::connect(jqi, &QueueItemFailed::deleteJob, this, &ViewWidget::deleteJob);
+
         if(mCurrentTheme == DARK)
           jqi->onUpdateToDarkTheme();
         else

@@ -54,6 +54,84 @@ class Job:
 #---------------------------------------------------------------------------------------------------------------------
 
 ######################################################################################################################
+# Helper method for python < 3.8  (dirs_exist_ok is python3.8)
+def _copytree(entries, src, dst, symlinks, ignore, copy_function,
+              ignore_dangling_symlinks, dirs_exist_ok=False):
+    if ignore is not None:
+        ignored_names = ignore(os.fspath(src), [x.name for x in entries])
+    else:
+        ignored_names = set()
+
+    os.makedirs(dst, exist_ok=dirs_exist_ok)
+    errors = []
+    use_srcentry = copy_function is shutil.copy2 or copy_function is shutil.copy
+
+    for srcentry in entries:
+        if srcentry.name in ignored_names:
+            continue
+        srcname = os.path.join(src, srcentry.name)
+        dstname = os.path.join(dst, srcentry.name)
+        srcobj = srcentry if use_srcentry else srcname
+        try:
+            is_symlink = srcentry.is_symlink()
+            if is_symlink and os.name == 'nt':
+                # Special check for directory junctions, which appear as
+                # symlinks but we want to recurse.
+                lstat = srcentry.stat(follow_symlinks=False)
+                if lstat.st_reparse_tag == stat.IO_REPARSE_TAG_MOUNT_POINT:
+                    is_symlink = False
+            if is_symlink:
+                linkto = os.readlink(srcname)
+                if symlinks:
+                    # We can't just leave it to `copy_function` because legacy
+                    # code with a custom `copy_function` may rely on copytree
+                    # doing the right thing.
+                    os.symlink(linkto, dstname)
+                    copystat(srcobj, dstname, follow_symlinks=not symlinks)
+                else:
+                    # ignore dangling symlink if the flag is on
+                    if not os.path.exists(linkto) and ignore_dangling_symlinks:
+                        continue
+                    # otherwise let the copy occur. copy2 will raise an error
+                    if srcentry.is_dir():
+                        copytree(srcobj, dstname, symlinks, ignore,
+                                 copy_function, dirs_exist_ok=dirs_exist_ok)
+                    else:
+                        copy_function(srcobj, dstname)
+            elif srcentry.is_dir():
+                copytree(srcobj, dstname, symlinks, ignore, copy_function,
+                         dirs_exist_ok=dirs_exist_ok)
+            else:
+                # Will raise a SpecialFileError for unsupported file types
+                copy_function(srcobj, dstname)
+        # catch the Error from the recursive copytree so that we can
+        # continue with other files
+        except shutil.Error as err:
+            errors.extend(err.args[0])
+        except OSError as why:
+            errors.append((srcname, dstname, str(why)))
+    try:
+        shutil.copystat(src, dst)
+    except OSError as why:
+        # Copying file access times may fail on Windows
+        if getattr(why, 'winerror', None) is None:
+            errors.append((src, dst, str(why)))
+    if errors:
+        raise shutil.Error(errors)
+    return dst
+
+def copytree(src, dst, symlinks=False, ignore=None, copy_function=shutil.copy2,
+             ignore_dangling_symlinks=False, dirs_exist_ok=False):
+  
+    #sys.audit("shutil.copytree", src, dst)
+    with os.scandir(src) as itr:
+        entries = list(itr)
+    return _copytree(entries=entries, src=src, dst=dst, symlinks=symlinks,
+                     ignore=ignore, copy_function=copy_function,
+                     ignore_dangling_symlinks=ignore_dangling_symlinks,
+                     dirs_exist_ok=dirs_exist_ok)
+
+######################################################################################################################
 # Method to compute list of gps reference data, needed for georegistration, returns false if no valid gps reference data found
 def computeGpsRefernceList(colmapProjectDirPath: str, sequenceName: str, geoDir: str):
 
@@ -297,7 +375,7 @@ def computeCameraPoses(colmapDatabaseFilePath: str, projectImageDir: str, colmap
         os.makedirs(sparse_out_path)
 
     # copy data
-    shutil.copytree(os.path.join(colmapProjectDirPath, "01_sparse", "0"), os.path.join(colmapProjectDirPath, "01_sparse", "geo", "sparse_in"), dirs_exist_ok=True) 
+    copytree(os.path.join(colmapProjectDirPath, "01_sparse", "0"), os.path.join(colmapProjectDirPath, "01_sparse", "geo", "sparse_in"), dirs_exist_ok=True) 
  
 
     # compute reference informaion
@@ -398,7 +476,7 @@ def computeDenseCloud(projectImageDir: str, colmapProjectDirPath: str, projectOu
                 if len(current_images) == 2:                
                     _, number_of_images = current_images
                     current_image_number += 1
-                    number_of_images = int(number_of_images)
+                    number_of_images = int(number_of_images.split(" ")[0])
                     eta = get_eta_after_step(number_of_images * 2)
                     progressCallback(round(5 + 65 * current_image_number / (number_of_images * 2)), eta=eta, step=2)
 
@@ -452,8 +530,8 @@ def computeDenseCloud(projectImageDir: str, colmapProjectDirPath: str, projectOu
         os.makedirs(dense_out_path)
 
     # copy data
-    shutil.copytree(os.path.join(colmapProjectDirPath, "02_dense", "fused_model"), os.path.join(colmapProjectDirPath, "02_dense", "geo", "dense_in"), dirs_exist_ok=True) 
-    shutil.copytree(os.path.join(colmapProjectDirPath, "02_dense", "sparse"), os.path.join(colmapProjectDirPath, "02_dense", "geo", "dense_in"), dirs_exist_ok=True) 
+    copytree(os.path.join(colmapProjectDirPath, "02_dense", "fused_model"), os.path.join(colmapProjectDirPath, "02_dense", "geo", "dense_in"), dirs_exist_ok=True) 
+    copytree(os.path.join(colmapProjectDirPath, "02_dense", "sparse"), os.path.join(colmapProjectDirPath, "02_dense", "geo", "dense_in"), dirs_exist_ok=True) 
 
     # compute reference informaion
     success = computeGpsRefernceList(colmapProjectDirPath, sequenceName, os.path.join(colmapProjectDirPath, "02_dense", "geo"))
@@ -610,7 +688,7 @@ def processJob(workspacePath: str, currentJob: Job, robust_mode: bool) -> bool:
             
             shutil.rmtree(projectImageDir)
             os.makedirs(projectImageDir)
-            shutil.copytree(os.path.join(currentJob.parameterList["image_path"]), projectImageDir, dirs_exist_ok=True)  
+            copytree(os.path.join(currentJob.parameterList["image_path"]), projectImageDir, dirs_exist_ok=True)  
 
         # end if projectImageDir != image_path
 

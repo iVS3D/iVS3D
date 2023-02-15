@@ -16,6 +16,8 @@ namespace Ui {
   class QueueItem;
   class QueueItemRunning;
   class QueueItemFinished;
+  class QueueItemFailed;
+
 }
 
 /**
@@ -123,6 +125,40 @@ class QueueItemFinished : public QWidget
   private:
     ColmapWrapper::SJob job;
     Ui::QueueItemFinished *ui;
+};
+
+/**
+ * @brief Class providing failed queue item for work queue widget
+ * @author Hermann, Max <max.hermann@iosb.fraunhofer.de>
+ */
+class QueueItemFailed : public QWidget
+{
+  Q_OBJECT
+
+    //--- METHOD DECLERATION ---///
+
+  public:
+    explicit QueueItemFailed(ColmapWrapper::SJob job, QWidget *parent = 0);
+    ~QueueItemFailed();
+
+    void set(ColmapWrapper::SJob job);
+
+  signals:
+    void deleteJob(const ColmapWrapper::SJob);
+
+  public slots:
+    void onUpdateToDarkTheme();
+    void onUpdateToLightTheme();
+
+  private slots:
+
+    void onBtnDeleteClicked();
+
+    //--- MEMBER DECLERATION ---//
+
+  private:
+    ColmapWrapper::SJob job;
+    Ui::QueueItemFailed *ui;
 };
 
 } // namespace colmapwrapper

@@ -377,6 +377,51 @@ void ColmapWrapper::writeSettings()
 }
 
 //==================================================================================================
+void ColmapWrapper::clearWorkerStateFile()
+{
+  qDebug() << "==================================================================================";
+  qDebug() << "Time: " << QDateTime::currentDateTime().toString();
+  qDebug() << __PRETTY_FUNCTION__;
+
+  //--- if remote connection use mounting point
+  QDir outputDir;
+  if(mConnectionType == LOCAL)
+  {
+    outputDir.setPath(mLocalWorkspacePath);
+    outputDir.mkpath(mLocalWorkspacePath);
+  }
+  else
+  {
+    if(!isRemoteWorkspaceMounted(mMntPntRemoteWorkspacePath))
+    {
+      qDebug() << "Error: Remote Workspace is not mounted!";
+      return;
+    }
+
+    outputDir.setPath(mMntPntRemoteWorkspacePath);
+  }
+
+  //--- initialize file storage and export jobs
+  QString outputFile = outputDir.absolutePath() + QDir::separator() + WORKER_STATE_FILE_NAME;
+
+  // TODO find better way to prevent application from crashing if both c++ and python read/write at the same time
+  try{
+    cv::FileStorage fs(outputFile.toStdString(), cv::FileStorage::WRITE);
+
+    fs << "runningJob" << "[";
+    fs << "]";
+
+    fs.release();
+
+  }catch (const std::exception& ex){
+      qDebug() << "Info: "  "Failed to open worker state file.";
+      return;
+  }
+
+  qDebug() << "Info: Cleared worker state file";
+}
+
+//==================================================================================================
 void ColmapWrapper::writeWorkQueueToFile()
 {
   qDebug() << "==================================================================================";
@@ -403,14 +448,22 @@ void ColmapWrapper::writeWorkQueueToFile()
 
   //--- initialize file storage and export jobs
   QString outputFile = outputDir.absolutePath() + QDir::separator() + WORK_QUEUE_FILE_NAME;
-  cv::FileStorage fs(outputFile.toStdString(), cv::FileStorage::WRITE);
-  fs << "workspace" << ((mConnectionType == LOCAL) ? mLocalWorkspacePath.toStdString() :
-                                                    mRemoteWorkspacePath.toStdString());
-  fs << "queue" << "[";
-  exportJobs(fs);
-  fs << "]";
 
-  fs.release();
+  // TODO find better way to prevent application from crashing if both c++ and python read/write at the same time
+  try{
+    cv::FileStorage fs(outputFile.toStdString(), cv::FileStorage::WRITE);
+    fs << "workspace" << ((mConnectionType == LOCAL) ? mLocalWorkspacePath.toStdString() :
+                                                      mRemoteWorkspacePath.toStdString());
+    fs << "queue" << "[";
+    exportJobs(fs);
+    fs << "]";
+
+    fs.release();
+
+  }catch (const std::exception& ex){
+      qDebug() << "Info: "  "Failed to open worke queue file.";
+      return;
+  }
 
   qDebug() << "Info: " << mJobs.size() << " jobs written to work queue.";
 }
@@ -446,18 +499,27 @@ void ColmapWrapper::readWorkQueueFromFile()
 
   //--- initialize file storage and import jobs
   QString inputFile = inputDir.absolutePath() + QDir::separator() + WORK_QUEUE_FILE_NAME;
-  cv::FileStorage fs = cv::FileStorage(inputFile.toStdString(), cv::FileStorage::READ);
-  cv::FileNode queueNode = fs["queue"];
+    int elementsInQueue;
+  // TODO find better way to prevent application from crashing if both c++ and python read/write at the same time
+  try{
+      cv::FileStorage fs = cv::FileStorage(inputFile.toStdString(), cv::FileStorage::READ);
 
-  int elementsInQueue = queueNode.size();
+      cv::FileNode queueNode = fs["queue"];
 
-  mJobs.clear();
-  for(cv::FileNodeIterator itr = queueNode.begin(); itr != queueNode.end(); ++itr) {
-      SJob newPendingJob;
-      importJob(*itr, newPendingJob);
-      mJobs.push_back(newPendingJob);
+      elementsInQueue = queueNode.size();
+
+      mJobs.clear();
+      for(cv::FileNodeIterator itr = queueNode.begin(); itr != queueNode.end(); ++itr) {
+          SJob newPendingJob;
+          importJob(*itr, newPendingJob);
+          mJobs.push_back(newPendingJob);
+      }
+      fs.release();
+
+  }catch (const std::exception& ex){
+      qDebug() << "Info: "  "Failed to open worke queue file.";
+      return;
   }
-  fs.release();
 
   qDebug() << "Info: " << elementsInQueue << " jobs read from file.";
 }
@@ -512,22 +574,30 @@ void ColmapWrapper::readWorkerStateFromFile()
 
   //--- read information from file
   ColmapWrapper::SJob runningJob;
-  cv::FileStorage fs = cv::FileStorage(inputFile.toStdString(), cv::FileStorage::READ);
-  cv::FileNode jobNode = fs["runningJob"];
+  int nRunningJob;
+  // TODO find better way to prevent application from crashing if both c++ and python read/write at the same time
+  try{
+      cv::FileStorage fs = cv::FileStorage(inputFile.toStdString(), cv::FileStorage::READ);
+      cv::FileNode jobNode = fs["runningJob"];
 
-  int nRunningJob = jobNode.size();
-  if(nRunningJob > 0)
-  {
-    importJob(jobNode[0], runningJob);
-    mJobs.insert(mJobs.begin(),runningJob);
-    mPyWorker.currentlyRunningJob = &(*mJobs.begin());
-  }
-  else
-  {
-    mPyWorker.currentlyRunningJob = nullptr;
+      int nRunningJob = jobNode.size();
+      if(nRunningJob > 0)
+      {
+        importJob(jobNode[0], runningJob);
+        mJobs.insert(mJobs.begin(),runningJob);
+        mPyWorker.currentlyRunningJob = &(*mJobs.begin());
+      }
+      else
+      {
+        mPyWorker.currentlyRunningJob = nullptr;
+      }
+
+      fs.release();
+  }catch (const std::exception& ex){
+      qDebug() << "Info: "  "Failed to open worker state file.";
+      return;
   }
 
-  fs.release();
 
   //--- compute worker state
   bool isRunningFileExists = QFileInfo(inputDir.absolutePath() + QDir::separator() + IS_RUNNING_FILE_NAME).exists();
@@ -1195,6 +1265,12 @@ bool ColmapWrapper::deleteJob(const ColmapWrapper::SJob &iJob)
     {
       ++itr;
     }
+  }
+
+  if(jobIdx == 0){
+      clearWorkerStateFile();
+      mPyWorker.currentlyRunningJob = nullptr;
+
   }
 
   return true;
