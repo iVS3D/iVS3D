@@ -1,4 +1,6 @@
 #include "exportexif.h"
+#include "qdebug.h"
+#include <cstdio>
 
 ExportExif::ExportExif()
 {
@@ -102,22 +104,31 @@ char* ExportExif::saveExif(QString path, QVariant exif)
     QString altitudeRef;
     int altitudeRefChar;
     double altitudeDouble;
-    int altitude;
+    QPair<int, int>  altitude;
     if (useAltitude) {
         altitudeRef = gpsHash.find(stringContainer::altitudeRefIdentifier).value().toString();
         altitudeRefChar = (altitudeRef == "0") ? 0 : 1;
         altitudeDouble = gpsHash.find(stringContainer::altitudeIdentifier).value().toDouble();
-        altitude = int(altitudeDouble);
+        altitude = getFraction(altitudeDouble);
     }
+
+    double d =  int(latitude);
+    double min = int((latitude-d) * 60);
+    double sec = (((latitude-d) * 60) - min) * 60;
 
 
     double degreeLatitude = int(latitude);
     double minutesLatitude = int((latitude - degreeLatitude) * 60);
-    double secondsLatitude = int((latitude - degreeLatitude - (minutesLatitude/60)) * 3600);
+    double secondsLatitude = (((latitude-degreeLatitude) * 60) - minutesLatitude) * 60;
 
     double degreeLongitude = int(longitude);
     double minutesLongitude= int((longitude - degreeLongitude) * 60);
-    double secondsLongitude= int((longitude - degreeLongitude - (minutesLongitude/60)) * 3600);
+    double secondsLongitude= (((longitude-degreeLongitude) * 60) - minutesLongitude) * 60;
+
+    QPair<int, int> secondsLatitude_fraction  = getFraction(secondsLatitude);
+    QPair<int, int> secondsLongitude_fraction = getFraction(secondsLongitude);
+
+
 
     GPSTagCount = new unsigned char[2];
     //Count of new segment = 4 (Lat, LatRef, Long, LongRef) or 6 (.. + Alt, AltRef)
@@ -209,14 +220,14 @@ char* ExportExif::saveExif(QString path, QVariant exif)
     offestToGPSData[3] = 0x00;
 
     LatitudeData= new unsigned char[24];
-    //Pointer to Latitude Data -> 3 rational with 2x4 bytes each -> second 4 byte block is always 1
+    //Pointer to Latitude Data -> 3 rational with 2x4 bytes each
     //Degree numerator
     LatitudeData[0] = degreeLatitude;
     LatitudeData[1] = 0x00;
     LatitudeData[2] = 0x00;
     LatitudeData[3] = 0x00;
     //Degree denumerator
-    LatitudeData[4] = 0x01;
+    LatitudeData[4] = 1;
     LatitudeData[5] = 0x00;
     LatitudeData[6] = 0x00;
     LatitudeData[7] = 0x00;
@@ -226,20 +237,20 @@ char* ExportExif::saveExif(QString path, QVariant exif)
     LatitudeData[10] = 0x00;
     LatitudeData[11] = 0x00;
     //Minutes denumerator
-    LatitudeData[12] = 0x01;
+    LatitudeData[12] = 1;
     LatitudeData[13] = 0x00;
     LatitudeData[14] = 0x00;
     LatitudeData[15] = 0x00;
     //Seconds numerator
-    LatitudeData[16] = secondsLatitude;
-    LatitudeData[17] = 0x00;
-    LatitudeData[18] = 0x00;
-    LatitudeData[19] = 0x00;
+    LatitudeData[16] =  secondsLatitude_fraction.first & 0xFF;
+    LatitudeData[17] =  (secondsLatitude_fraction.first >> 8) & 0xFF;
+    LatitudeData[18] =  (secondsLatitude_fraction.first >> 16) & 0xFF;
+    LatitudeData[19] =  (secondsLatitude_fraction.first >> 24) & 0xFF;
     //Seconds denumerator
-    LatitudeData[20] = 0x01;
-    LatitudeData[21] = 0x00;
-    LatitudeData[22] = 0x00;
-    LatitudeData[23] = 0x00;
+    LatitudeData[20] =   secondsLatitude_fraction.second & 0xFF;
+    LatitudeData[21] =   (secondsLatitude_fraction.second >> 8) & 0xFF;
+    LatitudeData[22] =   (secondsLatitude_fraction.second >> 16) & 0xFF;
+    LatitudeData[23] =   (secondsLatitude_fraction.second >> 24) & 0xFF;
 
     LongitudeData = new unsigned char[24];
     //Pointer to Longitude Data -> 3 rational with 2x4 bytes each -> second 4 byte block is always 1
@@ -249,7 +260,7 @@ char* ExportExif::saveExif(QString path, QVariant exif)
     LongitudeData[2] = 0x00;
     LongitudeData[3] = 0x00;
     //Degree denumerator
-    LongitudeData[4] = 0x01;
+    LongitudeData[4] = 1;
     LongitudeData[5] = 0x00;
     LongitudeData[6] = 0x00;
     LongitudeData[7] = 0x00;
@@ -259,20 +270,21 @@ char* ExportExif::saveExif(QString path, QVariant exif)
     LongitudeData[10] = 0x00;
     LongitudeData[11] = 0x00;
     //Minutes denumerator
-    LongitudeData[12] = 0x01;
+    LongitudeData[12] = 1;
     LongitudeData[13] = 0x00;
     LongitudeData[14] = 0x00;
     LongitudeData[15] = 0x00;
     //Seconds numerator
-    LongitudeData[16] = secondsLongitude;
-    LongitudeData[17] = 0x00;
-    LongitudeData[18] = 0x00;
-    LongitudeData[19] = 0x00;
+    LongitudeData[16] = secondsLongitude_fraction.first & 0xFF;
+    LongitudeData[17] = (secondsLongitude_fraction.first >> 8) & 0xFF;
+    LongitudeData[18] = (secondsLongitude_fraction.first >> 16) & 0xFF;
+    LongitudeData[19] = (secondsLongitude_fraction.first >> 24) & 0xFF;
     //Seconds denumerator
-    LongitudeData[20] = 0x01;
-    LongitudeData[21] = 0x00;
-    LongitudeData[22] = 0x00;
-    LongitudeData[23] = 0x00;
+    LongitudeData[20] = secondsLongitude_fraction.second & 0xFF;
+    LongitudeData[21] = (secondsLongitude_fraction.second >> 8) & 0xFF;
+    LongitudeData[22] = (secondsLongitude_fraction.second >> 16) & 0xFF;
+    LongitudeData[23] = (secondsLongitude_fraction.second >> 24) & 0xFF;
+
 
     if (useAltitude) {
         AltitudeRefTag = new unsigned char[12];
@@ -313,12 +325,12 @@ char* ExportExif::saveExif(QString path, QVariant exif)
 
         AltitudeData = new unsigned char[8];
         //altitude numerator
-        AltitudeData[0] = altitude;
+        AltitudeData[0] = altitude.first;
         AltitudeData[1] = 0x00;
         AltitudeData[2] = 0x00;
         AltitudeData[3] = 0x00;
         //atitude denumerator
-        AltitudeData[4] = 0x01;
+        AltitudeData[4] = altitude.second;
         AltitudeData[5] = 0x00;
         AltitudeData[6] = 0x00;
         AltitudeData[7] = 0x00;
@@ -420,3 +432,22 @@ int ExportExif::getExifSize()
 {
     return exifSize;
 }
+
+QPair<int, int> ExportExif::getFraction(double d)
+{
+    double floor = qFloor(d);
+    //get decimal places
+    double decimal = d - floor;
+    int precision = 10000000;
+    //get greatest common divisor
+    int divisor = std::gcd(qRound(decimal * precision), precision);
+    //divise to get numerator and denumerator
+    int division = (decimal * precision) / divisor;
+    int denumerator = precision / divisor;
+    int numerator = floor * denumerator + division;
+    return QPair<int, int>(numerator, denumerator);
+}
+
+
+
+

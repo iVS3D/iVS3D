@@ -379,6 +379,6 @@ bool ExportThread::exportImages(cv::Mat image, int iTransformCopiesSize, const Q
 
     std::ofstream f(imgPath.toStdString().c_str(), std::ofstream::binary);
     f.write((char *)&newData[0], fileSize + 170);
-    qDebug() << "Time needed: " << timer.elapsed();
+    //qDebug() << "Time needed: " << timer.elapsed();
     return true;
 }

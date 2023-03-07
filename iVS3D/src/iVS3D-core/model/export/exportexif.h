@@ -6,6 +6,9 @@
 #include <QFileInfo>
 #include "stringcontainer.h"
 #include <cstring>
+#include <QtMath>
+#include <numeric>
+#include <variant>
 
 class ExportExif
 {
@@ -45,6 +48,8 @@ private:
     bool useAltitude;
     bool usePNG;
     int exifSize;
+
+    QPair<int, int> getFraction(double d);
 
 
 };
