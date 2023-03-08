@@ -41,9 +41,18 @@ SettingsDialog::SettingsDialog(ColmapWrapper *ipWrapper,
           this, &SettingsDialog::onCancel);
   ui->buttonBox->button(QDialogButtonBox::Apply)->setEnabled(false);
 
+  connect(mpColmapWrapper, &ColmapWrapper::setupStatusUpdate, this, &SettingsDialog::onStatusChanged);
+  connect(ui->le_localWorkspace, &QLineEdit::textChanged, this, &SettingsDialog::settingsChanged);
+  connect(ui->le_localColmapBinary, &QLineEdit::textChanged, this, &SettingsDialog::settingsChanged);
+  connect(ui->le_remoteWorkspace, &QLineEdit::textChanged, this, &SettingsDialog::settingsChanged);
+  connect(ui->le_remoteAddr, &QLineEdit::textChanged, this, &SettingsDialog::settingsChanged);
+  connect(ui->le_remoteUsr, &QLineEdit::textChanged, this, &SettingsDialog::settingsChanged);
+  connect(ui->le_remoteColmapBinary, &QLineEdit::textChanged, this, &SettingsDialog::settingsChanged);
+  connect(ui->le_mntPnt, &QLineEdit::textChanged, this, &SettingsDialog::settingsChanged);
+
   //--- hide remote settings (default)
   ui->f_remote->setVisible(false);
-  updateStatusMsg();
+  //updateStatusMsg();
 }
 
 //==================================================================================================
@@ -162,22 +171,34 @@ void SettingsDialog::onAccepted()
   ui->l_error->setStyleSheet("QLabel { border : 1px solid orange; color : orange; }");
   this->repaint();
 
-  mpColmapWrapper->unmountRemoteWorkspace();
+  ColmapWrapper::SSettings *settings = new ColmapWrapper::SSettings{
+      ui->le_localColmapBinary->text(),
+      ui->le_remoteColmapBinary->text(),
+      ui->le_localWorkspace->text(),
+      ui->le_remoteWorkspace->text(),
+      ui->le_mntPnt->text(),
+      static_cast<ColmapWrapper::EConnectionType>(ui->cb_connection->currentIndex()),
+      ui->le_remoteAddr->text(),
+      ui->le_remoteUsr->text(),
+      ui->sb_syncInterval->value()
+  };
+  mSetupResults = ColmapWrapper::SSetupResults();
+  // maybe do this in a thread
+  if(!mpColmapWrapper->testSettings(settings, &mSetupResults)){
+      // something went wrong!
+      delete settings;
+      return;
+  }
 
-  mpColmapWrapper->setLocalColmapBinPath(ui->le_localColmapBinary->text());
-  mpColmapWrapper->setLocalWorkspacePath(ui->le_localWorkspace->text());
-  mpColmapWrapper->setConnectionType(static_cast<ColmapWrapper::EConnectionType>(
-                                   ui->cb_connection->currentIndex()));
-  mpColmapWrapper->setRemoteAddr(ui->le_remoteAddr->text());
-  mpColmapWrapper->setRemoteUsr(ui->le_remoteUsr->text());
-  mpColmapWrapper->setRemoteColmapBinPath(ui->le_remoteColmapBinary->text());
-  mpColmapWrapper->setRemoteWorkspacePath(ui->le_remoteWorkspace->text());
-  mpColmapWrapper->setMntPntRemoteWorkspacePath(ui->le_mntPnt->text());
-  mpColmapWrapper->setSyncInterval(ui->sb_syncInterval->value());
+  ui->l_error->setStyleSheet("QLabel { border : 1px solid green; color : green; }");
+  ui->l_error->setText(tr("Setup successfull"));
+  mpColmapWrapper->applySettings(settings);
+  mpColmapWrapper->writeSettings();
+  ui->buttonBox->button(QDialogButtonBox::Apply)->setEnabled(false);
+  ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
+  delete settings;
 
-  mpColmapWrapper->switchWorkspace();
 
-  updateStatusMsg();
 }
 
 void SettingsDialog::onCancel()
@@ -193,11 +214,16 @@ void SettingsDialog::settingsChanged()
     ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
     ui->l_error->setStyleSheet("QLabel { border : none; }");
     ui->l_error->setText("");
+    ui->le_localWorkspace->setStyleSheet("QLineEdit { color : black; }");
+    ui->le_localColmapBinary->setStyleSheet("QLineEdit { color : black; }");
+    ui->le_remoteColmapBinary->setStyleSheet("QLineEdit { color : black; }");
+    ui->le_remoteWorkspace->setStyleSheet("QLineEdit { color : black; }");
+    ui->le_mntPnt->setStyleSheet("QLineEdit { color : black; }");
 }
 
-void SettingsDialog::updateStatusMsg()
+void SettingsDialog::updateStatusMsg(const QPair<ColmapWrapper::ESetupTestResult,QString> &test, QLineEdit *input)
 {
-    if(mpColmapWrapper->getSetupStatus() != ColmapWrapper::SETUP_OK) {
+    /*if(mpColmapWrapper->getSetupStatus() != ColmapWrapper::SETUP_OK) {
         QString msg;
         switch(mpColmapWrapper->getSetupStatus()){
         case ColmapWrapper::ERR_EXE: msg=tr("colmap executabel was not found or is not executable"); break;
@@ -214,7 +240,17 @@ void SettingsDialog::updateStatusMsg()
         mpColmapWrapper->writeSettings();
         ui->buttonBox->button(QDialogButtonBox::Apply)->setEnabled(false);
         ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
+    }*/
+    if(test.first == ColmapWrapper::TEST_SUCCESSFUL){
+        if(input) input->setStyleSheet("QLineEdit { color: green; }");
+        return;
     }
+    if(test.first == ColmapWrapper::TEST_FAILED){
+        if(input) input->setStyleSheet("QLineEdit { color: red; }");
+        ui->l_error->setStyleSheet("QLabel { border : 1px solid red; color : red; }");
+        ui->l_error->setText(tr("Setup failed: ") + test.second);
+    }
+
 }
 
 //==================================================================================================
@@ -233,7 +269,18 @@ void SettingsDialog::onShow()
   ui->buttonBox->button(QDialogButtonBox::Apply)->setEnabled(false);
   ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
 
-  updateStatusMsg();
+  //updateStatusMsg();
+}
+
+void SettingsDialog::onStatusChanged()
+{
+    updateStatusMsg(mSetupResults.localWorkspacePath, ui->le_localWorkspace);
+    updateStatusMsg(mSetupResults.localColmapBinPath, ui->le_localColmapBinary);
+    updateStatusMsg(mSetupResults.mntPntRemoteWorkspacePath, ui->le_mntPnt);
+    updateStatusMsg(mSetupResults.sshConnection);
+    updateStatusMsg(mSetupResults.fileSystemMount);
+    updateStatusMsg(mSetupResults.remoteColmapBinPath, ui->le_remoteColmapBinary);
+    updateStatusMsg(mSetupResults.remoteWorkspacePath, ui->le_remoteWorkspace);
 }
 
 

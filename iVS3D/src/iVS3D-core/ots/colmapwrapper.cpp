@@ -92,9 +92,9 @@ ColmapWrapper::~ColmapWrapper()
 {
   // BUG: Causes crash in Abul4Configurator: ABUL-7398
   // this->writeSettings();
-    if(mConnectionType != LOCAL && isRemoteWorkspaceMounted(this->mMntPntRemoteWorkspacePath)){
-        unmountRemoteWorkspace();
-    }
+    //if(mConnectionType != LOCAL && isRemoteWorkspaceMounted(this->mMntPntRemoteWorkspacePath)){
+    //    unmountRemoteWorkspace();
+    //}
   delete mpTempDir;
 }
 
@@ -109,7 +109,31 @@ void ColmapWrapper::init()
   connect(mpSyncProcess, static_cast<void(QProcess::*)(int, QProcess::ExitStatus)>(&QProcess::finished),
           this, &ColmapWrapper::importSeuences);
 
-  testSetup();
+  SSettings *settingsToTest = new SSettings{
+      mLocalColmapBinPath,
+      mRemoteColmapBinPath,
+      mLocalWorkspacePath,
+      mRemoteWorkspacePath,
+      mMntPntRemoteWorkspacePath,
+      mConnectionType,
+      mRemoteAddr,
+      mRemoteUsr,
+      mSyncInterval
+  };
+  SSetupResults *result = new SSetupResults;
+  if(!testSettings(settingsToTest, result)){
+      // at least one test failed
+      // output some error message to the user
+      mSetupSuccessful = false;
+  } else {
+      // successful
+      applySettings(settingsToTest);
+      mSetupSuccessful = true;
+  }
+
+  delete settingsToTest;
+  delete result;
+
 
   if(mConnectionType == LOCAL && !mLocalWorkspacePath.isEmpty() && !hasScriptFilesInstalled()){
       installScriptFilesIntoWorkspace();
@@ -129,85 +153,169 @@ void ColmapWrapper::init()
   mCheckWorkerTimer.start();
 }
 
-void ColmapWrapper::testSetup()
+bool ColmapWrapper::testSettings(const SSettings *settings, SSetupResults *results)
 {
-    /// if CONNECTION_TYPE is LOCAL, then:
-    /// -- check if workspace exists
-    /// -- colmap exe exists and is executable
-    if(mConnectionType == LOCAL){
-        if(!QDir(mLocalWorkspacePath).exists()){
-            mSetupStatus = ERR_PATH;
-            emit setupStatusUpdate();
-            return;
-        }
-        if(!QFile(mLocalColmapBinPath).exists() || !QFileInfo(mLocalColmapBinPath).isExecutable()){
-            mSetupStatus = ERR_EXE;
-            emit setupStatusUpdate();
-            return;
-        }
-        mSetupStatus = SETUP_OK;
+    // check workspace path
+    if(!QDir(settings->localWorkspacePath).exists()){
+        results->localWorkspacePath.first = TEST_FAILED;
+        results->localWorkspacePath.second = "workspace does not exist!";
         emit setupStatusUpdate();
-        return;
+        return false;
     }
-    /// if CONNECTION_TYPE is SSH, then:
-    /// -- check if local workspace exists
-    /// -- check if mount point exists
-    /// -- try to run ssh command
-    /// -- try to write and read from mount point
-    if(mConnectionType == SSH){
-        if(!QDir(mLocalWorkspacePath).exists() || !QDir(mMntPntRemoteWorkspacePath).exists()){
-            mSetupStatus = ERR_PATH;
+    results->localWorkspacePath.first = TEST_SUCCESSFUL;
+    emit setupStatusUpdate();
+
+    if(settings->connectionType == LOCAL){
+
+        // check colmap path
+        if(!QFile(settings->localColmapBinPath).exists()){
+            results->localColmapBinPath.first = TEST_FAILED;
+            results->localColmapBinPath.second = "colmap not found!";
             emit setupStatusUpdate();
-            return;
+            return false;
         }
-        QStringList args;
-        args << mRemoteUsr + QString("@") + mRemoteAddr << "nvidia-smi";
-        QProcess p;
-        p.start("ssh", args);
-        if(!p.waitForFinished(5000)){  // maximum 5 sec to respond
-            // something went wrong!
-            mSetupStatus = ERR_SSH;
+        if(!QFileInfo(settings->localColmapBinPath).isExecutable()){
+            results->localColmapBinPath.first = TEST_FAILED;
+            results->localColmapBinPath.second = "colmap is not executable!";
             emit setupStatusUpdate();
-            qDebug() << p.readAllStandardError();
-            qDebug() << p.readAllStandardOutput();
-            return;
-        } else {
-            QString err(p.readAllStandardError());
-            if(!err.isEmpty()){
-                mSetupStatus = ERR_SSH;
-                emit setupStatusUpdate();
-                qDebug() << "SSH error: " << p.readAllStandardError();
-                return;
-            }
+            return false;
         }
-        //--- mount remote workspace
-        if(!isRemoteWorkspaceMounted(mMntPntRemoteWorkspacePath))
+        results->localColmapBinPath.first = TEST_SUCCESSFUL;
+        emit setupStatusUpdate();
+
+        // all checks passed
+        return true;
+    }
+
+    if(settings->connectionType == SSH){
+        // check mount point
+        if(!QDir(settings->mntPntRemoteWorkspacePath).exists()){
+            results->mntPntRemoteWorkspacePath.first = TEST_FAILED;
+            results->mntPntRemoteWorkspacePath.second = "mount point does not exist!";
+            emit setupStatusUpdate();
+            return false;
+        }
+        results->mntPntRemoteWorkspacePath.first = TEST_SUCCESSFUL;
+        emit setupStatusUpdate();
+
+        // check ssh connection
         {
-            if(mountRemoteWorkspace() != 0){
-                mSetupStatus = ERR_MOUNT;
+            QStringList args;
+            args << settings->remoteUsr + QString("@") + settings->remoteAddr << "hostnamectl";
+            QProcess p;
+            p.start("ssh", args);
+            if(!p.waitForFinished(5000)){  // maximum 5 sec to respond
+                // something went wrong!
+                results->sshConnection.first = TEST_FAILED;
+                results->sshConnection.second = "'ssh " + args[0] + " " + args[1] + "': " + p.readAll();
                 emit setupStatusUpdate();
-                return;
+                return false;
+            } else {
+                QString err(p.readAllStandardError());
+                if(!err.isEmpty()){
+                    results->sshConnection.first = TEST_FAILED;
+                    results->sshConnection.second = "'ssh " + args[0] + " " + args[1] + "': " + err;
+                    emit setupStatusUpdate();
+                    return false;
+                }
             }
-        }
-        // TODO: instead copy a file with scp to the remote folder directly and see
-        // if it is available at the local mount point too!
-        QFile testFile(mMntPntRemoteWorkspacePath + QDir::separator() + "testFile.txt");
-        if(!testFile.open(QIODevice::WriteOnly)){
-            mSetupStatus = ERR_MOUNT;
+            results->sshConnection.first = TEST_SUCCESSFUL;
             emit setupStatusUpdate();
-            return;
-        }
-        testFile.write(QByteArray("This is a test"));
-        testFile.close();
-        // eventually wait??
-        if(!testFile.exists()){
-            mSetupStatus = ERR_MOUNT;
-            emit setupStatusUpdate();
-            return;
         }
 
-        mSetupStatus = SETUP_OK;
-        emit setupStatusUpdate();
+
+        // check remote workspace
+        {
+            QStringList args;
+            args << settings->remoteUsr + QString("@") + settings->remoteAddr
+                 << " [[ -d \"" + settings->remoteWorkspacePath + "\" ]] && echo 1 || echo No such file or directory";
+            QProcess p;
+            p.start("ssh", args);
+            bool timedOut = !p.waitForFinished(5000);
+
+            QString stdErr(p.readAllStandardError());
+            bool hasError = !stdErr.isEmpty();
+            QString stdOut(p.readAllStandardOutput());
+
+            bool isNumber = false;
+            int res = stdOut.toInt(&isNumber);
+            bool pathInvalid = !isNumber || (res != 1);
+
+            if(timedOut || hasError || pathInvalid){
+                // something went wrong!
+                results->remoteWorkspacePath.first = TEST_FAILED;
+                results->remoteWorkspacePath.second = "'ssh " + args[0] + " " + settings->remoteWorkspacePath + "': " + stdOut + " " + stdErr;
+                emit setupStatusUpdate();
+                return false;
+            }
+
+            results->remoteWorkspacePath.first = TEST_SUCCESSFUL;
+            emit setupStatusUpdate();
+        }
+
+        /// check remote colmap
+        {
+            QStringList args;
+            args << settings->remoteUsr + QString("@") + settings->remoteAddr
+                 << settings->remoteColmapBinPath + " -h";
+            QProcess p;
+            p.start("ssh", args);
+            bool timedOut = !p.waitForFinished(5000);
+
+            QString stdErr(p.readAllStandardError());
+            bool hasError = !stdErr.isEmpty();
+
+            if(timedOut || hasError){
+                // something went wrong!
+                results->remoteColmapBinPath.first = TEST_FAILED;
+                results->remoteColmapBinPath.second = "'ssh " + args[0] + " " + args[1] + "': " + stdErr;
+                emit setupStatusUpdate();
+                return false;
+            }
+
+            results->remoteColmapBinPath.first = TEST_SUCCESSFUL;
+            emit setupStatusUpdate();
+        }
+
+        /// check mount of remote workspace
+        {
+            QTemporaryFile file;
+            file.open();
+            QString path(file.fileName());
+            QString name = QFileInfo(path).fileName();
+            QString remotePath(settings->remoteWorkspacePath + QDir::separator() + name);
+            QStringList args;
+            args << path
+                 << settings->remoteUsr + QString("@") + settings->remoteAddr + ":" + remotePath;
+            QProcess p;
+            p.start("scp", args);
+            bool timedOut = !p.waitForFinished(5000);
+
+            QString stdErr(p.readAllStandardError());
+            bool hasError = !stdErr.isEmpty();
+
+            if(timedOut || hasError){
+                // something went wrong!
+                results->fileSystemMount.first = TEST_FAILED;
+                results->fileSystemMount.second = "'scp " + args[0] + " " + args[1] + "': " + stdErr;
+                emit setupStatusUpdate();
+                return false;
+            }
+
+            // see if the file is visible at our mount point
+            QFile f(settings->mntPntRemoteWorkspacePath + QDir::separator() + name);
+            if(!f.exists()){
+                results->fileSystemMount.first = TEST_FAILED;
+                results->fileSystemMount.second = "remote workspace not mounted to the local mount point!";
+                emit setupStatusUpdate();
+                // maybe remove the file from the remote workspace
+                return false;
+            }
+            f.remove();
+            results->fileSystemMount.first = TEST_SUCCESSFUL;
+            emit setupStatusUpdate();
+        }
+        return true;
     }
 }
 
@@ -553,9 +661,23 @@ void ColmapWrapper::clearCustomProductOpenFn()
     mCustomProductOpenFn = std::function<void(EProductType, std::string)>();
 }
 
-void ColmapWrapper::switchWorkspace()
+void ColmapWrapper::applySettings(const SSettings *settings)
 {
-    testSetup();
+    setConnectionType(settings->connectionType);
+    setSyncInterval(settings->syncInterval);
+    setLocalWorkspacePath(settings->localWorkspacePath);
+
+    if(settings->connectionType == LOCAL){
+        setLocalColmapBinPath(settings->localColmapBinPath);
+    }
+
+    if(settings->connectionType == SSH) {
+        setRemoteAddr(settings->remoteAddr);
+        setRemoteUsr(settings->remoteUsr);
+        setRemoteColmapBinPath(settings->remoteColmapBinPath);
+        setRemoteWorkspacePath(settings->remoteWorkspacePath);
+        setMntPntRemoteWorkspacePath(settings->mntPntRemoteWorkspacePath);
+    }
 
     if(!hasScriptFilesInstalled()){
         installScriptFilesIntoWorkspace();
@@ -602,11 +724,6 @@ ColmapWrapper::EWorkspaceStatus ColmapWrapper::getWorkspaceStatus() const
     return mWorkspaceStatus;
 }
 
-ColmapWrapper::ESetupStatus ColmapWrapper::getSetupStatus() const
-{
-    return mSetupStatus;
-}
-
 //==================================================================================================
 std::vector<ColmapWrapper::SSequence> ColmapWrapper::getFinishedSequenceList() const
 {
@@ -645,7 +762,12 @@ void ColmapWrapper::setMntPntRemoteWorkspacePath(const QString &mntPntRemoteWork
 //==================================================================================================
 int ColmapWrapper::syncInterval() const
 {
-  return mSyncInterval;
+    return mSyncInterval;
+}
+
+bool ColmapWrapper::getSetupSuccessful()
+{
+    return mSetupSuccessful;
 }
 
 //==================================================================================================
@@ -888,8 +1010,9 @@ QString ColmapWrapper::remoteColmapBinPath() const
 void ColmapWrapper::setRemoteColmapBinPath(const QString &remoteColmapBinPath)
 {
   //--- check if path is valid
-  QFileInfo fileInfo(remoteColmapBinPath);
-  mRemoteColmapBinPath = fileInfo.absoluteFilePath();
+  //QFileInfo fileInfo(remoteColmapBinPath);
+  //mRemoteColmapBinPath = fileInfo.absoluteFilePath();
+    mRemoteColmapBinPath = remoteColmapBinPath;
 }
 
 //==================================================================================================
@@ -924,8 +1047,9 @@ QString ColmapWrapper::remoteWorkspacePath() const
 void ColmapWrapper::setRemoteWorkspacePath(const QString &remoteWorkspacePath)
 {
   //--- check if path is valid
-  QFileInfo fileInfo(remoteWorkspacePath);
-  mRemoteWorkspacePath = fileInfo.absoluteFilePath();
+  //QFileInfo fileInfo(remoteWorkspacePath);
+  //mRemoteWorkspacePath = fileInfo.absoluteFilePath();
+    mRemoteWorkspacePath = remoteWorkspacePath;
 }
 
 //==================================================================================================
@@ -1385,7 +1509,7 @@ QPushButton *ui::ColmapWrapperControlsFactory::createNewProductPushButton(ui::ET
   connect(this, &ColmapWrapperControlsFactory::enableNewProductButtons,
           pPushButton, &QPushButton::setEnabled);
 
-  pPushButton->setEnabled(mpMsWrapper->getSetupStatus() == ColmapWrapper::SETUP_OK);
+  pPushButton->setEnabled(mpMsWrapper->getSetupSuccessful());
 
   return pPushButton;
 }
@@ -1568,7 +1692,7 @@ void ui::ColmapWrapperControlsFactory::showNewProductDialog()
 
 void ui::ColmapWrapperControlsFactory::onSetupChanged()
 {
-    emit enableNewProductButtons(mpMsWrapper->getSetupStatus() == ColmapWrapper::SETUP_OK);
+    emit enableNewProductButtons(mpMsWrapper->getSetupSuccessful());
 }
 
 } // namespace ots

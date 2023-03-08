@@ -4,6 +4,7 @@
 // Qt
 #include <QObject>
 #include <QDialog>
+#include <QLineEdit>
 
 #include "../colmapwrapper.h"
 
@@ -31,6 +32,7 @@ class SettingsDialog : public QDialog
 
   public slots:
     void onShow();
+    void onStatusChanged();
 
   private slots:
     void onLocalBinaryPushButtonPressed();
@@ -49,8 +51,10 @@ class SettingsDialog : public QDialog
     /// Member pointer to wrapper
     lib3d::ots::ColmapWrapper* mpColmapWrapper;
 
+    lib3d::ots::ColmapWrapper::SSetupResults mSetupResults;
+
     void settingsChanged();
-    void updateStatusMsg();
+    void updateStatusMsg(const QPair<ColmapWrapper::ESetupTestResult,QString> &test, QLineEdit *input = nullptr);
 
 };
 

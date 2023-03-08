@@ -18,6 +18,7 @@
 #include <QString>
 #include <QTimer>
 #include <QTemporaryDir>
+#include <QTemporaryFile>
 
 // OpenCV
 #include <opencv2/core.hpp>
@@ -95,12 +96,10 @@ class ColmapWrapper : public QObject
       MESHED_MODEL      /**< Meshed 3D model */
     };
 
-    enum ESetupStatus {
-        SETUP_OK = 0,   /**< Workspace and Colmap exe are setup */
-        ERR_MOUNT,      /**< The remote workspace is not mounted correctly */
-        ERR_EXE,        /**< The colmap executable is not found/not executable */
-        ERR_PATH,       /**< The workspace path or mountpoint path dont exist */
-        ERR_SSH         /**< ssh connection could not be established */
+    enum ESetupTestResult {
+        TEST_PENDING = 0,
+        TEST_SUCCESSFUL,
+        TEST_FAILED
     };
 
     //--- STRUCT DECLERATION ---//
@@ -167,6 +166,61 @@ class ColmapWrapper : public QObject
         std::vector<SProduct> products;
     };
 
+    struct SSettings
+    {
+        /// Absolute path to COLMAP binary on local machine.
+        QString localColmapBinPath;
+
+        /// Absolute path to COLMAP binary on remote machine.
+        QString remoteColmapBinPath;
+
+        /// Absolute path to workspace on local machine.
+        QString localWorkspacePath;
+
+        /// Absolute path to workspace on remote machine
+        QString remoteWorkspacePath;
+
+        /// Absolute path to temporary mount location of remote directory.
+        QString mntPntRemoteWorkspacePath;
+
+        /// Connection to location of Metashape
+        EConnectionType connectionType;
+
+        /// Address of remote server. If empty it assumed that Metashape runs on local machine.
+        /// Default = "".
+        QString remoteAddr;
+
+        /// User on remote server.
+        QString remoteUsr;
+
+        /// Interval of background synchronization between server and client
+        int syncInterval;
+    };
+
+    struct SSetupResults
+    {
+        /// Absolute path to COLMAP binary on local machine.
+        QPair<ESetupTestResult,QString> localColmapBinPath = {TEST_PENDING, ""};
+
+        /// Absolute path to COLMAP binary on remote machine.
+        QPair<ESetupTestResult,QString> remoteColmapBinPath = {TEST_PENDING, ""};
+
+        /// Absolute path to workspace on local machine.
+        QPair<ESetupTestResult,QString> localWorkspacePath = {TEST_PENDING, ""};
+
+        /// Absolute path to workspace on remote machine
+        QPair<ESetupTestResult,QString> remoteWorkspacePath = {TEST_PENDING, ""};
+
+        /// Absolute path to temporary mount location of remote directory.
+        QPair<ESetupTestResult,QString> mntPntRemoteWorkspacePath = {TEST_PENDING, ""};
+
+        /// Connection to server
+        QPair<ESetupTestResult,QString> sshConnection = {TEST_PENDING, ""};
+
+        /// remote workspace mounted
+        QPair<ESetupTestResult,QString> fileSystemMount = {TEST_PENDING, ""};
+    };
+
     //--- METHOD DECLERATION ---//
 
   public:
@@ -195,7 +249,7 @@ class ColmapWrapper : public QObject
      */
     void init();
 
-    void testSetup();
+    bool testSettings(const SSettings* settings, SSetupResults* results);
 
     void findColmap();
 
@@ -246,6 +300,8 @@ class ColmapWrapper : public QObject
      * @brief Returns interval (in seconds) in which the client and server should be synchronized.
      */
     int syncInterval() const;
+
+    bool getSetupSuccessful();
 
     /**
      * @brief Returns true, if remote workspace is mounted. False, otherwise.
@@ -307,7 +363,7 @@ class ColmapWrapper : public QObject
     /**
      * @brief switchWorkspace tries to switch to the local/remote workspace.
      */
-    void switchWorkspace();
+    void applySettings(const SSettings *settings);
 
   signals:
 
@@ -479,11 +535,6 @@ class ColmapWrapper : public QObject
      * @brief Get status of workspace.
      */
     EWorkspaceStatus getWorkspaceStatus() const;
-
-    /**
-     * @brief getSetupStatus returns the setup status.
-     */
-    ESetupStatus getSetupStatus() const;
 
     /**
      * @brief Get path of file for given product in sequence.
@@ -681,8 +732,8 @@ class ColmapWrapper : public QObject
     /// Member for custom functionality to open product
     std::function<void(ColmapWrapper::EProductType, std::string)> mCustomProductOpenFn;
 
-    /// Member for setup status
-    ESetupStatus mSetupStatus;
+    /// current status of the setup, true if colmap can be used
+    bool mSetupSuccessful = false;
 };
 
 namespace ui {
