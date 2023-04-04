@@ -26,9 +26,9 @@
 - Can be used in a headless mode
 - Supported Plattforms: Windows and Linux
 
+
 ![GUI](doc/gui.png)
-Graphical user interface which is split in five different sections. 1. Input, 2. Plugins, 3. Export,
-4. Batch processing and 5. Video player with the timeline for keyframes.
+Graphical user interface which is split in five different sections. 1. Input, 2. Plugins, 3. Export, 4. Batch processing and 5. Video player with the timeline for keyframes.
 
 ## Plugins
 
@@ -133,13 +133,14 @@ Supervisor: Max Hermann & Thomas Pollok
 
 Created as part of PSE at the Karlsruhe Institut of Technlogy in the winter term 2020/21
 
-  [COLMAP]: <https://demuc.de/colmap/>
-  [OpenCV]: <https://github.com/opencv>
-  [Qt]:     <https://www.qt.io>
-  [MSVC]:   <https://www.microsoft.com/de-de/download/details.aspx?id=48159>
-  [GCC]:    <https://gcc.gnu.org>
-  [NVIDIA CUDA Toolkit API]:    <https://developer.nvidia.com/cuda-zone>
-  [cuDNN]:  <https://developer.nvidia.com/cudnn>
-  [Link to paper]: <https://arxiv.org/abs/2110.11810>
-  [Link to models]: <https://drive.google.com/drive/folders/122EDO4UxhEYRy5MI1OIpePnsibwGGXjA?usp=sharing>
-  [Link to our test data]: <https://drive.google.com/drive/folders/1hPFtDqQKF9JzBpNTV016unL7awRCsxNj?usp=sharing>
+  [COLMAP]: https://demuc.de/colmap/
+  [OpenCV]: https://github.com/opencv
+  [Qt]:     https://www.qt.io
+  [MSVC]:   https://www.microsoft.com/de-de/download/details.aspx?id=48159
+  [GCC]:    https://gcc.gnu.org
+  [Python]: https://www.python.org/downloads/
+  [NVIDIA CUDA Toolkit API]:    https://developer.nvidia.com/cuda-zone
+  [cuDNN]:  https://developer.nvidia.com/cudnn
+  [Link to paper]: https://arxiv.org/abs/2110.11810
+  [Link to models]: https://drive.google.com/drive/folders/122EDO4UxhEYRy5MI1OIpePnsibwGGXjA?usp=sharing
+  [Link to our test data]: https://drive.google.com/drive/folders/1hPFtDqQKF9JzBpNTV016unL7awRCsxNj?usp=sharing
