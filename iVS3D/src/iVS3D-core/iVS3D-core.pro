@@ -4,7 +4,7 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 CONFIG += c++17
 CONFIG += console
-QMAKE_CXXFLAGS += /std:c++17
+win32:QMAKE_CXXFLAGS += /std:c++17
 
 RC_ICONS = resources/ivs3dIcon.ico
 
