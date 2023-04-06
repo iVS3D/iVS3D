@@ -242,15 +242,15 @@ char* ExportExif::saveExif(QString path, QVariant exif)
     LatitudeData[14] = 0x00;
     LatitudeData[15] = 0x00;
     //Seconds numerator
-    LatitudeData[16] =  secondsLatitude_fraction.first & 0xFF;
-    LatitudeData[17] =  (secondsLatitude_fraction.first >> 8) & 0xFF;
-    LatitudeData[18] =  (secondsLatitude_fraction.first >> 16) & 0xFF;
-    LatitudeData[19] =  (secondsLatitude_fraction.first >> 24) & 0xFF;
+    LatitudeData[16] = secondsLatitude_fraction.first & 0xFF;
+    LatitudeData[17] = (secondsLatitude_fraction.first >> 8) & 0xFF;
+    LatitudeData[18] = (secondsLatitude_fraction.first >> 16) & 0xFF;
+    LatitudeData[19] = (secondsLatitude_fraction.first >> 24) & 0xFF;
     //Seconds denumerator
-    LatitudeData[20] =   secondsLatitude_fraction.second & 0xFF;
-    LatitudeData[21] =   (secondsLatitude_fraction.second >> 8) & 0xFF;
-    LatitudeData[22] =   (secondsLatitude_fraction.second >> 16) & 0xFF;
-    LatitudeData[23] =   (secondsLatitude_fraction.second >> 24) & 0xFF;
+    LatitudeData[20] =  secondsLatitude_fraction.second & 0xFF;
+    LatitudeData[21] =  (secondsLatitude_fraction.second >> 8) & 0xFF;
+    LatitudeData[22] =  (secondsLatitude_fraction.second >> 16) & 0xFF;
+    LatitudeData[23] =  (secondsLatitude_fraction.second >> 24) & 0xFF;
 
     LongitudeData = new unsigned char[24];
     //Pointer to Longitude Data -> 3 rational with 2x4 bytes each -> second 4 byte block is always 1
@@ -325,15 +325,15 @@ char* ExportExif::saveExif(QString path, QVariant exif)
 
         AltitudeData = new unsigned char[8];
         //altitude numerator
-        AltitudeData[0] = altitude.first;
-        AltitudeData[1] = 0x00;
-        AltitudeData[2] = 0x00;
-        AltitudeData[3] = 0x00;
+        AltitudeData[0] = altitude.first & 0xFF;
+        AltitudeData[1] = (altitude.first >> 8) & 0xFF;
+        AltitudeData[2] = (altitude.first >> 16) & 0xFF;
+        AltitudeData[3] = (altitude.first >> 24) & 0xFF;
         //atitude denumerator
-        AltitudeData[4] = altitude.second;
-        AltitudeData[5] = 0x00;
-        AltitudeData[6] = 0x00;
-        AltitudeData[7] = 0x00;
+        AltitudeData[4] = altitude.second & 0xFF;
+        AltitudeData[5] = (altitude.second >> 8) & 0xFF;
+        AltitudeData[6] = (altitude.second >> 16) & 0xFF;
+        AltitudeData[7] = (altitude.second >> 24) & 0xFF;
 
     }
 

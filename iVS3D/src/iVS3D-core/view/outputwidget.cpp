@@ -19,7 +19,9 @@ OutputWidget::OutputWidget(QWidget *parent, QString title, QStringList transform
     connect(m_exportW, &ExportWidget::sig_pathChanged, this, &OutputWidget::slot_pathChanged);
     connect(m_exportW, &ExportWidget::sig_resChanged, this, &OutputWidget::slot_resChanged);
     connect(m_exportW, &ExportWidget::sig_addAuto, this, &OutputWidget::slot_addAuto);
+    connect(m_exportW, &ExportWidget::sig_altitudeChanged, this, &OutputWidget::slot_altitudeChanged);
     connect(m_progressW, &ProgressWidget::sig_abort, this, &OutputWidget::slot_abort);
+
 
     this->setMinimumSize(200,250);
 }
@@ -95,6 +97,16 @@ void OutputWidget::enableCreateFilesWidget(bool enable)
     m_exportW->enableCreateFilesWidget(enable);
 }
 
+void OutputWidget::enableAltitude(bool enable)
+{
+    m_exportW->enableAltitude(enable);
+}
+
+void OutputWidget::setAltitude(double altitude)
+{
+    m_exportW->setAltitude(altitude);
+}
+
 void OutputWidget::slot_displayProgress(int progress, QString currentOperation)
 {
     m_progressW->slot_displayProgress(progress,currentOperation);
@@ -138,5 +150,10 @@ void OutputWidget::slot_abort()
 void OutputWidget::slot_cropExport()
 {
     emit sig_cropExport();
+}
+
+void OutputWidget::slot_altitudeChanged(double altitude)
+{
+    emit sig_altitudeChanged(altitude);
 }
 

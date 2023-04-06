@@ -102,6 +102,18 @@ public:
      */
     void enableCreateFilesWidget(bool enable);
 
+    /**
+     * @brief enableAltitude will disable the altitude selector
+     * @param @a true shows the selector, @a false will hide it
+     */
+    void enableAltitude(bool enable);
+
+    /**
+     * @brief setAltitude sets the value of the altitude selector
+     * @param altitude
+     */
+    void setAltitude(double altitude);
+
 signals:
     /**
      * @brief sig_resChanged gets emitted once the export resolution has been altered
@@ -133,6 +145,11 @@ signals:
      * @brief sig_addAuto signal to add the current output to the automatic execution (triggered by user)
      */
     void sig_addAuto();
+    /**
+     * @brief sig_altitudeChanged gets emitted once the altitude has been altered
+     * @param path double with the set altitude
+     */
+    void sig_altitudeChanged(double altitude);
 
 public slots:
     /**
@@ -155,6 +172,7 @@ private slots:
     void slot_reconstruct();
     void slot_abort();
     void slot_cropExport();
+    void slot_altitudeChanged(double altitude);
 
 private:
     /**

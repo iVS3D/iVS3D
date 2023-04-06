@@ -73,4 +73,17 @@ bool MetaDataManager::reg(std::string name, AbstractBuilder builder)
     return m_availablerReader.insert(std::make_pair(name,builder)).second;
 }
 
+bool MetaDataManager::gpsDataHasAltitude()
+{
+    for (MetaDataReader* m : m_parsedMetaReader) {
+        if (m->getName().startsWith("GPS")) {
+            GPSReader* gps = dynamic_cast<GPSReader*>(m);
+            if (gps->hasAltitudeData()) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 

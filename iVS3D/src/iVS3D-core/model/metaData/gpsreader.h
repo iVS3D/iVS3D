@@ -7,6 +7,7 @@
 #include <QPointF>
 #include <QHash>
 #include <QVariant>
+
 /**
  * @interface GPSReader
  *
@@ -41,10 +42,17 @@ public:
     */
    QList<QVariant> getAllMetaData();
 
+   void setAltitudeDiff(double setAltitude);
+
+   bool hasAltitudeData();
+
+
 protected:
    void interpolate(QHash<QString, QVariant> a, QHash<QString, QVariant> b, double t, double stepsize);
    void addGPSValue(double latitude, double longitude);
    void addGPSValue(double latitude, double longitude, double altitude);
    QList<QHash<QString, QVariant>> m_GPSHashs;
+   double m_altitudeDiff = 0;
+   void addAltitudeDiff(int index);
 };
 #endif // GPSREADER_H

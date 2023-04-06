@@ -108,6 +108,18 @@ public:
      */
     void enableCreateFilesWidget(bool enable);
 
+    /**
+     * @brief enableAltitude will disable the altitude selector
+     * @param @a true shows the selector, @a false will hide it
+     */
+    void enableAltitude(bool enable);
+
+    /**
+     * @brief setAltitude sets the value of the altitude selector
+     * @param altitude
+     */
+    void setAltitude(double altitude);
+
 signals:
 
     /**
@@ -143,6 +155,11 @@ signals:
      */
     void sig_addAuto();
 
+    /**
+     * @brief [signal] sig_altitudeChanged() is emitted when the altitude is changed by the user.
+     */
+    void sig_altitudeChanged(double altitude);
+
 private slots:
     void on_pushButton_browse_clicked();
     void on_pushButton_export_clicked();
@@ -151,6 +168,7 @@ private slots:
     void on_pushButton_addAuto_clicked();
     void on_lineEdit_textChanged(const QString &text);
     void on_comboBox_currentTextChanged(const QString &text);
+    void on_spinBox_Altitude_valueChanged(double d);
 
 private:
     Ui::ExportWidget *ui;

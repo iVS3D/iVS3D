@@ -2,6 +2,7 @@
 #define METADATAMANAGER_H
 
 #include "metadata.h"
+#include "model/metaData/gpsreader.h"
 #include <QObject>
 #include <functional>
 
@@ -70,6 +71,8 @@ public:
     void resetData();
 
     bool reg(std::string name, AbstractBuilder builder);
+
+    bool gpsDataHasAltitude();
 
 private:
     QStringList m_uniquePaths;

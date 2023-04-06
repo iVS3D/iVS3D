@@ -208,7 +208,7 @@ void ExportThread::run(){
         m_receiver->slot_displayMessage(message);
     }
 
-#if 1
+//#if 1
     qDebug() << "Export stats";
     qDebug() << "------------";
     qDebug() << ">  total (ms):  " << stats.totalTimeMeasured;
@@ -217,7 +217,7 @@ void ExportThread::run(){
     qDebug() << ">  write (ms):  " << stats.steps[ExportStats::S_WRITE].totalTime << "  min (ms): " << stats.steps[ExportStats::S_WRITE].minTime << "  max (ms): " << stats.steps[ExportStats::S_WRITE].maxTime;
     qDebug() << ">  input-type:  " << (stats.type == ExportStats::S_VIDEO ? "video" : "images");
     qDebug() << "";
-#endif
+//#endif
 
     m_progress = 0;
     return;

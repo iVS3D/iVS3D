@@ -13,6 +13,7 @@
 #include "logfile.h"
 #include "logmanager.h"
 #include "stringcontainer.h"
+#include "model/metaData/gpsreader.h"
 
 #if defined(Q_OS_LINUX)
     #include "colmapwrapper.h"
@@ -165,6 +166,12 @@ public slots:
      * @param id id of the image
      */
     void slot_nextImageOnPlayer(uint idx);
+
+    /**
+     * @brief slot_altitudeChanged is triggered when the altitude has been changed by the user
+     * @param altitude set altitude
+     */
+    void slot_altitudeChanged(double altitude);
 
 private:
     /**

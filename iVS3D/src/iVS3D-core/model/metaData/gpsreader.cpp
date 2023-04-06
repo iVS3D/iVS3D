@@ -23,6 +23,9 @@ void GPSReader::normaliseGPS(double timeItervall, double fps, uint imageNumber)
 
 QVariant GPSReader::getImageMetaData(uint index)
 {
+    if (m_altitudeDiff != 0) {
+        addAltitudeDiff(index);
+    }
     return m_GPSHashs[index];
 }
 
@@ -30,9 +33,20 @@ QList<QVariant> GPSReader::getAllMetaData()
 {
     QList<QVariant> values;
     for (int i = 0; i < m_GPSHashs.size(); i++) {
+        if (m_altitudeDiff != 0) {
+            addAltitudeDiff(i);
+        }
         values.append(m_GPSHashs[i]);
     }
     return values;
+}
+
+void GPSReader::setAltitudeDiff(double setAltitude)
+{
+    QHash<QString, QVariant> gpsHash = m_GPSHashs.at(0);
+    double altitude_abs = gpsHash.find("GPSAltitude").value().toDouble();
+    double altitude = (gpsHash.find("GPSAltitudeRef").value().toString() == "0") ? altitude_abs : altitude_abs * -1;
+    m_altitudeDiff = setAltitude - altitude;
 }
 
 
@@ -101,4 +115,25 @@ void GPSReader::addGPSValue(double latitude, double longitude, double altitude)
     newGPSHash.insert(stringContainer::altitudeRefIdentifier, QVariant(altRef));
 
     m_GPSHashs.push_back(newGPSHash);
+}
+
+void GPSReader::addAltitudeDiff(int index)
+{
+   QHash<QString, QVariant> GPSHash = m_GPSHashs.at(index);
+   QHash<QString, QVariant>::iterator altitudeIter = GPSHash.find(stringContainer::altitudeIdentifier);
+   double oldAltitude = altitudeIter.value().toDouble();
+   GPSHash.erase(altitudeIter);
+   GPSHash.erase(GPSHash.find(stringContainer::altitudeIdentifier));
+   double altitude = m_altitudeDiff + oldAltitude;
+   QString altRef = (altitude > 0) ? stringContainer::altitudeAboveSea : stringContainer::altitudeBelowSea;
+   GPSHash.insert(stringContainer::altitudeIdentifier, QVariant(abs(altitude)));
+   GPSHash.insert(stringContainer::altitudeRefIdentifier, QVariant(altRef));
+   m_GPSHashs.replace(index, GPSHash);
+}
+
+bool GPSReader::hasAltitudeData()
+{
+    QHash<QString, QVariant> GPSHash = m_GPSHashs.at(0);
+    QHash<QString, QVariant>::iterator altitudeIter = GPSHash.find(stringContainer::altitudeIdentifier);
+    return (altitudeIter == GPSHash.end() ? false : true);
 }

@@ -18,6 +18,7 @@
         connect(m_outputWidget, &OutputWidget::sig_cropExport, this, &ExportController::slot_cropExport);
         connect(m_outputWidget, &OutputWidget::sig_resChanged, this, &ExportController::slot_resolutionChange);
         connect(m_outputWidget, &OutputWidget::sig_pathChanged, this, &ExportController::slot_outputPathChanged);
+        connect(m_outputWidget, &OutputWidget::sig_altitudeChanged, this, &ExportController::slot_altitudeChanged);
 
         connect(m_dataManager->getModelInputPictures(), &ModelInputPictures::sig_mipChanged, this, &ExportController::slot_onKeyframesChanged);
 
@@ -40,7 +41,22 @@
         m_outputWidget->setOutputPath(m_path);
         m_outputWidget->setCropStatus(false);
 
+        //Set altitude widget
         m_outputWidget->enableReconstruct(false);
+        bool hasAltitude = MetaDataManager::instance().gpsDataHasAltitude();
+        m_outputWidget->enableAltitude(hasAltitude);
+        if (hasAltitude) {
+            QList<MetaDataReader*> readers = MetaDataManager::instance().loadAllMetaData();
+            for (MetaDataReader* reader : readers) {
+                if (reader->getName().startsWith("GPS")) {
+                    QVariant gpsData = reader->getImageMetaData(0);
+                    QHash<QString, QVariant> gpsHash = gpsData.toHash();
+                    double altitude_abs = gpsHash.find("GPSAltitude").value().toDouble();
+                    double altitude = (gpsHash.find("GPSAltitudeRef").value().toString() == "0") ? altitude_abs : altitude_abs * -1;
+                    m_outputWidget->setAltitude(altitude);
+                }
+            }
+        }
 
     }
 #elif defined(Q_OS_WIN)
@@ -60,6 +76,7 @@
         connect(m_outputWidget, &OutputWidget::sig_cropExport, this, &ExportController::slot_cropExport);
         connect(m_outputWidget, &OutputWidget::sig_resChanged, this, &ExportController::slot_resolutionChange);
         connect(m_outputWidget, &OutputWidget::sig_pathChanged, this, &ExportController::slot_outputPathChanged);
+        connect(m_outputWidget, &OutputWidget::sig_altitudeChanged, this, &ExportController::slot_altitudeChanged);
 
         connect(m_dataManager->getModelInputPictures(), &ModelInputPictures::sig_mipChanged, this, &ExportController::slot_onKeyframesChanged);
 
@@ -82,7 +99,22 @@
         m_outputWidget->setOutputPath(m_path);
         m_outputWidget->setCropStatus(false);
 
+        //Set altitude widget
         m_outputWidget->enableReconstruct(false);
+        bool hasAltitude = MetaDataManager::instance().gpsDataHasAltitude();
+        m_outputWidget->enableAltitude(hasAltitude);
+        if (hasAltitude) {
+            QList<MetaDataReader*> readers = MetaDataManager::instance().loadAllMetaData();
+            for (MetaDataReader* reader : readers) {
+                if (reader->getName().startsWith("GPS")) {
+                    QVariant gpsData = reader->getImageMetaData(0);
+                    QHash<QString, QVariant> gpsHash = gpsData.toHash();
+                    double altitude_abs = gpsHash.find("GPSAltitude").value().toDouble();
+                    double altitude = (gpsHash.find("GPSAltitudeRef").value().toString() == "0") ? altitude_abs : altitude_abs * -1;
+                    m_outputWidget->setAltitude(altitude);
+                }
+            }
+        }
 
     }
 #endif
@@ -435,6 +467,18 @@ void ExportController::slot_onKeyframesChanged()
 void ExportController::slot_nextImageOnPlayer(uint idx)
 {
     m_imageOnPlayerId = idx;
+}
+
+void ExportController::slot_altitudeChanged(double altitude)
+{
+    MetaData* meta = m_dataManager->getModelInputPictures()->getReader()->getMetaData();
+    QList<MetaDataReader*> metaReader = meta->loadAllMetaData();
+    for (MetaDataReader* reader : metaReader) {
+        if (reader->getName().startsWith("GPS")) {
+            GPSReader* gps = dynamic_cast<GPSReader*>(reader);
+            gps->setAltitudeDiff(altitude);
+        }
+    }
 }
 
 QPoint ExportController::parseResolution(QString resolutionString)

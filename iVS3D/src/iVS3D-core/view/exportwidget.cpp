@@ -17,6 +17,7 @@ ExportWidget::ExportWidget(QWidget *parent, QStringList transformList) :
     ui->horizontalLayout->addWidget(m_reconstructBtn);
     connect(m_reconstructBtn, &QPushButton::clicked, this, &ExportWidget::on_pushButton_reconstruct_clicked);
 #endif
+    this->ui->altitudeWidget->setVisible(false);
 }
 
 ExportWidget::~ExportWidget()
@@ -148,6 +149,11 @@ void ExportWidget::on_comboBox_currentTextChanged(const QString &text)
     emit sig_resChanged(text);
 }
 
+void ExportWidget::on_spinBox_Altitude_valueChanged(double i)
+{
+    emit sig_altitudeChanged(i);
+}
+
 bool ExportWidget::setSelectedITransforms(std::vector<bool> selection)
 {
     if(m_checkboxes.size() != selection.size()){
@@ -167,5 +173,15 @@ void ExportWidget::enableCreateFilesWidget(bool enable)
     else {
         ui->createFilesWidget->hide();
     }
+}
+
+void ExportWidget::enableAltitude(bool enable)
+{
+    this->ui->altitudeWidget->setVisible(enable);
+}
+
+void ExportWidget::setAltitude(double altitude)
+{
+    this->ui->spinBox_Altitude->setValue(altitude);
 }
 
