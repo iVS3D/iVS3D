@@ -133,10 +133,10 @@ bool ApplicationSettings::getCudaAvailable() const
 
             if (line.find("CUDA") != std::string::npos) {
                 // Trim from left.
-                line.erase(line.begin(), std::find_if(line.begin(), line.end(), std::not1(std::ptr_fun<int, int>(std::isspace))));
+                line.erase(line.begin(), std::find_if(line.begin(), line.end(), [](int c) {return !std::isspace(c);}));
 
                 // Trim from right.
-                line.erase(line.begin(), std::find_if(line.begin(), line.end(), std::not1(std::ptr_fun<int, int>(std::isspace))));
+                line.erase(line.begin(), std::find_if(line.begin(), line.end(), [](int c) {return !std::isspace(c);}));
 
                 // Convert to lowercase may not be necessary.
                 std::transform(line.begin(), line.end(), line.begin(), ::tolower);
