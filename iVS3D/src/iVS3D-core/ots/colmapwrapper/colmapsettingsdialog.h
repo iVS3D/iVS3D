@@ -35,7 +35,8 @@ class SettingsDialog : public QDialog
     void onStatusChanged();
 
   private slots:
-    void onLocalBinaryPushButtonPressed();
+    void onLocalColmapBinaryPushButtonPressed();
+    void onLocalOpenMVSBinaryPushButtonPressed();
     void onLocalWorkspacePushButtonPressed();
     void onSelectMountPntPushButtonPressed();
     void onConnectionComboBoxIdxChanged(int idx);

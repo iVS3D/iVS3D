@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>570</width>
-    <height>708</height>
+    <width>766</width>
+    <height>1197</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -187,6 +187,12 @@
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>0</height>
+      </size>
+     </property>
      <property name="autoFillBackground">
       <bool>false</bool>
      </property>
@@ -227,7 +233,7 @@
         <item>
          <widget class="QCheckBox" name="cb_prodMesh">
           <property name="enabled">
-           <bool>false</bool>
+           <bool>true</bool>
           </property>
           <property name="toolTip">
            <string>Currently not usable, due to georegistration</string>
@@ -236,13 +242,144 @@
            <enum>Qt::LeftToRight</enum>
           </property>
           <property name="text">
-           <string>3. Meshed Model</string>
+           <string>3. Meshed and textured Model</string>
           </property>
          </widget>
         </item>
        </layout>
       </item>
      </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="groupBox">
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>50</height>
+      </size>
+     </property>
+     <property name="title">
+      <string>Trade-off between quality and runtime</string>
+     </property>
+     <widget class="QWidget" name="horizontalLayoutWidget">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>19</y>
+        <width>731</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <layout class="QHBoxLayout" name="horizontalLayout_8" stretch="0,0,0,0,0,0,0">
+       <item>
+        <widget class="QRadioButton" name="rb_quality0">
+         <property name="maximumSize">
+          <size>
+           <width>80</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>Fast</string>
+         </property>
+         <attribute name="buttonGroup">
+          <string notr="true">buttonGroup</string>
+         </attribute>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer_9">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QRadioButton" name="rb_quality1">
+         <property name="maximumSize">
+          <size>
+           <width>80</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>Medium</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+         <attribute name="buttonGroup">
+          <string notr="true">buttonGroup</string>
+         </attribute>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer_5">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QRadioButton" name="rb_quality2">
+         <property name="maximumSize">
+          <size>
+           <width>80</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>Quality</string>
+         </property>
+         <attribute name="buttonGroup">
+          <string notr="true">buttonGroup</string>
+         </attribute>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer_13">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QRadioButton" name="rb_quality3">
+         <property name="maximumSize">
+          <size>
+           <width>110</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>Best Quality</string>
+         </property>
+         <attribute name="buttonGroup">
+          <string notr="true">buttonGroup</string>
+         </attribute>
+        </widget>
+       </item>
+      </layout>
+     </widget>
     </widget>
    </item>
    <item>
@@ -276,8 +413,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>532</width>
-           <height>435</height>
+           <width>742</width>
+           <height>821</height>
           </rect>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_5">
@@ -292,7 +429,7 @@
                <item>
                 <widget class="QLabel" name="l_camModel">
                  <property name="text">
-                  <string>Camera Model:</string>
+                  <string>Camera model:</string>
                  </property>
                 </widget>
                </item>
@@ -335,8 +472,11 @@
                  <property name="layoutDirection">
                   <enum>Qt::RightToLeft</enum>
                  </property>
+                 <property name="currentText">
+                  <string>RADIAL</string>
+                 </property>
                  <property name="currentIndex">
-                  <number>0</number>
+                  <number>1</number>
                  </property>
                  <item>
                   <property name="text">
@@ -362,7 +502,7 @@
                <item>
                 <widget class="QLabel" name="l_singeCam">
                  <property name="text">
-                  <string>Single Camera:</string>
+                  <string>Share intrinsics between images:</string>
                  </property>
                 </widget>
                </item>
@@ -395,16 +535,16 @@
               </layout>
              </item>
              <item>
-              <layout class="QHBoxLayout" name="horizontalLayout_13">
+              <layout class="QHBoxLayout" name="horizontalLayout_12">
                <item>
-                <widget class="QLabel" name="l_multiModels">
+                <widget class="QLabel" name="le_intrinsiPparameters">
                  <property name="text">
-                  <string>Multiple Models:</string>
+                  <string>Optional intrinsic parameters (comma seperated):</string>
                  </property>
                 </widget>
                </item>
                <item>
-                <spacer name="horizontalSpacer_10">
+                <spacer name="horizontalSpacer_14">
                  <property name="orientation">
                   <enum>Qt::Horizontal</enum>
                  </property>
@@ -417,12 +557,12 @@
                 </spacer>
                </item>
                <item>
-                <widget class="QCheckBox" name="cb_multiModels">
-                 <property name="text">
-                  <string/>
-                 </property>
-                 <property name="checked">
-                  <bool>true</bool>
+                <widget class="QLineEdit" name="le_intrinsicParameters">
+                 <property name="minimumSize">
+                  <size>
+                   <width>300</width>
+                   <height>0</height>
+                  </size>
                  </property>
                 </widget>
                </item>
@@ -433,7 +573,7 @@
                <item>
                 <widget class="QLabel" name="l_poseGpus">
                  <property name="text">
-                  <string>GPUs:</string>
+                  <string>GPU ids (-1 to use all):</string>
                  </property>
                 </widget>
                </item>
@@ -482,7 +622,7 @@
                <item>
                 <widget class="QLabel" name="l_useRobustMode">
                  <property name="text">
-                  <string>Robust Mode (Higher Probability for success over quality):</string>
+                  <string>Robust mode (Higher probability of success at the expense of quality):</string>
                  </property>
                 </widget>
                </item>
@@ -513,7 +653,7 @@
                <item>
                 <widget class="QLabel" name="l_highFocalLength">
                  <property name="text">
-                  <string>Images could have high focal length:</string>
+                  <string>Images could have very high focal length:</string>
                  </property>
                 </widget>
                </item>
@@ -552,69 +692,11 @@
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_7">
              <item>
-              <layout class="QHBoxLayout" name="horizontalLayout_8">
-               <item>
-                <widget class="QLabel" name="l_maxImgSize">
-                 <property name="text">
-                  <string>Max Image Size:</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <spacer name="horizontalSpacer_5">
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>20</width>
-                   <height>20</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-               <item>
-                <widget class="QSpinBox" name="sb_maxImgSize">
-                 <property name="sizePolicy">
-                  <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
-                   <horstretch>200</horstretch>
-                   <verstretch>0</verstretch>
-                  </sizepolicy>
-                 </property>
-                 <property name="maximumSize">
-                  <size>
-                   <width>200</width>
-                   <height>16777215</height>
-                  </size>
-                 </property>
-                 <property name="alignment">
-                  <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                 </property>
-                 <property name="suffix">
-                  <string> Pixel</string>
-                 </property>
-                 <property name="minimum">
-                  <number>1</number>
-                 </property>
-                 <property name="maximum">
-                  <number>99999</number>
-                 </property>
-                 <property name="singleStep">
-                  <number>100</number>
-                 </property>
-                 <property name="value">
-                  <number>1920</number>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </item>
-             <item>
               <layout class="QHBoxLayout" name="horizontalLayout_14">
                <item>
                 <widget class="QLabel" name="l_cacheSize">
                  <property name="text">
-                  <string>Cache Size:</string>
+                  <string>Cache size for dense fusion:</string>
                  </property>
                 </widget>
                </item>
@@ -667,12 +749,27 @@
                </item>
               </layout>
              </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QGroupBox" name="gb_settingsMesh">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="title">
+             <string>Mesh</string>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_8">
              <item>
-              <layout class="QHBoxLayout" name="horizontalLayout_16">
+              <layout class="QHBoxLayout" name="horizontalLayout_15">
                <item>
-                <widget class="QLabel" name="l_cloudGpus">
+                <widget class="QLabel" name="l_cacheSize_2">
                  <property name="text">
-                  <string>GPUs:</string>
+                  <string>Max threads for mesh reconstruction (0 to use all)</string>
                  </property>
                 </widget>
                </item>
@@ -690,41 +787,15 @@
                 </spacer>
                </item>
                <item>
-                <widget class="QLineEdit" name="le_cloudGpus">
-                 <property name="sizePolicy">
-                  <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
-                   <horstretch>0</horstretch>
-                   <verstretch>0</verstretch>
-                  </sizepolicy>
-                 </property>
-                 <property name="maximumSize">
-                  <size>
-                   <width>200</width>
-                   <height>16777215</height>
-                  </size>
-                 </property>
+                <widget class="QLineEdit" name="le_maxThreads">
                  <property name="text">
-                  <string>-1</string>
-                 </property>
-                 <property name="alignment">
-                  <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                  <string>0</string>
                  </property>
                 </widget>
                </item>
               </layout>
              </item>
             </layout>
-           </widget>
-          </item>
-          <item>
-           <widget class="QGroupBox" name="gb_settingsMesh">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="title">
-             <string>Meshed Model</string>
-            </property>
-            <layout class="QVBoxLayout" name="verticalLayout_8"/>
            </widget>
           </item>
           <item>
@@ -799,4 +870,7 @@
    </hints>
   </connection>
  </connections>
+ <buttongroups>
+  <buttongroup name="buttonGroup"/>
+ </buttongroups>
 </ui>

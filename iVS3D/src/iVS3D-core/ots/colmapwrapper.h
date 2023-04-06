@@ -6,6 +6,8 @@
 #include <map>
 #include <vector>
 #include <functional>
+#include <chrono>
+#include <thread>
 
 // Qt
 #include <QSettings>
@@ -268,11 +270,20 @@ class ColmapWrapper : public QObject
      */
     QString localColmapBinPath() const;
 
+    /**
+     * @brief Returns absolute path to OpenMVS binary on local machine.
+     */
+    QString localOpenMVSBinPath() const;
 
     /**
      * @brief Returns absolute path to COLMAP binary on remote machine.
      */
     QString remoteColmapBinPath() const;
+
+    /**
+     * @brief Returns absolute path to OpenMVS binary on remote machine.
+     */
+    QString remoteOpenMVSBinPath() const;
 
     /**
      * @brief Returns absolute path to workspace on local machine.
@@ -314,7 +325,12 @@ class ColmapWrapper : public QObject
     /**
      * @brief Returns wether robustMode should be used.
      */
-    bool useRobustMode() const;
+    bool useRobustMode();
+
+    /**
+     * @brief Set wether robustMode should be used.
+     */
+    bool setUseRobustMode() const;
 
     /**
      * @brief Returns true, if remote workspace is mounted. False, otherwise.
@@ -413,9 +429,19 @@ class ColmapWrapper : public QObject
     void setLocalColmapBinPath(const QString &colmapBinPath);
 
     /**
+     * @brief Set absolute path to OpenMVS binary folder on local machine.
+     */
+    void setLocalOpenMVSBinPath(const QString &openMVSBinPath);
+
+    /**
      * @brief Set absolute path to COLMAP binary on remote machine.
      */
     void setRemoteColmapBinPath(const QString &remoteColmapBinPath);
+
+    /**
+     * @brief Set absolute path to OpenMVS binary folder on remote machine.
+     */
+    void setRemoteOpenMVSBinPath(const QString &openMVSBinPath);
 
     /**
      * @brief Set absolute path to workspace on local machine.
@@ -686,6 +712,9 @@ class ColmapWrapper : public QObject
     /// Settings object.
     QSettings mSettings;
 
+    /// flag wether to use robust mode
+    bool mUseRobustMode;
+
     /// Pointer to temporary directory.
     QTemporaryDir* mpTempDir;
 
@@ -710,8 +739,14 @@ class ColmapWrapper : public QObject
     /// Absolute path to COLMAP binary on local machine.
     QString mLocalColmapBinPath;
 
+    /// Absolute path to OpenMVS binary folder on local machine.
+    QString mLocalOpenMVSBinPath;
+
     /// Absolute path to COLMAP binary on remote machine.
     QString mRemoteColmapBinPath;
+
+    /// Absolute path to OpenMVS binary folder on remote machine.
+    QString mRemoteOpenMVSBinPath;
 
     /// Absolute path to workspace on local machine.
     QString mLocalWorkspacePath;
@@ -734,9 +769,6 @@ class ColmapWrapper : public QObject
 
     /// Interval of background synchronization between server and client
     int mSyncInterval;
-
-    /// Use robust mode for higher probability for success versus quality
-    bool mUseRobustMode;
 
     /// Status of workspace
     EWorkspaceStatus mWorkspaceStatus;

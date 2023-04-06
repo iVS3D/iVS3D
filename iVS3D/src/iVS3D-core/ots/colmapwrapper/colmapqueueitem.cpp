@@ -1,15 +1,15 @@
 #include "colmapqueueitem.h"
 
 // std
-#include <stdio.h>
 #include <iostream>
+#include <stdio.h>
 // Qt
 #include <QPushButton>
 
 #include "ui_colmapqueueitem.h"
-#include "ui_colmapqueueitem_running.h"
-#include "ui_colmapqueueitem_finished.h"
 #include "ui_colmapqueueitem_failed.h"
+#include "ui_colmapqueueitem_finished.h"
+#include "ui_colmapqueueitem_running.h"
 
 namespace lib3d {
 namespace ots {
@@ -17,41 +17,35 @@ namespace ui {
 namespace colmapwrapper {
 
 //==================================================================================================
-QueueItem::QueueItem(ColmapWrapper::SJob job, QWidget *parent) :
-    QWidget(parent),
-    ui(new Ui::QueueItem)
+QueueItem::QueueItem(ColmapWrapper::SJob job, QWidget *parent)
+    : QWidget(parent), ui(new Ui::QueueItem)
 {
     mJob = job;
     ui->setupUi(this);
-    ui->l_name->setText(QString::fromStdString(job.sequenceName).
-                        append(": ").append(ColmapWrapper::EProductType2QString(job.product)));
+    ui->l_name->setText(QString::fromStdString(job.sequenceName)
+                            .append(": ")
+                            .append(ColmapWrapper::EProductType2QString(job.product)));
 
     //--- connect buttons to slots
-    connect(ui->btnDown, &QPushButton::clicked, this, &QueueItem::onBtnDownClicked);
-    connect(ui->btnUp, &QPushButton::clicked, this, &QueueItem::onBtnUpClicked);
     connect(ui->btnCancel, &QPushButton::clicked, this, &QueueItem::onBtnCancelClicked);
 }
 
 //==================================================================================================
 QueueItem::~QueueItem()
 {
-  delete ui;
+    delete ui;
 }
 
 //==================================================================================================
 void QueueItem::onUpdateToDarkTheme()
 {
-  ui->btnCancel->setIcon(QIcon(":/assets/icons/glyphicons-17-bin-dark.png"));
-  ui->btnUp->setIcon(QIcon(":/assets/icons/glyphicons-370-collapse-top-dark.png"));
-  ui->btnDown->setIcon(QIcon(":/assets/icons/glyphicons-368-expand-dark.png"));
+    ui->btnCancel->setIcon(QIcon(":/assets/icons/glyphicons-17-bin-dark.png"));
 }
 
 //==================================================================================================
 void QueueItem::onUpdateToLightTheme()
 {
-  ui->btnCancel->setIcon(QIcon(":/assets/icons/glyphicons-17-bin.png"));
-  ui->btnUp->setIcon(QIcon(":/assets/icons/glyphicons-370-collapse-top.png"));
-  ui->btnDown->setIcon(QIcon(":/assets/icons/glyphicons-368-expand.png"));
+    ui->btnCancel->setIcon(QIcon(":/assets/icons/glyphicons-17-bin.png"));
 }
 
 //==================================================================================================
@@ -79,28 +73,30 @@ void QueueItem::onBtnCancelClicked()
 }
 
 //==================================================================================================
-QueueItemActive::QueueItemActive(ColmapWrapper::SJob job, QWidget *parent) :
-    QWidget(parent),
-    ui(new Ui::QueueItemRunning)
+QueueItemActive::QueueItemActive(ColmapWrapper::SJob job, QWidget *parent)
+    : QWidget(parent), ui(new Ui::QueueItemRunning)
 {
     this->job = job;
     ui->setupUi(this);
 
     uint milliseconds = job.eta;
-    uint seconds      = milliseconds / 1000;
-    milliseconds     = milliseconds % 1000;
-    uint minutes      = seconds / 60;
-    seconds          = seconds % 60;
-    uint hours        = minutes / 60;
-    minutes          = minutes % 60;
+    uint seconds = milliseconds / 1000;
+    milliseconds = milliseconds % 1000;
+    uint minutes = seconds / 60;
+    seconds = seconds % 60;
+    uint hours = minutes / 60;
+    minutes = minutes % 60;
 
     QTime time;
     time.setHMS(hours, minutes, seconds, milliseconds);
 
-    ui->l_name->setText(QString::fromStdString(job.sequenceName).
-                        append(": ").append(ColmapWrapper::EProductType2QString(job.product))
-                        .append(" ETA for step ").append(QString::number(job.step)).append(" ")
-                        .append(time.toString("hh:mm:ss")));
+    ui->l_name->setText(QString::fromStdString(job.sequenceName)
+                            .append(": ")
+                            .append(ColmapWrapper::EProductType2QString(job.product))
+                            .append(" ETA for step ")
+                            .append(QString::number(job.step))
+                            .append(" ")
+                            .append(time.toString("hh:mm:ss")));
 }
 
 //==================================================================================================
@@ -110,20 +106,21 @@ QueueItemActive::~QueueItemActive()
 }
 
 //==================================================================================================
-void QueueItemActive::setProgress(int progress) {
-  ui->progressBar->setValue(progress);
+void QueueItemActive::setProgress(int progress)
+{
+    ui->progressBar->setValue(progress);
 }
 
 //==================================================================================================
 void QueueItemActive::onUpdateToDarkTheme()
 {
-  ui->btnCancel->setIcon(QIcon(":/assets/icons/glyphicons-17-bin-dark.png"));
+    ui->btnCancel->setIcon(QIcon(":/assets/icons/glyphicons-17-bin-dark.png"));
 }
 
 //==================================================================================================
 void QueueItemActive::onUpdateToLightTheme()
 {
-  ui->btnCancel->setIcon(QIcon(":/assets/icons/glyphicons-17-bin.png"));
+    ui->btnCancel->setIcon(QIcon(":/assets/icons/glyphicons-17-bin.png"));
 }
 
 //==================================================================================================
@@ -133,33 +130,33 @@ void QueueItemActive::onBtnOptionsClicked()
 }
 
 //==================================================================================================
-QueueItemFinished::QueueItemFinished(ColmapWrapper::SJob job, QWidget *parent) :
-    QWidget(parent),
-    ui(new Ui::QueueItemFinished)
+QueueItemFinished::QueueItemFinished(ColmapWrapper::SJob job, QWidget *parent)
+    : QWidget(parent), ui(new Ui::QueueItemFinished)
 {
-  this->job = job;
-  ui->setupUi(this);
+    this->job = job;
+    ui->setupUi(this);
 
-  ui->l_name->setText(QString::fromStdString(job.sequenceName).
-                      append(": ").append(ColmapWrapper::EProductType2QString(job.product)));
+    ui->l_name->setText(QString::fromStdString(job.sequenceName)
+                            .append(": ")
+                            .append(ColmapWrapper::EProductType2QString(job.product)));
 }
 
 //==================================================================================================
 QueueItemFinished::~QueueItemFinished()
 {
-  delete ui;
+    delete ui;
 }
 
 //==================================================================================================
 void QueueItemFinished::onUpdateToDarkTheme()
 {
-  ui->btnDelete->setIcon(QIcon(":/assets/icons/glyphicons-17-bin-dark.png"));
+    ui->btnDelete->setIcon(QIcon(":/assets/icons/glyphicons-17-bin-dark.png"));
 }
 
 //==================================================================================================
 void QueueItemFinished::onUpdateToLightTheme()
 {
-  ui->btnDelete->setIcon(QIcon(":/assets/icons/glyphicons-17-bin.png"));
+    ui->btnDelete->setIcon(QIcon(":/assets/icons/glyphicons-17-bin.png"));
 }
 
 //==================================================================================================
@@ -169,35 +166,34 @@ void QueueItemFinished::onBtnDeleteClicked()
 }
 
 //==================================================================================================
-QueueItemFailed::QueueItemFailed(ColmapWrapper::SJob job, QWidget *parent) :
-    QWidget(parent),
-    ui(new Ui::QueueItemFailed)
+QueueItemFailed::QueueItemFailed(ColmapWrapper::SJob job, QWidget *parent)
+    : QWidget(parent), ui(new Ui::QueueItemFailed)
 {
-  this->job = job;
-  ui->setupUi(this);
+    this->job = job;
+    ui->setupUi(this);
 
-  ui->l_name->setText(QString::fromStdString(job.sequenceName).
-                      append(": ").append(ColmapWrapper::EProductType2QString(job.product)));
-  connect(ui->btnDelete, &QPushButton::clicked, this, &QueueItemFailed::onBtnDeleteClicked);
-
+    ui->l_name->setText(QString::fromStdString(job.sequenceName)
+                            .append(": ")
+                            .append(ColmapWrapper::EProductType2QString(job.product)));
+    connect(ui->btnDelete, &QPushButton::clicked, this, &QueueItemFailed::onBtnDeleteClicked);
 }
 
 //==================================================================================================
 QueueItemFailed::~QueueItemFailed()
 {
-  delete ui;
+    delete ui;
 }
 
 //==================================================================================================
 void QueueItemFailed::onUpdateToDarkTheme()
 {
-  ui->btnDelete->setIcon(QIcon(":/assets/icons/glyphicons-17-bin-dark.png"));
+    ui->btnDelete->setIcon(QIcon(":/assets/icons/glyphicons-17-bin-dark.png"));
 }
 
 //==================================================================================================
 void QueueItemFailed::onUpdateToLightTheme()
 {
-  ui->btnDelete->setIcon(QIcon(":/assets/icons/glyphicons-17-bin.png"));
+    ui->btnDelete->setIcon(QIcon(":/assets/icons/glyphicons-17-bin.png"));
 }
 
 //==================================================================================================
@@ -206,8 +202,7 @@ void QueueItemFailed::onBtnDeleteClicked()
     emit deleteJob(job);
 }
 
-
 } // namespace colmapwrapper
 } // namespace ui
 } // namespace ots
-} // namespeace lib3d
+} // namespace lib3d

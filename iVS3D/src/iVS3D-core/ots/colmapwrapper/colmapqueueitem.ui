@@ -165,67 +165,6 @@
          <property name="spacing">
           <number>0</number>
          </property>
-         <item>
-          <widget class="QPushButton" name="btnUp">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>21</width>
-             <height>21</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>21</width>
-             <height>21</height>
-            </size>
-           </property>
-           <property name="text">
-            <string/>
-           </property>
-           <property name="icon">
-            <iconset resource="../../lib3D_ots.qrc">
-             <normaloff>:/assets/icons/glyphicons-370-collapse-top.png</normaloff>:/assets/icons/glyphicons-370-collapse-top.png</iconset>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="btnDown">
-           <property name="enabled">
-            <bool>true</bool>
-           </property>
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>21</width>
-             <height>21</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>21</width>
-             <height>21</height>
-            </size>
-           </property>
-           <property name="text">
-            <string/>
-           </property>
-           <property name="icon">
-            <iconset resource="../../lib3D_ots.qrc">
-             <normaloff>:/assets/icons/glyphicons-368-expand.png</normaloff>:/assets/icons/glyphicons-368-expand.png</iconset>
-           </property>
-          </widget>
-         </item>
         </layout>
        </item>
       </layout>

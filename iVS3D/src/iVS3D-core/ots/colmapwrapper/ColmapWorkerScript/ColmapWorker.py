@@ -4,6 +4,8 @@ import sys
 import argparse
 import subprocess
 import shutil
+import traceback
+
 from pathlib import Path
 
 from GpsEntry import GpsEntry
@@ -11,6 +13,7 @@ import yaml
 import exifread
 
 COLMAP_BIN = ""
+OPENMVS_BIN_FOLDER = ""
 WORK_QUEUE_YAML_PATH = ""
 WORKER_STATE_YAML_PATH = ""
 
@@ -226,7 +229,7 @@ def init_eta_calculation():
 ######################################################################################################################
 # Compute camera poses for given parameter list.
 # Returns: True, if successful. False otherwise
-def computeCameraPoses(colmapDatabaseFilePath: str, projectImageDir: str, colmapProjectDirPath: str, projectOutputDirPath: str, sequenceName: str, parameterList: dict, robust_mode: bool) -> bool:
+def computeCameraPoses(colmapDatabaseFilePath: str, projectImageDir: str, colmapProjectDirPath: str, projectOutputDirPath: str, sequenceName: str, parameterList: dict) -> bool:
     global COLMAP_BIN
 
     print(' COMPUTING CAMERA POSES...')
@@ -237,16 +240,24 @@ def computeCameraPoses(colmapDatabaseFilePath: str, projectImageDir: str, colmap
     multiModels = parameterList['multiple_models']
     gpus = parameterList['gpus']
     max_focal_length_ratio = parameterList['max_focal_length_ratio']
+    camera_params= parameterList['camera_params']
+    robust_mode = parameterList['robust_mode']
+    robust_mode = bool(int(robust_mode))
 
     # run feature extraction
     print('\t> Running feature extractor...')
-    p = subprocess.Popen([COLMAP_BIN, 
+    args = [COLMAP_BIN, 
         "feature_extractor", 
         "--database_path", colmapDatabaseFilePath, 
         "--image_path", projectImageDir, 
         "--ImageReader.camera_model", camModel,
         "--ImageReader.single_camera", singleCam,
-        "--SiftExtraction.gpu_index", gpus], stdout=subprocess.PIPE)     
+        "--SiftExtraction.gpu_index", gpus]
+    
+    if camera_params != "" and "," in camera_params:
+        args.extend(["--ImageReader.camera_params", camera_params])
+    
+    p = subprocess.Popen(args, stdout=subprocess.PIPE)     
 
     number_of_images = 0
     get_eta_after_step = init_eta_calculation()
@@ -274,7 +285,7 @@ def computeCameraPoses(colmapDatabaseFilePath: str, projectImageDir: str, colmap
     p = subprocess.Popen([COLMAP_BIN, 
         "exhaustive_matcher", 
         "--database_path", colmapDatabaseFilePath,  
-        "--ExhaustiveMatching.block_size", "10",
+        "--ExhaustiveMatching.block_size", "50",
         "--SiftMatching.gpu_index", gpus], stdout=subprocess.PIPE)     
 
     get_eta_after_step = init_eta_calculation()
@@ -385,20 +396,23 @@ def computeCameraPoses(colmapDatabaseFilePath: str, projectImageDir: str, colmap
     if success:
         # run model aligner
         print('\t> Running model aligner...')
-        cmd=('{} model_aligner '
-            '--input_path ' + sparse_in_path + " ",
-            '--output_path ' + sparse_out_path + " ",
-            '--ref_images_path ' + os.path.join(colmapProjectDirPath, "01_sparse", "geo", "ImgGpsList_ecef.txt") + " ",
-            '--robust_alignment 0').format(COLMAP_BIN)
-        os.system(cmd)    
+        print(sparse_in_path, sparse_out_path, os.path.join(colmapProjectDirPath, "01_sparse", "geo", "ImgGpsList_ecef.txt"))
+        p = subprocess.Popen([COLMAP_BIN, 
+            'model_aligner',
+            '--input_path', sparse_in_path,
+            '--output_path', sparse_out_path,
+            '--ref_images_path', os.path.join(colmapProjectDirPath, "01_sparse", "geo", "ImgGpsList_ecef.txt"),
+            '--robust_alignment', '0'], stdout=subprocess.PIPE) 
 
-        # copy output data
+    # copy output data
+    if os.path.exists(os.path.join(colmapProjectDirPath, "01_sparse", "geo", "sparse_out", "cameras.bin")):
+        
         shutil.copy(os.path.join(colmapProjectDirPath, "01_sparse", "geo", "sparse_out", "cameras.bin"), 
             os.path.join(projectOutputDirPath, sequenceName + "_cameras.bin")) 
         shutil.copy(os.path.join(colmapProjectDirPath, "01_sparse", "geo", "sparse_out", "images.bin"), 
             os.path.join(projectOutputDirPath, sequenceName + "_images.bin")) 
     else:
-        # copy output data
+
         shutil.copy(os.path.join(colmapProjectDirPath, "01_sparse", "geo", "sparse_in", "cameras.bin"), 
             os.path.join(projectOutputDirPath, sequenceName + "_cameras.bin")) 
         shutil.copy(os.path.join(colmapProjectDirPath, "01_sparse", "geo", "sparse_in", "images.bin"), 
@@ -418,9 +432,20 @@ def computeDenseCloud(projectImageDir: str, colmapProjectDirPath: str, projectOu
 
     progressCallback(0)
 
-    maxImgSize = parameterList['max_img_size']
     cacheSize = parameterList['cache_size']
     gpus = parameterList['gpus']
+    # quality 0 - 3 lower is faster
+    quality = int(parameterList['quality'])
+
+    maxImgSize = 0
+    if quality == 0:
+        maxImgSize = 1280
+    elif quality == 1:
+        maxImgSize = 1920
+    elif quality == 2:
+        maxImgSize = 1920 * 4
+    else:
+        maxImgSize = 1920 * 100
 
     # run image undistorter
     print('\t> Running image undistorter...')
@@ -430,7 +455,7 @@ def computeDenseCloud(projectImageDir: str, colmapProjectDirPath: str, projectOu
         "--input_path", os.path.join(colmapProjectDirPath, "01_sparse", "0"),
         "--output_path", os.path.join(colmapProjectDirPath, "02_dense"),
         "--output_type", "COLMAP",
-        "--max_image_size", maxImgSize], stdout=subprocess.PIPE)     
+        "--max_image_size", str(maxImgSize)], stdout=subprocess.PIPE)     
 
     get_eta_after_step = init_eta_calculation()
     while p.poll() is None:
@@ -453,6 +478,11 @@ def computeDenseCloud(projectImageDir: str, colmapProjectDirPath: str, projectOu
 
     progressCallback(5, force_Write=True)
 
+    patch_match_stereo_num_iterations = 5
+    perform_geom_consistency = 1
+    if quality == 0:
+      perform_geom_consistency = 0
+
     # run patch match stereo
     print('\t> Running patch match stereo...')
     p = subprocess.Popen([COLMAP_BIN, 
@@ -460,7 +490,8 @@ def computeDenseCloud(projectImageDir: str, colmapProjectDirPath: str, projectOu
         "--workspace_path", os.path.join(colmapProjectDirPath, "02_dense"),
         "--workspace_format", "COLMAP",
         "--PatchMatchStereo.gpu_index", gpus,
-        "--PatchMatchStereo.geom_consistency", "1",
+        "--PatchMatchStereo.num_iterations", str(patch_match_stereo_num_iterations),
+        "--PatchMatchStereo.geom_consistency", str(perform_geom_consistency),
         "--PatchMatchStereo.cache_size", cacheSize], stdout=subprocess.PIPE)     
 
     get_eta_after_step = init_eta_calculation()
@@ -477,17 +508,21 @@ def computeDenseCloud(projectImageDir: str, colmapProjectDirPath: str, projectOu
                     _, number_of_images = current_images
                     current_image_number += 1
                     number_of_images = int(number_of_images.split(" ")[0])
-                    eta = get_eta_after_step(number_of_images * 2)
-                    progressCallback(round(5 + 65 * current_image_number / (number_of_images * 2)), eta=eta, step=2)
+                    eta = get_eta_after_step(number_of_images + number_of_images * perform_geom_consistency)
+                    progressCallback(round(5 + 65 * current_image_number / (number_of_images + number_of_images * perform_geom_consistency)), eta=eta, step=2)
 
     if p.poll() != 0:
         return False 
 
     progressCallback(70, force_Write=True)
-
+        
     fused_model_path = os.path.join(colmapProjectDirPath, "02_dense", "fused_model")
     if not os.path.exists(fused_model_path):
         os.makedirs(fused_model_path)
+
+    input_type = "geometric"
+    if quality == 0:
+        input_type = "photometric"
 
     # run stereo fusion
     print('\t> Running stereo fusion...')
@@ -495,8 +530,8 @@ def computeDenseCloud(projectImageDir: str, colmapProjectDirPath: str, projectOu
         "stereo_fusion", 
         "--workspace_path", os.path.join(colmapProjectDirPath, "02_dense"),
         "--workspace_format", "COLMAP",
-        "--input_type", "geometric",
-        "--output_path", os.path.join(colmapProjectDirPath, "02_dense", "fused_model", sequenceName + "_dense_cloud.ply"),
+        "--input_type", input_type,
+        "--output_path", os.path.join(colmapProjectDirPath, "02_dense", "fused.ply"),
         "--StereoFusion.cache_size", cacheSize], stdout=subprocess.PIPE)     
 
     get_eta_after_step = init_eta_calculation()
@@ -530,8 +565,7 @@ def computeDenseCloud(projectImageDir: str, colmapProjectDirPath: str, projectOu
         os.makedirs(dense_out_path)
 
     # copy data
-    copytree(os.path.join(colmapProjectDirPath, "02_dense", "fused_model"), os.path.join(colmapProjectDirPath, "02_dense", "geo", "dense_in"), dirs_exist_ok=True) 
-    copytree(os.path.join(colmapProjectDirPath, "02_dense", "sparse"), os.path.join(colmapProjectDirPath, "02_dense", "geo", "dense_in"), dirs_exist_ok=True) 
+    copytree(os.path.join(colmapProjectDirPath, "02_dense", "sparse"), dense_in_path, dirs_exist_ok=True) 
 
     # compute reference informaion
     success = computeGpsRefernceList(colmapProjectDirPath, sequenceName, os.path.join(colmapProjectDirPath, "02_dense", "geo"))
@@ -540,27 +574,26 @@ def computeDenseCloud(projectImageDir: str, colmapProjectDirPath: str, projectOu
     if success:
         # run model aligner
         print('\t> Running model aligner...')
-        cmd=('{} model_aligner '
-            '--input_path ' + dense_in_path + " ",
-            '--output_path '+ dense_out_path + " ",
-            '--ref_images_path ' + os.path.join(colmapProjectDirPath, "02_dense", "geo", "ImgGpsList_ecef.txt") + " ", 
-            '--robust_alignment 0').format(COLMAP_BIN)
-        os.system(cmd)
+        p = subprocess.Popen([COLMAP_BIN, 
+            'model_aligner',
+            '--input_path', dense_in_path,
+            '--output_path', dense_out_path,
+            '--ref_images_path', os.path.join(colmapProjectDirPath, "02_dense", "geo", "ImgGpsList_ecef.txt"),
+            '--robust_alignment', '0'], stdout=subprocess.PIPE) 
 
         # run model_converter fusion
         print('\t> Running model converter...')
-        cmd=('{} model_converter '
-            '--input_path ' + dense_out_path + " ",
-            '--output_path ' + os.path.join(colmapProjectDirPath, "02_dense", sequenceName+"_dense_cloud.ply") + " ",
-            '--output_type PLY').format(COLMAP_BIN)
-        os.system(cmd)
-    else:
-        shutil.copy(os.path.join(colmapProjectDirPath, "02_dense", "fused_model", sequenceName+"_dense_cloud.ply"), 
-            os.path.join(colmapProjectDirPath, "02_dense", sequenceName+"_dense_cloud.ply")) 
 
+        if os.path.exists(os.path.join(dense_out_path, "cameras.bin")):        
+            p = subprocess.Popen([COLMAP_BIN, 
+                'model_converter',
+                '--input_path', dense_out_path,
+                '--output_path', os.path.join(colmapProjectDirPath, "02_dense", "fused.ply"),
+                '--output_type', "PLY"], stdout=subprocess.PIPE) 
 
+  
     # copy result
-    shutil.copy(os.path.join(colmapProjectDirPath, "02_dense", sequenceName+"_dense_cloud.ply"), projectOutputDirPath) 
+    shutil.copy(os.path.join(colmapProjectDirPath, "02_dense", "fused.ply"),  os.path.join(projectOutputDirPath, "dense_point_cloud.ply")) 
     shutil.copy(os.path.join(colmapProjectDirPath, "02_dense", "geo", "GpsEcefOffset.txt"), projectOutputDirPath) 
 
     progressCallback(100)
@@ -570,25 +603,273 @@ def computeDenseCloud(projectImageDir: str, colmapProjectDirPath: str, projectOu
 ######################################################################################################################
 # Compute meshed model for given parameter list.
 # Returns: True, if successful. False otherwise
-def computeMeshedModel(colmapProjectDirPath: str, projectOutputDirPath: str, sequenceName: str, parameterList: dict) -> bool:
-    global COLMAP_BIN
+def computeMeshedModel(projectImageDir: str, colmapProjectDirPath: str, projectOutputDirPath: str, sequenceName: str, parameterList: dict) -> bool:
+    global OPENMVS_BIN_FOLDER
 
-    print(' COMPUTING Mesh...')
+    if OPENMVS_BIN_FOLDER == "" or not os.path.exists(OPENMVS_BIN_FOLDER):
+        raise Exception("openmvs_bin dir does not exist")
+    
+    # quality 0 - 3 lower is faster
+    quality = int(parameterList['quality'])
+    max_threads = parameterList['max_threads']
 
-    progressCallback(0)
+    progressCallback(0, force_Write = True)
 
-    # run poisson mesher
-    print('\t> Running poisson mesher...')
-    cmd=('{} poisson_mesher '
-         '--input_path ' + os.path.join(colmapProjectDirPath, "02_dense", sequenceName + "_dense_cloud.ply") + " ",
-         '--output_path ' + os.path.join(colmapProjectDirPath, "02_dense", sequenceName + "_meshed_model.ply") + " "
-         ).format(COLMAP_BIN)
-    os.system(cmd)
+    if os.listdir(os.path.join(colmapProjectDirPath, "02_dense", "geo", "dense_out")):
+        # to load the georegistered sparse model, the regular one has to be renamed
+        os.rename(os.path.join(colmapProjectDirPath, "02_dense","sparse"), os.path.join(colmapProjectDirPath, "02_dense","sparse2"))
 
-    # copy result
-    shutil.copy(os.path.join(colmapProjectDirPath, "02_dense", sequenceName+"_meshed_model.ply"), projectOutputDirPath)  
+        # TODO check Windows compatibility
+        os.symlink(os.path.join(colmapProjectDirPath, "02_dense", "geo", "dense_out"), os.path.join(colmapProjectDirPath, "02_dense", "sparse"))
 
-    progressCallback(100)
+    # TODO check Windows compatibility
+    if not os.path.exists(os.path.join(colmapProjectDirPath, "03_mesh", "images")):
+        os.symlink(os.path.join(colmapProjectDirPath, "02_dense", "images"), os.path.join(colmapProjectDirPath, "03_mesh", "images"))
+
+    print(" Interface COLMAP")
+    interface_colmap_bin_path = os.path.join(OPENMVS_BIN_FOLDER, "InterfaceCOLMAP")
+    if not os.path.exists(interface_colmap_bin_path):
+        raise Exception("OpenMVS InterfaceCOLMAP binary not exist")
+    
+    interface_colmap_dir = os.path.join(colmapProjectDirPath, "03_mesh", "interface_colmap")
+    if not os.path.exists(interface_colmap_dir):
+        os.mkdir(interface_colmap_dir)
+
+    # check if option "import-depthmaps 0" is available    
+    output = str(subprocess.run([interface_colmap_bin_path, "-h"], check=False, stdout=subprocess.PIPE).stdout)
+    args = [interface_colmap_bin_path, 
+        "--working-folder", interface_colmap_dir,
+        "--input-file", os.path.join(colmapProjectDirPath, "02_dense"),
+        "--output-file", "model.mvs",
+        "--verbosity", "4",
+        "--max-threads", max_threads]
+    
+    
+    if "import-depthmaps" in output:    
+        args.extend(["--import-depthmaps", "0"])
+   
+    p = subprocess.Popen(args, stdout=subprocess.PIPE) 
+    
+    while p.poll() is None:
+        output = p.stdout.readline()
+        if output != b"":
+            line = output.strip().decode("utf-8")
+            print(line)   
+            if "Point-cloud loaded" in line:   
+                progressCallback(2, force_Write = True)
+            elif "Exported data" in line:
+                progressCallback(2, force_Write = True)
+
+
+    # Revert back to old folder layout in 02_dense
+    if os.path.exists(os.path.join(colmapProjectDirPath, "02_dense","sparse2")):
+        os.remove(os.path.join(colmapProjectDirPath, "02_dense","sparse"))
+        os.rename(os.path.join(colmapProjectDirPath, "02_dense","sparse2"), os.path.join(colmapProjectDirPath, "02_dense","sparse"))
+
+    progressCallback(5, force_Write = True)
+    
+    print(" Reconstruct Mesh")
+    reconstruct_mesh_bin_path = os.path.join(OPENMVS_BIN_FOLDER, "ReconstructMesh")
+    if not os.path.exists(reconstruct_mesh_bin_path):
+        raise Exception("OpenMVS ReconstructMesh binary not exist")
+    
+    reconstruct_mesh_dir = os.path.join(colmapProjectDirPath, "03_mesh", "mesh")
+    if not os.path.exists(reconstruct_mesh_dir):
+        os.mkdir(reconstruct_mesh_dir)
+
+    # TODO check Windows compatibility
+    if not os.path.exists(os.path.join(reconstruct_mesh_dir, "images")):
+        os.symlink(os.path.join(colmapProjectDirPath, "02_dense", "images"), os.path.join(reconstruct_mesh_dir, "images"))
+
+    # check if option "estimate-roi 1" is available    
+    output = str(subprocess.run([reconstruct_mesh_bin_path, "-h"], check=False, stdout=subprocess.PIPE).stdout)    
+    
+    args = [reconstruct_mesh_bin_path, 
+        "--working-folder", reconstruct_mesh_dir,
+        "--input-file", os.path.join(interface_colmap_dir, "model.mvs"),
+        "--output-file", "model.mvs",
+        "--verbosity", "4",
+        "--max-threads", max_threads]
+    
+    if "estimate-roi" in output:
+        args.extend(["--estimate-roi", "1"])
+   
+    p = subprocess.Popen(args, stdout=subprocess.PIPE)     
+
+    while p.poll() is None:
+        output = p.stdout.readline()
+        if output != b"":
+            line = output.strip().decode("utf-8")
+            print(line)  
+            if "Scene loaded from interface format" in line:   
+                progressCallback(5 + 1, force_Write = True)
+            elif "Delaunay tetrahedralization completed" in line:
+                progressCallback(5 + 5, force_Write = True)
+            elif "Delaunay tetrahedras weighting completed" in line:
+                progressCallback(5 + 15, force_Write = True) 
+            elif "Delaunay tetrahedras graph-cut completed" in line:
+                progressCallback(5 + 20, force_Write = True)
+            elif "Mesh reconstruction completed" in line:
+                progressCallback(5 + 25, force_Write = True)
+            elif "Scene saved" in line:
+                progressCallback(5 + 29, force_Write = True)
+    
+
+    file_stats = os.stat(os.path.join(reconstruct_mesh_dir, "model.ply"))
+    file_size_in_MB = file_stats.st_size / (1024 * 1024)
+
+    progressCallback(40, force_Write = True)
+
+
+    refine_mesh_dir = os.path.join(colmapProjectDirPath, "03_mesh", "refine_mesh")
+
+    # does not seem to contribute to better quality in all scenes
+    if quality > 0 and False:
+        decimate_ratio = 0   
+
+        if file_size_in_MB < 50:
+            decimate_ratio = 1
+        elif file_size_in_MB < 100:
+            decimate_ratio = 0.5     
+
+        scales = 3
+        resolution_level = 0
+        if quality == 1:
+            resolution_level = 1
+        elif quality > 2:
+            decimate_ratio = 1
+
+        progressCallback(40, force_Write = True)
+
+        print(" Refine Mesh")
+        refine_mesh_bin_path = os.path.join(OPENMVS_BIN_FOLDER, "RefineMesh")
+        if not os.path.exists(refine_mesh_bin_path):
+            raise Exception("OpenMVS RefineMesh binary not exist")
+        
+        refine_mesh_dir = os.path.join(colmapProjectDirPath, "03_mesh", "refine_mesh")
+        if not os.path.exists(refine_mesh_dir):
+            os.mkdir(refine_mesh_dir)
+
+        # TODO check Windows compatibility
+        if not os.path.exists(os.path.join(refine_mesh_dir, "images")):
+            os.symlink(os.path.join(colmapProjectDirPath, "02_dense", "images"), os.path.join(refine_mesh_dir, "images"))
+
+        args = [refine_mesh_bin_path, 
+            "--working-folder", refine_mesh_dir,
+            "--input-file", os.path.join(reconstruct_mesh_dir, "model.mvs"),
+            "--output-file", "model.mvs",
+            "--resolution-level",  str(resolution_level),
+            "--scales",  str(scales),
+            "--decimate", str(decimate_ratio),
+            "--verbosity", "4",
+            "--max-threads", max_threads]
+    
+        p = subprocess.Popen(args, stdout=subprocess.PIPE) 
+        
+        while p.poll() is None:
+            output = p.stdout.readline()
+            if output != b"":
+                line = output.strip().decode("utf-8")
+                print(line)   
+
+    progressCallback(70, force_Write = True)
+
+    print(" Texture Mesh")
+    texture_mesh_bin_path = os.path.join(OPENMVS_BIN_FOLDER, "TextureMesh")
+    if not os.path.exists(texture_mesh_bin_path):
+        raise Exception("OpenMVS TextureMesh binary not exist")
+    
+    texture_mesh_dir = os.path.join(colmapProjectDirPath, "03_mesh", "texture")
+    if not os.path.exists(texture_mesh_dir):
+        os.mkdir(texture_mesh_dir)
+
+    # TODO check Windows compatibility
+    if not os.path.exists(os.path.join(texture_mesh_dir, "images")):
+        os.symlink(os.path.join(colmapProjectDirPath, "02_dense", "images"), os.path.join(texture_mesh_dir, "images"))
+
+    # check if option "import-depthmaps 0" is available    
+    output = str(subprocess.run([texture_mesh_bin_path, "-h"], check=False, stdout=subprocess.PIPE).stdout)  
+
+    input_file = os.path.join(refine_mesh_dir, "model.mvs")
+    
+    resolution_level = 0
+    virtual_face_images = 0
+    patch_packing_heuristic = 3
+    global_seam_leveling = 1
+    local_seam_leveling = 1
+    decimate_ratio = 1
+
+    if not os.path.exists(input_file):
+        input_file = os.path.join(reconstruct_mesh_dir, "model.mvs")
+        file_stats = os.stat(input_file)
+        file_size_in_MB = file_stats.st_size / (1024 * 1024)  
+
+        if file_size_in_MB < 50 or quality > 2:
+            decimate_ratio = 1 
+        else:
+            decimate_ratio = 0
+
+    if quality == 0:  
+        resolution_level = 10
+        patch_packing_heuristic = 100
+    elif quality == 1:
+        resolution_level = 1
+        patch_packing_heuristic = 50
+    elif quality == 2:
+        resolution_level = 0
+        patch_packing_heuristic = 10
+        virtual_face_images = 3
+    elif quality > 2:
+        resolution_level = 0
+        patch_packing_heuristic = 3
+        virtual_face_images = 3
+
+    args = [texture_mesh_bin_path, 
+        "--working-folder", texture_mesh_dir,
+        "--input-file", input_file,
+        "--output-file", "textured_mesh.obj",
+        "--export-type", "obj",
+        "--empty-color", "2302740",
+        "--decimate", str(decimate_ratio),
+        "--resolution-level",  str(resolution_level),
+        "--virtual-face-images", str(virtual_face_images),
+        "--patch-packing-heuristic", str(patch_packing_heuristic),
+        "--global-seam-leveling", str(global_seam_leveling),
+        "--local-seam-leveling", str(local_seam_leveling),
+        "--verbosity", "4",
+        "--max-threads", max_threads]
+   
+    p = subprocess.Popen(args, stdout=subprocess.PIPE) 
+    
+    while p.poll() is None:
+        output = p.stdout.readline()
+        if output != b"":
+            line = output.strip().decode("utf-8")
+            print(line)  
+            if "Scene loaded" in line:   
+                progressCallback(70 + 1, force_Write = True)
+            elif " 0. e:" in line:
+                progressCallback(70 + 6, force_Write = True)
+            elif "10. e:" in line:
+                progressCallback(70 + 12, force_Write = True) 
+            elif "20. e:" in line:
+                progressCallback(70 + 17, force_Write = True)
+            elif "Inference aborted" in line:
+                progressCallback(70 + 20, force_Write = True)
+            elif "local seam leveling completed" in line:
+                progressCallback(70 + 22, force_Write = True) 
+            elif "packing texture completed" in line:
+                progressCallback(70 + 27, force_Write = True) 
+            elif "Scene saved" in line:
+                progressCallback(70 + 28, force_Write = True) 
+
+    progressCallback(99, force_Write = True)
+
+    shutil.copy(os.path.join(colmapProjectDirPath, "03_mesh", "texture", "textured_mesh.obj"),  os.path.join(projectOutputDirPath, "textured_mesh.obj")) 
+    shutil.copy(os.path.join(colmapProjectDirPath, "03_mesh", "texture", "textured_mesh_material_0_map_Kd.jpg"),  os.path.join(projectOutputDirPath, "textured_mesh_material_0_map_Kd.jpg")) 
+    shutil.copy(os.path.join(colmapProjectDirPath, "03_mesh", "texture", "textured_mesh.mtl"),  os.path.join(projectOutputDirPath, "textured_mesh.mtl")) 
+
+    progressCallback(100, force_Write = True)
 
     return True
 
@@ -609,12 +890,12 @@ def listImgFiles(dirPath: str) -> list:
 ######################################################################################################################
 # Load yml file
 # Returns: object of yaml file
-def loadYaml(yamlFilePath: str):
+def loadYaml_raw(yamlFilePath: str):
     yamlObj = 0
     yamlLockFilePath = yamlFilePath + ".lock"
 
     # while lock file esists sleep
-    while(os.path.exists(yamlLockFilePath)):
+    while os.path.exists(yamlLockFilePath) :
         time.sleep(0.1)
 
     # create lock file
@@ -625,20 +906,32 @@ def loadYaml(yamlFilePath: str):
         try:
             yamlObj = yaml.safe_load(data[len(OPENCV_YAML_HEADER):]) # handle opencv header
         except yaml.YAMLError as exc:
-            print(exc)
+            print(exc, traceback.format_exc())
 
     # remove lock file
-    os.remove(yamlLockFilePath)
+    if os.path.exists(yamlLockFilePath):
+        os.remove(yamlLockFilePath)
 
     return yamlObj
 
 ######################################################################################################################
+# Load yml file
+# Returns: object of yaml file
+def loadYaml(yamlFilePath: str):
+    try:
+        return loadYaml_raw(yamlFilePath)
+    except e:
+        print("Collison on read yaml file", e, traceback.format_exc())
+        return loadYaml_raw(yamlFilePath)
+
+
+######################################################################################################################
 # Write yml file
-def writeYaml(yamlFilePath: str, yamlObj):
+def writeYaml_raw(yamlFilePath: str, yamlObj):
     yamlLockFilePath = yamlFilePath + ".lock"
 
     # while lock file esists sleep
-    while(os.path.exists(yamlLockFilePath)):
+    while os.path.exists(yamlLockFilePath):
         time.sleep(0.1)
 
     # create lock file
@@ -649,15 +942,25 @@ def writeYaml(yamlFilePath: str, yamlObj):
         try:
             yaml.dump(yamlObj, oStream, Dumper=OpenCvYamlDumper)
         except yaml.YAMLError as exc:
-            print(exc)
+            print(exc, traceback.format_exc())
 
     # remove lock file
-    os.remove(yamlLockFilePath)
+    if os.path.exists(yamlLockFilePath):
+        os.remove(yamlLockFilePath)
+
+######################################################################################################################
+# Write yml file
+def writeYaml(yamlFilePath: str, yamlObj):
+    try:
+        writeYaml_raw(yamlFilePath, yamlObj)
+    except e:
+        print("Collison on write yaml file", e, traceback.format_exc())
+        writeYaml_raw(yamlFilePath, yamlObj)
 
 ######################################################################################################################
 # Process given job
 # Returns: True if job is processed. False otherwise
-def processJob(workspacePath: str, currentJob: Job, robust_mode: bool) -> bool:
+def processJob(workspacePath: str, currentJob: Job) -> bool:
     print("-- Processing Job ...")
 
     colmapDatabaseFilePath = os.path.join(workspacePath , currentJob.sequenceName + ".db")
@@ -675,6 +978,12 @@ def processJob(workspacePath: str, currentJob: Job, robust_mode: bool) -> bool:
     dense_path = os.path.join(colmapProjectDirPath, "02_dense")
     if not os.path.exists(dense_path):
         os.makedirs(dense_path)
+
+
+    mesh_path = os.path.join(colmapProjectDirPath, "03_mesh")
+    if not os.path.exists(mesh_path):
+        os.makedirs(mesh_path)
+    
     
     if not os.path.exists(projectOutputDirPath):
         os.makedirs(projectOutputDirPath)
@@ -698,7 +1007,7 @@ def processJob(workspacePath: str, currentJob: Job, robust_mode: bool) -> bool:
             return False
 
         # compute camera poses
-        success = computeCameraPoses(colmapDatabaseFilePath, projectImageDir, colmapProjectDirPath, projectOutputDirPath, currentJob.sequenceName, currentJob.parameterList, robust_mode)
+        success = computeCameraPoses(colmapDatabaseFilePath, projectImageDir, colmapProjectDirPath, projectOutputDirPath, currentJob.sequenceName, currentJob.parameterList)
 
         if( not success ):
             return False
@@ -717,7 +1026,7 @@ def processJob(workspacePath: str, currentJob: Job, robust_mode: bool) -> bool:
             success = computeDenseCloud(projectImageDir, colmapProjectDirPath, projectOutputDirPath, currentJob.sequenceName, currentJob.parameterList)
 
         elif( currentJob.getProductTypeStr() == 'MESHED_MODEL' ):
-            success = computeMeshedModel(colmapProjectDirPath, projectOutputDirPath, currentJob.sequenceName, currentJob.parameterList)
+            success = computeMeshedModel(projectImageDir, colmapProjectDirPath, projectOutputDirPath, currentJob.sequenceName, currentJob.parameterList)
 
         else:
             success = False
@@ -786,28 +1095,28 @@ def progressCallback(progress: float, force_Write = False, step=1, eta=0):
     global LAST_PROGRESS_UPDATE_TIME
     global WORKER_STATE_YAML_PATH
 
-    # if lock file exist return. no need to wait until finished
-    if(os.path.exists(WORKER_STATE_YAML_PATH + ".lock")):
-        return
+    try:
+        if (force_Write or (time.time() - LAST_PROGRESS_UPDATE_TIME) > YAML_REFRESH_SECS):
 
-    if (force_Write or (time.time() - LAST_PROGRESS_UPDATE_TIME) > YAML_REFRESH_SECS):
+            yamlObj = loadYaml(WORKER_STATE_YAML_PATH)
+            if yamlObj is None:
+                return
 
-        yamlObj = loadYaml(WORKER_STATE_YAML_PATH)
-        if yamlObj is None:
-            return
+            if( len(yamlObj["runningJob"]) == 0 ):
+                return
 
-        if( len(yamlObj["runningJob"]) == 0 ):
-            return
+            # store global progress in yaml file
+            yamlJobEntry = yamlObj["runningJob"][0]
+            yamlJobEntry["progress"] = progress
+            yamlJobEntry["step"] = step
+            yamlJobEntry["eta"] = eta
 
-        # store global progress in yaml file
-        yamlJobEntry = yamlObj["runningJob"][0]
-        yamlJobEntry["progress"] = progress
-        yamlJobEntry["step"] = step
-        yamlJobEntry["eta"] = eta
+            writeYaml(WORKER_STATE_YAML_PATH, yamlObj)
+    except e:
 
-        writeYaml(WORKER_STATE_YAML_PATH, yamlObj)
+        print("Error while updating progress", e, traceback.format_exc())    
 
-        LAST_PROGRESS_UPDATE_TIME = time.time()
+    LAST_PROGRESS_UPDATE_TIME = time.time()
 
 ######################################################################################################################
 # Method to set failed state to failed job
@@ -835,10 +1144,8 @@ def parseArguments():
     parser = argparse.ArgumentParser(description=descriptionTxt)
     parser.add_argument("colmap_bin", help="Path to COLMAP binary.")
     parser.add_argument("worker_state_yaml_path", help="Path to YAML file holding worker state.")
-    parser.add_argument("work_queue_yaml_path", help="Path to YAML file holding work queue.")
-    parser.add_argument("--robust_mode", default=0, help="robust mode tries to reconstruct 3d model " 
-        "with fixed distortion params and then tries to estimate distorsion params with bundle " 
-        "adjustment after sparse mapping (usefull for difficult images with high focal length or poor quality). ")
+    parser.add_argument("work_queue_yaml_path", help="Path to YAML file holding work queue.")  
+    parser.add_argument('--openmvs_bin', default="" , help="Path to OpenmVS binary folder.")
     return parser.parse_args()
 
 
@@ -849,15 +1156,19 @@ if __name__ == "__main__":
 
     # init parsing of call arguments
     args = parseArguments()
+    print(args)
 
     if (args.colmap_bin is None) or (args.worker_state_yaml_path is None) or (args.work_queue_yaml_path is None):
         print('ERROR: Not enough information arguments!')
         sys.exit()
 
     COLMAP_BIN = args.colmap_bin
+    OPENMVS_BIN_FOLDER = args.openmvs_bin
+
+    print("OpenmVS:", OPENMVS_BIN_FOLDER)
+
     WORKER_STATE_YAML_PATH = args.worker_state_yaml_path
     WORK_QUEUE_YAML_PATH = args.work_queue_yaml_path
-    ROBUST_MODE = bool(int(args.robust_mode))
 
     if not os.path.exists(COLMAP_BIN):
         print('ERROR: {} does not exist!').format(COLMAP_BIN)
@@ -889,15 +1200,16 @@ if __name__ == "__main__":
 
         # process current job
         try:
-            success = processJob(workspacePath, currentJob, ROBUST_MODE)
+            success = processJob(workspacePath, currentJob)
             if(not success):
                 raise Exception("ERROR: Something went wrong when trying to process job {}".format(currentJob))
 
         except Exception as e:             
-                # write failed job state to file and exit
+                # write failed job state to file 
                 print("ERROR: Something went wrong when trying to process job {}".format(currentJob))
+                print(e, traceback.format_exc())
                 setFailedStateToJob()
-                raise e
+                #raise e
 
 
         # get next job in queue
