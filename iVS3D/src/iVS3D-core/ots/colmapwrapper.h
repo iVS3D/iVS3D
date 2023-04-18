@@ -263,6 +263,10 @@ class ColmapWrapper : public QObject
 
     void findColmap();
 
+    void restoreDefaultSettings();
+
+    void loadDefaultSettings();
+
     QMultiMap<QString,QString> imageSequencePaths() const;
 
     /**

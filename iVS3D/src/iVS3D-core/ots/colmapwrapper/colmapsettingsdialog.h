@@ -45,6 +45,7 @@ class SettingsDialog : public QDialog
     void onInstallScriptsPushButtonPressed();
     void onAccepted();
     void onCancel();
+    void onRestoreDefaults();
 
   private:
     Ui::SettingsDialog *ui;

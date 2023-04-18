@@ -48,6 +48,10 @@ SettingsDialog::SettingsDialog(ColmapWrapper *ipWrapper, QWidget *parent)
             &QPushButton::pressed,
             this,
             &SettingsDialog::onAccepted);
+    connect(ui->buttonBox->button(QDialogButtonBox::RestoreDefaults),
+            &QPushButton::pressed,
+            this,
+            &SettingsDialog::onRestoreDefaults);
 
     connect(ui->buttonBox, &QDialogButtonBox::close, this, &SettingsDialog::onCancel);
     ui->buttonBox->button(QDialogButtonBox::Apply)->setEnabled(false);
@@ -224,6 +228,26 @@ void SettingsDialog::onAccepted()
 void SettingsDialog::onCancel()
 {
     mpColmapWrapper->readSettings();
+    ui->buttonBox->button(QDialogButtonBox::Apply)->setEnabled(false);
+    ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
+}
+
+void SettingsDialog::onRestoreDefaults()
+{
+    mpColmapWrapper->restoreDefaultSettings();
+
+    ui->le_localColmapBinary->setText(mpColmapWrapper->localColmapBinPath());
+    ui->le_localOpenMVSBinaryFolder->setText(mpColmapWrapper->localOpenMVSBinPath());
+    ui->le_localWorkspace->setText(mpColmapWrapper->localWorkspacePath());
+    ui->cb_connection->setCurrentIndex(static_cast<int>(mpColmapWrapper->connectionType()));
+    ui->le_remoteAddr->setText(mpColmapWrapper->remoteAddr());
+    ui->le_remoteUsr->setText(mpColmapWrapper->remoteUsr());
+    ui->le_remoteColmapBinary->setText(mpColmapWrapper->remoteColmapBinPath());
+    ui->le_remoteOpenMVSBinaryFolder->setText(mpColmapWrapper->remoteOpenMVSBinPath());
+    ui->le_remoteWorkspace->setText(mpColmapWrapper->remoteWorkspacePath());
+    ui->le_mntPnt->setText(mpColmapWrapper->mntPntRemoteWorkspacePath());
+    ui->sb_syncInterval->setValue(mpColmapWrapper->syncInterval());
+
     ui->buttonBox->button(QDialogButtonBox::Apply)->setEnabled(false);
     ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
 }

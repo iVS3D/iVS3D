@@ -53,24 +53,12 @@ ColmapWrapper::ColmapWrapper(const QString iSettingsFile, const bool iSettingsOn
                            QSettings::UserScope,
                            stringContainer::settingsCompany,
                            iSettingsFile),
-      mUseRobustMode(false), mpTempDir(new QTemporaryDir()), mpPyWorkerProcess(new QProcess()),
+      mpTempDir(new QTemporaryDir()), mpPyWorkerProcess(new QProcess()),
       mpMountProcess(new QProcess()), mpSyncProcess(new QProcess()), mCheckWorkerTimer(),
-      mLocalColmapBinPath(""), mRemoteColmapBinPath(""), mLocalWorkspacePath(""),
-      mRemoteWorkspacePath(""), mMntPntRemoteWorkspacePath(""), mConnectionType(LOCAL),
-      mRemoteAddr(""), mRemoteUsr(""), mSyncInterval(10), mWorkspaceStatus(IN_SYNC),
+      mWorkspaceStatus(IN_SYNC),
       mpUiControls(nullptr)
 {
     this->readSettings();
-
-    if (mLocalColmapBinPath.isEmpty()) {
-        findColmap();
-    }
-    if (mLocalWorkspacePath.isEmpty()) {
-        QDir defaultDir(QCoreApplication::applicationDirPath());
-        defaultDir.mkdir("Default_Workspace");
-        defaultDir.cd("Default_Workspace");
-        mLocalWorkspacePath = defaultDir.path();
-    }
 
     //--- if settings only == false init
     if (!iSettingsOnly)
@@ -323,6 +311,55 @@ void ColmapWrapper::findColmap()
     }
 }
 
+void ColmapWrapper::restoreDefaultSettings()
+{
+    // delete old settings file
+    mSettings.clear();
+
+    // read emty settings file -> uses default values
+    this->readSettings();
+
+    // test the default configuration
+    SSettings *settingsToTest = new SSettings{
+        mLocalColmapBinPath,
+        mRemoteColmapBinPath,
+        mLocalWorkspacePath,
+        mRemoteWorkspacePath,
+        mMntPntRemoteWorkspacePath,
+        mConnectionType,
+        mRemoteAddr,
+        mRemoteUsr,
+        mSyncInterval
+    };
+    SSetupResults *result = new SSetupResults;
+    if(!testSettings(settingsToTest, result)){
+        // at least one test failed
+        // output some error message to the user
+        mSetupSuccessful = false;
+    } else {
+        // successful
+        applySettings(settingsToTest);
+        mSetupSuccessful = true;
+    }
+
+    delete settingsToTest;
+    delete result;
+}
+
+void ColmapWrapper::loadDefaultSettings()
+{
+    mUseRobustMode=false;
+    mLocalColmapBinPath="";
+    mRemoteColmapBinPath="";
+    mLocalWorkspacePath="";
+    mRemoteWorkspacePath="";
+    mMntPntRemoteWorkspacePath="";
+    mConnectionType=LOCAL;
+    mRemoteAddr="";
+    mRemoteUsr="";
+    mSyncInterval=10;
+}
+
 //==================================================================================================
 void ColmapWrapper::readSettings()
 {
@@ -331,21 +368,33 @@ void ColmapWrapper::readSettings()
     qDebug() << "Time: " << QDateTime::currentDateTime().toString();
     qDebug() << __PRETTY_FUNCTION__;
 
+    this->loadDefaultSettings();
+
     mSettings.beginGroup("ColmapWrapper");
-    setLocalColmapBinPath(mSettings.value("LocalColmapBinPath").toString());
-    setLocalOpenMVSBinPath(mSettings.value("LocalOpenMVSBinPath").toString());
-    setRemoteColmapBinPath(mSettings.value("RemoteColmapBinPath").toString());
-    setRemoteOpenMVSBinPath(mSettings.value("RemoteOpenMVSBinPath").toString());
-    setLocalWorkspacePath(mSettings.value("LocalWorkspacePath").toString());
-    setRemoteWorkspacePath(mSettings.value("RemoteWorkspacePath").toString());
-    setMntPntRemoteWorkspacePath(mSettings.value("MntPntRemoteWorkspacePath").toString());
-    setConnectionType(static_cast<EConnectionType>(mSettings.value("ConnectionType").toInt()));
-    setRemoteAddr(mSettings.value("RemoteAddr").toString());
-    setRemoteUsr(mSettings.value("RemoteUsr").toString());
-    setSyncInterval(mSettings.value("SyncInterval").toInt());
-    setUseRobustMode(mSettings.value("useRobustMode").toBool());
+    setLocalColmapBinPath(mSettings.value("LocalColmapBinPath", QVariant(mLocalColmapBinPath)).toString());
+    setLocalOpenMVSBinPath(mSettings.value("LocalOpenMVSBinPath", QVariant(mLocalOpenMVSBinPath)).toString());
+    setRemoteColmapBinPath(mSettings.value("RemoteColmapBinPath", QVariant(mRemoteColmapBinPath)).toString());
+    setRemoteOpenMVSBinPath(mSettings.value("RemoteOpenMVSBinPath", QVariant(mRemoteOpenMVSBinPath)).toString());
+    setLocalWorkspacePath(mSettings.value("LocalWorkspacePath", QVariant(mLocalWorkspacePath)).toString());
+    setRemoteWorkspacePath(mSettings.value("RemoteWorkspacePath", QVariant(mRemoteWorkspacePath)).toString());
+    setMntPntRemoteWorkspacePath(mSettings.value("MntPntRemoteWorkspacePath", QVariant(mMntPntRemoteWorkspacePath)).toString());
+    setConnectionType(static_cast<EConnectionType>(mSettings.value("ConnectionType", QVariant(static_cast<int>(mConnectionType))).toInt()));
+    setRemoteAddr(mSettings.value("RemoteAddr", QVariant(mRemoteAddr)).toString());
+    setRemoteUsr(mSettings.value("RemoteUsr", QVariant(mRemoteUsr)).toString());
+    setSyncInterval(mSettings.value("SyncInterval", QVariant(mSyncInterval)).toInt());
+    setUseRobustMode(mSettings.value("useRobustMode", QVariant(mUseRobustMode)).toBool());
 
     mSettings.endGroup();
+
+    if (mLocalColmapBinPath.isEmpty()) {
+        findColmap();
+    }
+    if (mLocalWorkspacePath.isEmpty()) {
+        QDir defaultDir(QCoreApplication::applicationDirPath());
+        defaultDir.mkdir("Default_Workspace");
+        defaultDir.cd("Default_Workspace");
+        mLocalWorkspacePath = defaultDir.path();
+    }
 }
 
 //==================================================================================================
