@@ -390,7 +390,8 @@ void ColmapWrapper::readSettings()
         findColmap();
     }
     if (mLocalWorkspacePath.isEmpty()) {
-        QDir defaultDir(QCoreApplication::applicationDirPath());
+        QDir defaultDir(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation));
+        if(!defaultDir.exists()) defaultDir.mkpath(".");
         defaultDir.mkdir("Default_Workspace");
         defaultDir.cd("Default_Workspace");
         mLocalWorkspacePath = defaultDir.path();
