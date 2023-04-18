@@ -4,6 +4,7 @@
 
 #include <QDesktopWidget>
 #include <QLayout>
+#include <QWindow>
 #include <QHBoxLayout>
 #include <QApplication>
 #include <QSplitter>
@@ -107,14 +108,24 @@ MainWindow::MainWindow(QWidget *parent, bool dark, int cuda, bool createLog, QSt
     }
     // store default layout state and add action to reset to this default state
     const auto defaultDockLayout = saveState();
-    ui->menuView->addAction(tr("Reset Layout"), [this,defaultDockLayout](){
+    const auto defaultGeometry = geometry();
+    ui->menuView->addAction(tr("Reset Layout"), [this,defaultDockLayout,defaultGeometry](){
+
+        this->setGeometry(defaultGeometry);
         this->restoreState(defaultDockLayout);
+        //this->setWindowState(Qt::WindowMaximized);
+        //this->setWindowState(this->windowState() | Qt::WindowNoState);
+        this->setWindowState(Qt::WindowNoState);
+        this->showNormal();
+        this->windowHandle()->setScreen(qApp->screens()[0]);
+        this->move(qApp->screens()[0]->geometry().center());
+        this->setWindowState(Qt::WindowMaximized);
         /*if(this->m_reconstructDock) {
             qDebug() << "resetting reconstruct";
             this->tabifyDockWidget(this->m_outputDock, this->m_reconstructDock);
             m_outputDock->raise();
         }*/
-    });
+    }, QKeySequence(Qt::CTRL | Qt::Key_L));
 
     // read layout and geometry from last session if available
     readSettings();
@@ -191,7 +202,7 @@ void MainWindow::readSettings()
     if(!settings.value("windowGeometry").isNull()){
         setGeometry(settings.value("windowGeometry").value<QRect>());
         restoreState(settings.value("windowState").toByteArray());
-        if(settings.value("maximized").toBool()) this->setWindowState(this->windowState() ^ Qt::WindowMaximized);
+        if(settings.value("maximized").toBool()) this->setWindowState(this->windowState() | Qt::WindowMaximized);
     }
 }
 
