@@ -147,7 +147,6 @@ bool ApplicationSettings::getCudaAvailable() const
                 }
             }
         }
-
         if (_cudaSupported) {
             if (cv::cuda::getCudaEnabledDeviceCount() < 1) {
                 _cudaSupported = false;
@@ -156,7 +155,8 @@ bool ApplicationSettings::getCudaAvailable() const
 
         // Check if installed GPU is compatible Cuda Version
         if (_cudaSupported) {
-            _cudaSupported = cv::cuda::DeviceInfo.isCompatible();
+            cv::cuda::DeviceInfo di;
+            _cudaSupported = di.isCompatible();
         }
 
         return _cudaSupported;
