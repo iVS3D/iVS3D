@@ -10,6 +10,7 @@
 #include <QMutex>
 #include <QMutexLocker>
 #include "algorithmmanager.h"
+#include "sequentialreaderimpl.h"
 
 
 /**
@@ -90,6 +91,8 @@ public:
      * @return empty vector
      */
     std::vector<std::string> getFileVector() override;
+
+    SequentialReader *createSequentialReader(std::vector<uint> indices) override;
     /**
      * @brief initMultipleAccess Enables the reader to make ordered access to the input, which will result in a faster access time
      * @param frames Vector containing the indices of the images which will be used in ascending order

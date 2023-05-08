@@ -61,7 +61,7 @@ bool VideoReader::isValid()
 cv::Mat VideoReader::getPic(unsigned int index, bool useMultipleAccess)
 {
 
-    QMutexLocker locker(&mutex);
+    //QMutexLocker locker(&mutex);
     //Prevent invalid request
     if(index >= getPicCount()){
         cv::Mat empty;
@@ -143,5 +143,10 @@ VideoReader *VideoReader::copy()
 
 std::vector<std::string> VideoReader::getFileVector()
 {
-   return std::vector<std::string>();
+    return std::vector<std::string>();
+}
+
+SequentialReader *VideoReader::createSequentialReader(std::vector<uint> indices)
+{
+    return new SequentialReaderImpl(this, indices);
 }

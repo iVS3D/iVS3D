@@ -8,44 +8,66 @@ double BlurAlgorithm::calcOneBluriness(Reader *images, int index)
 
 std::vector<double> BlurAlgorithm::calcFullBluriness(Reader *images, Progressable *reciever, volatile bool *stopped, int start, int end, std::vector<double> blurValues)
 {
-    images->enableMultithreading();
     m_currentProgress = 0;
     int picCount = end - start + 1;
-    //Define lambda function to calulate blurValues
-    std::function<void(const int)> getBlur = [images, start, picCount, reciever, &blurValues, stopped, this](const int &n) {
-        if (*stopped) {
-            return;
+
+    //Define index list of images in range [start,end]
+    std::vector<uint> index;
+    index.reserve(picCount);
+    for (int i = start; i <= end; i++) {
+        index.push_back(i);
+    }
+
+    // create a sequential reader for accessing the images more efficiently
+    SequentialReader *seqImages = images->createSequentialReader(index);
+
+    // define lambda function to calulate blurValue for multiple images sequentially
+    std::function<void()> getBlur = [seqImages, reciever, &blurValues, stopped, this]() {
+        // loop until the computation gets stopped or all images are processed
+        while(true){
+            if (*stopped) {
+                return; // user stopped the computation -> return
+            }
+
+            // get the next image, along with its index and progress so far
+            cv::Mat mat;
+            uint idx;
+            int progress;
+
+            if(!seqImages->getNext(mat, idx, progress)) {
+                return; // no images left to process -> return
+            }
+
+            // now we do the calculation of the blur value for the image we just got
+            double value = parallelCalculation(mat, blurValues, idx, progress, reciever);
+            blurValues[idx] = value;
         }
-        cv::Mat mat;
-        while (mat.empty()) {
-           mat = images->getPic(n, true);
-        }
-        double value = parallelCalculation(mat, blurValues, n, reciever, start, picCount);
-        blurValues[n] = value;
 
     };
-    //Define index of images
-    QVector<uint> index;
-    for (int i = start; i <= end; i++) {
-        index.append(i);
-    }
-    images->initMultipleAccess(index.toStdVector());
-    //calculate blurValues on multiple threads
-    QtConcurrent::blockingMap(index, getBlur);
-    return blurValues;
 
+    // start the computation in multiple worker threads
+    QFutureSynchronizer<void> synchronizer;
+    // use all available threads for now
+    for(int i=0; i<QThread::idealThreadCount(); i++){
+        synchronizer.addFuture(QtConcurrent::run(getBlur));
+    }
+    synchronizer.waitForFinished();
+
+    // cleanup, we have to delete the sequential reader manually
+    delete seqImages;
+    return blurValues;
 }
 
-double BlurAlgorithm::parallelCalculation(cv::Mat image, std::vector<double> blurValues, int n, Progressable *receiver, int start, int picCount)
+double BlurAlgorithm::parallelCalculation(const cv::Mat &image, const std::vector<double> &blurValues, const uint &idx, const int &progress, Progressable *receiver)
 {
-    if (blurValues[n] != 0) {
-      return blurValues[n];
+    if (blurValues[idx] != 0) {
+      return blurValues[idx];   // we have the blur value for this image in our buffer from previous computation -> reuse
     }
 
-    if (receiver != nullptr && n > m_currentProgress) {
-        m_currentProgress = n;
-        int progress = ((n - start) * 100 / picCount);
-        QString currentProgress = tr("Calculate blur of frame number ") + QString::number(n - start) + tr(" of ") + QString::number(picCount) + tr(" total frames");
+    // report the progress to the user
+    if (receiver != nullptr && idx > uint(m_currentProgress)) {
+        m_currentProgress = idx;
+        QString currentProgress = tr("Calculate blur for frame ") + QString::number(idx);
         QMetaObject::invokeMethod(
                     receiver,
                     "slot_makeProgress",
@@ -53,6 +75,8 @@ double BlurAlgorithm::parallelCalculation(cv::Mat image, std::vector<double> blu
                     Q_ARG(int, progress),
                     Q_ARG(QString, currentProgress));
     }
+
+    // actually compute the blur value
     return singleCalculation(image);
 }
 

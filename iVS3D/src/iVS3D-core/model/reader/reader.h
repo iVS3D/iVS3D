@@ -4,6 +4,7 @@
 #include <QObject>
 #include <opencv2/core.hpp>
 #include "metadata.h"
+#include "sequentialreader.h"
 
 /**
  * @interface Reader
@@ -71,6 +72,7 @@ public:
      */
     virtual std::vector<std::string> getFileVector() = 0;
 
+    virtual SequentialReader *createSequentialReader(std::vector<uint> indices) = 0;
     /**
      * @brief initMultipleAccess Enables the reader to make ordered access to the input, which will result in a faster access time
      * @param frames Vector containing the indices of the images which will be used in ascending order

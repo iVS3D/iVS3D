@@ -7,6 +7,8 @@
 #include <QtConcurrent/QtConcurrentMap>
 #include "reader.h"
 #include "progressable.h"
+#include "sequentialreader.h"
+#include <QtConcurrent>
 
 /**
  * @class BlurAlgorithm
@@ -49,13 +51,13 @@ public:
      */
     std::vector<double> calcFullBluriness(Reader* images, Progressable* reciever, volatile bool* stopped, int start, int end, std::vector<double> blurValues);
 protected:
-    double parallelCalculation(cv::Mat image, std::vector<double> blurValues, int n, Progressable *receiver, int start, int picCount);
+    double parallelCalculation(const cv::Mat &image, const std::vector<double> &blurValues, const uint &idx, const int &progress, Progressable *receiver);
     /**
      * @brief singleCalculation This functions implements the actual blur algortihm
      * @param image cv::Mat of the image
      * @return Double represeting the blur of the image (higher value -> sharper image)
      */
-    virtual double singleCalculation(cv::Mat image) = 0;
+    virtual double singleCalculation(const cv::Mat &image) = 0;
 private:
     volatile int m_currentProgress = 0;
 

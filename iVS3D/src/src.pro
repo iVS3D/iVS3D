@@ -15,3 +15,5 @@ iVS3D-blurPlugin.depends = iVS3D-pluginInterface
 iVS3D-nthFramePlugin.depends = iVS3D-pluginInterface
 #iVS3D-cameraMovementPlugin.depends = iVS3D-pluginInterface
 iVS3D-stationaryCameraPlugin.depends = iVS3D-pluginInterface
+SUBDIRS += iVS3D-RandomPickerPlugin 
+iVS3D-RandomPickerPlugin.depends = iVS3D-pluginInterface 

@@ -100,6 +100,11 @@ bool ImageReader::isValid()
     return m_isValid;
 }
 
+SequentialReader *ImageReader::createSequentialReader(std::vector<uint> indices)
+{
+    return new SequentialReaderImpl(this, indices);
+}
+
 ImageReader::ImageReader()
 {
 

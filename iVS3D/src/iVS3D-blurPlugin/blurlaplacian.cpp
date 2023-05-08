@@ -12,7 +12,7 @@ QString BlurLaplacian::getName() {
 }
 
 
-double BlurLaplacian::singleCalculation(cv::Mat image)
+double BlurLaplacian::singleCalculation(const cv::Mat &image)
 {
     cv::Mat gray;
     cv::cvtColor(image, gray, cv::COLOR_BGR2GRAY);

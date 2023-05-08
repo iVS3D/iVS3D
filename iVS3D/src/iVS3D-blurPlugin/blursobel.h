@@ -34,7 +34,7 @@ public:
 
 protected:
     QString m_name = "Sobel Operator";
-    double singleCalculation(cv::Mat image) override;
+    double singleCalculation(const cv::Mat &image) override;
 
 };
 

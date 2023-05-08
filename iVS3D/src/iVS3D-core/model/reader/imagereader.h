@@ -3,6 +3,7 @@
 
 #include "readerfactory.h"
 #include "reader.h"
+#include "sequentialreaderimpl.h"
 #include <QObject>
 #include <opencv2/core.hpp>
 
@@ -92,6 +93,8 @@ public:
      * @return @a true if the reader is valid, @a false otherwise
      */
     bool isValid() override;
+
+    SequentialReader *createSequentialReader(std::vector<uint> indices) override;
 
 private:
     ImageReader();

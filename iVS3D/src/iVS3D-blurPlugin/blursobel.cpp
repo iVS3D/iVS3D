@@ -11,7 +11,7 @@ QString BlurSobel::getName() {
     return m_name;
 }
 
-double BlurSobel::singleCalculation(cv::Mat image)
+double BlurSobel::singleCalculation(const cv::Mat &image)
 {
 
     cv::Mat gray;
