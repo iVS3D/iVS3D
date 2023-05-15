@@ -257,7 +257,7 @@
         <item>
          <widget class="QLabel" name="l_localOpenMVSBinaryFolder">
           <property name="text">
-           <string>OpenMVS binarry folder (local)</string>
+           <string>OpenMVS binary folder (local):</string>
           </property>
          </widget>
         </item>
@@ -496,7 +496,7 @@
         <item>
          <widget class="QLabel" name="l_remoteOpenMVSBinaryFolder">
           <property name="text">
-           <string>OpenMVS binary folder (remote)</string>
+           <string>OpenMVS binary folder (remote):</string>
           </property>
          </widget>
         </item>

@@ -184,6 +184,12 @@ class ColmapWrapper : public QObject
         /// Absolute path to COLMAP binary on remote machine.
         QString remoteColmapBinPath;
 
+        /// Absolute path to OpenMVS binary on local machine.
+        QString localOpenMVSBinPath;
+
+        /// Absolute path to OpenMVS binary on remote machine.
+        QString remoteOpenMVSBinPath;
+
         /// Absolute path to workspace on local machine.
         QString localWorkspacePath;
 
@@ -214,6 +220,12 @@ class ColmapWrapper : public QObject
 
         /// Absolute path to COLMAP binary on remote machine.
         QPair<ESetupTestResult,QString> remoteColmapBinPath = {TEST_PENDING, ""};
+
+        /// Absolute path to COLMAP binary on local machine.
+        QPair<ESetupTestResult,QString> localOpenMVSBinPath = {TEST_PENDING, ""};
+
+        /// Absolute path to COLMAP binary on remote machine.
+        QPair<ESetupTestResult,QString> remoteOpenMVSBinPath = {TEST_PENDING, ""};
 
         /// Absolute path to workspace on local machine.
         QPair<ESetupTestResult,QString> localWorkspacePath = {TEST_PENDING, ""};

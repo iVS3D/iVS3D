@@ -96,16 +96,17 @@ void SettingsDialog::onLocalColmapBinaryPushButtonPressed()
 //==================================================================================================
 void SettingsDialog::onLocalOpenMVSBinaryPushButtonPressed()
 {
-    QString filePath = ui->le_localOpenMVSBinaryFolder->text();
+    QString folderPath = ui->le_localOpenMVSBinaryFolder->text();
 
-    filePath = QFileDialog::getOpenFileName(this,
+    folderPath = QFileDialog::getExistingDirectory(this,
                                             tr("Select OpenMVS binary folder"),
-                                            filePath.isEmpty()
+                                            folderPath.isEmpty()
                                                 ? QApplication::applicationDirPath()
-                                                : QFileInfo(filePath).absoluteDir().absolutePath());
+                                                : QFileInfo(folderPath).absoluteDir().absolutePath());
 
-    if (!filePath.isEmpty()) {
-        ui->le_localOpenMVSBinaryFolder->setText(filePath);
+
+    if (!folderPath.isEmpty()) {
+        ui->le_localOpenMVSBinaryFolder->setText(folderPath);
         settingsChanged();
     }
 }
@@ -200,6 +201,8 @@ void SettingsDialog::onAccepted()
   ColmapWrapper::SSettings *settings = new ColmapWrapper::SSettings{
       ui->le_localColmapBinary->text(),
       ui->le_remoteColmapBinary->text(),
+      ui->le_localOpenMVSBinaryFolder->text(),
+      ui->le_remoteOpenMVSBinaryFolder->text(),
       ui->le_localWorkspace->text(),
       ui->le_remoteWorkspace->text(),
       ui->le_mntPnt->text(),

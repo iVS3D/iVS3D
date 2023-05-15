@@ -87,6 +87,8 @@ void ColmapWrapper::init()
   SSettings *settingsToTest = new SSettings{
       mLocalColmapBinPath,
       mRemoteColmapBinPath,
+      mLocalOpenMVSBinPath,
+      mRemoteOpenMVSBinPath,
       mLocalWorkspacePath,
       mRemoteWorkspacePath,
       mMntPntRemoteWorkspacePath,
@@ -323,6 +325,8 @@ void ColmapWrapper::restoreDefaultSettings()
     SSettings *settingsToTest = new SSettings{
         mLocalColmapBinPath,
         mRemoteColmapBinPath,
+        mLocalOpenMVSBinPath,
+        mRemoteOpenMVSBinPath,
         mLocalWorkspacePath,
         mRemoteWorkspacePath,
         mMntPntRemoteWorkspacePath,
@@ -351,6 +355,8 @@ void ColmapWrapper::loadDefaultSettings()
     mUseRobustMode=false;
     mLocalColmapBinPath="";
     mRemoteColmapBinPath="";
+    mLocalOpenMVSBinPath="";
+    mRemoteOpenMVSBinPath="";
     mLocalWorkspacePath="";
     mRemoteWorkspacePath="";
     mMntPntRemoteWorkspacePath="";
@@ -801,12 +807,14 @@ void ColmapWrapper::applySettings(const SSettings *settings)
 
     if(settings->connectionType == LOCAL){
         setLocalColmapBinPath(settings->localColmapBinPath);
+        setLocalOpenMVSBinPath(settings->localOpenMVSBinPath);
     }
 
     if(settings->connectionType == SSH) {
         setRemoteAddr(settings->remoteAddr);
         setRemoteUsr(settings->remoteUsr);
         setRemoteColmapBinPath(settings->remoteColmapBinPath);
+        setRemoteOpenMVSBinPath(settings->remoteOpenMVSBinPath);
         setRemoteWorkspacePath(settings->remoteWorkspacePath);
         setMntPntRemoteWorkspacePath(settings->mntPntRemoteWorkspacePath);
     }
