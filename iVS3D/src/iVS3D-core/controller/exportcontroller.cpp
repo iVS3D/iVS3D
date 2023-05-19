@@ -442,10 +442,6 @@ void ExportController::slot_exportFinished(int result)
     // now we have an export, so enable reconstruct
     m_outputWidget->enableReconstruct(true);
 
-    // save log file
-    if (ApplicationSettings::instance().getCreateLogs()) {
-        LogManager::instance().print();
-    }
     //Save current exportPath and name
     m_currentExports.insert(m_path.split("/").last(), m_path);
     #if defined(Q_OS_LINUX)

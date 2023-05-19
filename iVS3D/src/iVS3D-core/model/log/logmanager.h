@@ -27,11 +27,7 @@
 class LogManager : public QObject
 {
     Q_OBJECT
-private:
-    LogManager();
-    QList<QPair<QString, LogFile*>> m_allLogFiles;
-    QString m_fileName;
-    bool m_logEnabled;
+
 public:
     /**
      * @brief Returns the singleton instance of this class
@@ -54,11 +50,7 @@ public:
      * @return QJsonObject which holds all currently logged informationf from all process (all LogFiles)
      */
     QJsonDocument toJSON();
-    /**
-     * @brief print Saves the current state of all log files in a single file in the folder log
-     * @return true if creation was successfull
-     */
-    bool print();
+
     /**
      * @brief resetLog resets the current log and creates a new log
      */
@@ -71,10 +63,22 @@ public:
     void toggleLog(bool useLog);
 
 public slots:
+
     /**
      * @brief update is called whenever a logfile changes. This will print the current log files.
      */
     bool slot_updateLog();
+
+private:
+    /**
+     * @brief print Saves the current state of all log files in a single file in the folder log
+     * @return true if creation was successfull
+     */
+    bool print();
+    LogManager();
+    QList<QPair<QString, LogFile*>> m_allLogFiles;
+    QString m_fileName;
+    bool m_logEnabled = true;
 };
 
 #endif // LOGMANAGER_H
