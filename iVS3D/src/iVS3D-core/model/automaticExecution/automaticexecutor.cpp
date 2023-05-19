@@ -116,8 +116,7 @@ void AutomaticExecutor::slot_settingsFinished()
 
 int AutomaticExecutor::stepToPluginIndex(int step)
 {
-    QStringList pluginList = AlgorithmManager::instance().getAlgorithmList();
-    return pluginList.indexOf(m_pluginOrder[step].first);
+    return AlgorithmManager::instance().getIndexFromFileName(m_pluginOrder[step].first);
 }
 
 void AutomaticExecutor::executeSampling()

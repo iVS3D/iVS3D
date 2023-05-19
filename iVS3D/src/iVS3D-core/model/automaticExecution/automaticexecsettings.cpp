@@ -17,7 +17,7 @@ QStringList AutomaticExecSettings::getPluginNames()
     QString currentName;
     for (QPair<QString, QMap<QString, QVariant>> entry : m_algoList) {
         QString name;
-        name = entry.first;
+        name = AlgorithmManager::instance().getPluginNameFromFileName(entry.first);
         if (entry.second.isEmpty()) {
             name.append("  -  Generated settings");
         }
@@ -88,7 +88,7 @@ void AutomaticExecSettings::loadPluginList(QString path)
 
 void AutomaticExecSettings::slot_addAuto(int idx, bool generate)
 {
-    QString pluginName = AlgorithmManager::instance().getPluginNameToIndex(idx);
+    QString pluginName = AlgorithmManager::instance().getPluginFileNameToIndex(idx);
     QMap<QString, QVariant> settings;
     if (generate) {
         settings = QMap<QString, QVariant>();
@@ -163,8 +163,8 @@ void AutomaticExecSettings::slot_doubleClickedItem(int row)
         emit sig_setAlgorithm(iTransfromIndex);
         return;
     }
-    QStringList pluginList = AlgorithmManager::instance().getAlgorithmList();
-    int idx = pluginList.indexOf(m_algoList[row].first);
+
+    int idx = AlgorithmManager::instance().getIndexFromFileName(m_algoList[row].first);
 
     //If the settings map is empty (-> generated settings) don't update the plugins settings
     if (!m_algoList[row].second.isEmpty()) {

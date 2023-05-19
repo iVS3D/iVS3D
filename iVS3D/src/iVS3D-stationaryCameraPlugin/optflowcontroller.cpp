@@ -232,6 +232,10 @@ QMap<QString, QVariant> OptFlowController::getSettings()
     bool samplingResActive = downFactorToCheck(m_downSampleFactor);
     settings.insert(SETTINGS_SAMPLE_RESOLUTION, samplingResActive);
 
+    if (m_selectorDropDown) {
+        m_activeSelector = m_selectorDropDown->currentText();
+    }
+
     // construct QVariant from KeyfraneSelector::Settings
     settings.insert(SETTINGS_SELECTOR_NAME, m_activeSelector);
 

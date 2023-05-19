@@ -47,7 +47,7 @@ void AlgorithmController::slot_selectAlgorithm(int idx)
     // clear queue for transformations
     m_fQueue = std::make_tuple<cv::Mat*, int, int>(nullptr, NO_IMAGE,NO_TRANSFORM);
 
-    emit sig_hasStatusMessage(tr("Selected algorithm: ") + AlgorithmManager::instance().getAlgorithmList()[idx]);
+    emit sig_hasStatusMessage(tr("Selected algorithm: ") + AlgorithmManager::instance().getPluginNameToIndex(idx));
     TransformManager::instance().selectTransform(UINT_MAX);
 }
 
@@ -128,7 +128,7 @@ void AlgorithmController::slot_startGenerateSettings()
 void AlgorithmController::slot_algorithmAborted()
 {
     auto duration_ms = m_timer.elapsed();
-    emit sig_hasStatusMessage(AlgorithmManager::instance().getAlgorithmList()[m_pluginIdx] + tr(" aborted after ") + QString::number(duration_ms) + tr("ms"));
+    emit sig_hasStatusMessage(AlgorithmManager::instance().getPluginNameToIndex(m_pluginIdx) + tr(" aborted after ") + QString::number(duration_ms) + tr("ms"));
     m_algorithmProgressDialog->close();
 }
 
@@ -170,7 +170,7 @@ void AlgorithmController::startNextTransform()
 void AlgorithmController::slot_algorithmFinished(int)
 {
     auto duration_ms = m_timer.elapsed();
-    emit sig_hasStatusMessage(AlgorithmManager::instance().getAlgorithmList()[m_pluginIdx] + tr(" finished after ") + QString::number(duration_ms) + tr("ms"));
+    emit sig_hasStatusMessage(AlgorithmManager::instance().getPluginNameToIndex(m_pluginIdx) + tr(" finished after ") + QString::number(duration_ms) + tr("ms"));
     m_dataManager->getHistory()->slot_save();
     m_algorithmProgressDialog->close();
 }

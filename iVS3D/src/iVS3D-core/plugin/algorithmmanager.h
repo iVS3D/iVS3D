@@ -54,11 +54,13 @@ public:
      * @return Keyframe list calculated by the plugin
      */
     std::vector<uint> sample(std::vector<uint> sharpImages, Progressable* receiver, volatile bool* stopped, int idx, bool useCuda, LogFileParent *logFile);
-    /**
-     * @brief getAlgorithmList returns the loaded plugins
-     * @return QStringList with the names of the loaded plugins
-     */
-    QStringList getAlgorithmList();
+    ///**
+    // * @brief getAlgorithmList returns the loaded plugins
+    // * @return QStringList with the names of the loaded plugins
+    // */
+    //QStringList getAlgorithmList();
+    QStringList getAlgorithmNames();
+
     /**
      * @brief getIndexToPluginName Takes the index of a plugin and returns it's translated name.
      * @param index Index of the plugin
@@ -70,7 +72,19 @@ public:
      * @param index Index of the plugin
      * @return Name of the plugin file
      */
-    QString getPluginFileNameToIndex(int index);
+    QString getPluginFileNameToIndex(int index);   
+    /**
+     * @brief getPluginNameFromFileName Takes the name of a plugin file and returns it's translated name.
+     * @param FileName nmae of the plugin file
+     * @return (possibly) translated name of the plugin
+     */
+    QString getPluginNameFromFileName(QString FileName);
+    /**
+     * @brief getIndexFromFileName Takes the name of a plugin file and returns its index.
+     * @param FileName nmae of the plugin file
+     * @return index Index of the plugin
+     */
+    int getIndexFromFileName(QString FileName);
     /**
      * @brief getAlgorithmCount returns the number of loaded IAlgorithms
      * @return The number of loaded IAlgorithms
@@ -102,6 +116,8 @@ public:
      * @return Settings map
     */
     QMap<QString, QVariant> getSettings(int idx);
+
+
 
     void notifyNewMetaData();
     void notifySelectedImageIndex(uint index);

@@ -8,7 +8,7 @@ Controller::Controller(QString inputPath, QString settingsPath, QString outputPa
 {
     m_videoPlayerController = nullptr;
     m_algorithmController = nullptr;
-    QStringList algorithms = AlgorithmManager::instance().getAlgorithmList();
+    QStringList algorithms = AlgorithmManager::instance().getAlgorithmNames();
     QStringList transforms = TransformManager::instance().getTransformList();
     int useCuda = -1;
     if(ApplicationSettings::instance().getCudaAvailable()){

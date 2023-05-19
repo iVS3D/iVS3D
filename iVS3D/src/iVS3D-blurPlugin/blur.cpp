@@ -174,7 +174,9 @@ void Blur::slot_selectedImageIndex(uint index)
         double currentBlurValue = splitDoubleString(currentBuffer.toString())[index];
         QString info;
         info = currentBlurValue == 0 ? tr("not calculated") : QString::number(currentBlurValue);
-        m_infoLabel->setText(tr("Blur value for the current image is ") + info);
+        if (m_settingsWidget) {
+            m_infoLabel->setText(tr("Blur value for the current image is ") + info);
+        }
     }
 }
 

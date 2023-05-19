@@ -26,15 +26,14 @@ std::vector<uint> AlgorithmManager::sample(std::vector<uint> sharpImages, Progre
     return m_algorithmList[idx]->sampleImages(sharpImages, receiver, stopped, useCuda, logFile);
 }
 
-QStringList AlgorithmManager::getAlgorithmList(){
-
+QStringList AlgorithmManager::getAlgorithmNames()
+{
     QStringList plugins;
     foreach(IAlgorithm* algorithm, m_algorithmList){
         plugins.append(algorithm->getName());
     }
     return plugins;
 }
-
 
 QString AlgorithmManager::getPluginNameToIndex(int index)
 {
@@ -44,6 +43,17 @@ QString AlgorithmManager::getPluginNameToIndex(int index)
 QString AlgorithmManager::getPluginFileNameToIndex(int index)
 {
     return m_pluginFileNames[index];
+}
+
+QString AlgorithmManager::getPluginNameFromFileName(QString FileName)
+{
+    int index = m_pluginFileNames.indexOf(FileName);
+    return m_algorithmList.at(index)->getName();
+}
+
+int AlgorithmManager::getIndexFromFileName(QString FileName)
+{
+    return m_pluginFileNames.indexOf(FileName);
 }
 
 int AlgorithmManager::getAlgorithmCount()
