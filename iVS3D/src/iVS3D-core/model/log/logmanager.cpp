@@ -2,7 +2,10 @@
 
 LogManager::LogManager() : m_allLogFiles({})
 {
-
+    //      create unique name to path
+    m_fileName = "log" + QDateTime::currentDateTime().toString(FILE_NAME_SUFFIX);
+    //      set default log path
+    m_logDir = QCoreApplication::applicationDirPath() + "/logs";
 }
 
 LogManager &LogManager::instance()
@@ -46,26 +49,10 @@ QJsonDocument LogManager::toJSON()
     return  jsonDoc;
 }
 
-bool LogManager::print()
-{
-    // create absolut path
-    QString pathExe = QCoreApplication::applicationDirPath();
-    m_fileName = pathExe + "/" + stringContainer::dirLogFile;
-    //      create directory if it doesnt exists
-    if (!QDir(m_fileName).exists()) {
-        QDir(pathExe).mkdir(stringContainer::dirLogFile);
-    }
-    //      add unique name to path
-    QString name = "log" + QDateTime::currentDateTime().toString(FILE_NAME_SUFFIX) + (QString)".json";
-    m_fileName += "/" + name;
-
-    return slot_updateLog();
-}
-
 void LogManager::resetLog()
 {
     deleteAllLogFiles();
-    print();
+    slot_updateLog();
 }
 
 void LogManager::toggleLog(bool useLog)
@@ -73,13 +60,24 @@ void LogManager::toggleLog(bool useLog)
     m_logEnabled = useLog;
 }
 
+void LogManager::setLogDirectory(QString logDir)
+{
+    m_logDir = logDir;
+}
+
 bool LogManager::slot_updateLog()
 {
     if (!m_logEnabled) {
         return false;
     }
+
+    // create neccessary direcotries
+    if (!QDir(m_logDir).exists()) {
+        QDir().mkpath(FULL_FILE_PATH);
+    }
+
     // writing json in file
-    QFile file(m_fileName);
+    QFile file(FULL_FILE_PATH);
     QJsonDocument doc(toJSON());
 
     if (!file.open(QFile::WriteOnly | QFile::Text | QFile::Truncate)) {

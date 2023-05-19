@@ -61,7 +61,7 @@ public:
     /**
      * @brief Controllers constructor which creates AlgorithmManager, TransformManager, DataManager and MainWindow and connecting existing signals
      */
-    Controller(QString inputPath, QString settingsPath, QString outputPath);
+    Controller(QString inputPath, QString settingsPath, QString outputPath, QString logPath);
     ~Controller();
 public slots:
     /**

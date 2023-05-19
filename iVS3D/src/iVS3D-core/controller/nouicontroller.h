@@ -33,7 +33,7 @@ public:
      * @brief noUIController Constructor which extracts the command line arguments
      * @param arguments QStringList with the command line arguments
      */
-    explicit noUIController(QString inputPath, QString settingsPath, QString outputPath);
+    explicit noUIController(QString inputPath, QString settingsPath, QString outputPath, QString logPath);
 
 public slots:
     /**

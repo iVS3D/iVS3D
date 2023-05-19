@@ -2,13 +2,16 @@
 
 
 
-noUIController::noUIController(QString inputPath, QString settingsPath, QString outputPath)
+noUIController::noUIController(QString inputPath, QString settingsPath, QString outputPath, QString logPath)
 {
     m_terminal = &TerminalInteraction::instance();
     m_outputPath = outputPath;
     m_autoPath = settingsPath;
     m_inputPath = inputPath;
 
+    if (logPath != nullptr && !logPath.isEmpty()) {
+        LogManager::instance().setLogDirectory(logPath);
+    }
 }
 int noUIController::exec()
 {

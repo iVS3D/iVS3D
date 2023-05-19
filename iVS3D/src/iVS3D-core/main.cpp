@@ -59,6 +59,7 @@ int main(int argc, char *argv[])
     QCommandLineOption inputPath(QStringList() << "i" << "in", "Load input from <path>.", "path");
     QCommandLineOption autoPath(QStringList() << "a" << "auto", "Load settings from <path>.", "path");
     QCommandLineOption outputPath(QStringList() << "o" << "out", "Save result to <path>.", "path");
+    QCommandLineOption logPath(QStringList() << "l" << "log", "Log resulsts and process information to <path>.", "path");
 
     parser.setApplicationDescription("intelligent video sampler 3d is designed to process image sequences and videos for 3d reconstruction. "
                                      "enhance reconstruction quality by filtering out blurry images and masking dynamic objects such as people or cars. "
@@ -71,6 +72,7 @@ int main(int argc, char *argv[])
     parser.addOption(inputPath);
     parser.addOption(outputPath);
     parser.addOption(noGUI);
+    parser.addOption(logPath);
 
     QStringList arguments;
     for(int i = 0; i < argc; ++i){
@@ -104,7 +106,7 @@ int main(int argc, char *argv[])
         }
         qDebug() << "Library search paths: " << QApplication::libraryPaths();
 #endif
-        Controller *mainController = new Controller(parser.value(inputPath), parser.value(autoPath), parser.value(outputPath));
+        Controller *mainController = new Controller(parser.value(inputPath), parser.value(autoPath), parser.value(outputPath), parser.value(logPath));
         qApp->setProperty(stringContainer::UIIdentifier, true);
 
 
@@ -136,7 +138,7 @@ int main(int argc, char *argv[])
 #endif
 
         qApp->setProperty(stringContainer::UIIdentifier, false);
-        noUIController* noUI = new noUIController(parser.value(inputPath), parser.value(autoPath), parser.value(outputPath));
+        noUIController* noUI = new noUIController(parser.value(inputPath), parser.value(autoPath), parser.value(outputPath), parser.value(logPath));
         QTimer::singleShot(0, noUI, SLOT(exec()));
         return a.exec();
     }

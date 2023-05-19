@@ -1,7 +1,7 @@
 #include "controller.h"
 
 
-Controller::Controller(QString inputPath, QString settingsPath, QString outputPath)
+Controller::Controller(QString inputPath, QString settingsPath, QString outputPath, QString logPath)
     #if defined(Q_OS_LINUX)
         : m_colmapWrapper(new lib3d::ots::ColmapWrapper)
     #endif
@@ -53,6 +53,7 @@ Controller::Controller(QString inputPath, QString settingsPath, QString outputPa
     TransformManager::instance().enableCuda(ApplicationSettings::instance().getUseCuda());
 
     LogManager::instance().toggleLog(ApplicationSettings::instance().getCreateLogs());
+
     m_dataManager = new DataManager();
     m_exportController = nullptr;
 
@@ -78,6 +79,11 @@ Controller::Controller(QString inputPath, QString settingsPath, QString outputPa
     m_automaticController = new AutomaticController(m_mainWindow->getOutputWidget(), m_mainWindow->getAutoWidget(), m_mainWindow->getSamplingWidget(), m_dataManager);
 
     m_mainWindow->show();
+
+
+    if (logPath != nullptr && !logPath.isEmpty()) {
+        LogManager::instance().setLogDirectory(logPath);
+    }
 
     if (inputPath != nullptr && !inputPath.isEmpty()) {
         m_timer = QElapsedTimer();

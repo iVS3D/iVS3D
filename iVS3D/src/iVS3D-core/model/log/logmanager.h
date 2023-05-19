@@ -11,6 +11,7 @@
 #include "logfile.h"
 
 #define FILE_NAME_SUFFIX "_ddMMyyyy_hhmmss"
+#define FULL_FILE_PATH m_logDir + (QString)"/" + m_fileName + (QString)".json"
 
 /**
  * @class LogManager
@@ -61,23 +62,28 @@ public:
      * @param useLog @a true when log is enabled, @a false otherwise
      */
     void toggleLog(bool useLog);
+    /**
+     * @brief setLogDirectory changes the directory where the log file is printed to.
+     *        It wont an artifical folder in between and just use the raw path instead.
+     *
+     * @param Path to the new directory where log files will be stored.
+     */
+    void setLogDirectory(QString logDir);
 
 public slots:
 
     /**
      * @brief update is called whenever a logfile changes. This will print the current log files.
+     * @return true if creation was successfull
      */
     bool slot_updateLog();
 
 private:
-    /**
-     * @brief print Saves the current state of all log files in a single file in the folder log
-     * @return true if creation was successfull
-     */
     bool print();
     LogManager();
     QList<QPair<QString, LogFile*>> m_allLogFiles;
     QString m_fileName;
+    QString m_logDir;
     bool m_logEnabled = true;
 };
 
