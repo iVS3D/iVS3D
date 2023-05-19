@@ -186,6 +186,10 @@ void ExportThread::run(){
         // get image from reader
         timer.start();
         cv::Mat img = m_reader->getPic(kf);
+        if (img.empty()) {
+            m_result = 1;
+            return;
+        }
         stats.addStepEntry(timer.restart(), ExportStats::S_READ);
 
         // resize and crop
