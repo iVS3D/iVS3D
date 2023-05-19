@@ -5,20 +5,6 @@
 noUIController::noUIController(QString inputPath, QString settingsPath, QString outputPath)
 {
     m_terminal = &TerminalInteraction::instance();
-    /*QCommandLineParser parser;
-    parser.addHelpOption();
-    QCommandLineOption inputPath(QStringList() << "i" << "in", "Load input from <path>.", "path");
-    QCommandLineOption autoPath(QStringList() << "a" << "auto", "Load settings from <path>.", "path");
-    QCommandLineOption outputPath(QStringList() << "o" << "out", "Save result to <path>.", "path");
-    parser.addOption(autoPath);
-    parser.addOption(inputPath);
-    parser.addOption(outputPath);
-    parser.process(arguments);
-
-    m_outputPath = parser.value(outputPath);
-    m_autoPath = parser.value(autoPath);
-    m_inputPath = parser.value(inputPath);*/
-
     m_outputPath = outputPath;
     m_autoPath = settingsPath;
     m_inputPath = inputPath;

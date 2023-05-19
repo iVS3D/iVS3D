@@ -163,6 +163,7 @@ private:
     QPoint m_inputResolution = QPoint(0, 0);
     cv::SparseMat m_bufferMat;
     signalObject *m_sigObj = nullptr;
+    QString m_activeSelector = "";
     //      widget elements
     QMap<QString, QWidget*> m_selectorWidgetMap;
     QWidget *m_settingsWidget = nullptr;
@@ -182,6 +183,7 @@ private:
     bool downFactorToCheck(double downFactor);
     double downCheckToFactor(bool boxChecked, QPointF inputRes);
     void reportProgress(QString op, int progress, Progressable *receiver);
+    void displayMessage(QString txt, Progressable *receiver);
     void createSettingsWidget(QWidget *parent);
     void resetBuffer();
     /**
@@ -193,7 +195,7 @@ private:
      * @brief updateBufferInfo updates the amount of buffered values in the status tip.
      * @param bufferedValueCount is the new amout of buffered flow values
      */
-    void updateBufferInfo(long bufferedValueCount);
+    QString updateBufferInfo(long bufferedValueCount);
     /**
      * @brief recreateBufferMatrix initalizes the buffer matix whith the new values from nBuffer
      * @param buffer holds the new movement values which should be stored in the buffer matrix

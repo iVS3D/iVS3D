@@ -22,8 +22,7 @@ QWidget *OptFlowController::getSettingsWidget(QWidget *parent)
 std::vector<uint> OptFlowController::sampleImages(const std::vector<uint> &imageList, Progressable *receiver, volatile bool *stopped, bool useCuda, LogFileParent *logFile)
 {
     // ----------- setup and creating hardware specific elements ----------------
-    QString selectorName = m_selectorDropDown->currentText();
-    KeyframeSelector::Settings selectorSettings = m_selectorSettingsMap.value(selectorName);
+    KeyframeSelector::Settings selectorSettings = m_selectorSettingsMap.value(m_activeSelector);
 
     // ---------- create all neccessary components ------------
     reportProgress(tr("Excluding buffered values from computation list"), 0, receiver);
@@ -46,7 +45,7 @@ std::vector<uint> OptFlowController::sampleImages(const std::vector<uint> &image
             m_reader,
             m_downSampleFactor,
             useCuda,
-            selectorName,
+            m_activeSelector,
             selectorSettings);
     ImageGatherer *imageGatherer = std::get<0>(components);
     FlowCalculator *flowCalculator = std::get<1>(components);
@@ -134,7 +133,15 @@ std::vector<uint> OptFlowController::sampleImages(const std::vector<uint> &image
         // DEBUG write flow values in logFile
 //        logFile->addCustomEntry(LF_CE_NAME_FLOWVALUE, flowValues[flowValuesIdx], LF_CE_TYPE_DEBUG);
     }
-    updateBufferInfo(m_bufferMat.hdr->nodeCount);
+
+    // Display Buffer Info
+    QString txt = updateBufferInfo(m_bufferMat.hdr->nodeCount);
+    if (m_resetBufferLabel) {
+        m_resetBufferLabel->setText(txt);
+    } else {
+        displayMessage(txt, receiver);
+    }
+
     emit updateBuffer(sendBuffer());
     logFile->stopTimer();
 
@@ -193,6 +200,7 @@ void OptFlowController::setSettings(QMap<QString, QVariant> settings)
 
     // deconstruct QVariant to KeyframeSelector::Settings
     QString selectorName = settings.find(SETTINGS_SELECTOR_NAME).value().toString();
+    m_activeSelector = selectorName;
     QList<QVariant> selectorSettingsVar = settings.find(SETTINGS_SELECTOR_SETTINGS).value().toList();
         // recreate settings as KeyframeSelector::Settings
         KeyframeSelector::Settings selectorSetting;
@@ -204,7 +212,9 @@ void OptFlowController::setSettings(QMap<QString, QVariant> settings)
         }
         m_selectorSettingsMap.insert(selectorName, selectorSetting);
 
-    m_selectorDropDown->setCurrentText(selectorName);
+    if (m_selectorDropDown) {
+        m_selectorDropDown->setCurrentText(selectorName);
+    }
 }
 
 QMap<QString, QVariant> OptFlowController::generateSettings(Progressable *receiver, bool useCuda, volatile bool *stopped)
@@ -223,10 +233,9 @@ QMap<QString, QVariant> OptFlowController::getSettings()
     settings.insert(SETTINGS_SAMPLE_RESOLUTION, samplingResActive);
 
     // construct QVariant from KeyfraneSelector::Settings
-    QString selectorName = m_selectorDropDown->currentText();
-    settings.insert(SETTINGS_SELECTOR_NAME, selectorName);
+    settings.insert(SETTINGS_SELECTOR_NAME, m_activeSelector);
 
-    KeyframeSelector::Settings selectorSettings = m_selectorSettingsMap.find(selectorName).value();
+    KeyframeSelector::Settings selectorSettings = m_selectorSettingsMap.find(m_activeSelector).value();
     // convert settings to QVariant
     QList<QVariant> selectorSettingsVar;
     for (KeyframeSelector::Parameter param : selectorSettings) {
@@ -272,6 +281,15 @@ void OptFlowController::reportProgress(QString op, int progress, Progressable *r
                 Qt::DirectConnection,
                 Q_ARG(int, progress),
                 Q_ARG(QString, op));
+}
+
+void OptFlowController::displayMessage(QString txt, Progressable *receiver)
+{
+    QMetaObject::invokeMethod(
+                receiver,
+                "slot_displayMessage",
+                Qt::DirectConnection,
+                Q_ARG(QString, txt));
 }
 
 void OptFlowController::createSettingsWidget(QWidget *parent)
@@ -365,6 +383,7 @@ void OptFlowController::selectorChanged(QString selectorName)
     m_currentSelectorWidget->setVisible(false);
     nSelectorWidget->setVisible(true);
     m_currentSelectorWidget = nSelectorWidget;
+    m_activeSelector = selectorName;
 }
 
 void OptFlowController::updateSettingsMap(QVariant nValue, KeyframeSelector::Parameter param, QString selectorName)
@@ -387,10 +406,9 @@ void OptFlowController::updateSettingsMap(QVariant nValue, KeyframeSelector::Par
     }
 }
 
-void OptFlowController::updateBufferInfo(long bufferedValueCount)
+QString OptFlowController::updateBufferInfo(long bufferedValueCount)
 {
-    QString txt = RESET_TEXT_PRE + QString::number(bufferedValueCount) + RESET_TEXT_SUF;
-    m_resetBufferLabel->setText(txt);
+    return RESET_TEXT_PRE + QString::number(bufferedValueCount) + RESET_TEXT_SUF;
 }
 
 void OptFlowController::recreateBufferMatrix(QMap<QString, QVariant> buffer)

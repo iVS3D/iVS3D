@@ -90,7 +90,7 @@ void AutomaticExecutor::slot_samplingFinished()
             delete m_algoExec;
             m_algoExec = nullptr;
         }
-        disconnect(m_exportController, &ExportController::sig_exportFinished, this, &AutomaticExecutor::slot_samplingFinished);
+//        disconnect(m_exportController, &ExportController::sig_exportFinished, this, &AutomaticExecutor::slot_samplingFinished);
 
         m_step = 0;
         m_isFinished = true;
