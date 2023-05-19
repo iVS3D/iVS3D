@@ -3,10 +3,9 @@
 
 #include "DataManager.h"
 #include "algorithmexecutor.h"
-#include "algorithmmanager.h"
 #include "automaticexecsettings.h"
 #include "nouiexport.h"
-#include "stringcontainer.h"
+
 
 
 /**
@@ -21,7 +20,7 @@
  * @date 2021/06/10
  */
 
-class AutomaticExecutor : public Progressable
+class AutomaticExecutor : public QObject
 {
     Q_OBJECT
 

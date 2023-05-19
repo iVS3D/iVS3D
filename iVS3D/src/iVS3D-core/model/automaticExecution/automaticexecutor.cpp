@@ -5,7 +5,6 @@ AutomaticExecutor::AutomaticExecutor(DataManager* dm, AutomaticExecSettings* aut
     :m_dm(dm), m_autoSettings(autoSettings)
 
 {
-//    m_algoExec = new AlgorithmExecutor(m_dm->getModelInputPictures());
     // prevents conflicts with concurrent access from ui
     emit sig_stopPlay();
 }
@@ -64,8 +63,11 @@ void AutomaticExecutor::slot_startAutomaticExec()
     m_stepCount = m_pluginOrder.size();
     if (m_stepCount != 0) {
         m_algoExec = new AlgorithmExecutor(m_dm->getModelInputPictures());
+        TerminalInteraction& m_terminal = TerminalInteraction::instance();
+        connect(m_algoExec, &AlgorithmExecutor::sig_message, &m_terminal, &TerminalInteraction::slot_displayMessage);
+        connect(m_algoExec, &AlgorithmExecutor::sig_progress, &m_terminal, &TerminalInteraction::slot_displayProgress);
         emit sig_createProgress(m_algoExec);
-        startMultipleAlgo(m_pluginOrder, 0);
+        startMultipleAlgo(m_pluginOrder, m_step);
     }
 
 }
@@ -90,7 +92,6 @@ void AutomaticExecutor::slot_samplingFinished()
             delete m_algoExec;
             m_algoExec = nullptr;
         }
-//        disconnect(m_exportController, &ExportController::sig_exportFinished, this, &AutomaticExecutor::slot_samplingFinished);
 
         m_step = 0;
         m_isFinished = true;
@@ -143,8 +144,12 @@ void AutomaticExecutor::executeExport(QMap<QString, QVariant> settings)
     else {
         if (m_exportRunner) {
             delete m_exportRunner;
-        }
-        m_exportRunner = new noUIExport(this, settings, m_dm);
+        }       
+        TerminalInteraction* m_terminal = &TerminalInteraction::instance();
+        Progressable* exportProgress = new Progressable();
+        m_exportRunner = new noUIExport(exportProgress, settings, m_dm);
+        connect(exportProgress, &Progressable::sig_message, m_terminal, &TerminalInteraction::slot_displayMessage);
+        connect(exportProgress, &Progressable::sig_progress, m_terminal, &TerminalInteraction::slot_displayProgress);
         connect(m_exportRunner, &noUIExport::sig_exportFinished, this, &AutomaticExecutor::slot_samplingFinished, Qt::DirectConnection);
         m_exportRunner->runExport();
     }

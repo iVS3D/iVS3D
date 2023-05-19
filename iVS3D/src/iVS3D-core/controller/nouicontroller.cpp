@@ -69,8 +69,6 @@ int noUIController::exec()
 
     AutomaticExecutor* autoExec = new AutomaticExecutor(m_dataManager, autoSettings);
 
-    connect(autoExec, &AutomaticExecutor::sig_message, m_terminal, &TerminalInteraction::slot_displayMessage);
-    connect(autoExec, &AutomaticExecutor::sig_progress, m_terminal, &TerminalInteraction::slot_displayProgress);
 
     autoExec->slot_startAutomaticExec();
 
