@@ -172,6 +172,8 @@ void ExportThread::run(){
     } stats;
     stats.type = isDirImages ? ExportStats::S_IMAGES : ExportStats::S_VIDEO;
 
+//#define EXPORT_SERIAL
+#ifdef EXPORT_SERIAL
     QElapsedTimer timer;
     QElapsedTimer totalTimer;
     totalTimer.start();
@@ -211,7 +213,81 @@ void ExportThread::run(){
         QString message = "Exported " + QString::number(totalTasks) + " images";
         m_receiver->slot_displayMessage(message);
     }
+#else
+    // create a sequential reader for accessing the images more efficiently
+    SequentialReader *seqImages = m_reader->createSequentialReader(m_keyframes);
 
+    // define lambda function to calulate blurValue for multiple images sequentially
+    std::function<void(ExportStats*)> writeToDrive = [seqImages, useResize, useRoi, roi, iTransformCopiesSize, fileName, isDirImages, imageFiles, this](ExportStats *stats) {
+        QElapsedTimer timer;
+        // loop until the computation gets stopped or all images are processed
+        while(true){
+            if (*m_stopped) {
+                m_result = 1;
+                return; // user stopped the computation -> return
+            }
+
+            // get the next image, along with its index and progress so far
+            cv::Mat mat;
+            uint idx;
+            int progress;
+            // get image from reader
+            timer.start();
+            if(!seqImages->getNext(mat, idx, progress)) {
+                return; // no images left to process -> return
+            }
+            stats->addStepEntry(timer.restart(), ExportStats::S_READ);
+
+            // resize and crop
+            cv::Mat imgToExport = resizeCrop(mat, cv::Size(m_resolution.x(), m_resolution.y()), useResize, roi, useRoi);
+            stats->addStepEntry(timer.restart(), ExportStats::S_RESIZE);
+
+            // write images and masks
+            bool success = exportImages(imgToExport, iTransformCopiesSize, fileName, isDirImages, idx, imageFiles);
+            stats->addStepEntry(timer.restart(), ExportStats::S_WRITE);
+            if (!success) {
+                m_result = -1;
+            }
+            reportProgress();
+        }
+
+    };
+
+    std::vector<ExportStats*> concurrentStats;
+
+    QElapsedTimer totalTimer;
+    totalTimer.start();
+
+    // start the computation in multiple worker threads
+    QFutureSynchronizer<void> synchronizer;
+    // use all available threads for now
+    for(int i=0; i<QThread::idealThreadCount(); i++){
+        concurrentStats.push_back(new ExportStats);
+        synchronizer.addFuture(QtConcurrent::run(writeToDrive, concurrentStats[i]));
+    }
+    synchronizer.waitForFinished();
+    stats.totalTimeMeasured = totalTimer.elapsed();
+
+    // cleanup, we have to delete the sequential reader manually
+    delete seqImages;
+
+    // combine the messurements from all theads
+    for(int i=0; i<QThread::idealThreadCount(); i++){
+        stats.steps[ExportStats::S_READ].totalTime += concurrentStats[i]->steps[ExportStats::S_READ].totalTime;
+        stats.steps[ExportStats::S_READ].minTime = std::min(stats.steps[ExportStats::S_READ].minTime, concurrentStats[i]->steps[ExportStats::S_READ].minTime);
+        stats.steps[ExportStats::S_READ].maxTime = std::max(stats.steps[ExportStats::S_READ].maxTime, concurrentStats[i]->steps[ExportStats::S_READ].maxTime);
+
+        stats.steps[ExportStats::S_RESIZE].totalTime += concurrentStats[i]->steps[ExportStats::S_RESIZE].totalTime;
+        stats.steps[ExportStats::S_RESIZE].minTime = std::min(stats.steps[ExportStats::S_RESIZE].minTime, concurrentStats[i]->steps[ExportStats::S_RESIZE].minTime);
+        stats.steps[ExportStats::S_RESIZE].maxTime = std::max(stats.steps[ExportStats::S_RESIZE].maxTime, concurrentStats[i]->steps[ExportStats::S_RESIZE].maxTime);
+
+        stats.steps[ExportStats::S_WRITE].totalTime += concurrentStats[i]->steps[ExportStats::S_WRITE].totalTime;
+        stats.steps[ExportStats::S_WRITE].minTime = std::min(stats.steps[ExportStats::S_WRITE].minTime, concurrentStats[i]->steps[ExportStats::S_WRITE].minTime);
+        stats.steps[ExportStats::S_WRITE].maxTime = std::max(stats.steps[ExportStats::S_WRITE].maxTime, concurrentStats[i]->steps[ExportStats::S_WRITE].maxTime);
+
+        delete concurrentStats[i];
+    }
+#endif
 //#if 1
     qDebug() << "Export stats";
     qDebug() << "------------";

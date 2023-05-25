@@ -8,10 +8,11 @@
 #include <QThread>
 #include <QFileDialog>
 #include <iostream>
-#include <QtConcurrent/QtConcurrentMap>
+#include <QtConcurrent>
 #include <QMutex>
 #include <QMutexLocker>
 #include <fstream>
+#include <QFutureSynchronizer>
 
 #include "logfile.h"
 #include "stringcontainer.h"

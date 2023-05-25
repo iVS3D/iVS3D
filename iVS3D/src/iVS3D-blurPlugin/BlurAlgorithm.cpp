@@ -45,6 +45,8 @@ std::vector<double> BlurAlgorithm::calcFullBluriness(Reader *images, Progressabl
 
     };
 
+    QElapsedTimer timer;
+    timer.start();
     // start the computation in multiple worker threads
     QFutureSynchronizer<void> synchronizer;
     // use all available threads for now
@@ -52,7 +54,7 @@ std::vector<double> BlurAlgorithm::calcFullBluriness(Reader *images, Progressabl
         synchronizer.addFuture(QtConcurrent::run(getBlur));
     }
     synchronizer.waitForFinished();
-
+    qDebug() << "Calculating all blur values took:" << timer.elapsed() << "ms";
     // cleanup, we have to delete the sequential reader manually
     delete seqImages;
     return blurValues;
