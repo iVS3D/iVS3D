@@ -24,24 +24,6 @@ VideoReader::~VideoReader()
     m_cap.release();
 }
 
-void VideoReader::initMultipleAccess(const std::vector<uint> &frames) {
-    if (frames.size() == 0) {
-        return;
-    }
-    m_currentFrames = frames;
-    m_multipleAccess = true;
-    m_currentMultipleIndex = 0;
-    int firstIndex = m_currentFrames[0];
-    if (firstIndex == 0) {
-        m_cap.set(cv::CAP_PROP_POS_FRAMES, 0);
-        m_lastUsedIndex = -1;
-        return;
-    }
-    m_cap.set(cv::CAP_PROP_POS_FRAMES, firstIndex - 1);
-    m_lastUsedIndex = firstIndex;
-
-}
-
 void VideoReader::addMetaData(MetaData *md)
 {
     m_md = md;
@@ -58,50 +40,40 @@ bool VideoReader::isValid()
 }
 
 
-cv::Mat VideoReader::getPic(unsigned int index, bool useMultipleAccess)
+cv::Mat VideoReader::getPic(unsigned int index)
 {
+    // minimum distance from the current index in the video to the next index for jumping.
+    // If the distance to the next index is less, reading frame by frame is faster
+    // else jumping there might be faster (depending on the video length, resolution, etc.)
+    // This value was chosen empirically on a modern desktop PC with Windows 11 (May 2023)
+    const int MIN_JUMP_DISTANCE = 40;
 
-    //QMutexLocker locker(&mutex);
-    //Prevent invalid request
+    // invalid index requested
     if(index >= getPicCount()){
         cv::Mat empty;
         return empty;
     }
-    cv::Mat ret;
-    //When Multiple Acess is active wait for the next request in the keyframes and then use sequentiell acess
-    if (m_multipleAccess  && useMultipleAccess) {
-        //Check if index is the next frame in the given vector
-        if (index == m_currentFrames[m_currentMultipleIndex]) {
-            while(m_lastUsedIndex < (int)index) {
-                cv::Mat i;
-                m_cap.read(i);
-                m_lastUsedIndex++;
-            }
-            m_cap.read(ret);
-            m_lastUsedIndex++;
-            m_currentMultipleIndex++;
-            //Check if current access was last one
-            if (index == m_currentFrames.back()) {
-                m_multipleAccess = false;
-                m_currentMultipleIndex = 0;
-            }
-            return ret;
-        }
-        //Return emtpty mat if current request isnt the next in line
-        else {
-            cv::Mat empty;
-            return empty;
-        }
 
-    }
-    // switches between random access and consecutive access if posible
-    if (m_lastUsedIndex + 1 == index) {
-        m_cap.read(ret);
-    } else {
+    cv::Mat ret;
+
+    // Jump if:
+    // - going backwards
+    // - going forward more than MIN_JUMP_DISTANCE
+    if(index < m_currentIndex  || index >= (m_currentIndex + MIN_JUMP_DISTANCE)){
+        // jump to the desired index
         m_cap.set(cv::CAP_PROP_POS_FRAMES, index);
         m_cap.read(ret);
+        m_currentIndex = index;
+    } else {
+        // read images sequentially until index is reached
+        while(m_currentIndex < (int)index) {
+            cv::Mat i;
+            m_cap.read(i);
+            m_currentIndex++;
+        }
+        m_cap.read(ret);
+        m_currentIndex++;
     }
-    m_lastUsedIndex = index;
     return ret;
 }
 
@@ -134,9 +106,6 @@ VideoReader *VideoReader::copy()
 {
     // copy cv::VideoCapture crashes, so create new instead of copy
     VideoReader* reader =  new VideoReader(QString::fromStdString(m_path));
-    if (m_multipleAccess) {
-        reader->initMultipleAccess(m_currentFrames);
-    }
     reader->addMetaData(m_md);
     return reader;
 }

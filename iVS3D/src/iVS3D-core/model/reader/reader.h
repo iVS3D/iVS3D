@@ -28,7 +28,7 @@ public:
      * @param useMultipleAccess optinal paramter, if multipleAccess should be used (set to false by default)
      * @return cv::Mat of the selected frame
      */
-    virtual cv::Mat getPic(unsigned int index, bool useMultipleAccess = false) = 0;
+    virtual cv::Mat getPic(unsigned int index) = 0;
     /**
      * @brief Returns the number of frame
      *
@@ -73,11 +73,6 @@ public:
     virtual std::vector<std::string> getFileVector() = 0;
 
     virtual SequentialReader *createSequentialReader(std::vector<uint> indices) = 0;
-    /**
-     * @brief initMultipleAccess Enables the reader to make ordered access to the input, which will result in a faster access time
-     * @param frames Vector containing the indices of the images which will be used in ascending order
-     */
-    virtual void initMultipleAccess(const std::vector<uint> &frames) {(void) frames;};
 
     /**
      * @brief enableMultithreading This method has to be called once in the plugins to use the reader while multithreading

@@ -44,10 +44,9 @@ public:
      * @brief Returns the frame to a given index
      *
      * @param index Index of the frame to be returned
-     * @param useMultipleAccess optinal paramter, if multipleAccess should be used (set to false by default)
      * @return cv::Mat of the selected frame
      */
-    cv::Mat getPic(unsigned int index, bool useMultipleAccess = false) override;
+    cv::Mat getPic(unsigned int index) override;
     /**
      * @brief Returns the number of frame
      *
@@ -92,12 +91,14 @@ public:
      */
     std::vector<std::string> getFileVector() override;
 
-    SequentialReader *createSequentialReader(std::vector<uint> indices) override;
     /**
-     * @brief initMultipleAccess Enables the reader to make ordered access to the input, which will result in a faster access time
-     * @param frames Vector containing the indices of the images which will be used in ascending order
+     * @brief createSequentialReader Creates a SequentialReader object for the given indices.
+     * This can be used to access images concurrently if the images are known a priori.
+     * @param indices The indices of the images that will be accessed
+     * @return SequentialReader instance (caller takes ownership!)
      */
-    void initMultipleAccess(const std::vector<uint> &frames) override;    
+    SequentialReader *createSequentialReader(std::vector<uint> indices) override;
+
     /**
      * @brief addMetaData Used to add MetaData to the reader
      * @param md The MetaData to be saved
@@ -115,18 +116,12 @@ public:
     bool isValid() override;
 
 private:
-    int m_lastUsedIndex = 0;
+    int m_currentIndex = 0;
     std::string m_path;
     unsigned int m_numImages;
     cv::VideoCapture m_cap;
     bool m_isValid = false;
-
     double m_fps;
-    QMutex mutex;
-    std::vector<uint> m_currentFrames;
-    bool m_multipleAccess = false;
-    int m_currentMultipleIndex = 0;
-
     MetaData* m_md = nullptr;
 };
 

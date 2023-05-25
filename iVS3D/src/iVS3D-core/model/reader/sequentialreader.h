@@ -6,8 +6,6 @@
 #include <QMutex>
 #include <QMutexLocker>
 
-class Reader;
-
 class SequentialReader
 {
 public:

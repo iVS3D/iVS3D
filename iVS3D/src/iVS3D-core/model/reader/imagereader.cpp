@@ -34,7 +34,7 @@ ImageReader::ImageReader(QString path)
     }
 }
 
-cv::Mat ImageReader::getPic(unsigned int index, bool)
+cv::Mat ImageReader::getPic(unsigned int index)
 {
     if(index > getPicCount()){
         cv::Mat empty;

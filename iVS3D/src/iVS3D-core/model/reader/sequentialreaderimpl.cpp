@@ -19,7 +19,7 @@ bool SequentialReaderImpl::getNext(cv::Mat &image, uint &idx, int &progress)
 
     idx = m_indices[m_idx];
     image = m_reader->getPic(idx);
-    progress = 100 * m_idx / m_indices.size();
+    progress = 100 * m_idx / int(m_indices.size());
 
     m_idx++;
     return true;

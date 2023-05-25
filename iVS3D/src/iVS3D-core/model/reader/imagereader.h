@@ -42,7 +42,7 @@ public:
      * @param useMultipleAccess optinal paramter, if multipleAccess should be used (set to false by default)
      * @return cv::Mat of the selected frame
      */
-    cv::Mat getPic(unsigned int index, bool = false) override;
+    cv::Mat getPic(unsigned int index) override;
     /**
      * @brief getPicCount returns count of images in input
      * @return returns image count
