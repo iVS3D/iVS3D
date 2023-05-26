@@ -337,13 +337,7 @@ char* ExportExif::saveExif(QString path, QVariant exif)
 
     }
 
-    //End of Data
-    PNGCRC = new unsigned char[4];
-    //CRC over exifData --> without length field
-    PNGCRC[0] = 0x00;//0x26;
-    PNGCRC[1] = 0x00;//0x69;
-    PNGCRC[2] = 0x00;//0x47;
-    PNGCRC[3] = 0x00;//0x8B;
+
 
     unsigned char* exifData;
     if (useAltitude) {
@@ -384,6 +378,14 @@ char* ExportExif::saveExif(QString path, QVariant exif)
         std::memcpy(&newData[0], &PNGChunkHeader[0], 8);
         std::memcpy(&newData[8], &TIFFHeader[0], 8);
         std::memcpy(&newData[16], &exifData[0], 152);
+
+        PNGCRC = new unsigned char[4];
+        //CRC over exifData --> without length field
+        unsigned long crcLong = crc(&newData[4], 164);
+        PNGCRC[0] = (crcLong >> 24) & 0xFF;
+        PNGCRC[1] = (crcLong >> 16) & 0xFF;
+        PNGCRC[2] = (crcLong >> 8) & 0xFF;
+        PNGCRC[3] = crcLong & 0xFF;
         std::memcpy(&newData[168], &PNGCRC[0], 4);
         return newData;
     }
@@ -407,7 +409,15 @@ char* ExportExif::saveExif(QString path, QVariant exif)
         std::memcpy(&newData[0], &PNGChunkHeader[0], 8);
         std::memcpy(&newData[8], &TIFFHeader[0], 8);
         std::memcpy(&newData[16], &exifData[0], 120);
-        std::memcpy(&newData[136], &PNGCRC[0], 4);
+
+        PNGCRC = new unsigned char[4];
+        //CRC over exifData --> without length field
+        unsigned long crcLong = crc(&newData[4], 164);
+        PNGCRC[0] = (crcLong >> 24) & 0xFF;
+        PNGCRC[1] = (crcLong >> 16) & 0xFF;
+        PNGCRC[2] = (crcLong >> 8) & 0xFF;
+        PNGCRC[3] = crcLong & 0xFF;
+        std::memcpy(&newData[168], &PNGCRC[0], 4);
         return newData;
     }
 
@@ -448,6 +458,51 @@ QPair<int, int> ExportExif::getFraction(double d)
     return QPair<int, int>(numerator, denumerator);
 }
 
+
+
+/* Make the table for a fast CRC. */
+void ExportExif::make_crc_table()
+{
+  unsigned long c;
+  int n, k;
+
+  for (n = 0; n < 256; n++) {
+    c = (unsigned long) n;
+    for (k = 0; k < 8; k++) {
+      if (c & 1)
+        c = 0xedb88320L ^ (c >> 1);
+      else
+        c = c >> 1;
+    }
+    crc_table[n] = c;
+  }
+  crc_table_computed = 1;
+}
+
+/* Update a running CRC with the bytes buf[0..len-1]--the CRC
+   should be initialized to all 1's, and the transmitted value
+   is the 1's complement of the final running CRC (see the
+   crc() routine below)). */
+
+unsigned long ExportExif::update_crc(unsigned long crc, char *buf,
+                         int len)
+{
+  unsigned long c = crc;
+  int n;
+
+  if (!crc_table_computed)
+    make_crc_table();
+  for (n = 0; n < len; n++) {
+    c = crc_table[(c ^ buf[n]) & 0xff] ^ (c >> 8);
+  }
+  return c;
+}
+
+/* Return the CRC of the bytes buf[0..len-1]. */
+unsigned long ExportExif::crc(char *buf, int len)
+{
+  return update_crc(0xffffffffL, buf, len) ^ 0xffffffffL;
+}
 
 
 

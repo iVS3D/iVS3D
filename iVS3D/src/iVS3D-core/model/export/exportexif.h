@@ -51,7 +51,16 @@ private:
 
     QPair<int, int> getFraction(double d);
 
+    /* Table of CRCs of all 8-bit messages. */
+    unsigned long crc_table[256];
 
+    /* Flag: has the table been computed? Initially false. */
+    int crc_table_computed = 0;
+
+
+    void make_crc_table();
+    unsigned long update_crc(unsigned long crc, char *buf, int len);
+    unsigned long crc(char *buf, int len);
 };
 
 #endif // EXPORTEXIF_H
