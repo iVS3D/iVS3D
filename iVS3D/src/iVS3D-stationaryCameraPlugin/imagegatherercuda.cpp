@@ -10,7 +10,7 @@ cv::Mat ImageGathererCuda::gatherSingleImage(uint frameIdx)
 {
     cv::Mat readMat;
     while (readMat.empty()) {
-        readMat = m_reader->getPic(frameIdx, true);
+        readMat = m_reader->getPic(frameIdx);
     }
     cv::cuda::GpuMat gpu_downMat, gpu_greyMat, gpu_readMat(readMat);
     cv::cuda::resize(gpu_readMat, gpu_downMat, cv::Size(), m_reciprocalDownSampleFactor, m_reciprocalDownSampleFactor);

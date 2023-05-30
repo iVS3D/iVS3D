@@ -4,7 +4,6 @@ ImageGatherer::ImageGatherer(Reader *reader, double downSampleFactor, std::vecto
 {
     m_reciprocalDownSampleFactor = 1.0 / downSampleFactor;
     m_reader = reader;
-    m_reader->initMultipleAccess(futureFrames);
 }
 
 QPair<cv::Mat, cv::Mat> ImageGatherer::gatherImagePair(uint from, uint to)

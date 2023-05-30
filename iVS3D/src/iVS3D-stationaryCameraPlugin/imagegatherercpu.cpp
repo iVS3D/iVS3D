@@ -10,7 +10,7 @@ cv::Mat ImageGathererCpu::gatherSingleImage(uint frameIdx)
 {
     cv::Mat readMat, downMat, greyMat;
     while (readMat.empty()) {
-        readMat = m_reader->getPic(frameIdx, true);
+        readMat = m_reader->getPic(frameIdx);
     }
     cv::resize(readMat, downMat, cv::Size(), m_reciprocalDownSampleFactor, m_reciprocalDownSampleFactor);
     cv::cvtColor(downMat, greyMat, cv::COLOR_BGR2GRAY);
