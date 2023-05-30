@@ -24,12 +24,11 @@ class GPSReader : public MetaDataReader
 {
 public:
     /**
-     * @brief GPSReader::normaliseGPS This method will interpolate gps values (latitude, longitude, attitude) for every image
-     * @param timeItervall time in seconds which pass between two gps values
+     * @brief GPSReader::normaliseGPS This method will interpolate gps values (latitude, longitude, attitude) for every images
      * @param fps fps of the video
      * @param imageNumber number of images in the video
      */
-   void normaliseGPS(double timeItervall, double fps, uint imageNumber);
+   void normaliseGPS(double fps, uint imageNumber);
    /**
     * @brief getImageMetaData Returns parsed meta data from the index images
     * @param index Index of the image to get the meat data from
@@ -47,6 +46,7 @@ public:
    bool hasAltitudeData();
 
 
+
 protected:
    void interpolate(QHash<QString, QVariant> a, QHash<QString, QVariant> b, double t, double stepsize);
    void addGPSValue(double latitude, double longitude);
@@ -54,5 +54,6 @@ protected:
    QList<QHash<QString, QVariant>> m_GPSHashs;
    double m_altitudeDiff = 0;
    void addAltitudeDiff(int index);
+
 };
 #endif // GPSREADER_H

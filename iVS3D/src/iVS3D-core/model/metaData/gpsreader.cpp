@@ -1,7 +1,13 @@
 #include "gpsreader.h"
 
-void GPSReader::normaliseGPS(double timeItervall, double fps, uint imageNumber)
+void GPSReader::normaliseGPS(double fps, uint imageNumber)
 {
+    int exisitingValues = m_GPSHashs.size();
+    //No interpolation is needed
+    if (exisitingValues == imageNumber) {
+        return;
+    }
+    double timeIntervall = (imageNumber / (int) fps) / exisitingValues;
     QList<QHash<QString, QVariant>> GPSHashsOld = m_GPSHashs;
     m_GPSHashs.clear();
     //Caculate the timestamp of every frame
@@ -12,11 +18,11 @@ void GPSReader::normaliseGPS(double timeItervall, double fps, uint imageNumber)
     for (double t : indexToTime) {
         //Get index of gps values between which the new value will be interpolated
         //If for example timeIntervall = 1 and the timestamp of the frame is 5.78, its gps value needs to interpolated with the gps values 5 and 6
-        int aValue = std::floor(t / timeItervall);
+        int aValue = std::floor(t / 1.0);
         //Calculate how far the timestamp is away from the first gps value -> for above value we need to interpolate with t=0.78 betwenn value 5 and 6
-        double deltaT = (t / timeItervall) - aValue;
+        double deltaT = (t / 1.0) - aValue;
         //do the actuall interpolation
-        interpolate(GPSHashsOld.at(aValue), GPSHashsOld.at(aValue + 1), deltaT, timeItervall);
+        interpolate(GPSHashsOld.at(aValue), GPSHashsOld.at(aValue + 1), deltaT, 1.0);
     }
 
 }

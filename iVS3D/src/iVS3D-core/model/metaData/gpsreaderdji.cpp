@@ -53,7 +53,7 @@ bool GPSReaderDJI::parseDataVideo(QString path, int picCount, double fps)
         }
 
     }
-    normaliseGPS(1, fps, picCount);
+    normaliseGPS(fps, picCount);
     return m_GPSHashs.size() == picCount;
 }
 
