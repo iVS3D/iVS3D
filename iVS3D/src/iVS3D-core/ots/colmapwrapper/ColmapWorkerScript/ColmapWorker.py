@@ -5,6 +5,7 @@ import argparse
 import subprocess
 import shutil
 import traceback
+import pymap3d as pm
 
 from pathlib import Path
 
@@ -142,6 +143,9 @@ def computeGpsRefernceList(colmapProjectDirPath: str, sequenceName: str, geoDir:
     fout_ecef = open(os.path.join(geoDir, "ImgGpsList_ecef.txt") , 'w+')
     fout_offset = open(os.path.join(geoDir, "GpsEcefOffset.txt"), 'w+')
     fout_wgs84 = open(os.path.join(geoDir, "ImgGpsList_wgs84.txt"), 'w+')
+    fout_enu = open(os.path.join(geoDir, "ImgGpsList_enu.txt") , 'w+')
+    fout_enu_observer = open(os.path.join(geoDir, "ImgGpsList_enu_oberserver.txt") , 'w+')
+
     # write header to files
     fout_ecef.write('# FILENAME ECEF_X ECEF_Y ECEF_Z\r\n')
     fout_ecef.flush()
@@ -149,6 +153,10 @@ def computeGpsRefernceList(colmapProjectDirPath: str, sequenceName: str, geoDir:
     fout_offset.flush()
     fout_wgs84.write('# FILENAME LAT LONG ALT\r\n')
     fout_wgs84.flush()
+    fout_enu.write('# FILENAME ENU_X ENU_Y ENU_Z\r\n')
+    fout_enu.flush()
+    fout_enu_observer.write('# OFFSET_X OFFSET_Y OFFSET_Z\r\n')
+    fout_enu_observer.flush()
 
     # loop over image files
     fileList = listImgFiles(os.path.join(colmapProjectDirPath, "..", sequenceName + ".images"))
@@ -156,7 +164,9 @@ def computeGpsRefernceList(colmapProjectDirPath: str, sequenceName: str, geoDir:
     i = 0
     #sum of all gps entries to detect empty gps data
     gps_sum = 0
-    #ecef_offset_x, ecef_offset_y, ecef_offset_z
+    ecef_offset_x, ecef_offset_y, ecef_offset_z = 0, 0, 0
+    lat, lon, alt = 0, 0, 0
+    
     for imgFilename in fileList:
 
         # Open image file for reading (binary mode) and read exif tags
@@ -170,11 +180,10 @@ def computeGpsRefernceList(colmapProjectDirPath: str, sequenceName: str, geoDir:
         # get and write ECEF Offset
         # calculate offset by using first entry of gps data
         if i == 0:
-            ecef_offset_x, ecef_offset_y, ecef_offset_z = gpsEntry.toWGS84Ecef()
+            ecef_offset_x, ecef_offset_y, ecef_offset_z = gpsEntry.toWGS84Ecef()          
             fout_offset.write('{:.3f} {:.3f} {:.3f}\r\n'.format(ecef_offset_x, ecef_offset_y, ecef_offset_z))
             fout_offset.flush()
 
-        # write data
         ecef_x, ecef_y, ecef_z = gpsEntry.toWGS84Ecef()
         fout_ecef.write('{} {:.3f} {:.3f} {:.3f}\r\n'.format(os.path.basename(imgFilename), (ecef_x - ecef_offset_x), (ecef_y - ecef_offset_y), (ecef_z - ecef_offset_z)))
         gps_sum += ecef_x - ecef_offset_x + ecef_y - ecef_offset_y + ecef_z - ecef_offset_z
@@ -183,11 +192,40 @@ def computeGpsRefernceList(colmapProjectDirPath: str, sequenceName: str, geoDir:
         fout_wgs84.write('{} {} {} {}\r\n'.format(os.path.basename(imgFilename), gpsEntry.lat, gpsEntry.long, gpsEntry.alt))
         fout_wgs84.flush()
 
+        lat += gpsEntry.lat
+        lon += gpsEntry.long
+        alt += gpsEntry.alt
+
         i+=1
+    
+    lat /= i
+    lon /= i
+    alt /= i
+
+    gpsEntry = GpsEntry(lat, lon, alt)
+    ecef_offset_x, ecef_offset_y, ecef_offset_z = gpsEntry.toWGS84Ecef()   
+    fout_enu_observer.write('{:.3f} {:.3f} {:.3f}\r\n'.format(ecef_offset_x, ecef_offset_y, ecef_offset_z))
+    fout_enu_observer.flush()
+
+    for imgFilename in fileList:
+
+        # Open image file for reading (binary mode) and read exif tags
+        imgFile = open(imgFilename, 'rb')
+        tags = exifread.process_file(imgFile)
+
+        # create gps entry and read from exif
+        gpsEntry = GpsEntry(0,0,0)
+        gpsEntry.readFromExif(tags)
+
+        enu_x, enu_y, enu_z = pm.geodetic2enu(gpsEntry.lat, gpsEntry.long, gpsEntry.alt, lat, lon, alt)
+        fout_enu.write('{} {:.3f} {:.3f} {:.3f}\r\n'.format(os.path.basename(imgFilename), enu_x, enu_y, enu_z))
+        fout_enu.flush()  
 
     fout_ecef.close()
     fout_offset.close()
     fout_wgs84.close()
+    fout_enu.close()
+    fout_enu_observer.close()
 
     return int(gps_sum) != 0
 
@@ -372,7 +410,9 @@ def computeCameraPoses(colmapDatabaseFilePath: str, projectImageDir: str, colmap
             
             eta = get_eta_after_step(len(param_list))
             progressCallback(90 + i +1 , force_Write = True, eta=eta, step=3)
-
+        
+            if p.poll() != 0:
+                return False 
 
     progressCallback(95, force_Write = True)
 
@@ -396,13 +436,23 @@ def computeCameraPoses(colmapDatabaseFilePath: str, projectImageDir: str, colmap
     if success:
         # run model aligner
         print('\t> Running model aligner...')
-        print(sparse_in_path, sparse_out_path, os.path.join(colmapProjectDirPath, "01_sparse", "geo", "ImgGpsList_ecef.txt"))
+        print(sparse_in_path, sparse_out_path, os.path.join(colmapProjectDirPath, "01_sparse", "geo", "ImgGpsList_enu.txt"))
         p = subprocess.Popen([COLMAP_BIN, 
             'model_aligner',
             '--input_path', sparse_in_path,
             '--output_path', sparse_out_path,
-            '--ref_images_path', os.path.join(colmapProjectDirPath, "01_sparse", "geo", "ImgGpsList_ecef.txt"),
+            '--ref_is_gps', '0',
+            '--ref_images_path', os.path.join(colmapProjectDirPath, "01_sparse", "geo", "ImgGpsList_enu.txt"),
             '--robust_alignment', '0'], stdout=subprocess.PIPE) 
+        
+        while p.poll() is None:
+            output = p.stdout.readline()
+            if output != b"":
+                line = output.strip().decode("utf-8")
+                print(line) 
+        
+        if p.poll() != 0:
+            return False 
 
     # copy output data
     if os.path.exists(os.path.join(colmapProjectDirPath, "01_sparse", "geo", "sparse_out", "cameras.bin")):
@@ -411,6 +461,19 @@ def computeCameraPoses(colmapDatabaseFilePath: str, projectImageDir: str, colmap
             os.path.join(projectOutputDirPath, sequenceName + "_cameras.bin")) 
         shutil.copy(os.path.join(colmapProjectDirPath, "01_sparse", "geo", "sparse_out", "images.bin"), 
             os.path.join(projectOutputDirPath, sequenceName + "_images.bin")) 
+
+        
+        shutil.copy(os.path.join(colmapProjectDirPath, "01_sparse", "geo", "ImgGpsList_ecef.txt"), 
+            os.path.join(projectOutputDirPath, "ImgGpsList_ecef.txt")) 
+        shutil.copy(os.path.join(colmapProjectDirPath, "01_sparse", "geo", "GpsEcefOffset.txt"), 
+            os.path.join(projectOutputDirPath, "GpsEcefOffset.txt")) 
+        shutil.copy(os.path.join(colmapProjectDirPath, "01_sparse", "geo", "ImgGpsList_enu.txt"), 
+            os.path.join(projectOutputDirPath, "ImgGpsList_enu.txt")) 
+        shutil.copy(os.path.join(colmapProjectDirPath, "01_sparse", "geo", "ImgGpsList_enu_oberserver.txt"), 
+            os.path.join(projectOutputDirPath, "ImgGpsList_enu_oberserver.txt")) 
+        shutil.copy(os.path.join(colmapProjectDirPath, "01_sparse", "geo", "ImgGpsList_wgs84.txt"), 
+            os.path.join(projectOutputDirPath, "ImgGpsList_wgs84.txt")) 
+     
     else:
 
         shutil.copy(os.path.join(colmapProjectDirPath, "01_sparse", "geo", "sparse_in", "cameras.bin"), 
@@ -441,18 +504,26 @@ def computeDenseCloud(projectImageDir: str, colmapProjectDirPath: str, projectOu
     if quality == 0:
         maxImgSize = 1280
     elif quality == 1:
-        maxImgSize = 1920
-    elif quality == 2:
-        maxImgSize = 1920 * 4
+        maxImgSize = 1920    
     else:
         maxImgSize = 1920 * 100
 
+
+    input_path = os.path.join(colmapProjectDirPath, "01_sparse", "0")
+    
+    # check if geo registration was successfull 
+    input_path_geo_images_bin = os.path.join(colmapProjectDirPath, "01_sparse", "geo", "sparse_out", "images.bin")
+
+    if os.path.exists(input_path_geo_images_bin):
+        input_path = os.path.join(colmapProjectDirPath, "01_sparse", "geo", "sparse_out")
+
+        
     # run image undistorter
     print('\t> Running image undistorter...')
     p = subprocess.Popen([COLMAP_BIN, 
         "image_undistorter", 
         "--image_path", projectImageDir,
-        "--input_path", os.path.join(colmapProjectDirPath, "01_sparse", "0"),
+        "--input_path", input_path,
         "--output_path", os.path.join(colmapProjectDirPath, "02_dense"),
         "--output_type", "COLMAP",
         "--max_image_size", str(maxImgSize)], stdout=subprocess.PIPE)     
@@ -554,47 +625,9 @@ def computeDenseCloud(projectImageDir: str, colmapProjectDirPath: str, projectOu
         return False 
 
     progressCallback(95, force_Write=True)
-
-    # run georegistration
-    dense_in_path = os.path.join(colmapProjectDirPath, "02_dense", "geo", "dense_in")
-    if not os.path.exists(dense_in_path):
-        os.makedirs(dense_in_path)
-
-    dense_out_path = os.path.join(colmapProjectDirPath, "02_dense", "geo", "dense_out")
-    if not os.path.exists(dense_out_path):
-        os.makedirs(dense_out_path)
-
-    # copy data
-    copytree(os.path.join(colmapProjectDirPath, "02_dense", "sparse"), dense_in_path, dirs_exist_ok=True) 
-
-    # compute reference informaion
-    success = computeGpsRefernceList(colmapProjectDirPath, sequenceName, os.path.join(colmapProjectDirPath, "02_dense", "geo"))
-
-    # running model aligner if computeGpsRefernceList was successfull
-    if success:
-        # run model aligner
-        print('\t> Running model aligner...')
-        p = subprocess.Popen([COLMAP_BIN, 
-            'model_aligner',
-            '--input_path', dense_in_path,
-            '--output_path', dense_out_path,
-            '--ref_images_path', os.path.join(colmapProjectDirPath, "02_dense", "geo", "ImgGpsList_ecef.txt"),
-            '--robust_alignment', '0'], stdout=subprocess.PIPE) 
-
-        # run model_converter fusion
-        print('\t> Running model converter...')
-
-        if os.path.exists(os.path.join(dense_out_path, "cameras.bin")):        
-            p = subprocess.Popen([COLMAP_BIN, 
-                'model_converter',
-                '--input_path', dense_out_path,
-                '--output_path', os.path.join(colmapProjectDirPath, "02_dense", "fused.ply"),
-                '--output_type', "PLY"], stdout=subprocess.PIPE) 
-
-  
+     
     # copy result
     shutil.copy(os.path.join(colmapProjectDirPath, "02_dense", "fused.ply"),  os.path.join(projectOutputDirPath, "dense_point_cloud.ply")) 
-    shutil.copy(os.path.join(colmapProjectDirPath, "02_dense", "geo", "GpsEcefOffset.txt"), projectOutputDirPath) 
 
     progressCallback(100)
 
@@ -614,14 +647,7 @@ def computeMeshedModel(projectImageDir: str, colmapProjectDirPath: str, projectO
     max_threads = parameterList['max_threads']
 
     progressCallback(0, force_Write = True)
-
-    if os.listdir(os.path.join(colmapProjectDirPath, "02_dense", "geo", "dense_out")):
-        # to load the georegistered sparse model, the regular one has to be renamed
-        os.rename(os.path.join(colmapProjectDirPath, "02_dense","sparse"), os.path.join(colmapProjectDirPath, "02_dense","sparse2"))
-
-        # TODO check Windows compatibility
-        os.symlink(os.path.join(colmapProjectDirPath, "02_dense", "geo", "dense_out"), os.path.join(colmapProjectDirPath, "02_dense", "sparse"))
-
+  
     # TODO check Windows compatibility
     if not os.path.exists(os.path.join(colmapProjectDirPath, "03_mesh", "images")):
         os.symlink(os.path.join(colmapProjectDirPath, "02_dense", "images"), os.path.join(colmapProjectDirPath, "03_mesh", "images"))
@@ -629,7 +655,7 @@ def computeMeshedModel(projectImageDir: str, colmapProjectDirPath: str, projectO
     print(" Interface COLMAP")
     interface_colmap_bin_path = os.path.join(OPENMVS_BIN_FOLDER, "InterfaceCOLMAP")
     if not os.path.exists(interface_colmap_bin_path):
-        raise Exception("OpenMVS InterfaceCOLMAP binary not exist")
+        raise Exception("OpenMVS InterfaceCOLMAP binary does not exist")
     
     interface_colmap_dir = os.path.join(colmapProjectDirPath, "03_mesh", "interface_colmap")
     if not os.path.exists(interface_colmap_dir):
@@ -671,7 +697,7 @@ def computeMeshedModel(projectImageDir: str, colmapProjectDirPath: str, projectO
     print(" Reconstruct Mesh")
     reconstruct_mesh_bin_path = os.path.join(OPENMVS_BIN_FOLDER, "ReconstructMesh")
     if not os.path.exists(reconstruct_mesh_bin_path):
-        raise Exception("OpenMVS ReconstructMesh binary not exist")
+        raise Exception("OpenMVS ReconstructMesh binary does not exist")
     
     reconstruct_mesh_dir = os.path.join(colmapProjectDirPath, "03_mesh", "mesh")
     if not os.path.exists(reconstruct_mesh_dir):
@@ -724,7 +750,7 @@ def computeMeshedModel(projectImageDir: str, colmapProjectDirPath: str, projectO
     refine_mesh_dir = os.path.join(colmapProjectDirPath, "03_mesh", "refine_mesh")
 
     # does not seem to contribute to better quality in all scenes
-    if quality > 0 and False:
+    if quality > 1:
         decimate_ratio = 0   
 
         if file_size_in_MB < 50:
@@ -744,7 +770,7 @@ def computeMeshedModel(projectImageDir: str, colmapProjectDirPath: str, projectO
         print(" Refine Mesh")
         refine_mesh_bin_path = os.path.join(OPENMVS_BIN_FOLDER, "RefineMesh")
         if not os.path.exists(refine_mesh_bin_path):
-            raise Exception("OpenMVS RefineMesh binary not exist")
+            raise Exception("OpenMVS RefineMesh binary does not exist")
         
         refine_mesh_dir = os.path.join(colmapProjectDirPath, "03_mesh", "refine_mesh")
         if not os.path.exists(refine_mesh_dir):
@@ -809,20 +835,37 @@ def computeMeshedModel(projectImageDir: str, colmapProjectDirPath: str, projectO
         else:
             decimate_ratio = 0
 
+    min_resolution = 720
     if quality == 0:  
-        resolution_level = 10
+        resolution_level = 100
         patch_packing_heuristic = 100
     elif quality == 1:
-        resolution_level = 1
+        resolution_level = 100    
+        min_resolution = 1280    
         patch_packing_heuristic = 50
     elif quality == 2:
-        resolution_level = 0
+        resolution_level = 100
+        min_resolution = 1920
         patch_packing_heuristic = 10
         virtual_face_images = 3
     elif quality > 2:
         resolution_level = 0
+        min_resolution = 1920 * 4
         patch_packing_heuristic = 3
         virtual_face_images = 3
+
+    orthographic_image_resolution = 0
+    # generate orthophoto if scene is georegistered
+    if os.path.exists(os.path.join(projectOutputDirPath, "ImgGpsList_enu_oberserver.txt")):
+        if quality == 0:  
+            orthographic_image_resolution = 1920
+        elif quality == 1:
+            orthographic_image_resolution = 1920 * 4
+        elif quality == 2:            
+            orthographic_image_resolution = 1920 * 8   
+        elif quality > 2:
+            orthographic_image_resolution = 1920 * 16
+
 
     args = [texture_mesh_bin_path, 
         "--working-folder", texture_mesh_dir,
@@ -832,10 +875,12 @@ def computeMeshedModel(projectImageDir: str, colmapProjectDirPath: str, projectO
         "--empty-color", "2302740",
         "--decimate", str(decimate_ratio),
         "--resolution-level",  str(resolution_level),
+        "--min-resolution", str(min_resolution),
         "--virtual-face-images", str(virtual_face_images),
         "--patch-packing-heuristic", str(patch_packing_heuristic),
         "--global-seam-leveling", str(global_seam_leveling),
         "--local-seam-leveling", str(local_seam_leveling),
+        "--orthographic-image-resolution", str(orthographic_image_resolution),
         "--verbosity", "4",
         "--max-threads", max_threads]
    
@@ -868,6 +913,8 @@ def computeMeshedModel(projectImageDir: str, colmapProjectDirPath: str, projectO
     shutil.copy(os.path.join(colmapProjectDirPath, "03_mesh", "texture", "textured_mesh.obj"),  os.path.join(projectOutputDirPath, "textured_mesh.obj")) 
     shutil.copy(os.path.join(colmapProjectDirPath, "03_mesh", "texture", "textured_mesh_material_0_map_Kd.jpg"),  os.path.join(projectOutputDirPath, "textured_mesh_material_0_map_Kd.jpg")) 
     shutil.copy(os.path.join(colmapProjectDirPath, "03_mesh", "texture", "textured_mesh.mtl"),  os.path.join(projectOutputDirPath, "textured_mesh.mtl")) 
+    if os.path.exists(os.path.join(colmapProjectDirPath, "03_mesh", "texture", "textured_mesh_orthomap.png")):
+        shutil.copy(os.path.join(colmapProjectDirPath, "03_mesh", "texture", "textured_mesh_orthomap.png"),  os.path.join(projectOutputDirPath, "textured_mesh_orthomap.png"))
 
     progressCallback(100, force_Write = True)
 

@@ -1,5 +1,5 @@
-#ifndef GPSREADERDJI_H
-#define GPSREADERDJI_H
+#ifndef GPSREADERDJIMAVIC_H
+#define GPSREADERDJIMAVIC_H
 
 #include "gpsreader.h"
 #include "metadatamanager.h"
@@ -10,22 +10,22 @@
 #include <QPointF>
 
 /**
- * @interface GPSReaderDJI
+ * @interface GPSReaderDJI2
  *
  * @ingroup Model
  *
- * @brief Class to parse meta data from DJI drones
+ * @brief Class to parse meta data from DJI Mavic drones
  *
- * @author Daniel Brommer
+ * @author Max Hermann
  *
- * @date 2022/01/09
+ * @date 2023/06/06
  */
 
-class GPSReaderDJI : public GPSReader
+class GPSReaderDJIMavic : public GPSReader
 {
 public:
-    GPSReaderDJI();
-    ~GPSReaderDJI();
+    GPSReaderDJIMavic();
+    ~GPSReaderDJIMavic();
 
     /**
      * @brief getName Returns name of meta data
@@ -44,10 +44,10 @@ public:
 
 private:
     bool parseLine(QString line);
-    QString m_name = "GPSReaderDJI";
+    QString m_name = "GPSReaderDJIMavic";
     void print(QList<QHash<QString, QVariant>> a, QString path);
 };
 
-REGISTER_METAREADER("GPSReaderDJI", GPSReaderDJI)
+REGISTER_METAREADER("GPSReaderDJIMavic", GPSReaderDJIMavic)
 
-#endif // GPSREADERDJI_H
+#endif // GPSREADERDJIMAVIC_H
