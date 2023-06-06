@@ -28,18 +28,14 @@ class GpsEntry:
 
         # compute sign
         sign = 1
-        if re.match('[swSW]', str(coord_ref)):
+        if re.search('[swSW]', str(coord_ref)):
             sign = -1
 
-        deg = int(str(coord_tuple.values[0]))
-        min = float(str(coord_tuple.values[1]))
-        sec = float(coord_tuple.values[2].num) / float(coord_tuple.values[2].den)
+        degree = int(str(coord_tuple.values[0]))
+        minute = float(str(coord_tuple.values[1]))
+        second = float(coord_tuple.values[2].num) / float(coord_tuple.values[2].den)
 
-        #split second into integer and decimal
-        sec_i, sec_d = divmod(sec,1)
-
-        # compute decimal value
-        return sign * deg + min / 60 + float(sec_i) / 3600 + float(sec_d) / 36000
+        return sign * (int(degree) + float(minute) / 60 + float(second) / 3600)
 
     def readFromExif(self, exifData):
         lat_tuple = self._get_if_exist(exifData, 'GPS GPSLatitude')
