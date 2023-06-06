@@ -42,7 +42,7 @@ bool VideoReader::isValid()
 
 cv::Mat VideoReader::getPic(unsigned int index)
 {
-//    QMutexLocker locker(&m_mutex);
+    QMutexLocker locker(&m_mutex);
 
     // minimum distance from the current index in the video to the next index for jumping.
     // If the distance to the next index is less, reading frame by frame is faster
