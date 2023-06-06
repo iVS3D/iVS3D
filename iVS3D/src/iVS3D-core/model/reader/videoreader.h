@@ -123,6 +123,8 @@ private:
     bool m_isValid = false;
     double m_fps;
     MetaData* m_md = nullptr;
+
+    QMutex m_mutex;
 };
 
 REGISTER_READER("VideoReader", VideoReader)

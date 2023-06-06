@@ -8,6 +8,9 @@
 #include <opencv2/cudawarping.hpp>
 #include <opencv2/cudaimgproc.hpp>
 
+#include <QElapsedTimer>
+#include <QDebug>
+
 /**
  * @class ImageGathererCuda
  *

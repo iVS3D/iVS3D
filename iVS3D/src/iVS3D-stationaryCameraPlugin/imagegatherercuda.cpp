@@ -9,9 +9,10 @@ ImageGathererCuda::ImageGathererCuda(Reader *reader, double downSampleFactor, st
 cv::Mat ImageGathererCuda::gatherSingleImage(uint frameIdx)
 {
     cv::Mat readMat;
-    while (readMat.empty()) {
-        readMat = m_reader->getPic(frameIdx);
-    }
+    readMat = m_reader->getPic(frameIdx);
+
+    QElapsedTimer timer;
+    timer.start();
     cv::cuda::GpuMat gpu_downMat, gpu_greyMat, gpu_readMat(readMat);
     cv::cuda::resize(gpu_readMat, gpu_downMat, cv::Size(), m_reciprocalDownSampleFactor, m_reciprocalDownSampleFactor);
     cv::cuda::cvtColor(gpu_downMat, gpu_greyMat, cv::COLOR_BGR2GRAY);
@@ -21,5 +22,6 @@ cv::Mat ImageGathererCuda::gatherSingleImage(uint frameIdx)
     gpu_greyMat.release();
     gpu_greyMat.release();
     cv::cuda::resize(gpu_readMat, gpu_downMat, cv::Size(), m_reciprocalDownSampleFactor, m_reciprocalDownSampleFactor);
+    qDebug() << "resize time: " << timer.elapsed() << "ms";
     return outMat;
 }
