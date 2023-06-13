@@ -46,6 +46,7 @@ class EXIFInfo {
   //          error code otherwise, as defined by the PARSE_EXIF_ERROR_* macros
   int parseFrom(const unsigned char *data, unsigned length);
   int parseFrom(const std::string &data);
+  int parseFromPNG(const unsigned char *data, unsigned length);
 
   // Parsing function for an EXIF segment. This is used internally by parseFrom()
   // but can be called for special cases where only the EXIF section is
@@ -151,9 +152,11 @@ class EXIFInfo {
 
 // Parse was successful
 #define PARSE_EXIF_SUCCESS                    0
+// No PNG markers found in buffer, possibly invalid PNG file
+#define PARSE_EXIF_ERROR_NO_PNG              1981
 // No JPEG markers found in buffer, possibly invalid JPEG file
 #define PARSE_EXIF_ERROR_NO_JPEG              1982
-// No EXIF header found in JPEG file.
+// No EXIF header found in file.
 #define PARSE_EXIF_ERROR_NO_EXIF              1983
 // Byte alignment specified in EXIF file was unknown (not Motorola or Intel).
 #define PARSE_EXIF_ERROR_UNKNOWN_BYTEALIGN    1984

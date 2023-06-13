@@ -456,13 +456,60 @@ int easyexif::EXIFInfo::parseFrom(const unsigned char *buf, unsigned len) {
 
 int easyexif::EXIFInfo::parseFrom(const string &data) {
   return parseFrom(
-      reinterpret_cast<const unsigned char *>(data.data()), static_cast<unsigned>(data.length()));
+              reinterpret_cast<const unsigned char *>(data.data()), static_cast<unsigned>(data.length()));
+}
+
+//
+// Locates the EXIF segment and parses it using parseFromEXIFSegment
+//
+int easyexif::EXIFInfo::parseFromPNG(const unsigned char *buf, unsigned int len)
+{
+    // Sanity check: all PNG files start with 0x89504E0D0A1A0A.
+    if (!buf || len < 32) return PARSE_EXIF_ERROR_NO_PNG;
+    if (buf[0] != 0x89 || buf[1] != 0x50 || buf[2] != 0x4E || buf[3] != 0x47 ||
+            buf[4] != 0x0D || buf[5] != 0x0A || buf[6] != 0x1A || buf[7] != 0x0A) return PARSE_EXIF_ERROR_NO_PNG;
+
+    // Sanity check: PNG ends with the IEND chunk and the corresponding CRC 0xAE 0x42 0x60 0x82
+    while (len > 8) {
+      if (buf[len - 1] == 0x82 && buf[len - 2] == 0x60 && buf[len - 3] == 0x42 && buf[len - 4] == 0xAE
+              && buf[len - 5] == 0x44 && buf[len - 6] == 0x4E && buf[len - 7] == 0x45 && buf[len - 8] == 0x49)
+        break;
+      len--;
+    }
+    if (len < 8)
+      return PARSE_EXIF_ERROR_NO_PNG;
+
+    clear();
+
+    // Scan for EXIF chunk header (bytes 0x65 0x58 0x49 0x66).
+    // The marker length data is in Motorola byte order, which results in the 'false' parameter to parse32().
+    // The length of the exif chunk are stored in the 4 bytes before the "eXIf" string
+    // The marker has to contain at least the TIFF header, otherwise the
+    // EXIF data is corrupt. So the minimum length specified here has to be:
+    //   4 bytes: "eXIf" string
+    //   2 bytes: TIFF header (either "II" or "MM" string)
+    //   2 bytes: TIFF magic (short 0x2a00 in Motorola byte order)
+    //   4 bytes: Offset to first IFD
+    // =========
+    //  12 bytes
+    unsigned offs = 0;  // current offset into buffer
+    for (offs = 0; offs < len - 1; offs++)
+      if (buf[offs] == 0x65 && buf[offs + 1] == 0x58 && buf[offs + 2] == 0x49 && buf[offs + 3] == 0x66) break;
+    if (offs + 4 > len) return PARSE_EXIF_ERROR_NO_PNG;
+    offs -= 4;
+    unsigned short section_length = parse_value<uint32_t>(buf + offs, false);
+    if (offs + section_length > len || section_length < 12)
+      return PARSE_EXIF_ERROR_CORRUPT;
+    offs += 4;
+
+    return parseFromEXIFSegment(buf + offs, len - offs);
+
 }
 
 //
 // Main parsing function for an EXIF segment.
 //
-// PARAM: 'buf' start of the EXIF TIFF, which must be the bytes "Exif\0\0".
+// PARAM: 'buf' start of the EXIF TIFF, which are the bytes "Exif\0\0" in a JPEG file and "eXIf" in a PNG file.
 // PARAM: 'len' length of buffer
 //
 int easyexif::EXIFInfo::parseFromEXIFSegment(const unsigned char *buf,
@@ -471,8 +518,18 @@ int easyexif::EXIFInfo::parseFromEXIFSegment(const unsigned char *buf,
   unsigned offs = 0;       // current offset into buffer
   if (!buf || len < 6) return PARSE_EXIF_ERROR_NO_EXIF;
 
-  if (!std::equal(buf, buf + 6, "Exif\0\0")) return PARSE_EXIF_ERROR_NO_EXIF;
-  offs += 6;
+  if (std::equal(buf, buf + 6, "Exif\0\0")) {
+      //JPEG
+      offs += 6;
+  }
+  else if (std::equal(buf, buf + 4, "eXIf")) {
+      //PNG
+      offs += 4;
+  }
+  else {
+    return PARSE_EXIF_ERROR_NO_EXIF;
+  }
+
 
   // Now parsing the TIFF header. The first two bytes are either "II" or
   // "MM" for Intel or Motorola byte alignment. Sanity check by parsing
