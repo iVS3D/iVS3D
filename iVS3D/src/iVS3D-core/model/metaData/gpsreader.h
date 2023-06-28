@@ -7,6 +7,7 @@
 #include <QPointF>
 #include <QHash>
 #include <QVariant>
+#include <QGeoCoordinate>
 
 /**
  * @interface GPSReader
@@ -48,12 +49,17 @@ public:
 
 
 protected:
-   void interpolate(QHash<QString, QVariant> a, QHash<QString, QVariant> b, double t, double stepsize);
    void addGPSValue(double latitude, double longitude);
    void addGPSValue(double latitude, double longitude, double altitude);
    QList<QHash<QString, QVariant>> m_GPSHashs;
    double m_altitudeDiff = 0;
    void addAltitudeDiff(int index);
+   void interpolateMissingData(QList<int> missingMetaData);
+   const int MAX_GAP_SIZE = 5;
+
+private:
+   QGeoCoordinate interpolateSingle(QHash<QString, QVariant> a, QHash<QString, QVariant> b, double t, double stepsize);
+   QHash<QString, QVariant> createGPSHash(double latitude, double longitude, double altitude = DBL_MAX);
 
 };
 #endif // GPSREADER_H
