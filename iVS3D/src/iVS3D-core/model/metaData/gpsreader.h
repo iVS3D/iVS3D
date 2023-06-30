@@ -4,6 +4,7 @@
 #include "metadatareader.h"
 #include "stringcontainer.h"
 #include <cmath>
+#include <cfloat>
 #include <QPointF>
 #include <QHash>
 #include <QVariant>
