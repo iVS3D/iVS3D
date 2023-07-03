@@ -67,10 +67,9 @@ cv::Mat VideoReader::getPic(unsigned int index)
         m_cap.read(ret);
         m_currentIndex = index;
     } else {
-        // read images sequentially until index is reached
-        while(m_currentIndex < (int)index) {
-            cv::Mat i;
-            m_cap.read(i);
+        // grab images sequentially until index is reached
+        while(m_currentIndex < (int)index-1) {
+            m_cap.grab();
             m_currentIndex++;
         }
         m_cap.read(ret);
