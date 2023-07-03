@@ -47,6 +47,11 @@ QString AlgorithmManager::getPluginFileNameToIndex(int index)
 
 QString AlgorithmManager::getPluginNameFromFileName(QString FileName)
 {
+    // Export doesnt have a plugin file for translation
+    if (FileName == "Export") {
+        return FileName;
+    }
+
     int index = m_pluginFileNames.indexOf(FileName);
     return m_algorithmList.at(index)->getName();
 }
