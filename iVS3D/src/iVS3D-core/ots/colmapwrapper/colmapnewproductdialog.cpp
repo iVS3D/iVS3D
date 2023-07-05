@@ -28,10 +28,7 @@ NewProductDialog::NewProductDialog(ColmapWrapper *ipWrapper, QWidget *parent)
             &QPushButton::clicked,
             this,
             &NewProductDialog::onPbSelectImageDirectoryClicked);
-    connect(ui->cb_sequenceName,
-            &QComboBox::currentTextChanged,
-            this,
-            &NewProductDialog::onCbCurrentTextChanged);
+
     connect(ui->cb_prodCameraPoses,
             &QCheckBox::clicked,
             this,
@@ -60,19 +57,6 @@ NewProductDialog::NewProductDialog(ColmapWrapper *ipWrapper, QWidget *parent)
 NewProductDialog::~NewProductDialog()
 {
     delete ui;
-}
-
-//==================================================================================================
-void NewProductDialog::onCbCurrentTextChanged(QString currentText)
-{
-    //--- get current index of text
-    size_t currIdx = ui->cb_sequenceName->findText(currentText);
-
-    //--- if current index is -1, i.e. new name, clear image path.
-    //--- Otherwise, load image path according to sequence.
-    if (currIdx != -1 && mAvailableSeqs.size() > currIdx) {
-        ui->le_imagePath->setText(QString::fromStdString(mAvailableSeqs.at(currIdx).imagePath));
-    }
 }
 
 //==================================================================================================
@@ -166,13 +150,13 @@ void NewProductDialog::onAccepted()
     mNewJobList.clear();
 
     //--- if no sequence name and image path is provided no jobs are stored
-    if (ui->cb_sequenceName->currentText().isEmpty() && ui->le_imagePath->text().isEmpty())
+    if (ui->le_sequenceName->text().isEmpty() && ui->le_imagePath->text().isEmpty())
         return;
 
     //--- lambda to creat new job
     auto createJob = [this](ColmapWrapper::EProductType productType) -> ColmapWrapper::SJob {
         ColmapWrapper::SJob newJob;
-        newJob.sequenceName = this->ui->cb_sequenceName->currentText().toStdString();
+        newJob.sequenceName = this->ui->le_sequenceName->text().toStdString();
         newJob.product = productType;
         newJob.state = ColmapWrapper::JOB_PENDING;
         newJob.progress = 0;
@@ -183,7 +167,7 @@ void NewProductDialog::onAccepted()
 
     if (mpColmapWrapper->connectionType() == ColmapWrapper::SSH) {
         //--- compute image path from sequence name
-        QString genericDirPath = "%1/" + ui->cb_sequenceName->currentText() + ".images";
+        QString genericDirPath = "%1/" + ui->le_sequenceName->text() + ".images";
         QString displayDirPath = genericDirPath.arg(
             QUrl(mpColmapWrapper->remoteWorkspacePath()).toString(QUrl::StripTrailingSlash));
         QString importDirPath = genericDirPath.arg(
@@ -385,15 +369,9 @@ void NewProductDialog::onShow()
     //--- enable pushbutton only if connection type is local
     //ui->pb_selectImagePath->setEnabled(mpColmapWrapper->connectionType() == ColmapWrapper::LOCAL);
 
-    //--- add squence list to combo box
-    for (ColmapWrapper::SSequence seq : mAvailableSeqs) {
-        if (ui->cb_sequenceName->findText(QString::fromStdString(seq.name)) == -1)
-            ui->cb_sequenceName->addItem(QString::fromStdString(seq.name));
-    }
-    ui->cb_sequenceName->setCurrentIndex(-1);
     ui->le_imagePath->setText("");
     if (!mpColmapWrapper->getLocalPresetSequence().name.empty()) {
-        ui->cb_sequenceName->setEditText(
+        ui->le_sequenceName->setText(
             QString::fromStdString(mpColmapWrapper->getLocalPresetSequence().name));
         ui->le_imagePath->setText(
             QString::fromStdString(mpColmapWrapper->getLocalPresetSequence().imagePath));
