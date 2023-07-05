@@ -36,7 +36,7 @@ class OpenCvYamlDumper(yaml.Dumper):
 #---------------------------------------------------------------------------------------------------------------------
 # Class representing specific job
 class Job:
-    def __init__(self, sequenceName: str, productType: int, jobState: int, progress: int, parameterList: dict) -> None:
+    def __init__(self, sequenceName: str, productType: str, jobState: str, progress: str, parameterList: dict) -> None:
         self.sequenceName = sequenceName
         self.productType = productType
         self.jobState = jobState
@@ -50,11 +50,11 @@ class Job:
 
     def getProductTypeStr(self) -> str:
         productNames = ['CAMERA_POSES', 'DENSE_CLOUD', 'MESHED_MODEL']
-        return productNames[self.productType]
+        return productNames[int(self.productType)]
 
     def getJobStateStr(self) -> str:
         stateNames = ['JOB_DONE', 'JOB_RUNNING', 'JOB_PENDING', 'JOB_FAILED']
-        return stateNames[self.jobState]
+        return stateNames[int(self.jobState)]
 #---------------------------------------------------------------------------------------------------------------------
 
 ######################################################################################################################
@@ -276,7 +276,7 @@ def computeCameraPoses(colmapDatabaseFilePath: str, projectImageDir: str, colmap
     camModel = parameterList['camera_model']
     singleCam = parameterList['single_camera']
     multiModels = parameterList['multiple_models']
-    gpus = parameterList['gpus']
+    gpus = parameterList['gpus'].replace("_",",")
     max_focal_length_ratio = parameterList['max_focal_length_ratio']
     camera_params= parameterList['camera_params']
     robust_mode = parameterList['robust_mode']
@@ -396,7 +396,7 @@ def computeCameraPoses(colmapDatabaseFilePath: str, projectImageDir: str, colmap
                 "bundle_adjuster", 
                 "--input_path", os.path.join(colmapProjectDirPath, "01_sparse", "0"),
                 "--output_path", os.path.join(colmapProjectDirPath, "01_sparse", "0"),
-                "--BundleAdjustment.max_num_iterations", "1000",
+                "--BundleAdjustment.max_num_iterations", "200",
                 "--BundleAdjustment.refine_focal_length", params[0],
                 "--BundleAdjustment.refine_principal_point", params[1],
                 "--BundleAdjustment.refine_extra_params", params[2],
@@ -496,7 +496,7 @@ def computeDenseCloud(projectImageDir: str, colmapProjectDirPath: str, projectOu
     progressCallback(0)
 
     cacheSize = parameterList['cache_size']
-    gpus = parameterList['gpus']
+    gpus = parameterList['gpus'].replace("_",",")
     # quality 0 - 3 lower is faster
     quality = int(parameterList['quality'])
 
@@ -749,7 +749,6 @@ def computeMeshedModel(projectImageDir: str, colmapProjectDirPath: str, projectO
 
     refine_mesh_dir = os.path.join(colmapProjectDirPath, "03_mesh", "refine_mesh")
 
-    # does not seem to contribute to better quality in all scenes
     if quality > 1:
         decimate_ratio = 0   
 
@@ -830,27 +829,23 @@ def computeMeshedModel(projectImageDir: str, colmapProjectDirPath: str, projectO
         file_stats = os.stat(input_file)
         file_size_in_MB = file_stats.st_size / (1024 * 1024)  
 
-        if file_size_in_MB < 50 or quality > 2:
+        if file_size_in_MB < 50 or quality > 1:
             decimate_ratio = 1 
-        else:
-            decimate_ratio = 0
-
-    min_resolution = 720
+  
+    min_resolution = 1280
     if quality == 0:  
         resolution_level = 100
         patch_packing_heuristic = 100
     elif quality == 1:
         resolution_level = 100    
-        min_resolution = 1280    
+        min_resolution = 1920    
         patch_packing_heuristic = 50
     elif quality == 2:
         resolution_level = 100
-        min_resolution = 1920
+        min_resolution = 1920 * 2
         patch_packing_heuristic = 10
-        virtual_face_images = 3
     elif quality > 2:
         resolution_level = 0
-        min_resolution = 1920 * 4
         patch_packing_heuristic = 3
         virtual_face_images = 3
 
@@ -860,12 +855,11 @@ def computeMeshedModel(projectImageDir: str, colmapProjectDirPath: str, projectO
         if quality == 0:  
             orthographic_image_resolution = 1920
         elif quality == 1:
-            orthographic_image_resolution = 1920 * 4
+            orthographic_image_resolution = 1920 * 2
         elif quality == 2:            
-            orthographic_image_resolution = 1920 * 8   
+            orthographic_image_resolution = 1920 * 4   
         elif quality > 2:
-            orthographic_image_resolution = 1920 * 16
-
+            orthographic_image_resolution = 1920 * 100
 
     args = [texture_mesh_bin_path, 
         "--working-folder", texture_mesh_dir,
@@ -884,6 +878,18 @@ def computeMeshedModel(projectImageDir: str, colmapProjectDirPath: str, projectO
         "--verbosity", "4",
         "--max-threads", max_threads]
    
+    # check if option "max-texture-size" is available    
+    output = str(subprocess.run([texture_mesh_bin_path, "-h"], check=False, stdout=subprocess.PIPE).stdout)       
+     
+    if "max-texture-size" in output:
+        max_texture_size = 1920
+        if quality > 2:
+            max_texture_size = 1920 * 100
+        else:
+            max_texture_size = 1920 * 2
+
+        args.extend(["--max-texture-size", str(max_texture_size)])
+
     p = subprocess.Popen(args, stdout=subprocess.PIPE) 
     
     while p.poll() is None:
@@ -913,8 +919,8 @@ def computeMeshedModel(projectImageDir: str, colmapProjectDirPath: str, projectO
     shutil.copy(os.path.join(colmapProjectDirPath, "03_mesh", "texture", "textured_mesh.obj"),  os.path.join(projectOutputDirPath, "textured_mesh.obj")) 
     shutil.copy(os.path.join(colmapProjectDirPath, "03_mesh", "texture", "textured_mesh_material_0_map_Kd.jpg"),  os.path.join(projectOutputDirPath, "textured_mesh_material_0_map_Kd.jpg")) 
     shutil.copy(os.path.join(colmapProjectDirPath, "03_mesh", "texture", "textured_mesh.mtl"),  os.path.join(projectOutputDirPath, "textured_mesh.mtl")) 
-    if os.path.exists(os.path.join(colmapProjectDirPath, "03_mesh", "texture", "textured_mesh_orthomap.png")):
-        shutil.copy(os.path.join(colmapProjectDirPath, "03_mesh", "texture", "textured_mesh_orthomap.png"),  os.path.join(projectOutputDirPath, "textured_mesh_orthomap.png"))
+    if os.path.exists(os.path.join(colmapProjectDirPath, "03_mesh", "texture", "textured_mesh_orthomap.jpg")):
+        shutil.copy(os.path.join(colmapProjectDirPath, "03_mesh", "texture", "textured_mesh_orthomap.jpg"),  os.path.join(projectOutputDirPath, "textured_mesh_orthomap.jpg"))
 
     progressCallback(100, force_Write = True)
 
@@ -951,13 +957,13 @@ def loadYaml_raw(yamlFilePath: str):
     with open(yamlFilePath, 'r') as iStream:
         data = iStream.read()
         try:
-            yamlObj = yaml.safe_load(data[len(OPENCV_YAML_HEADER):]) # handle opencv header
+            yamlObj = yaml.load(data[len(OPENCV_YAML_HEADER):], Loader=yaml.BaseLoader) # handle opencv header
         except yaml.YAMLError as exc:
             print(exc, traceback.format_exc())
-
-    # remove lock file
-    if os.path.exists(yamlLockFilePath):
-        os.remove(yamlLockFilePath)
+        finally:
+            # remove lock file
+            if os.path.exists(yamlLockFilePath):
+                os.remove(yamlLockFilePath)
 
     return yamlObj
 
@@ -967,7 +973,7 @@ def loadYaml_raw(yamlFilePath: str):
 def loadYaml(yamlFilePath: str):
     try:
         return loadYaml_raw(yamlFilePath)
-    except e:
+    except Exception as e:
         print("Collison on read yaml file", e, traceback.format_exc())
         return loadYaml_raw(yamlFilePath)
 
@@ -980,27 +986,28 @@ def writeYaml_raw(yamlFilePath: str, yamlObj):
     # while lock file esists sleep
     while os.path.exists(yamlLockFilePath):
         time.sleep(0.1)
-
-    # create lock file
-    Path(yamlLockFilePath).touch()
-
-    with open(yamlFilePath, 'w') as oStream:
-        oStream.write(OPENCV_YAML_HEADER)  # handle opencv header
-        try:
+ 
+    try:
+        # create lock file    
+        Path(yamlLockFilePath).touch()
+        with open(yamlFilePath, 'w') as oStream:
+            oStream.write(OPENCV_YAML_HEADER)  # handle opencv header
             yaml.dump(yamlObj, oStream, Dumper=OpenCvYamlDumper)
-        except yaml.YAMLError as exc:
-            print(exc, traceback.format_exc())
+    
+    except yaml.YAMLError as exc:
+        print(exc, traceback.format_exc())
 
-    # remove lock file
-    if os.path.exists(yamlLockFilePath):
-        os.remove(yamlLockFilePath)
+    finally:
+        # remove lock file
+        if os.path.exists(yamlLockFilePath):
+            os.remove(yamlLockFilePath)
 
 ######################################################################################################################
 # Write yml file
 def writeYaml(yamlFilePath: str, yamlObj):
     try:
         writeYaml_raw(yamlFilePath, yamlObj)
-    except e:
+    except Exception as e:
         print("Collison on write yaml file", e, traceback.format_exc())
         writeYaml_raw(yamlFilePath, yamlObj)
 
@@ -1129,7 +1136,7 @@ def writeCurrentJobToStateFile(yamlFilePath: str, currentJobYamlObj):
         yamlObj["runningJob"].clear()
 
     # set job state to Running
-    currentJobYamlObj["jobState"] = 1
+    currentJobYamlObj["jobState"] = "1"
 
     # append to yaml obj
     yamlObj["runningJob"].append(currentJobYamlObj)
@@ -1154,9 +1161,9 @@ def progressCallback(progress: float, force_Write = False, step=1, eta=0):
 
             # store global progress in yaml file
             yamlJobEntry = yamlObj["runningJob"][0]
-            yamlJobEntry["progress"] = progress
-            yamlJobEntry["step"] = step
-            yamlJobEntry["eta"] = eta
+            yamlJobEntry["progress"] = str(progress)
+            yamlJobEntry["step"] = str(step)
+            yamlJobEntry["eta"] = str(eta)
 
             writeYaml(WORKER_STATE_YAML_PATH, yamlObj)
     except e:
@@ -1175,7 +1182,7 @@ def setFailedStateToJob():
         return
 
     yamlJobEntry = yamlObj["runningJob"][0]
-    yamlJobEntry["jobState"] = 3
+    yamlJobEntry["jobState"] = "3"
 
     writeYaml(WORKER_STATE_YAML_PATH, yamlObj)
 

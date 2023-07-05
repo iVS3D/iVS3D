@@ -711,11 +711,13 @@ void ColmapWrapper::exportJob(cv::FileStorage &ioFileStorage, const ColmapWrappe
 void ColmapWrapper::importJob(const cv::FileNode &iFileNode, ColmapWrapper::SJob &oJob) const
 {
     oJob.sequenceName = std::string(iFileNode["sequenceName"]);
-    oJob.product = static_cast<EProductType>(static_cast<int>(iFileNode["productType"]));
-    oJob.state = static_cast<EJobState>(static_cast<int>(iFileNode["jobState"]));
-    oJob.progress = static_cast<uint>(static_cast<int>(iFileNode["progress"]));
-    oJob.step = static_cast<uint>(static_cast<int>(iFileNode["step"]));
-    oJob.eta = static_cast<uint>(static_cast<int>(iFileNode["eta"]));
+
+    oJob.product = static_cast<EProductType>(
+        QString().fromStdString(iFileNode["productType"]).toUInt());
+    oJob.state = static_cast<EJobState>(QString().fromStdString(iFileNode["jobState"]).toUInt());
+    oJob.progress = QString().fromStdString(iFileNode["progress"]).toUInt();
+    oJob.step = QString().fromStdString(iFileNode["step"]).toUInt();
+    oJob.eta = QString().fromStdString(iFileNode["eta"]).toUInt();
 
     cv::FileNode params = iFileNode["parameters"];
     for (cv::FileNodeIterator itr = params.begin(); itr != params.end(); ++itr) {
