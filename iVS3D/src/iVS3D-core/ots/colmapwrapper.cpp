@@ -456,11 +456,14 @@ void ColmapWrapper::clearWorkerStateFile()
 
     // TODO find better way to prevent application from crashing if both c++ and python read/write at the same time
     try {
-        while (QFile(outputFile + ".lock").exists()) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        if (QFile(outputFile + ".lock_iVS3D").exists()) {
+            QFile(outputFile + ".lock_iVS3D").remove();
+        }
+        if (QFile(outputFile + ".lock_worker").exists()) {
+            QFile(outputFile + ".lock_worker").remove();
         }
 
-        QFile lockFile(outputFile + ".lock");
+        QFile lockFile(outputFile + ".lock_iVS3D");
 
         lockFile.open(QIODevice::WriteOnly);
         cv::FileStorage fs(outputFile.toStdString(), cv::FileStorage::WRITE);
@@ -508,11 +511,20 @@ void ColmapWrapper::writeWorkQueueToFile()
 
     // TODO find better way to prevent application from crashing if both c++ and python read/write at the same time
     try {
-        while (QFile(outputFile + ".lock").exists()) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        if (QFile(outputFile + ".lock_iVS3D").exists()) {
+            QFile(outputFile + ".lock_iVS3D").remove();
+        }
+        int counter = 0;
+        while (QFile(outputFile + ".lock_worker").exists()) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            if (counter > 100) {
+                QFile(outputFile + ".lock_worker").remove();
+                break;
+            }
+            counter++;
         }
 
-        QFile lockFile(outputFile + ".lock");
+        QFile lockFile(outputFile + ".lock_iVS3D");
         lockFile.open(QIODevice::WriteOnly);
 
         cv::FileStorage fs(outputFile.toStdString(), cv::FileStorage::WRITE);
@@ -637,11 +649,19 @@ void ColmapWrapper::readWorkerStateFromFile()
     int nRunningJob;
     // TODO find better way to prevent application from crashing if both c++ and python read/write at the same time
     try {
-        while (QFile(inputFile + ".lock").exists()) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        if (QFile(inputFile + ".lock_iVS3D").exists()) {
+            QFile(inputFile + ".lock_iVS3D").remove();
+        }
+        int counter = 0;
+        while (QFile(inputFile + ".lock_worker").exists()) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            if (counter > 9) {
+                return;
+            }
+            counter++;
         }
 
-        QFile lockFile(inputFile + ".lock");
+        QFile lockFile(inputFile + ".lock_iVS3D");
         lockFile.open(QIODevice::WriteOnly);
 
         cv::FileStorage fs = cv::FileStorage(inputFile.toStdString(), cv::FileStorage::READ);

@@ -945,10 +945,13 @@ def listImgFiles(dirPath: str) -> list:
 # Returns: object of yaml file
 def loadYaml_raw(yamlFilePath: str):
     yamlObj = 0
-    yamlLockFilePath = yamlFilePath + ".lock"
+    yamlLockFilePath = yamlFilePath + ".lock_worker"
+
+    if os.path.exists(yamlLockFilePath):
+        os.remove(yamlLockFilePath)
 
     # while lock file esists sleep
-    while os.path.exists(yamlLockFilePath) :
+    while os.path.exists(yamlFilePath + ".lock_iVS3D") :
         time.sleep(0.1)
 
     # create lock file
@@ -981,10 +984,13 @@ def loadYaml(yamlFilePath: str):
 ######################################################################################################################
 # Write yml file
 def writeYaml_raw(yamlFilePath: str, yamlObj):
-    yamlLockFilePath = yamlFilePath + ".lock"
+    yamlLockFilePath = yamlFilePath + ".lock_worker"
+
+    if os.path.exists(yamlLockFilePath):
+        os.remove(yamlLockFilePath)
 
     # while lock file esists sleep
-    while os.path.exists(yamlLockFilePath):
+    while os.path.exists(yamlFilePath + ".lock_iVS3D") :
         time.sleep(0.1)
  
     try:
