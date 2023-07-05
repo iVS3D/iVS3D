@@ -2,13 +2,12 @@
 #define LIB3D_OTS_UI_COLMAPWRAPPER_VIEWWIDGET_H
 
 // Std
-#include <string>
 #include <map>
+#include <string>
 
 // Qt
-#include <QWidget>
 #include <QTreeWidget>
-
+#include <QWidget>
 
 #include "../colmapwrapper.h"
 
@@ -18,9 +17,9 @@ namespace ui {
 namespace colmapwrapper {
 
 namespace Ui {
-  class ViewWidget;
-  class TreeItem;
-}
+class ViewWidget;
+class TreeItem;
+} // namespace Ui
 
 /**
  * @brief Class providing widget interaction with ColmapWrapper.
@@ -29,46 +28,39 @@ namespace Ui {
  */
 class ViewWidget : public QWidget
 {
-  Q_OBJECT
+    Q_OBJECT
 
     //--- METHOD DECLERATION ---//
 
-  public:
+public:
     explicit ViewWidget(ColmapWrapper *ipWrapper, QWidget *parent = 0);
     ~ViewWidget();
 
-  public slots:
-    void refreshProductList();
+public slots:
     void refreshJobQueue();
     void refreshWorkerState();
     void refreshWorkspaceStatus();
     void bumpJobUp(const ColmapWrapper::SJob &job);
     void bumpJobDown(const ColmapWrapper::SJob &job);
     void editJob(const ColmapWrapper::SJob &job);
-    void deleteJob(const ColmapWrapper::SJob  &job);
-    void customTreeWidgetContextMenu(const QPoint&);
+    void deleteJob(const ColmapWrapper::SJob &job);
 
-  private slots:
-
-    void onTreeItemDoubleClicked(QTreeWidgetItem *item, int column);
-
-    void onTreeItemClicked(QTreeWidgetItem *item, int column);
+private slots:
 
     void onClearHistoryClicked();
 
     void onUpdateToDarkTheme();
     void onUpdateToLightTheme();
 
-    void onOpenActionTriggered(const ColmapWrapper::EProductType iProdType,
-                               const QString iFilePath);
+    void onOpenActionTriggered(const ColmapWrapper::EProductType iProdType, const QString iFilePath);
 
     //--- MEMBER DECLERATION ---//
 
-  private:
+private:
     Ui::ViewWidget *ui;
 
     /// Member pointer to wrapper
-    lib3d::ots::ColmapWrapper* mpColmapWrapper;
+    lib3d::ots::ColmapWrapper *mpColmapWrapper;
 
     std::map<std::string, QTreeWidgetItem *> projectsMap;
 
@@ -78,6 +70,6 @@ class ViewWidget : public QWidget
 } // namespace colmapwrapper
 } // namespace ui
 } // namespace ots
-} // namespeace lib3d
+} // namespace lib3d
 
 #endif // LIB3D_OTS_UI_COLMAPWRAPPER_VIEWWIDGET_H

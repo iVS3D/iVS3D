@@ -32,12 +32,7 @@ ViewWidget::ViewWidget(ColmapWrapper *ipMsWrapper, QWidget *parent)
     : QWidget(parent), ui(new Ui::ViewWidget), mpColmapWrapper(ipMsWrapper), mCurrentTheme(LIGHT)
 {
     ui->setupUi(this);
-    ui->tw_products->setContextMenuPolicy(Qt::CustomContextMenu);
 
-    connect(ui->tw_products,
-            &QTreeWidget::customContextMenuRequested,
-            this,
-            &ViewWidget::customTreeWidgetContextMenu);
     connect(ui->pb_startProcessing,
             &QPushButton::clicked,
             mpColmapWrapper,
@@ -51,10 +46,6 @@ ViewWidget::ViewWidget(ColmapWrapper *ipMsWrapper, QWidget *parent)
             mpColmapWrapper,
             &ColmapWrapper::openColmapLogFile);
 
-    connect(mpColmapWrapper,
-            &ColmapWrapper::sequenceListUpdate,
-            this,
-            &ViewWidget::refreshProductList);
     connect(mpColmapWrapper, &ColmapWrapper::jobListUpdate, this, &ViewWidget::refreshJobQueue);
     connect(mpColmapWrapper,
             &ColmapWrapper::workerStateUpdate,
@@ -75,7 +66,6 @@ ViewWidget::ViewWidget(ColmapWrapper *ipMsWrapper, QWidget *parent)
             this,
             &ViewWidget::onUpdateToLightTheme);
 
-    this->refreshProductList();
     this->refreshJobQueue();
     this->refreshWorkerState();
     this->refreshWorkspaceStatus();
@@ -240,185 +230,6 @@ void ViewWidget::refreshWorkspaceStatus()
         ui->pb_syncWorkspace->setEnabled(false);
     } break;
     }
-}
-
-//==================================================================================================
-void ViewWidget::refreshProductList()
-{
-    // TODO: improve by using an underlining tree widget model
-
-    std::vector<ColmapWrapper::SSequence> availableSeqs = mpColmapWrapper->getFinishedSequenceList();
-    QTreeWidget *pTreeWidget = ui->tw_products;
-
-    //--- get list of expanded tree items
-    std::vector<std::string> expandedItemNames;
-    for (int i = 0; i < pTreeWidget->topLevelItemCount(); ++i) {
-        QTreeWidgetItem *pItem = pTreeWidget->topLevelItem(i);
-        if (pItem->isExpanded())
-            expandedItemNames.push_back(pItem->text(0).toStdString());
-    }
-
-    //--- clear Tree widget
-    pTreeWidget->clear();
-
-    //--- loop over available seqences, it is assumed that the seqences are listed alphabetically
-    int treeSeqIdx = 0; // index of item in treeWidget
-    for (std::vector<ColmapWrapper::SSequence>::iterator seqItr = availableSeqs.begin();
-         seqItr != availableSeqs.end();
-         ++seqItr, ++treeSeqIdx) {
-        //--- create new item and insert at position
-        QTreeWidgetItem *pNewItem = new QTreeWidgetItem((QTreeWidget *) nullptr,
-                                                        QStringList(
-                                                            QString::fromStdString(seqItr->name)));
-
-        for (ColmapWrapper::SProduct product : seqItr->products) {
-            QTreeWidgetItem *newChild = new QTreeWidgetItem((QTreeWidget *) 0,
-                                                            QStringList(
-                                                                ColmapWrapper::EProductType2QString(
-                                                                    product.type)));
-            pNewItem->addChild(newChild);
-        }
-
-        pTreeWidget->insertTopLevelItem(treeSeqIdx, pNewItem);
-
-        //--- if name is in list expand item
-        if (std::find(expandedItemNames.begin(), expandedItemNames.end(), seqItr->name)
-            != expandedItemNames.end())
-            pTreeWidget->topLevelItem(treeSeqIdx)->setExpanded(true);
-    }
-
-// old code
-#if 0
-  //--- loop over items in list. if in available seqences, update item.
-  int itemCount = pTreeWidget->topLevelItemCount();
-  for(int itemIdx = 0; itemIdx < itemCount; ++itemIdx) {
-
-    QTreeWidgetItem *pItem = pTreeWidget->topLevelItem(pItem);
-
-    for(ColmapWrapper::SSequence seq : seqsToRemove) {
-      if(seq.name == pItem->text(0).toStdString()) {
-        if(seq.products.size() == 0) {
-          pTreeWidget->removeItemWidget(pItem, 0);
-          pItem--; // Increment item index only if list has not changed
-          itemCount--; // Keep child count consistent with list length
-
-        } else {
-          int childCount = pItem->childCount();
-          for(int j = 0; j < childCount; j++) {
-            std::cout <<j << "\n";
-            QTreeWidgetItem *child = pItem->child(j);
-            for(ColmapWrapper::SProduct product : seq.products) {
-              if(ColmapWrapper::EProductType2QString(product.type) ==
-                 child->text(0)) {
-                pItem->removeChild(child);
-                j--;
-                childCount--;
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-
-  // Add items
-  for(ColmapWrapper::SSequence seq : seqsToAdd) {
-    int count = pTreeWidget->topLevelItemCount();
-    bool topLevelItemExisted = false;
-    for(int i = 0; i < count; i++) {
-      QTreeWidgetItem *item = pTreeWidget->topLevelItem(i);
-      if(item->text(0).toStdString() == seq.name) {
-        for(ColmapWrapper::SProduct product : seq.products) {
-          QTreeWidgetItem *newChild = new QTreeWidgetItem(
-                (QTreeWidget*)0,
-                QStringList(ColmapWrapper::EProductType2QString(product.type)));
-          item->addChild(newChild);
-          topLevelItemExisted = true;
-        }
-        break;
-      }
-    }
-    if(topLevelItemExisted) {
-        continue;
-    }
-    QTreeWidgetItem *newItem = new QTreeWidgetItem((QTreeWidget*) 0,
-                                                   QStringList(QString::fromStdString(seq.name)));
-    for(ColmapWrapper::SProduct product : seq.products) {
-        QTreeWidgetItem *newChild = new QTreeWidgetItem(
-              (QTreeWidget*)0,
-              QStringList(ColmapWrapper::EProductType2QString(product.type)));
-        newItem->addChild(newChild);
-    }
-    ui->tw_products->insertTopLevelItem(0, newItem);
-  }
-#endif
-}
-
-//==================================================================================================
-void ViewWidget::customTreeWidgetContextMenu(const QPoint &pos)
-{
-    QTreeWidgetItem *item = ui->tw_products->itemAt(pos);
-
-    if (item->parent() == NULL) {
-        // Context menu for folders
-        return;
-    }
-
-    // Context menu for products
-    ColmapWrapper::EProductType prodType = ColmapWrapper::QString2EProductType(item->text(0));
-    QString filePath = mpColmapWrapper->getProductFilePath(item->parent()->text(0), prodType);
-    QString seqName = item->parent()->text(0);
-
-    QAction *openAction = new QAction(tr("Öffnen"), this);
-    connect(openAction, &QAction::triggered, this, [this, filePath, prodType, seqName]() {
-        onOpenActionTriggered(prodType, filePath);
-    });
-
-    // TODO
-    //    QAction *rerenderAction = new QAction(tr("Neu berechnen"), this);
-    //    rerenderAction->setEnabled(false);
-    //    connect(rerenderAction, &QAction::triggered, this, [this, filename, projectname, producttype]() {
-    //        QFile productFile(filename);
-    //        productFile.rename(productFile.fileName().append(".old"));
-    //        Job *job = new Job;
-    //        job->jobName = projectname;
-    //        job->productType = producttype;
-    //        if(WidgetJobEdit(job).exec()) {
-    //                if(!constDataset->editJob(*job)) {
-    //                        constDataset->addJob(*job);
-    //            }
-    //          this->refresh();
-    //        }
-    //    });
-
-    //--- create menu
-    QMenu *menu = new QMenu(this);
-    menu->addAction(openAction);
-    //    menu->addAction(rerenderAction);
-
-    menu->popup(ui->tw_products->viewport()->mapToGlobal(pos));
-}
-
-//==================================================================================================
-void ViewWidget::onTreeItemDoubleClicked(QTreeWidgetItem *item, int column)
-{
-    Q_UNUSED(column)
-
-    if (item->parent() == NULL) {
-        return;
-    }
-
-    QString filename = mpColmapWrapper->getProductFilePath(item->parent()->text(0),
-                                                           ColmapWrapper::QString2EProductType(
-                                                               item->text(0)));
-    QDesktopServices::openUrl(QUrl(filename));
-}
-
-//==================================================================================================
-void ViewWidget::onTreeItemClicked(QTreeWidgetItem *item, int column)
-{
-    Q_UNUSED(item)
-    Q_UNUSED(column)
 }
 
 //==================================================================================================
