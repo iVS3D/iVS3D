@@ -17,11 +17,12 @@ COLMAP_BIN = ""
 OPENMVS_BIN_FOLDER = ""
 WORK_QUEUE_YAML_PATH = ""
 WORKER_STATE_YAML_PATH = ""
-
+COLMAP_RUNNING_PATH = ""
 OPENCV_YAML_HEADER="%YAML:1.0\n---\n"
 
 YAML_REFRESH_SECS = 1
 LAST_PROGRESS_UPDATE_TIME = 0
+LAST_HEARTBEAT_UPDATE_TIME = 0
 
 #---------------------------------------------------------------------------------------------------------------------
 # Class to dump YAML files prepared to be read by OpenCV.
@@ -301,6 +302,7 @@ def computeCameraPoses(colmapDatabaseFilePath: str, projectImageDir: str, colmap
     get_eta_after_step = init_eta_calculation()
     while p.poll() is None:
         output = p.stdout.readline()
+        updateHeartBeat()
         if output != b"":
             line = output.strip().decode("utf-8")
             print(line)
@@ -329,6 +331,7 @@ def computeCameraPoses(colmapDatabaseFilePath: str, projectImageDir: str, colmap
     get_eta_after_step = init_eta_calculation()
     while p.poll() is None:
         output = p.stdout.readline()
+        updateHeartBeat()
         if output != b"":
             line = output.strip().decode("utf-8")
             print(line)
@@ -368,6 +371,7 @@ def computeCameraPoses(colmapDatabaseFilePath: str, projectImageDir: str, colmap
 
     while p.poll() is None:
         output = p.stdout.readline()
+        updateHeartBeat()
         if output != b"":
             line = output.strip().decode("utf-8")
             print(line)
@@ -404,6 +408,7 @@ def computeCameraPoses(colmapDatabaseFilePath: str, projectImageDir: str, colmap
                 
             while p.poll() is None:
                 output = p.stdout.readline()
+                updateHeartBeat()
                 if output != b"":
                     line = output.strip().decode("utf-8")
                     print(line)  
@@ -447,6 +452,7 @@ def computeCameraPoses(colmapDatabaseFilePath: str, projectImageDir: str, colmap
         
         while p.poll() is None:
             output = p.stdout.readline()
+            updateHeartBeat()
             if output != b"":
                 line = output.strip().decode("utf-8")
                 print(line) 
@@ -531,6 +537,7 @@ def computeDenseCloud(projectImageDir: str, colmapProjectDirPath: str, projectOu
     get_eta_after_step = init_eta_calculation()
     while p.poll() is None:
         output = p.stdout.readline()
+        updateHeartBeat()
         if output != b"":
             line = output.strip().decode("utf-8")
             print(line)
@@ -569,6 +576,7 @@ def computeDenseCloud(projectImageDir: str, colmapProjectDirPath: str, projectOu
     current_image_number = 0
     while p.poll() is None:
         output = p.stdout.readline()
+        updateHeartBeat()
         if output != b"":
             line = output.strip().decode("utf-8")
             print(line)   
@@ -608,6 +616,7 @@ def computeDenseCloud(projectImageDir: str, colmapProjectDirPath: str, projectOu
     get_eta_after_step = init_eta_calculation()
     while p.poll() is None:
         output = p.stdout.readline()
+        updateHeartBeat()
         if output != b"":
             line = output.strip().decode("utf-8")
             print(line)   
@@ -678,6 +687,7 @@ def computeMeshedModel(projectImageDir: str, colmapProjectDirPath: str, projectO
     
     while p.poll() is None:
         output = p.stdout.readline()
+        updateHeartBeat()
         if output != b"":
             line = output.strip().decode("utf-8")
             print(line)   
@@ -724,6 +734,7 @@ def computeMeshedModel(projectImageDir: str, colmapProjectDirPath: str, projectO
 
     while p.poll() is None:
         output = p.stdout.readline()
+        updateHeartBeat()
         if output != b"":
             line = output.strip().decode("utf-8")
             print(line)  
@@ -793,6 +804,7 @@ def computeMeshedModel(projectImageDir: str, colmapProjectDirPath: str, projectO
         
         while p.poll() is None:
             output = p.stdout.readline()
+            updateHeartBeat()
             if output != b"":
                 line = output.strip().decode("utf-8")
                 print(line)   
@@ -894,6 +906,7 @@ def computeMeshedModel(projectImageDir: str, colmapProjectDirPath: str, projectO
     
     while p.poll() is None:
         output = p.stdout.readline()
+        updateHeartBeat()
         if output != b"":
             line = output.strip().decode("utf-8")
             print(line)  
@@ -1192,7 +1205,40 @@ def setFailedStateToJob():
 
     writeYaml(WORKER_STATE_YAML_PATH, yamlObj)
 
+###############################################################################
+# Updates COLMAP_RUNNING_PATH file to indicate running process
+def updateHeartBeat():
+    global COLMAP_RUNNING_PATH
+    global LAST_HEARTBEAT_UPDATE_TIME
 
+    if (time.time() - LAST_HEARTBEAT_UPDATE_TIME) < YAML_REFRESH_SECS:
+        return
+
+    lockFilePath = COLMAP_RUNNING_PATH + ".lock_worker"
+
+    if os.path.exists(lockFilePath):
+        os.remove(lockFilePath)
+
+    # while lock file esists sleep
+    while os.path.exists(COLMAP_RUNNING_PATH + ".lock_iVS3D") :
+        time.sleep(0.1) 
+    
+    try:
+        # create lock file    
+        Path(lockFilePath).touch()
+
+        with open(COLMAP_RUNNING_PATH, "w") as file:
+            file.write(str(int(time.time())))   
+
+    except e:
+        print("Error while updating heartbeat", e, traceback.format_exc())   
+   
+    finally:
+        # remove lock file
+        if os.path.exists(lockFilePath):
+            os.remove(lockFilePath)
+
+    LAST_HEARTBEAT_UPDATE_TIME = time.time()
 ###############################################################################
 # Initialize argument parser and synopsis
 # return list of arguments
@@ -1240,6 +1286,11 @@ if __name__ == "__main__":
 
     if not os.path.exists(WORK_QUEUE_YAML_PATH):
         print('ERROR: {} does not exist!').format(WORK_QUEUE_YAML_PATH)
+        sys.exit()
+
+    COLMAP_RUNNING_PATH = os.path.join(os.path.dirname(WORK_QUEUE_YAML_PATH), "_colmapRunning")
+    if not os.path.exists(COLMAP_RUNNING_PATH):
+        print('ERROR: {} does not exist!').format(COLMAP_RUNNING_PATH)
         sys.exit()
 
 
