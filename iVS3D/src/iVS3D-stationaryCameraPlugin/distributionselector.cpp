@@ -23,8 +23,8 @@ std::vector<uint> DistributionSelector::select(std::vector<uint> frameVector, st
         keyframes = selectWithThreshold(frameVector, flowValues, stopped);
         keyframeCount = keyframes.size();
 
-        std::cout << std::to_string(m_threshold) << "[" << std::to_string(min_threshold) << ", " << std::to_string(max_threshold)
-                  << "] count: " << std::to_string(keyframeCount) << "(" << std::to_string(targetFrameCount) << ")\n";
+//        std::cout << std::to_string(m_threshold) << "[" << std::to_string(min_threshold) << ", " << std::to_string(max_threshold)
+//                  << "] count: " << std::to_string(keyframeCount) << "(" << std::to_string(targetFrameCount) << ")\n";
 
         if (keyframeCount < targetFrameCount) {
             // increase frame count and decrease threshold
