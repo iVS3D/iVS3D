@@ -8,7 +8,8 @@
 
 #define THRESHOLD_NAME QObject::tr("Threshold")
 #define THRESHOLD_DESCRIPTION QObject::tr("A resolution dependend threshold, that specifies when there was enough movement to set a new keyframe.")
-
+#define FRAMEREDUCTION_NAME QObject::tr("Frame reduction")
+#define FRAMEREDUCTION_DESCRIPTION QObject::tr("Describes how many frames should be removed. (0.00=none, 1.00=all, -N=disabled). If this parameter is set the threshold used as start value for the binary search.")
 
 /**
  * @class DistributionSelector
@@ -40,12 +41,15 @@ public:
 private:
     // functions
     void readSettings(Settings settings);
+    std::vector<uint> selectWithThreshold(std::vector<uint> frameVector, std::vector<double> flowValues, volatile bool *stopped);
     // member variables
     double m_threshold = 2.0;
+    double m_frameReduction = 0.80;
 };
 
 static KeyframeSelector::Settings settings = {
-    KeyframeSelector::Parameter{THRESHOLD_NAME, THRESHOLD_DESCRIPTION, (double)2.0}
+    KeyframeSelector::Parameter{THRESHOLD_NAME, THRESHOLD_DESCRIPTION, (double)2.0},
+    KeyframeSelector::Parameter{FRAMEREDUCTION_NAME, FRAMEREDUCTION_DESCRIPTION, (double)0.80}
 };
 
 REGISTER_SELECTOR("Distribution Selector", DistributionSelector, settings)

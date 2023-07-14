@@ -532,8 +532,9 @@ QWidget *OptFlowController::selectorSettingsToWidget(QWidget *parent, QString se
         case QVariant::Double: {
             QDoubleSpinBox *input = new QDoubleSpinBox(parent);
             input->setValue(param.value.toDouble());
+            input->setDecimals(4);
             input->setAlignment(Qt::AlignRight);
-            input->setSingleStep(0.1);
+            input->setSingleStep(0.01);
             input->setMinimum(-1000);
             input->setMaximum(1000);
             paramLayout->layout()->addItem(new QSpacerItem(0, 0));
