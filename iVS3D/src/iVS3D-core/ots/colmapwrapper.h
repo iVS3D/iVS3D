@@ -604,13 +604,6 @@ class ColmapWrapper : public QObject
     QString getProductFilePath(QString iSeqName, const EProductType& iProdType);
 
     /**
-     * @brief Scan workspace for finished products.
-     *
-     * This will populate the member list holding available sequences (i.e. mSequences).
-     */
-    void importSeuences();
-
-    /**
      * @brief Method to invoke processing of job queue by COLMAP.
      */
     void startProcessing();
@@ -720,6 +713,12 @@ class ColmapWrapper : public QObject
      */
     static ColmapWrapper::EProductType QString2EProductType(const QString iStr);
 
+    /// Absolute path to workspace on local machine.
+    QString mLocalWorkspacePath;
+
+    /// Absolute path to workspace on remote machine
+    QString mRemoteWorkspacePath;
+
     //--- MEMBER DECLERATION ---//
 
   private:
@@ -763,12 +762,6 @@ class ColmapWrapper : public QObject
 
     /// Absolute path to OpenMVS binary folder on remote machine.
     QString mRemoteOpenMVSBinPath;
-
-    /// Absolute path to workspace on local machine.
-    QString mLocalWorkspacePath;
-
-    /// Absolute path to workspace on remote machine
-    QString mRemoteWorkspacePath;
 
     /// Absolute path to temporary mount location of remote directory.
     QString mMntPntRemoteWorkspacePath;

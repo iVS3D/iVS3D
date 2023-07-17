@@ -58,6 +58,13 @@
          </spacer>
         </item>
         <item>
+         <widget class="QLabel" name="l_warningSequenceName">
+          <property name="text">
+           <string>Invalid sequence name</string>
+          </property>
+         </widget>
+        </item>
+        <item>
          <widget class="QLineEdit" name="le_sequenceName"/>
         </item>
        </layout>
@@ -102,6 +109,13 @@
             </size>
            </property>
           </spacer>
+         </item>
+         <item>
+          <widget class="QLabel" name="l_warningNoImages">
+           <property name="text">
+            <string>No images found in directory</string>
+           </property>
+          </widget>
          </item>
          <item>
           <widget class="QLineEdit" name="le_imagePath">

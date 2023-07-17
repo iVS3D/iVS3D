@@ -132,8 +132,6 @@ void ViewWidget::refreshJobQueue()
             ui->lw_queue->setItemWidget(item, jqi);
             // TODO: Object::connect(jqi, &QueueItem::editJob, this, &ViewWidget::editJob);
             QObject::connect(jqi, &QueueItem::deleteJob, this, &ViewWidget::deleteJob);
-            QObject::connect(jqi, &QueueItem::bumpDownJob, this, &ViewWidget::bumpJobDown);
-            QObject::connect(jqi, &QueueItem::bumpUpJob, this, &ViewWidget::bumpJobUp);
 
             if (mCurrentTheme == DARK)
                 jqi->onUpdateToDarkTheme();
@@ -145,6 +143,8 @@ void ViewWidget::refreshJobQueue()
             QueueItemFinished *jqi = new QueueItemFinished(*jobItr);
             item->setSizeHint(jqi->minimumSize());
             ui->lw_queue->setItemWidget(item, jqi);
+            QObject::connect(jqi, &QueueItemFinished::deleteJob, this, &ViewWidget::deleteJob);
+
             // TODO:
             //          QObject::connect(sqi, SIGNAL(deleteJob(AgisoftIntegration::Job)), this, SLOT(deleteJob(AgisoftIntegration::Job)));
 

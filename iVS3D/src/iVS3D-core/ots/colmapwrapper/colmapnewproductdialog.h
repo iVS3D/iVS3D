@@ -52,6 +52,10 @@ class NewProductDialog : public QDialog
 
     void onAccepted();
 
+    void validateImagePath();
+
+    void validateSequenceName();
+
     //--- MEMBER DECLERATION ---//
 
   private:
@@ -65,8 +69,12 @@ class NewProductDialog : public QDialog
 
     /// list of new jobs created
     std::vector<ColmapWrapper::SJob> mNewJobList;
-};
 
+    void enableSaveButtonState();
+
+    bool isImagePathValid;
+    bool isSequenceNameValid;
+};
 
 } // namespace colmapwrapper
 } // namespace ui

@@ -7,6 +7,7 @@
 // Qt
 #include <QDebug>
 #include <QFileDialog>
+#include <QMessageBox>
 #include <QProgressDialog>
 #include <QUrl>
 
@@ -19,9 +20,19 @@ const std::vector<std::string> COLMAP_CAM_MODELS = {"OPENCV", "RADIAL", "PINHOLE
 
 //==================================================================================================
 NewProductDialog::NewProductDialog(ColmapWrapper *ipWrapper, QWidget *parent)
-    : QDialog(parent), ui(new Ui::NewProductDialog), mpColmapWrapper(ipWrapper)
+    : QDialog(parent), ui(new Ui::NewProductDialog), mpColmapWrapper(ipWrapper),
+      isImagePathValid(false), isSequenceNameValid(false)
+
 {
     ui->setupUi(this);
+    ui->l_warningNoImages->setVisible(false);
+    ui->l_warningNoImages->setStyleSheet("QLabel { color: red; }");
+
+    ui->l_warningSequenceName->setVisible(false);
+    ui->l_warningSequenceName->setStyleSheet("QLabel { color: red; }");
+
+    validateImagePath();
+    validateSequenceName();
 
     //--- connections
     connect(ui->pb_selectImagePath,
@@ -49,6 +60,14 @@ NewProductDialog::NewProductDialog(ColmapWrapper *ipWrapper, QWidget *parent)
             &ColmapWrapperControlsFactory::updateToLightTheme,
             this,
             &NewProductDialog::onUpdateToLightTheme);
+    connect(ui->le_sequenceName,
+            &QLineEdit::editingFinished,
+            this,
+            &NewProductDialog::validateSequenceName);
+    connect(ui->le_imagePath,
+            &QLineEdit::editingFinished,
+            this,
+            &NewProductDialog::validateImagePath);
 
     updateSettingsVisibility();
 }
@@ -66,7 +85,7 @@ void NewProductDialog::onProdCameraPosesClicked()
     ui->cb_prodPointCloud->setChecked(false);
 
     if (ui->cb_prodCameraPoses->isChecked()) {
-        ui->buttonBox->button(QDialogButtonBox::Save)->setEnabled(true);
+        enableSaveButtonState();
     } else {
         ui->buttonBox->button(QDialogButtonBox::Save)->setEnabled(false);
     }
@@ -84,8 +103,7 @@ void NewProductDialog::onProdPointCloudClicked()
     if (ui->cb_prodPointCloud->isChecked()) {
         ui->cb_prodCameraPoses->setEnabled(false);
         ui->cb_prodCameraPoses->setChecked(true);
-        ui->buttonBox->button(QDialogButtonBox::Save)->setEnabled(true);
-
+        enableSaveButtonState();
     } else {
         ui->cb_prodCameraPoses->setEnabled(true);
         ui->cb_prodCameraPoses->setChecked(false);
@@ -106,7 +124,7 @@ void NewProductDialog::onProdMeshClicked()
         ui->cb_prodCameraPoses->setChecked(true);
         ui->cb_prodPointCloud->setEnabled(false);
         ui->cb_prodPointCloud->setChecked(true);
-        ui->buttonBox->button(QDialogButtonBox::Save)->setEnabled(true);
+        enableSaveButtonState();
 
     } else {
         ui->cb_prodCameraPoses->setEnabled(true);
@@ -130,8 +148,10 @@ void NewProductDialog::onPbSelectImageDirectoryClicked()
                                                     ? QApplication::applicationDirPath()
                                                     : dirPath);
 
-    if (!dirPath.isEmpty())
+    if (!dirPath.isEmpty()) {
         ui->le_imagePath->setText(dirPath);
+        validateImagePath();
+    }
 }
 
 //==================================================================================================
@@ -233,13 +253,22 @@ void NewProductDialog::onAccepted()
                     }
                     progress.setValue(imgFiles.size());
 
-                    successful = (true && !isCanceled);
+                    successful = !isCanceled;
+                } else {
+                    QMessageBox msgWarning;
+                    msgWarning.setText("WARNING!\n No images found.");
+                    msgWarning.setIcon(QMessageBox::Warning);
+                    msgWarning.setWindowTitle("Caution");
+                    msgWarning.exec();
+                    successful = false;
                 }
             }
         }
 
-        if (successful)
-            ui->le_imagePath->setText(displayDirPath);
+        if (!successful) {
+            return;
+        }
+        ui->le_imagePath->setText(displayDirPath);
     }
 
     //--- create job to estimate camera poses if applicable
@@ -259,8 +288,8 @@ void NewProductDialog::onAccepted()
             std::pair<std::string, std::string>("camera_params",
                                                 ui->le_intrinsicParameters->text().toStdString()));
         camParamsJob.parameters.insert(std::pair<std::string, std::string>("multiple_models", "1"));
-        camParamsJob.parameters.insert(
-            std::pair<std::string, std::string>("gpus", ui->le_poseGpus->text().toStdString()));
+        camParamsJob.parameters.insert(std::pair<std::string, std::string>(
+            "gpus", ui->le_poseGpus->text().replace(",", "_").toStdString()));
 
         camParamsJob.parameters.insert(
             std::pair<std::string, std::string>("max_focal_length_ratio",
@@ -293,8 +322,8 @@ void NewProductDialog::onAccepted()
         pointCloudJob.parameters.insert(
             std::pair<std::string, std::string>("quality", std::to_string(quality)));
 
-        pointCloudJob.parameters.insert(
-            std::pair<std::string, std::string>("gpus", ui->le_poseGpus->text().toStdString()));
+        pointCloudJob.parameters.insert(std::pair<std::string, std::string>(
+            "gpus", ui->le_poseGpus->text().replace(",", "_").toStdString()));
         mNewJobList.push_back(pointCloudJob);
     }
 
@@ -382,6 +411,72 @@ void NewProductDialog::onShow()
 std::vector<ColmapWrapper::SJob> NewProductDialog::getNewJobList() const
 {
     return mNewJobList;
+}
+
+void NewProductDialog::enableSaveButtonState()
+{
+    ui->buttonBox->button(QDialogButtonBox::Save)
+        ->setEnabled(ui->cb_prodCameraPoses->isChecked() && isImagePathValid && isSequenceNameValid);
+}
+
+//==================================================================================================
+void NewProductDialog::validateImagePath()
+{
+    QString srcDirPath = ui->le_imagePath->text();
+
+    if (!srcDirPath.isEmpty()) {
+        QDir srcDir(srcDirPath);
+
+        //--- list all image files in directory
+        QStringList imgFiles = srcDir.entryList(QStringList() << "*.jpg"
+                                                              << "*.JPG"
+                                                              << "*.jepg"
+                                                              << "*.JEPG"
+                                                              << "*.png"
+                                                              << "*.PNG"
+                                                              << "*.bmp"
+                                                              << "*.BMP"
+                                                              << "*.tiff"
+                                                              << "*.tiff",
+                                                QDir::Files);
+
+        if (imgFiles.size() > 0) {
+            ui->le_imagePath->setStyleSheet("");
+            isImagePathValid = true;
+            enableSaveButtonState();
+            ui->l_warningNoImages->setVisible(false);
+            return;
+        }
+    }
+    ui->le_imagePath->setStyleSheet("QLineEdit { border: 1px solid red; }");
+    ui->buttonBox->button(QDialogButtonBox::Save)->setEnabled(false);
+    isImagePathValid = false;
+    ui->l_warningNoImages->setVisible(true);
+}
+
+//==================================================================================================
+void NewProductDialog::validateSequenceName()
+{
+    QString sequenceName = ui->le_sequenceName->text();
+
+    //--- get all colmap project files files from local workspace
+    QDir workSpaceDirectory(mpColmapWrapper->mLocalWorkspacePath);
+    QStringList msProjFiles = workSpaceDirectory.entryList(QStringList() << "*.db",
+                                                           QDir::Files,
+                                                           QDir::Name);
+
+    if (!msProjFiles.contains(sequenceName + ".db") && sequenceName != ""
+        && !sequenceName.contains(" ")) {
+        ui->le_sequenceName->setStyleSheet("");
+        isSequenceNameValid = true;
+        enableSaveButtonState();
+        ui->l_warningSequenceName->setVisible(false);
+    } else {
+        ui->le_sequenceName->setStyleSheet("QLineEdit { border: 1px solid red; }");
+        ui->buttonBox->button(QDialogButtonBox::Save)->setEnabled(false);
+        isSequenceNameValid = false;
+        ui->l_warningSequenceName->setVisible(true);
+    }
 }
 
 } // namespace colmapwrapper

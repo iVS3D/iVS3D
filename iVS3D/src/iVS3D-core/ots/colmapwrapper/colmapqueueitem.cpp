@@ -139,6 +139,7 @@ QueueItemFinished::QueueItemFinished(ColmapWrapper::SJob job, QWidget *parent)
     ui->l_name->setText(QString::fromStdString(job.sequenceName)
                             .append(": ")
                             .append(ColmapWrapper::EProductType2QString(job.product)));
+    connect(ui->btnDelete, &QPushButton::clicked, this, &QueueItemFinished::onBtnDeleteClicked);
 }
 
 //==================================================================================================

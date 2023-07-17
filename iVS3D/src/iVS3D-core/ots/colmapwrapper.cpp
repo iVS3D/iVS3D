@@ -78,12 +78,6 @@ void ColmapWrapper::init()
     mCheckWorkerTimer.setInterval(mSyncInterval * 1000);
     connect(&mCheckWorkerTimer, &QTimer::timeout, this, &ColmapWrapper::checkWorkerState);
 
-    //--- connect slots to end of processes
-    connect(mpSyncProcess,
-            static_cast<void (QProcess::*)(int, QProcess::ExitStatus)>(&QProcess::finished),
-            this,
-            &ColmapWrapper::importSeuences);
-
   SSettings *settingsToTest = new SSettings{
       mLocalColmapBinPath,
       mRemoteColmapBinPath,
@@ -122,9 +116,7 @@ void ColmapWrapper::init()
     //--- if running job has not changed, i.e. currently no running job in state file, sync
     //--- workspace from server.
     if (!runningJobChanged && mConnectionType != LOCAL)
-        syncWorkspaceFromServer();
-    else if (mConnectionType == LOCAL)
-        importSeuences();
+        syncWorkspaceFromServer();   
 
     mCheckWorkerTimer.start();
 }
@@ -466,7 +458,8 @@ void ColmapWrapper::clearWorkerStateFile()
         QFile lockFile(outputFile + ".lock_iVS3D");
 
         lockFile.open(QIODevice::WriteOnly);
-        cv::FileStorage fs(outputFile.toStdString(), cv::FileStorage::WRITE);
+        cv::FileStorage fs(outputFile.toStdString(),
+                           cv::FileStorage::WRITE | cv::FileStorage::FORMAT_YAML);
 
         fs << "runningJob"
            << "[";
@@ -527,7 +520,8 @@ void ColmapWrapper::writeWorkQueueToFile()
         QFile lockFile(outputFile + ".lock_iVS3D");
         lockFile.open(QIODevice::WriteOnly);
 
-        cv::FileStorage fs(outputFile.toStdString(), cv::FileStorage::WRITE);
+        cv::FileStorage fs(outputFile.toStdString(),
+                           cv::FileStorage::WRITE | cv::FileStorage::FORMAT_YAML);
         fs << "workspace"
            << ((mConnectionType == LOCAL) ? mLocalWorkspacePath.toStdString()
                                           : mRemoteWorkspacePath.toStdString());
@@ -578,7 +572,8 @@ void ColmapWrapper::readWorkQueueFromFile()
     int elementsInQueue;
     // TODO find better way to prevent application from crashing if both c++ and python read/write at the same time
     try {
-        cv::FileStorage fs = cv::FileStorage(inputFile.toStdString(), cv::FileStorage::READ);
+        cv::FileStorage fs = cv::FileStorage(inputFile.toStdString(),
+                                             cv::FileStorage::READ | cv::FileStorage::FORMAT_YAML);
 
         cv::FileNode queueNode = fs["queue"];
 
@@ -655,7 +650,7 @@ void ColmapWrapper::readWorkerStateFromFile()
         int counter = 0;
         while (QFile(inputFile + ".lock_worker").exists()) {
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
-            if (counter > 9) {
+            if (counter > 100) {
                 return;
             }
             counter++;
@@ -664,7 +659,8 @@ void ColmapWrapper::readWorkerStateFromFile()
         QFile lockFile(inputFile + ".lock_iVS3D");
         lockFile.open(QIODevice::WriteOnly);
 
-        cv::FileStorage fs = cv::FileStorage(inputFile.toStdString(), cv::FileStorage::READ);
+        cv::FileStorage fs = cv::FileStorage(inputFile.toStdString(),
+                                             cv::FileStorage::READ | cv::FileStorage::FORMAT_YAML);
         cv::FileNode jobNode = fs["runningJob"];
 
         int nRunningJob = jobNode.size();
@@ -713,9 +709,9 @@ void ColmapWrapper::exportJob(cv::FileStorage &ioFileStorage, const ColmapWrappe
 {
     ioFileStorage << "{";
     ioFileStorage << "sequenceName" << iJob.sequenceName;
-    ioFileStorage << "productType" << static_cast<int>(iJob.product);
-    ioFileStorage << "jobState" << static_cast<int>(iJob.state);
-    ioFileStorage << "progress" << static_cast<int>(iJob.progress);
+    ioFileStorage << "productType" << std::to_string(static_cast<int>(iJob.product));
+    ioFileStorage << "jobState" << std::to_string(static_cast<int>(iJob.state));
+    ioFileStorage << "progress" << std::to_string(static_cast<int>(iJob.progress));
     ioFileStorage << "parameters"
                   << "{";
     for (std::map<std::string, std::string>::const_iterator itr = iJob.parameters.begin();
@@ -851,9 +847,7 @@ void ColmapWrapper::applySettings(const SSettings *settings)
     //--- if running job has not changed, i.e. currently no running job in state file, sync
     //--- workspace from server.
     if (!runningJobChanged && mConnectionType != LOCAL)
-        syncWorkspaceFromServer();
-    else if (mConnectionType == LOCAL)
-        importSeuences();
+        syncWorkspaceFromServer();   
 }
 
 //==================================================================================================
@@ -1095,15 +1089,11 @@ bool ColmapWrapper::checkWorkerState()
     qDebug() << "Time: " << QDateTime::currentDateTime().toString();
     qDebug() << __PRETTY_FUNCTION__;
 
-    auto x = mJobs;
-
-    //--- read wokr queue and worker state
+    //--- read woker queue and worker state
     readWorkQueueFromFile();
     readWorkerStateFromFile();
     emit jobListUpdate();
     emit workerStateUpdate();
-
-    auto y = mJobs;
 
     //--- store currently referenced job
     SJob previouslyRunningJob;
@@ -1126,9 +1116,7 @@ bool ColmapWrapper::checkWorkerState()
     if (runningJobChanged) {
         qDebug() << "Info: Running Job has changed.";
 
-        if (mConnectionType == LOCAL)
-            importSeuences();
-        else
+        if (mConnectionType != LOCAL)
             syncWorkspaceFromServer();
     } else {
         qDebug() << "Info: Running Job unchanged.";
@@ -1455,73 +1443,6 @@ QString ColmapWrapper::getProductFilePath(QString iSeqName,
                                        iSeqName,
                                        PRODUCT_FILENAME_MAP[iProdType].arg(iSeqName));
     return productFilePath;
-}
-
-//==================================================================================================
-void ColmapWrapper::importSeuences()
-{
-    qDebug()
-        << "==================================================================================";
-    qDebug() << "Time: " << QDateTime::currentDateTime().toString();
-    qDebug() << __PRETTY_FUNCTION__;
-
-    //--- clear member variable holding all sequences
-    mAvailableSequences.clear();
-
-    //--- get all colmap project files files from local workspace
-    QDir workSpaceDirectory(mLocalWorkspacePath);
-    QStringList msProjFiles = workSpaceDirectory.entryList(QStringList() << "*.db"
-                                                                         << "*.DB",
-                                                           QDir::Files,
-                                                           QDir::Name);
-    for (QString msProjFileName : msProjFiles) {
-        SSequence seq;
-
-        //--- assign file name to sequence
-        QString projectFileName = msProjFileName.left(msProjFileName.lastIndexOf("."));
-        seq.name = projectFileName.toStdString();
-
-        //--- if directory with images does exist, then populate image path according to connection type.
-        //--- Continue, otherwise
-        if (QDir(mLocalWorkspacePath + QDir::separator() + projectFileName + ".images").exists()) {
-            QString adjustedWorkspacePath = (mConnectionType == LOCAL) ? mLocalWorkspacePath
-                                                                       : mRemoteWorkspacePath;
-            if (!adjustedWorkspacePath.endsWith(QDir::separator()))
-                adjustedWorkspacePath += QDir::separator();
-
-            seq.imagePath = QString(adjustedWorkspacePath + projectFileName + ".images")
-                                .toStdString();
-        } else {
-            continue;
-        }
-
-        //--- loop over all product types and check if exists in corresponding subdirectory
-        for (auto filenameItr = PRODUCT_FILENAME_MAP.begin();
-             filenameItr != PRODUCT_FILENAME_MAP.end();
-             ++filenameItr) {
-            QString productFilePath = getProductFilePath(QString::fromStdString(seq.name),
-                                                         filenameItr->first);
-
-            //--- if product exists add corresponding type to sequence struct
-            if (QFile(productFilePath).exists()) {
-                SProduct product;
-                product.type = filenameItr->first;
-                product.isFinished = true;
-
-                seq.products.push_back(product);
-            }
-        }
-
-        //--- add sequence to member list
-        mAvailableSequences.push_back(seq);
-    }
-
-    qDebug() << "Already finished sequences: " << mAvailableSequences.size();
-
-    //--- update workspace status
-    mWorkspaceStatus = IN_SYNC;
-    emit workspaceStatusUpdate();
-    emit sequenceListUpdate();
 }
 
 //==================================================================================================
@@ -1923,6 +1844,7 @@ void ui::ColmapWrapperControlsFactory::showNewProductDialog()
 
         mpMsWrapper->writeWorkQueueToFile();
         mpMsWrapper->startProcessing();
+        this->mpMsWrapper->checkWorkerState();
     }
 }
 
