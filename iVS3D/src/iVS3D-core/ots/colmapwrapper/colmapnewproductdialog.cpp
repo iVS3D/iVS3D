@@ -29,10 +29,7 @@ NewProductDialog::NewProductDialog(ColmapWrapper *ipWrapper, QWidget *parent)
     ui->l_warningNoImages->setStyleSheet("QLabel { color: red; }");
 
     ui->l_warningSequenceName->setVisible(false);
-    ui->l_warningSequenceName->setStyleSheet("QLabel { color: red; }");
-
-    validateImagePath();
-    validateSequenceName();
+    ui->l_warningSequenceName->setStyleSheet("QLabel { color: red; }");   
 
     //--- connections
     connect(ui->pb_selectImagePath,
@@ -358,7 +355,6 @@ void NewProductDialog::onUpdateToLightTheme()
 void NewProductDialog::onShow()
 {
     //--- clear previous configuration
-    mAvailableSeqs.clear();
     ui->buttonBox->button(QDialogButtonBox::Save)->setEnabled(false);
     ui->cb_prodCameraPoses->setChecked(false);
     ui->cb_prodCameraPoses->setEnabled(true);
@@ -381,20 +377,6 @@ void NewProductDialog::onShow()
     ui->rb_quality2->setChecked(false);
     ui->rb_quality3->setChecked(false);
 
-    //--- get list of sequences already defined, i.e. in finished seq and pending jobs
-    mAvailableSeqs = mpColmapWrapper->getFinishedSequenceList();
-    std::vector<ColmapWrapper::SJob> jobList = mpColmapWrapper->getJobList();
-    for (ColmapWrapper::SJob job : jobList) {
-        ColmapWrapper::SSequence seq;
-        seq.name = job.sequenceName;
-        seq.imagePath = (mpColmapWrapper->connectionType() == ColmapWrapper::LOCAL)
-                            ? mpColmapWrapper->localWorkspacePath().toStdString() + seq.name
-                                  + ".images"
-                            : mpColmapWrapper->remoteWorkspacePath().toStdString() + seq.name
-                                  + ".images";
-        mAvailableSeqs.push_back(seq);
-    }
-
     //--- enable pushbutton only if connection type is local
     //ui->pb_selectImagePath->setEnabled(mpColmapWrapper->connectionType() == ColmapWrapper::LOCAL);
 
@@ -405,6 +387,9 @@ void NewProductDialog::onShow()
         ui->le_imagePath->setText(
             QString::fromStdString(mpColmapWrapper->getLocalPresetSequence().imagePath));
     }
+
+    validateImagePath();
+    validateSequenceName();
 }
 
 //==================================================================================================
@@ -460,7 +445,13 @@ void NewProductDialog::validateSequenceName()
     QString sequenceName = ui->le_sequenceName->text();
 
     //--- get all colmap project files files from local workspace
-    QDir workSpaceDirectory(mpColmapWrapper->mLocalWorkspacePath);
+    QDir workSpaceDirectory;
+    if (mpColmapWrapper->connectionType() == ColmapWrapper::SSH) {
+        workSpaceDirectory = QDir(mpColmapWrapper->mntPntRemoteWorkspacePath());
+    } else {
+        workSpaceDirectory = QDir(mpColmapWrapper->mLocalWorkspacePath);
+    }
+
     QStringList msProjFiles = workSpaceDirectory.entryList(QStringList() << "*.db",
                                                            QDir::Files,
                                                            QDir::Name);

@@ -53,9 +53,8 @@ ColmapWrapper::ColmapWrapper(const QString iSettingsFile, const bool iSettingsOn
                            QSettings::UserScope,
                            stringContainer::settingsCompany,
                            iSettingsFile),
-      mpTempDir(new QTemporaryDir()), mpPyWorkerProcess(new QProcess()),
-      mpMountProcess(new QProcess()), mpSyncProcess(new QProcess()), mCheckWorkerTimer(),
-      mWorkspaceStatus(IN_SYNC),
+      mpPyWorkerProcess(new QProcess()), mpMountProcess(new QProcess()),
+      mpSyncProcess(new QProcess()), mCheckWorkerTimer(), mWorkspaceStatus(IN_SYNC),
       mpUiControls(nullptr)
 {
     this->readSettings();
@@ -1461,13 +1460,7 @@ void ColmapWrapper::startProcessing()
         return;
     }
 
-    //--- if temporary directory not valid, create new one
-    if (!mpTempDir->isValid()) {
-        if (mpTempDir != nullptr)
-            delete mpTempDir;
-
-        mpTempDir = new QTemporaryDir();
-    }
+    mpTempDir = new QTemporaryDir();
 
     //--- depending on connection type copy bootstrap scrip
     if (mConnectionType == LOCAL) {

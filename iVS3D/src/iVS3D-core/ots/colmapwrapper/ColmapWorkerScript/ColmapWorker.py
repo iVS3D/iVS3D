@@ -1321,6 +1321,17 @@ if __name__ == "__main__":
                 print(e, traceback.format_exc())
                 setFailedStateToJob()
                 #raise e
+        finally:
+            projectOutputDirPath = os.path.join(workspacePath , currentJob.sequenceName + ".output")
+            projectImageDir = os.path.join(workspacePath, currentJob.sequenceName + ".images")
+            logFilePath = os.path.join(workspacePath, "ColmapWorker.log")
+            if not os.path.exists(logFilePath):
+                continue
+
+            if os.path.exists(projectOutputDirPath):
+                shutil.copy(logFilePath, os.path.join(projectOutputDirPath, "ColmapWorker.log"))
+            elif os.path.exists(projectImageDir):
+                shutil.copy(logFilePath, os.path.join(projectImageDir, "ColmapWorker.log"))
 
 
         # get next job in queue
