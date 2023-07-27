@@ -77,6 +77,7 @@ void ColmapWrapper::init()
     mCheckWorkerTimer.setInterval(mSyncInterval * 1000);
     connect(&mCheckWorkerTimer, &QTimer::timeout, this, &ColmapWrapper::checkWorkerState);
 
+    connect(this, &ColmapWrapper::settingsApplied, this, &ColmapWrapper::afterSettingsChanged);
     QtConcurrent::run([this] {
         SSettings *settingsToTest = new SSettings{
             mLocalColmapBinPath,
@@ -170,6 +171,22 @@ bool ColmapWrapper::testSettings(const SSettings *settings, SSetupResults *resul
         }
         results->mntPntRemoteWorkspacePath.first = TEST_SUCCESSFUL;
         emit setupStatusUpdate();
+
+        // check username and server ip
+        {
+            if(settings->remoteUsr.isEmpty()){
+                results->sshConnection.first = TEST_FAILED;
+                results->sshConnection.second = "username is empty!";
+                emit setupStatusUpdate();
+                return false;
+            }
+            if(settings->remoteAddr.isEmpty()){
+                results->sshConnection.first = TEST_FAILED;
+                results->sshConnection.second = "server adress is empty!";
+                emit setupStatusUpdate();
+                return false;
+            }
+        }
 
         // check ssh connection
         {
@@ -699,6 +716,18 @@ void ColmapWrapper::readWorkerStateFromFile()
     qDebug() << "Info: " << nRunningJob << " job read from file.";
 }
 
+void ColmapWrapper::afterSettingsChanged()
+{
+    //--- check worker state file
+    //--- initial sync and import of sequence is done at the end of checkRunningJobs
+    bool runningJobChanged = checkWorkerState();
+
+    //--- if running job has not changed, i.e. currently no running job in state file, sync
+    //--- workspace from server.
+    if (!runningJobChanged && mConnectionType != LOCAL)
+        syncWorkspaceFromServer();
+}
+
 //==================================================================================================
 void ColmapWrapper::exportJobs(cv::FileStorage &ioFileStorage) const
 {
@@ -845,14 +874,6 @@ void ColmapWrapper::applySettings(const SSettings *settings)
     if (!hasScriptFilesInstalled()) {
         installScriptFilesIntoWorkspace();
     }
-    //--- check worker state file
-    //--- initial sync and import of sequence is done at the end of checkRunningJobs
-    bool runningJobChanged = checkWorkerState();
-
-    //--- if running job has not changed, i.e. currently no running job in state file, sync
-    //--- workspace from server.
-    if (!runningJobChanged && mConnectionType != LOCAL)
-        syncWorkspaceFromServer();
 
     mSetupSuccessful = true;
     emit settingsApplied();

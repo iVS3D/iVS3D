@@ -665,6 +665,11 @@ class ColmapWrapper : public QObject
      */
     void readWorkerStateFromFile();
 
+    /**
+     * @brief Sync files and update job list after colmap wrapper settings changed.
+     */
+    void afterSettingsChanged();
+
 
   private:
 
