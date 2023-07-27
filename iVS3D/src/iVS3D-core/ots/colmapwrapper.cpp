@@ -77,36 +77,39 @@ void ColmapWrapper::init()
     mCheckWorkerTimer.setInterval(mSyncInterval * 1000);
     connect(&mCheckWorkerTimer, &QTimer::timeout, this, &ColmapWrapper::checkWorkerState);
 
-  SSettings *settingsToTest = new SSettings{
-      mLocalColmapBinPath,
-      mRemoteColmapBinPath,
-      mLocalOpenMVSBinPath,
-      mRemoteOpenMVSBinPath,
-      mLocalWorkspacePath,
-      mRemoteWorkspacePath,
-      mMntPntRemoteWorkspacePath,
-      mConnectionType,
-      mRemoteAddr,
-      mRemoteUsr,
-      mSyncInterval
-  };
-  SSetupResults *result = new SSetupResults;
-  if(!testSettings(settingsToTest, result)){
-      // at least one test failed
-      // output some error message to the user
-      mSetupSuccessful = false;
-  } else {
-      // successful
-      applySettings(settingsToTest);
-      mSetupSuccessful = true;
-  }
+    QtConcurrent::run([this] {
+        SSettings *settingsToTest = new SSettings{
+            mLocalColmapBinPath,
+            mRemoteColmapBinPath,
+            mLocalOpenMVSBinPath,
+            mRemoteOpenMVSBinPath,
+            mLocalWorkspacePath,
+            mRemoteWorkspacePath,
+            mMntPntRemoteWorkspacePath,
+            mConnectionType,
+            mRemoteAddr,
+            mRemoteUsr,
+            mSyncInterval
+        };
+        SSetupResults *result = new SSetupResults;
+        if(!testSettings(settingsToTest, result)){
+            // at least one test failed
+            // output some error message to the user
+            mSetupSuccessful = false;
+        } else {
+            // successful
+            applySettings(settingsToTest);
+            mSetupSuccessful = true;
+        }
 
-  delete settingsToTest;
-  delete result;
 
-    if (mConnectionType == LOCAL && !mLocalWorkspacePath.isEmpty() && !hasScriptFilesInstalled()) {
-        installScriptFilesIntoWorkspace();
-    }
+        delete settingsToTest;
+        delete result;
+
+        if (mConnectionType == LOCAL && !mLocalWorkspacePath.isEmpty() && !hasScriptFilesInstalled()) {
+            installScriptFilesIntoWorkspace();
+        }
+    });
 
     //--- check worker state file
     //--- initial sync and import of sequence is done at the end of checkRunningJobs
@@ -128,6 +131,7 @@ bool ColmapWrapper::testSettings(const SSettings *settings, SSetupResults *resul
         results->localWorkspacePath.second = "workspace does not exist!";
 
         emit setupStatusUpdate();
+        emit settingsTested(false);
         return false;
     }
     results->localWorkspacePath.first = TEST_SUCCESSFUL;
@@ -339,6 +343,8 @@ void ColmapWrapper::restoreDefaultSettings()
 
     delete settingsToTest;
     delete result;
+
+    emit settingsApplied();
 }
 
 void ColmapWrapper::loadDefaultSettings()
@@ -846,7 +852,10 @@ void ColmapWrapper::applySettings(const SSettings *settings)
     //--- if running job has not changed, i.e. currently no running job in state file, sync
     //--- workspace from server.
     if (!runningJobChanged && mConnectionType != LOCAL)
-        syncWorkspaceFromServer();   
+        syncWorkspaceFromServer();
+
+    mSetupSuccessful = true;
+    emit settingsApplied();
 }
 
 //==================================================================================================
@@ -1803,7 +1812,7 @@ ui::ColmapWrapperControlsFactory::ColmapWrapperControlsFactory(ColmapWrapper *ip
     : QObject(), mpMsWrapper(ipColmapWrapper), mpMsWrapperSettingsDialog(nullptr)
 {
     connect(mpMsWrapper,
-            &ColmapWrapper::setupStatusUpdate,
+            &ColmapWrapper::settingsApplied,
             this,
             &ColmapWrapperControlsFactory::onSetupChanged);
 }

@@ -21,6 +21,7 @@
 #include <QTimer>
 #include <QTemporaryDir>
 #include <QTemporaryFile>
+#include <QtConcurrent>
 
 // OpenCV
 #include <opencv2/core.hpp>
@@ -436,6 +437,17 @@ class ColmapWrapper : public QObject
      * @brief Signal that the setup has changed.
      */
     void setupStatusUpdate();
+
+    /**
+     * @brief settingsTested is emitted once all tests have finished.
+     * @param valid
+     */
+    void settingsTested(bool valid);
+
+    /**
+     * @brief Signal that new colmap settings have been applied.
+     */
+    void settingsApplied();
 
   public slots:
     void setLocalPresetSequence(QString name, QString path);
