@@ -344,6 +344,11 @@ void SettingsDialog::onStatusChanged()
     updateStatusMsg(mSetupResults.remoteWorkspacePath, ui->le_remoteWorkspace);
 }
 
+void SettingsDialog::onQuit()
+{
+    this->close();
+}
+
 } // namespace colmapwrapper
 } // namespace ui
 } // namespace ots

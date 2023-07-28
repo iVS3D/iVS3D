@@ -33,6 +33,7 @@ class SettingsDialog : public QDialog
   public slots:
     void onShow();
     void onStatusChanged();
+    void onQuit();
 
   private slots:
     void onLocalColmapBinaryPushButtonPressed();

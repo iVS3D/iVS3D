@@ -73,6 +73,9 @@ Controller::Controller(QString inputPath, QString settingsPath, QString outputPa
     connect(m_mainWindow, &MainWindow::sig_openMetaData, this, &Controller::slot_openMetaData);
     connect(m_mainWindow, &MainWindow::sig_undo, this, &Controller::slot_undo);
     connect(m_mainWindow, &MainWindow::sig_redo, this, &Controller::slot_redo);
+#if defined(Q_OS_LINUX)
+    connect(m_mainWindow, &MainWindow::sig_quit, m_colmapWrapper->getOrCreateUiControlsFactory(), &lib3d::ots::ui::ColmapWrapperControlsFactory::onQuit);
+#endif
 
     connect(this, &Controller::sig_hasStatusMessage, m_mainWindow, &MainWindow::slot_displayStatusMessage);
 

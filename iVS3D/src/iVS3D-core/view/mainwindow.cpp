@@ -193,6 +193,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
     settings.setValue("windowGeometry", QVariant(geometry()));
     settings.setValue("windowState", saveState());
     settings.setValue("maximized", this->isMaximized());
+    emit sig_quit();
     QMainWindow::closeEvent(event);
 }
 

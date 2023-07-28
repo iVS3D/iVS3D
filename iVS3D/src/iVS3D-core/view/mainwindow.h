@@ -226,6 +226,8 @@ signals:
 
     void sig_toggleKeyframe();
 
+    void sig_quit();
+
 
 public slots:
     /**

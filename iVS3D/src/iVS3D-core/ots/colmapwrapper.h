@@ -909,6 +909,9 @@ namespace ui {
 
       void enableNewProductButtons(bool enabled);
 
+  public slots:
+      void onQuit();
+
     private:
 
       /**

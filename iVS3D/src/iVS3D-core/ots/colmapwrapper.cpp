@@ -1831,6 +1831,11 @@ void ui::ColmapWrapperControlsFactory::updateIconTheme(ui::ETheme iTheme)
         emit updateToLightTheme();
 }
 
+void ui::ColmapWrapperControlsFactory::onQuit()
+{
+    mpMsWrapperSettingsDialog->onQuit();
+}
+
 //==================================================================================================
 ui::ColmapWrapperControlsFactory::ColmapWrapperControlsFactory(ColmapWrapper *ipColmapWrapper)
     : QObject(), mpMsWrapper(ipColmapWrapper), mpMsWrapperSettingsDialog(nullptr)
