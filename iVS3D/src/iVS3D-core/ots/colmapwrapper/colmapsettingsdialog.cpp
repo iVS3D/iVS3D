@@ -59,10 +59,12 @@ SettingsDialog::SettingsDialog(ColmapWrapper *ipWrapper, QWidget *parent)
   connect(mpColmapWrapper, &ColmapWrapper::setupStatusUpdate, this, &SettingsDialog::onStatusChanged);
   connect(ui->le_localWorkspace, &QLineEdit::textChanged, this, &SettingsDialog::settingsChanged);
   connect(ui->le_localColmapBinary, &QLineEdit::textChanged, this, &SettingsDialog::settingsChanged);
+  connect(ui->le_localOpenMVSBinaryFolder, &QLineEdit::textChanged, this, &SettingsDialog::settingsChanged);
   connect(ui->le_remoteWorkspace, &QLineEdit::textChanged, this, &SettingsDialog::settingsChanged);
   connect(ui->le_remoteAddr, &QLineEdit::textChanged, this, &SettingsDialog::settingsChanged);
   connect(ui->le_remoteUsr, &QLineEdit::textChanged, this, &SettingsDialog::settingsChanged);
   connect(ui->le_remoteColmapBinary, &QLineEdit::textChanged, this, &SettingsDialog::settingsChanged);
+  connect(ui->le_remoteOpenMVSBinaryFolder, &QLineEdit::textChanged, this, &SettingsDialog::settingsChanged);
   connect(ui->le_mntPnt, &QLineEdit::textChanged, this, &SettingsDialog::settingsChanged);
 
   //--- hide remote settings (default)

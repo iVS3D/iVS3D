@@ -1118,11 +1118,6 @@ bool ColmapWrapper::checkWorkerState()
     qDebug() << "Time: " << QDateTime::currentDateTime().toString();
     qDebug() << __PRETTY_FUNCTION__;
 
-    //--- read woker queue and worker state
-    readWorkQueueFromFile();
-    readWorkerStateFromFile();
-    emit jobListUpdate();
-    emit workerStateUpdate();
 
     //--- store currently referenced job
     SJob previouslyRunningJob;
@@ -1131,6 +1126,12 @@ bool ColmapWrapper::checkWorkerState()
         previouslyRunningJob = *mPyWorker.currentlyRunningJob;
         isPreviouslyRunningJobNull = false;
     }
+
+    //--- read woker queue and worker state
+    readWorkQueueFromFile();
+    readWorkerStateFromFile();
+    emit jobListUpdate();
+    emit workerStateUpdate();
 
     bool runningJobChanged = false;
 
@@ -1149,6 +1150,8 @@ bool ColmapWrapper::checkWorkerState()
             syncWorkspaceFromServer();
     } else {
         qDebug() << "Info: Running Job unchanged.";
+        mWorkspaceStatus = IN_SYNC;
+        emit workspaceStatusUpdate();
     }
 
     return runningJobChanged;
