@@ -62,16 +62,30 @@ void GPSReader::setAltitudeDiff(double setAltitude)
 }
 
 
-void GPSReader::addGPSValue(double latitude, double longitude)
+bool GPSReader::addGPSValue(double latitude, double longitude)
 {
+    //check for valid lat/long values (-90 to 90 for latitude and -180 to 180 for longitude)
+    if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
+        QHash<QString, QVariant> newGPSHash = createGPSHash(0, 0);
+        m_GPSHashs.push_back(newGPSHash);
+        return false;
+    }
     QHash<QString, QVariant> newGPSHash = createGPSHash(latitude, longitude);
     m_GPSHashs.push_back(newGPSHash);
+    return true;
 }
 
-void GPSReader::addGPSValue(double latitude, double longitude, double altitude)
+bool GPSReader::addGPSValue(double latitude, double longitude, double altitude)
 {
+    //check for valid lat/long values (-90 to 90 for latitude and -180 to 180 for longitude)
+    if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
+        QHash<QString, QVariant> newGPSHash = createGPSHash(0, 0);
+        m_GPSHashs.push_back(newGPSHash);
+        return false;
+    }
     QHash<QString, QVariant> newGPSHash = createGPSHash(latitude, longitude, altitude);
     m_GPSHashs.push_back(newGPSHash);
+    return true;
 }
 
 void GPSReader::addAltitudeDiff(int index)

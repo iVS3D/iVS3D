@@ -53,11 +53,27 @@ bool GPSReaderExifPNG::parseDataImage(std::vector<std::string> paths, bool inter
         }
 
         if (data.GeoLocation.Altitude == 0) {
-            addGPSValue(data.GeoLocation.Latitude, data.GeoLocation.Longitude);
+            //If the gps values are invalid, the current values are handled as not existing
+            if (!addGPSValue(data.GeoLocation.Latitude, data.GeoLocation.Longitude)) {
+                gapSize++;
+                if (gapSize >= MAX_GAP_SIZE) {
+                    return false;
+                }
+                missingMetaData.append(index);
+                continue;
+            }
             gapSize = 0;
         }
         else {
-            addGPSValue(data.GeoLocation.Latitude, data.GeoLocation.Longitude, data.GeoLocation.Altitude);
+            //If the gps values are invalid, the current values are handled as not existing
+            if (!addGPSValue(data.GeoLocation.Latitude, data.GeoLocation.Longitude, data.GeoLocation.Altitude)) {
+                gapSize++;
+                if (gapSize >= MAX_GAP_SIZE) {
+                    return false;
+                }
+                missingMetaData.append(index);
+                continue;
+            }
             gapSize = 0;
         }
 

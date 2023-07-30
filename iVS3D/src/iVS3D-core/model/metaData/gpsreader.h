@@ -50,8 +50,8 @@ public:
 
 
 protected:
-   void addGPSValue(double latitude, double longitude);
-   void addGPSValue(double latitude, double longitude, double altitude);
+   bool addGPSValue(double latitude, double longitude);
+   bool addGPSValue(double latitude, double longitude, double altitude);
    QList<QHash<QString, QVariant>> m_GPSHashs;
    double m_altitudeDiff = 0;
    void addAltitudeDiff(int index);

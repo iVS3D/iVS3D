@@ -75,9 +75,14 @@ bool GPSReaderDJIMavic::parseLine(QString line)
         longitude = matchLongtitude.captured(1).toDouble();
 
         if (useAltitude) {
-            addGPSValue(latitude, longitude, altitude);
-        } else {
-            addGPSValue(latitude, longitude);
+            if (!addGPSValue(latitude, longitude, altitude)) {
+                return false;
+            }
+        }
+        else {
+            if (!addGPSValue(latitude, longitude)) {
+                return false;
+            }
         }
 
     } else {
