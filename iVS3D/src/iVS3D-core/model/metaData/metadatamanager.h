@@ -72,7 +72,6 @@ public:
 
     bool reg(std::string name, AbstractBuilder builder);
 
-    bool gpsDataHasAltitude();
     /**
      * @brief interpolateMissingMetaData is called when the option to interpoalte missing meta data is changed
      * @param interpolate @a true if missing meta data is interpolated, @a false otherwise

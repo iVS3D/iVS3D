@@ -117,17 +117,17 @@
 <context>
     <name>AutomaticExecutor</name>
     <message>
-        <location filename="../model/automaticExecution/automaticexecutor.cpp" line="85"/>
+        <location filename="../model/automaticExecution/automaticexecutor.cpp" line="87"/>
         <source>Finished </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../model/automaticExecution/automaticexecutor.cpp" line="85"/>
+        <location filename="../model/automaticExecution/automaticexecutor.cpp" line="87"/>
         <source> sampling algorithms</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../model/automaticExecution/automaticexecutor.cpp" line="103"/>
+        <location filename="../model/automaticExecution/automaticexecutor.cpp" line="104"/>
         <source>Aborted batch processing</source>
         <translation type="unfinished"></translation>
     </message>
@@ -163,203 +163,215 @@
 <context>
     <name>Controller</name>
     <message>
-        <location filename="../controller/controller.cpp" line="107"/>
+        <location filename="../controller/controller.cpp" line="120"/>
         <source>Wait for export to finish before importing new images.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="111"/>
+        <location filename="../controller/controller.cpp" line="124"/>
         <source>Choose Folder</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="113"/>
-        <location filename="../controller/controller.cpp" line="132"/>
-        <location filename="../controller/controller.cpp" line="202"/>
-        <location filename="../controller/controller.cpp" line="211"/>
-        <location filename="../controller/controller.cpp" line="244"/>
-        <location filename="../controller/controller.cpp" line="280"/>
+        <location filename="../controller/controller.cpp" line="126"/>
+        <location filename="../controller/controller.cpp" line="145"/>
+        <location filename="../controller/controller.cpp" line="215"/>
+        <location filename="../controller/controller.cpp" line="224"/>
+        <location filename="../controller/controller.cpp" line="257"/>
+        <location filename="../controller/controller.cpp" line="301"/>
         <source>Input canceled</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="125"/>
+        <location filename="../controller/controller.cpp" line="138"/>
         <source>Wait for export to finish before importing a new video.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="130"/>
+        <location filename="../controller/controller.cpp" line="143"/>
         <source>Choose Video</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="156"/>
+        <location filename="../controller/controller.cpp" line="169"/>
         <source>Wait for export to finish before importing new files.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="182"/>
+        <location filename="../controller/controller.cpp" line="195"/>
         <source>Wait for export to finish before importing new project.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="187"/>
+        <location filename="../controller/controller.cpp" line="200"/>
         <source>Choose project file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="209"/>
+        <location filename="../controller/controller.cpp" line="222"/>
         <source>Save project</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="220"/>
-        <location filename="../controller/controller.cpp" line="227"/>
+        <location filename="../controller/controller.cpp" line="233"/>
+        <location filename="../controller/controller.cpp" line="240"/>
         <source>Project saved</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="242"/>
+        <location filename="../controller/controller.cpp" line="255"/>
         <source>Choose standard input path</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="249"/>
+        <location filename="../controller/controller.cpp" line="262"/>
         <source>Standard input path changed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="255"/>
+        <location filename="../controller/controller.cpp" line="268"/>
         <source>GUI changed to </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="255"/>
+        <location filename="../controller/controller.cpp" line="268"/>
         <source>dark</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="255"/>
+        <location filename="../controller/controller.cpp" line="268"/>
         <source>light</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="255"/>
+        <location filename="../controller/controller.cpp" line="268"/>
         <source> style -- restart to activate changes</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="264"/>
+        <location filename="../controller/controller.cpp" line="277"/>
         <source>CUDA enabled</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="264"/>
+        <location filename="../controller/controller.cpp" line="277"/>
         <source>CUDA disabled</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="270"/>
+        <location filename="../controller/controller.cpp" line="283"/>
         <source>Create log files</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="270"/>
+        <location filename="../controller/controller.cpp" line="283"/>
+        <location filename="../controller/controller.cpp" line="291"/>
         <source> enabled</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="270"/>
+        <location filename="../controller/controller.cpp" line="283"/>
+        <location filename="../controller/controller.cpp" line="291"/>
         <source> disabled</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="278"/>
+        <location filename="../controller/controller.cpp" line="291"/>
+        <source>Interpolating missing meta data</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../controller/controller.cpp" line="299"/>
         <source>Choose Meta Data</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="287"/>
+        <location filename="../controller/controller.cpp" line="308"/>
         <source>Loaded </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="287"/>
-        <location filename="../controller/controller.cpp" line="349"/>
+        <location filename="../controller/controller.cpp" line="308"/>
+        <location filename="../controller/controller.cpp" line="370"/>
         <source> meta data feature</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="287"/>
-        <location filename="../controller/controller.cpp" line="349"/>
+        <location filename="../controller/controller.cpp" line="308"/>
+        <location filename="../controller/controller.cpp" line="370"/>
         <source>s</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="336"/>
+        <location filename="../controller/controller.cpp" line="357"/>
         <source>No images found after </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="336"/>
-        <location filename="../controller/controller.cpp" line="350"/>
-        <location filename="../controller/controller.cpp" line="353"/>
+        <location filename="../controller/controller.cpp" line="357"/>
+        <location filename="../controller/controller.cpp" line="371"/>
+        <location filename="../controller/controller.cpp" line="374"/>
         <source>ms</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="348"/>
-        <location filename="../controller/controller.cpp" line="353"/>
+        <location filename="../controller/controller.cpp" line="369"/>
+        <location filename="../controller/controller.cpp" line="374"/>
         <source>Import of </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="348"/>
+        <location filename="../controller/controller.cpp" line="369"/>
         <source> images and </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="350"/>
+        <location filename="../controller/controller.cpp" line="371"/>
         <source> finished after </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="353"/>
+        <location filename="../controller/controller.cpp" line="374"/>
         <source> images finished after </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="372"/>
+        <location filename="../controller/controller.cpp" line="393"/>
         <source>#Frames  </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="376"/>
+        <location filename="../controller/controller.cpp" line="397"/>
         <source>Resolution  </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="380"/>
+        <location filename="../controller/controller.cpp" line="401"/>
         <source>FPS </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="381"/>
+        <location filename="../controller/controller.cpp" line="402"/>
         <source>Video duration </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="440"/>
+        <location filename="../controller/controller.cpp" line="407"/>
+        <source>Loaded Meta Data</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../controller/controller.cpp" line="467"/>
         <source>Project </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="440"/>
+        <location filename="../controller/controller.cpp" line="467"/>
         <source> with </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="441"/>
+        <location filename="../controller/controller.cpp" line="468"/>
         <source> images loaded</source>
         <translation type="unfinished"></translation>
     </message>
@@ -413,38 +425,38 @@
 <context>
     <name>ExportController</name>
     <message>
-        <location filename="../controller/exportcontroller.cpp" line="208"/>
+        <location filename="../controller/exportcontroller.cpp" line="244"/>
         <source>Couldn&apos;t create Export Directory: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/exportcontroller.cpp" line="382"/>
+        <location filename="../controller/exportcontroller.cpp" line="418"/>
         <source>Export aborted after </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/exportcontroller.cpp" line="382"/>
-        <location filename="../controller/exportcontroller.cpp" line="408"/>
+        <location filename="../controller/exportcontroller.cpp" line="418"/>
+        <location filename="../controller/exportcontroller.cpp" line="444"/>
         <source>ms</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/exportcontroller.cpp" line="402"/>
+        <location filename="../controller/exportcontroller.cpp" line="438"/>
         <source>Export failed. Maybe the path is invalid</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/exportcontroller.cpp" line="408"/>
+        <location filename="../controller/exportcontroller.cpp" line="444"/>
         <source>Export finished after </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/exportcontroller.cpp" line="706"/>
+        <location filename="../controller/exportcontroller.cpp" line="750"/>
         <source>start of explorer successful</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/exportcontroller.cpp" line="711"/>
+        <location filename="../controller/exportcontroller.cpp" line="755"/>
         <source>failed to start Reconstruction Software!</source>
         <translation type="unfinished"></translation>
     </message>
@@ -452,8 +464,8 @@
 <context>
     <name>ExportThread</name>
     <message>
-        <location filename="../model/export/exportthread.cpp" line="37"/>
-        <location filename="../model/export/exportthread.cpp" line="228"/>
+        <location filename="../model/export/exportthread.cpp" line="39"/>
+        <location filename="../model/export/exportthread.cpp" line="310"/>
         <source>Exporting images</source>
         <translation type="unfinished"></translation>
     </message>
@@ -491,37 +503,42 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/exportwidget.ui" line="96"/>
+        <location filename="../view/exportwidget.ui" line="113"/>
+        <source>Altitude of the first image</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../view/exportwidget.ui" line="135"/>
         <source>Create files for:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/exportwidget.ui" line="164"/>
+        <location filename="../view/exportwidget.ui" line="203"/>
         <source>Define ROI for export</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/exportwidget.ui" line="167"/>
+        <location filename="../view/exportwidget.ui" line="206"/>
         <source>Crop</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/exportwidget.ui" line="174"/>
+        <location filename="../view/exportwidget.ui" line="213"/>
         <source>Use crop</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/exportwidget.ui" line="189"/>
+        <location filename="../view/exportwidget.ui" line="228"/>
         <source>Add export to batch processing</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/exportwidget.ui" line="204"/>
+        <location filename="../view/exportwidget.ui" line="243"/>
         <source>Export keyframes to output folder</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/exportwidget.ui" line="207"/>
+        <location filename="../view/exportwidget.ui" line="246"/>
         <source>Export</source>
         <translation type="unfinished"></translation>
     </message>
@@ -531,7 +548,7 @@
         <translation>3D Reconstruction</translation>
     </message>
     <message>
-        <location filename="../view/exportwidget.cpp" line="111"/>
+        <location filename="../view/exportwidget.cpp" line="116"/>
         <source>choose output folder</source>
         <translation type="unfinished"></translation>
     </message>
@@ -702,203 +719,208 @@ p, li { white-space: pre-wrap; }
         <translation type="unfinished">Settings</translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.ui" line="79"/>
+        <location filename="../view/mainwindow.ui" line="80"/>
         <source>About</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.ui" line="87"/>
+        <location filename="../view/mainwindow.ui" line="88"/>
         <source>View</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.ui" line="92"/>
+        <location filename="../view/mainwindow.ui" line="93"/>
         <source>Tools</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.ui" line="111"/>
+        <location filename="../view/mainwindow.ui" line="112"/>
         <source>Open Project</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.ui" line="119"/>
+        <location filename="../view/mainwindow.ui" line="120"/>
         <source>Save Project</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.ui" line="127"/>
+        <location filename="../view/mainwindow.ui" line="128"/>
         <source>Save Project As ...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.ui" line="132"/>
+        <location filename="../view/mainwindow.ui" line="133"/>
         <source>Open Input Folder</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.ui" line="137"/>
+        <location filename="../view/mainwindow.ui" line="138"/>
         <source>Manage reconstruction tools </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.ui" line="142"/>
+        <location filename="../view/mainwindow.ui" line="143"/>
         <source>Set input Path</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.ui" line="147"/>
+        <location filename="../view/mainwindow.ui" line="148"/>
         <source>Change layout style</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.ui" line="152"/>
+        <location filename="../view/mainwindow.ui" line="153"/>
         <source>Info</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.ui" line="157"/>
+        <location filename="../view/mainwindow.ui" line="158"/>
         <source>Open Input Video</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.ui" line="162"/>
+        <location filename="../view/mainwindow.ui" line="163"/>
         <source>Use DarkStyle</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.ui" line="167"/>
+        <location filename="../view/mainwindow.ui" line="168"/>
         <source>Help</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.ui" line="175"/>
+        <location filename="../view/mainwindow.ui" line="176"/>
         <source>Use CUDA</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.ui" line="180"/>
+        <location filename="../view/mainwindow.ui" line="181"/>
         <source>Licence</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.ui" line="185"/>
-        <location filename="../view/mainwindow.ui" line="188"/>
+        <location filename="../view/mainwindow.ui" line="186"/>
+        <location filename="../view/mainwindow.ui" line="189"/>
         <source>Start automatic execution</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.ui" line="193"/>
+        <location filename="../view/mainwindow.ui" line="194"/>
         <source>Setup automatic execution</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.ui" line="201"/>
+        <location filename="../view/mainwindow.ui" line="202"/>
         <source>Create log file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.ui" line="209"/>
+        <location filename="../view/mainwindow.ui" line="210"/>
         <source>Open Meta Data</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.ui" line="214"/>
+        <location filename="../view/mainwindow.ui" line="215"/>
         <source>Undo</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.ui" line="217"/>
+        <location filename="../view/mainwindow.ui" line="218"/>
         <source>Ctrl+Z</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.ui" line="222"/>
+        <location filename="../view/mainwindow.ui" line="223"/>
         <source>Redo</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.ui" line="225"/>
+        <location filename="../view/mainwindow.ui" line="226"/>
         <source>Ctrl+Y</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.ui" line="230"/>
+        <location filename="../view/mainwindow.ui" line="231"/>
         <source>Reset Boundaries</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.ui" line="233"/>
+        <location filename="../view/mainwindow.ui" line="234"/>
         <source>Ctrl+R</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.ui" line="238"/>
+        <location filename="../view/mainwindow.ui" line="239"/>
         <source>Reset Keyframes</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.ui" line="241"/>
+        <location filename="../view/mainwindow.ui" line="242"/>
         <source>Resets keyframes to default</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.ui" line="249"/>
+        <location filename="../view/mainwindow.ui" line="250"/>
         <source>Delete Keyframes inside boundaries</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.ui" line="244"/>
+        <location filename="../view/mainwindow.ui" line="264"/>
+        <source>Interpolate missing meta data</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../view/mainwindow.ui" line="245"/>
         <source>Shift+Del</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.ui" line="252"/>
+        <location filename="../view/mainwindow.ui" line="253"/>
         <source>Delete keyframes within boundaries</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.ui" line="255"/>
+        <location filename="../view/mainwindow.ui" line="256"/>
         <source>Ctrl+Del</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.cpp" line="49"/>
+        <location filename="../view/mainwindow.cpp" line="50"/>
         <source>Input</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.cpp" line="66"/>
+        <location filename="../view/mainwindow.cpp" line="67"/>
         <source>Batch processing</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.cpp" line="82"/>
+        <location filename="../view/mainwindow.cpp" line="83"/>
         <source>Sampling</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.cpp" line="93"/>
+        <location filename="../view/mainwindow.cpp" line="94"/>
         <source>Output</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.cpp" line="110"/>
+        <location filename="../view/mainwindow.cpp" line="112"/>
         <source>Reset Layout</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.cpp" line="274"/>
+        <location filename="../view/mainwindow.cpp" line="288"/>
         <source>Reconstruction</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.h" line="72"/>
+        <location filename="../view/mainwindow.h" line="71"/>
         <source>no algorithm</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.h" line="83"/>
+        <location filename="../view/mainwindow.h" line="82"/>
         <source>not saved</source>
         <translation type="unfinished"></translation>
     </message>
@@ -947,20 +969,20 @@ p, li { white-space: pre-wrap; }
 <context>
     <name>QObject</name>
     <message>
-        <location filename="../ots/colmapwrapper.cpp" line="1360"/>
-        <location filename="../ots/colmapwrapper.cpp" line="1398"/>
+        <location filename="../ots/colmapwrapper.cpp" line="1671"/>
+        <location filename="../ots/colmapwrapper.cpp" line="1709"/>
         <source>Create new product to be processed by COLMAP</source>
         <translation>Create new product to be processed by COLMAP</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper.cpp" line="1430"/>
-        <location filename="../ots/colmapwrapper.cpp" line="1460"/>
-        <location filename="../ots/colmapwrapper.cpp" line="1487"/>
+        <location filename="../ots/colmapwrapper.cpp" line="1739"/>
+        <location filename="../ots/colmapwrapper.cpp" line="1768"/>
+        <location filename="../ots/colmapwrapper.cpp" line="1796"/>
         <source>Open COLMAP Wrapper Settings</source>
         <translation>Open ColmapWrapper Settings</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapsettingsdialog.cpp" line="21"/>
+        <location filename="../ots/colmapwrapper/colmapsettingsdialog.cpp" line="18"/>
         <source>COLMAP Wrapper Settings</source>
         <translation>ColmapWrapper - Settings</translation>
     </message>
@@ -1267,17 +1289,17 @@ p, li { white-space: pre-wrap; }
 <context>
     <name>lib3d::ots::ui::ColmapWrapperControlsFactory</name>
     <message>
-        <location filename="../ots/colmapwrapper.cpp" line="1363"/>
+        <location filename="../ots/colmapwrapper.cpp" line="1674"/>
         <source> New Product</source>
         <translation> New Product</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper.cpp" line="1433"/>
+        <location filename="../ots/colmapwrapper.cpp" line="1742"/>
         <source>Settings</source>
         <translation>Settings</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper.cpp" line="1489"/>
+        <location filename="../ots/colmapwrapper.cpp" line="1798"/>
         <source>Colmap Wrapper Settings</source>
         <translation type="unfinished">ColmapWrapper - Settings</translation>
     </message>
@@ -1295,114 +1317,187 @@ p, li { white-space: pre-wrap; }
         <translation>Name:</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="105"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="63"/>
+        <source>Invalid sequence name</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="96"/>
         <source>Images:</source>
         <translation>Images:</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="165"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="116"/>
+        <source>No images found in directory</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="163"/>
         <source>Select image path...</source>
         <translation>Select Images ...</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="194"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="198"/>
         <source>Product</source>
         <translation>Product(s)</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="205"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="209"/>
         <source>1. Camera Poses</source>
         <translation>1. Camera Poses</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="219"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="223"/>
         <source>2. Dense Point Cloud</source>
         <translation>2. Dense Pointcloud</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="233"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="237"/>
         <source>Currently not usable, due to georegistration</source>
         <translation>Currently not usable, due to georegistration</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="239"/>
-        <source>3. Meshed Model</source>
-        <translation>3. Surface Model</translation>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="503"/>
+        <source>Share intrinsics between images:</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="251"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="540"/>
+        <source>Optional intrinsic parameters (comma seperated):</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="574"/>
+        <source>GPU ids (-1 to use all):</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="623"/>
+        <source>Robust mode (Higher probability of success at the expense of quality):</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="654"/>
+        <source>Images could have very high focal length:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="697"/>
+        <source>Cache size for dense fusion:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="762"/>
+        <source>Mesh</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="770"/>
+        <source>Max threads for mesh reconstruction (0 to use all)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="790"/>
+        <source>0</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>3. Meshed Model</source>
+        <translation type="vanished">3. Surface Model</translation>
+    </message>
+    <message>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="386"/>
         <source>Settings</source>
         <translation>Settings</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="287"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="422"/>
         <source>Camera Poses</source>
         <translation>Camera Poses</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="295"/>
         <source>Camera Model:</source>
-        <translation>Camera Model:</translation>
+        <translation type="vanished">Camera Model:</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="343"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="481"/>
         <source>OPENCV</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="348"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="474"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="486"/>
         <source>RADIAL</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="353"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="243"/>
+        <source>3. Meshed and textured Model</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="261"/>
+        <source>Trade-off between quality and runtime</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="282"/>
+        <source>Fast</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="311"/>
+        <source>Medium</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="343"/>
+        <source>Quality</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="372"/>
+        <source>Best Quality</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="430"/>
+        <source>Camera model:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="491"/>
         <source>PINHOLE</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="365"/>
         <source>Single Camera:</source>
-        <translation>Single Camera:</translation>
+        <translation type="vanished">Single Camera:</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="402"/>
         <source>Multiple Models:</source>
-        <translation>Multiple Models:</translation>
+        <translation type="vanished">Multiple Models:</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="436"/>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="610"/>
-        <source>GPUs:</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="471"/>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="642"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="609"/>
         <source>-1</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="494"/>
         <source>Max Image Size:</source>
-        <translation>Maximum Image Size:</translation>
+        <translation type="vanished">Maximum Image Size:</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="529"/>
-        <source> Pixel</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="552"/>
         <source>Cache Size:</source>
-        <translation>Cache Size:</translation>
+        <translation type="vanished">Cache Size:</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="587"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="732"/>
         <source> GB</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="486"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="689"/>
         <source>Dense Point Cloud</source>
         <translation>Dense Pointcloud</translation>
     </message>
@@ -1412,22 +1507,21 @@ p, li { white-space: pre-wrap; }
         <translation>New Product</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="660"/>
         <source>Meshed Model</source>
-        <translation>Surface Model</translation>
+        <translation type="vanished">Surface Model</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.cpp" line="129"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.cpp" line="143"/>
         <source>Select image directory</source>
         <translation>Select image direcotry ...</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.cpp" line="210"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.cpp" line="226"/>
         <source>Copying files...</source>
         <translation>Copying images ...</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.cpp" line="210"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.cpp" line="227"/>
         <source>Abort Copy</source>
         <translation>Abort Copy</translation>
     </message>
@@ -1448,6 +1542,24 @@ p, li { white-space: pre-wrap; }
         <location filename="../ots/colmapwrapper/colmapqueueitem.ui" line="105"/>
         <source>In der Warteschlange</source>
         <translation>Pending</translation>
+    </message>
+</context>
+<context>
+    <name>lib3d::ots::ui::colmapwrapper::QueueItemFailed</name>
+    <message>
+        <location filename="../ots/colmapwrapper/colmapqueueitem_failed.ui" line="69"/>
+        <source>Form</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ots/colmapwrapper/colmapqueueitem_failed.ui" line="131"/>
+        <source>aaaaaaaaaaaaaaaaaaaaaaa</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ots/colmapwrapper/colmapqueueitem_failed.ui" line="150"/>
+        <source>Failed</source>
+        <translation type="unfinished">Failed</translation>
     </message>
 </context>
 <context>
@@ -1510,8 +1622,37 @@ p, li { white-space: pre-wrap; }
     </message>
     <message>
         <location filename="../ots/colmapwrapper/colmapsettingsdialog.ui" line="72"/>
+        <source>Synchronization interval:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ots/colmapwrapper/colmapsettingsdialog.ui" line="121"/>
+        <source>Local workspace path:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ots/colmapwrapper/colmapsettingsdialog.ui" line="198"/>
+        <source>COLMAP binary (local):</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ots/colmapwrapper/colmapsettingsdialog.ui" line="260"/>
+        <source>OpenMVS binary folder (local):</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ots/colmapwrapper/colmapsettingsdialog.ui" line="459"/>
+        <source>COLMAP binary (remote):</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ots/colmapwrapper/colmapsettingsdialog.ui" line="499"/>
+        <source>OpenMVS binary folder (remote):</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <source>Synchronization Interval:</source>
-        <translation>Synchronization Interval:</translation>
+        <translation type="vanished">Synchronization Interval:</translation>
     </message>
     <message>
         <location filename="../ots/colmapwrapper/colmapsettingsdialog.ui" line="98"/>
@@ -1519,104 +1660,82 @@ p, li { white-space: pre-wrap; }
         <translation> seconds</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapsettingsdialog.ui" line="121"/>
         <source>Local Workspace Path:</source>
-        <translation>Local workspace path:</translation>
+        <translation type="vanished">Local workspace path:</translation>
     </message>
     <message>
         <location filename="../ots/colmapwrapper/colmapsettingsdialog.ui" line="178"/>
         <location filename="../ots/colmapwrapper/colmapsettingsdialog.ui" line="249"/>
-        <location filename="../ots/colmapwrapper/colmapsettingsdialog.ui" line="531"/>
+        <location filename="../ots/colmapwrapper/colmapsettingsdialog.ui" line="308"/>
+        <location filename="../ots/colmapwrapper/colmapsettingsdialog.ui" line="624"/>
         <source>...</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapsettingsdialog.ui" line="198"/>
         <source>COLMAP Binary (local):</source>
-        <translation>COLMAP Executable (local):</translation>
+        <translation type="vanished">COLMAP Executable (local):</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapsettingsdialog.ui" line="272"/>
+        <location filename="../ots/colmapwrapper/colmapsettingsdialog.ui" line="331"/>
         <source>Address:</source>
         <translation>Address:</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapsettingsdialog.ui" line="315"/>
+        <location filename="../ots/colmapwrapper/colmapsettingsdialog.ui" line="374"/>
         <source>User:</source>
         <translation>User:</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapsettingsdialog.ui" line="361"/>
+        <location filename="../ots/colmapwrapper/colmapsettingsdialog.ui" line="420"/>
         <source>Make sure to copy ssh key of client onto server:</source>
         <translation>Note: copy ssh key of client onto server:</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapsettingsdialog.ui" line="386"/>
+        <location filename="../ots/colmapwrapper/colmapsettingsdialog.ui" line="445"/>
         <source>ssh-copy-id -i .ssh/&lt;pub-key-file&gt; &lt;user&gt;@&lt;address&gt;</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapsettingsdialog.ui" line="400"/>
         <source>COLMAP Binary (remote):</source>
-        <translation>COLMAP Executable (remote):</translation>
+        <translation type="vanished">COLMAP Executable (remote):</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapsettingsdialog.ui" line="440"/>
+        <location filename="../ots/colmapwrapper/colmapsettingsdialog.ui" line="533"/>
         <source>Workspace Path (remote):</source>
         <translation>Workspace Path (remote):</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapsettingsdialog.ui" line="480"/>
+        <location filename="../ots/colmapwrapper/colmapsettingsdialog.ui" line="573"/>
         <source>Workspace mountpoint (local):</source>
         <translation>Workspace mountpoint (local):</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapsettingsdialog.cpp" line="60"/>
+        <location filename="../ots/colmapwrapper/colmapsettingsdialog.cpp" line="87"/>
         <source>Select COLMAP binary</source>
         <translation>Select COLMAP executable ...</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapsettingsdialog.cpp" line="76"/>
+        <location filename="../ots/colmapwrapper/colmapsettingsdialog.cpp" line="104"/>
+        <source>Select OpenMVS binary folder</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ots/colmapwrapper/colmapsettingsdialog.cpp" line="122"/>
         <source>Select workspace directory</source>
         <translation>Select workspace directory ...</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapsettingsdialog.cpp" line="93"/>
+        <location filename="../ots/colmapwrapper/colmapsettingsdialog.cpp" line="140"/>
         <source>Select mountpoint of remote  workspace directory</source>
         <translation>Select mountpoint of remote workspace directory ...</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapsettingsdialog.cpp" line="203"/>
-        <source>colmap executabel was not found or is not executable</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../ots/colmapwrapper/colmapsettingsdialog.cpp" line="204"/>
-        <source>ssh connection failed</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../ots/colmapwrapper/colmapsettingsdialog.cpp" line="205"/>
-        <source>path to workspace or local mount point does not exist</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../ots/colmapwrapper/colmapsettingsdialog.cpp" line="206"/>
-        <source>remote workspace was not mounted correctly</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../ots/colmapwrapper/colmapsettingsdialog.cpp" line="207"/>
-        <source>unknown reason!</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../ots/colmapwrapper/colmapsettingsdialog.cpp" line="210"/>
+        <location filename="../ots/colmapwrapper/colmapsettingsdialog.cpp" line="310"/>
         <source>Setup failed: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapsettingsdialog.cpp" line="213"/>
+        <location filename="../ots/colmapwrapper/colmapsettingsdialog.cpp" line="225"/>
         <source>Setup successfull</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1650,114 +1769,112 @@ p, li { white-space: pre-wrap; }
         <translation>Open Log File</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapviewwidget.ui" line="212"/>
         <source>Produkte</source>
-        <translation>Products</translation>
+        <translation type="vanished">Products</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapviewwidget.ui" line="252"/>
+        <location filename="../ots/colmapwrapper/colmapviewwidget.ui" line="206"/>
         <source>Warteschlange</source>
         <translation>Queue</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapviewwidget.cpp" line="184"/>
+        <location filename="../ots/colmapwrapper/colmapviewwidget.cpp" line="192"/>
         <source>Idle</source>
         <translation>Idle</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapviewwidget.cpp" line="193"/>
+        <location filename="../ots/colmapwrapper/colmapviewwidget.cpp" line="199"/>
         <source>Running</source>
         <translation>Running</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapviewwidget.cpp" line="202"/>
+        <location filename="../ots/colmapwrapper/colmapviewwidget.cpp" line="206"/>
         <source>Failed</source>
         <translation>Failed</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapviewwidget.cpp" line="219"/>
+        <location filename="../ots/colmapwrapper/colmapviewwidget.cpp" line="220"/>
         <source>In Sync</source>
         <translation>In Sync</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapviewwidget.cpp" line="228"/>
+        <location filename="../ots/colmapwrapper/colmapviewwidget.cpp" line="227"/>
         <source>Syncing</source>
         <translation>Syncing</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapviewwidget.cpp" line="363"/>
         <source>Öffnen</source>
-        <translation>Open</translation>
+        <translation type="vanished">Open</translation>
     </message>
 </context>
 <context>
     <name>noUIController</name>
     <message>
-        <location filename="../controller/nouicontroller.cpp" line="31"/>
+        <location filename="../controller/nouicontroller.cpp" line="20"/>
         <source>Auto settings file (-a), input (-i) and output (-o) need to be provided.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/nouicontroller.cpp" line="50"/>
+        <location filename="../controller/nouicontroller.cpp" line="39"/>
         <source>Start import</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/nouicontroller.cpp" line="56"/>
+        <location filename="../controller/nouicontroller.cpp" line="45"/>
         <source>Opend no files. Please check your input path.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/nouicontroller.cpp" line="61"/>
+        <location filename="../controller/nouicontroller.cpp" line="50"/>
         <source>Opend </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/nouicontroller.cpp" line="61"/>
+        <location filename="../controller/nouicontroller.cpp" line="50"/>
         <source> images</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/nouicontroller.cpp" line="66"/>
+        <location filename="../controller/nouicontroller.cpp" line="55"/>
         <source>Loaded the following plugin settings:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/nouicontroller.cpp" line="72"/>
+        <location filename="../controller/nouicontroller.cpp" line="61"/>
         <source>Imported no settings. Please check your settings file.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/nouicontroller.cpp" line="77"/>
+        <location filename="../controller/nouicontroller.cpp" line="66"/>
         <source>
 ### Start Computation ###
 </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/nouicontroller.cpp" line="96"/>
+        <location filename="../controller/nouicontroller.cpp" line="83"/>
         <source>Sampled </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/nouicontroller.cpp" line="96"/>
+        <location filename="../controller/nouicontroller.cpp" line="83"/>
         <source> keyframes.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/nouicontroller.cpp" line="98"/>
+        <location filename="../controller/nouicontroller.cpp" line="85"/>
         <source>
 ### Finished Computation ###
 </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/nouicontroller.cpp" line="99"/>
+        <location filename="../controller/nouicontroller.cpp" line="86"/>
         <source>Finished in </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/nouicontroller.cpp" line="99"/>
+        <location filename="../controller/nouicontroller.cpp" line="86"/>
         <source>s</source>
         <translation type="unfinished"></translation>
     </message>

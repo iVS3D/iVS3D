@@ -55,6 +55,9 @@ QList<QVariant> GPSReader::getAllMetaData()
 
 void GPSReader::setAltitudeDiff(double setAltitude)
 {
+    if (!hasAltitudeData()) {
+        return;
+    }
     QHash<QString, QVariant> gpsHash = m_GPSHashs.at(0);
     double altitude_abs = gpsHash.find("GPSAltitude").value().toDouble();
     double altitude = (gpsHash.find("GPSAltitudeRef").value().toString() == "0") ? altitude_abs : altitude_abs * -1;

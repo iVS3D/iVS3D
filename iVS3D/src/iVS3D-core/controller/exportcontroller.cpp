@@ -101,20 +101,24 @@
 
         //Set altitude widget
         m_outputWidget->enableReconstruct(false);
-        bool hasAltitude = MetaDataManager::instance().gpsDataHasAltitude();
-        m_outputWidget->enableAltitude(hasAltitude);
-        if (hasAltitude) {
-            QList<MetaDataReader*> readers = MetaDataManager::instance().loadAllMetaData();
-            for (MetaDataReader* reader : readers) {
-                if (reader->getName().startsWith("GPS")) {
-                    QVariant gpsData = reader->getImageMetaData(0);
-                    QHash<QString, QVariant> gpsHash = gpsData.toHash();
-                    double altitude_abs = gpsHash.find("GPSAltitude").value().toDouble();
-                    double altitude = (gpsHash.find("GPSAltitudeRef").value().toString() == "0") ? altitude_abs : altitude_abs * -1;
-                    m_outputWidget->setAltitude(altitude);
+
+        m_outputWidget->enableAltitude(false);
+        QList<MetaDataReader*> readers = MetaDataManager::instance().loadAllMetaData();
+        for (MetaDataReader* reader : readers) {
+            if (reader->getName().startsWith("GPS")) {
+                GPSReader* gpsReader = dynamic_cast<GPSReader*>(reader);
+                if (!gpsReader->hasAltitudeData()) {
+                   continue;
                 }
+                m_outputWidget->enableAltitude(true);
+                QVariant gpsData = reader->getImageMetaData(0);
+                QHash<QString, QVariant> gpsHash = gpsData.toHash();
+                double altitude_abs = gpsHash.find("GPSAltitude").value().toDouble();
+                double altitude = (gpsHash.find("GPSAltitudeRef").value().toString() == "0") ? altitude_abs : altitude_abs * -1;
+                m_outputWidget->setAltitude(altitude);
             }
         }
+
 
     }
 #endif

@@ -401,6 +401,12 @@ void Controller::setInputWidgetInfo() {
         info.insert(tr("FPS "), QString::number(currentReader->getFPS()));
         info.insert(tr("Video duration "), QString::number(currentReader->getVideoDuration()) + "s");
     }
+    QStringList loadedMetaData = MetaDataManager::instance().availableMetaData();
+    if (loadedMetaData.size() != 0) {
+        for (int i = 0; i < loadedMetaData.size(); i++) {
+            info.insert(tr("Loaded Meta Data") + " #" + QString::number(i + 1), loadedMetaData.at(i));
+        }
+    }
     m_mainWindow->getInputWidget()->setInfo(info);
 }
 
