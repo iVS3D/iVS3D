@@ -116,9 +116,14 @@ public slots:
     void slot_changeUseCuda(bool useCuda);
     /**
      * @brief slot_changeUseCuda Slot is called when 'create log file' is clicked.
-     * @param useCuda @a true if create log file is marked
+     * @param createLog @a true if create log file is marked
      */
     void slot_changeCreateLogFile(bool createLog);
+    /**
+     * @brief slot_changeInterpolateMetaData Slot is called when 'Interpolate missing meta data' is clicked.
+     * @param interpolate @a true if missings meta data is interpolated
+     */
+    void slot_changeInterpolateMetaData(bool interpolate);
     /**
      * @brief slot_openMetaData Slot is called when Meta Data should be loaded
      */

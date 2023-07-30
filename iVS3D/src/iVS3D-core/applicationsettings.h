@@ -68,7 +68,12 @@ public:
      * @brief setCreateLogs Sets createLogs
      * @param createLogs @a true if log files should be created, @a false if no log files should be created
      */
-    void setCreateLogs(bool createLogs);
+    void setCreateLogs(bool createLogs);    
+    /**
+     * @brief setInterpolateMetaData Sets interpolateMetaData
+     * @param interpolateMetaData @a true if missing meta data should be interpolated, @a false if not
+     */
+    void setInterpolateMetaData(bool interpolateMetaData);
 
     /**
      * @brief Returns all saved reconstruction softwares
@@ -109,6 +114,13 @@ public:
      * @return @a true if logging is enabled and log files will be created
      */
     bool getCreateLogs();
+    /**
+     * @brief Returns if interpolate meta data is enabled
+     * @return @a true if interpolation is enabled
+     */
+    bool getInterpolateMetaData();
+
+
 
 private:
     ApplicationSettings();
@@ -118,6 +130,7 @@ private:
     bool m_activeStyle;
     bool m_useCuda;
     bool m_createLogs;
+    bool m_interpolateMetaData;
     void loadSettings();
     void saveSettings();
 };

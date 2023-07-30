@@ -17,7 +17,7 @@ QString GPSReaderExif::getName()
 }
 
 
-bool GPSReaderExif::parseDataImage(std::vector<std::string> paths)
+bool GPSReaderExif::parseDataImage(std::vector<std::string> paths, bool interpolate)
 {
     int gapSize = 0;
     QList<int> missingMetaData;
@@ -69,7 +69,13 @@ bool GPSReaderExif::parseDataImage(std::vector<std::string> paths)
     }
     //Interpolate missing meta data
     if (missingMetaData.size() != 0) {
-        interpolateMissingData(missingMetaData);
+        if (interpolate) {
+            interpolateMissingData(missingMetaData);
+            return true;
+        }
+        else {
+            return false;
+        }
     }
     return true;
 }

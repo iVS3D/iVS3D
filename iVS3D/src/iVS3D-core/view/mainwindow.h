@@ -68,7 +68,7 @@ public:
      * @param algorithmList holds identifier(names) of all loaded plugins(algorithms)
 	 * @param transformList holds identifier(names) of all loaded transform plugins
      */
-    MainWindow(QWidget *parent = nullptr, bool dark = false, int cuda = -1, bool createLog = false, QStringList algorithmList = QStringList(tr("no algorithm")), QStringList transformList = QStringList(""), QWidget *otsWidget = nullptr);
+    MainWindow(QWidget *parent = nullptr, bool dark = false, int cuda = -1, bool createLog = false,  bool interpolateMetaData = true, QStringList algorithmList = QStringList(tr("no algorithm")), QStringList transformList = QStringList(""), QWidget *otsWidget = nullptr);
 
     /**
       * @brief delete members and disconnect connections
@@ -214,6 +214,12 @@ signals:
      */
     void sig_changeCreateLogFile(bool createLog);
 
+    /**
+     * @brief sig_changeInterpolateMetaData is emitted if the interpolate meta data option is toggled
+     * @param interpolate @a true if interpolate is enabled
+     */
+    void sig_changeInterpolateMetaData(bool interpolate);
+
     void sig_undo();
 
     void sig_redo();
@@ -252,6 +258,7 @@ private slots:
     void on_actionLicence_triggered();
     void on_actionCreate_log_file_triggered();
     void on_actionOpen_Meta_Data_triggered();
+    void on_actionInterpolate_missing_meta_data_triggered();
 
     void on_actionUndo_triggered();
 

@@ -19,7 +19,7 @@
 
 
 
-MainWindow::MainWindow(QWidget *parent, bool dark, int cuda, bool createLog, QStringList algorithmList, QStringList transformList, QWidget *otsWidget)
+MainWindow::MainWindow(QWidget *parent, bool dark, int cuda, bool createLog, bool interpolateMetaData, QStringList algorithmList, QStringList transformList, QWidget *otsWidget)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
@@ -170,6 +170,8 @@ MainWindow::MainWindow(QWidget *parent, bool dark, int cuda, bool createLog, QSt
 
     // set create log file
     ui->actionCreate_log_file->setChecked(createLog);
+    // set interpolate meta data
+    ui->actionInterpolate_missing_meta_data->setChecked(interpolateMetaData);
 
     //enable Drag and Drop
     setAcceptDrops(true);
@@ -417,6 +419,11 @@ void MainWindow::on_actionCreate_log_file_triggered()
 void MainWindow::on_actionOpen_Meta_Data_triggered()
 {
     emit sig_openMetaData();
+}
+
+void MainWindow::on_actionInterpolate_missing_meta_data_triggered()
+{
+    emit sig_changeInterpolateMetaData(ui->actionInterpolate_missing_meta_data->isChecked());
 }
 
 void MainWindow::on_actionUndo_triggered()

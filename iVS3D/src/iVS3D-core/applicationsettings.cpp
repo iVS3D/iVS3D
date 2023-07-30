@@ -10,6 +10,17 @@ ApplicationSettings::ApplicationSettings()
     m_activeStyle = m_darkStyle;
 }
 
+bool ApplicationSettings::getInterpolateMetaData()
+{
+    return m_interpolateMetaData;
+}
+
+void ApplicationSettings::setInterpolateMetaData(bool interpolateMetaData)
+{
+    m_interpolateMetaData = interpolateMetaData;
+    saveSettings();
+}
+
 void ApplicationSettings::loadSettings()
 {
     QSettings settings(stringContainer::settingsCompany, stringContainer::settingsProgramm);
@@ -25,6 +36,7 @@ void ApplicationSettings::loadSettings()
         m_reconstructPath.insert(mapIt.key(), mapIt.value().toString());
     }
     m_createLogs = settings.value(stringContainer::createLogsIdentifier).value<bool>();
+    m_interpolateMetaData = settings.value(stringContainer::interpolateIdentifier).value<bool>();
 }
 
 void ApplicationSettings::saveSettings()
@@ -33,6 +45,7 @@ void ApplicationSettings::saveSettings()
     settings.setValue(stringContainer::standardInputPathIdentifier, m_standardInputPath);
     settings.setValue(stringContainer::darkStyleIdentifier, m_darkStyle);
     settings.setValue(stringContainer::useCudaIdentifier, m_useCuda);
+    settings.setValue(stringContainer::interpolateIdentifier, m_interpolateMetaData);
     QVariantMap reconstructMap;
     QMapIterator<QString, QString> mapIt(m_reconstructPath);
     while (mapIt.hasNext()) {

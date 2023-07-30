@@ -26,12 +26,13 @@ Controller::Controller(QString inputPath, QString settingsPath, QString outputPa
     otsWidget->layout()->addWidget(m_colmapWrapper->getOrCreateUiControlsFactory()->createNewProductPushButton(otsTheme, nullptr));
 
 #endif
-
+    bool interpolateMetaData = ApplicationSettings::instance().getInterpolateMetaData();
     m_mainWindow = new MainWindow(
                 nullptr,
                 ApplicationSettings::instance().getDarkStyle(),
                 useCuda,
                 ApplicationSettings::instance().getCreateLogs(),
+                interpolateMetaData,
                 algorithms,
                 transforms,
                 otsWidget
@@ -76,6 +77,7 @@ Controller::Controller(QString inputPath, QString settingsPath, QString outputPa
 #if defined(Q_OS_LINUX)
     connect(m_mainWindow, &MainWindow::sig_quit, m_colmapWrapper->getOrCreateUiControlsFactory(), &lib3d::ots::ui::ColmapWrapperControlsFactory::onQuit);
 #endif
+    connect(m_mainWindow, &MainWindow::sig_changeInterpolateMetaData, this, &Controller::slot_changeInterpolateMetaData);
 
     connect(this, &Controller::sig_hasStatusMessage, m_mainWindow, &MainWindow::slot_displayStatusMessage);
 
@@ -99,6 +101,8 @@ Controller::Controller(QString inputPath, QString settingsPath, QString outputPa
 
     //Disable 'create files for' widget when no transform plugins are found
     m_mainWindow->getOutputWidget()->enableCreateFilesWidget(TransformManager::instance().getTransformCount() != 0);
+    MetaDataManager::instance().interpolateMissingMetaData(interpolateMetaData);
+
 }
 
 Controller::~Controller()
@@ -279,6 +283,14 @@ void Controller::slot_changeCreateLogFile(bool createLog)
     QString msg = tr("Create log files") + (QString)(createLog ? tr(" enabled") : tr(" disabled"));
     LogManager::instance().toggleLog(createLog);
     emit sig_hasStatusMessage(msg);
+}
+
+void Controller::slot_changeInterpolateMetaData(bool interpolate)
+{
+    ApplicationSettings::instance().setInterpolateMetaData(interpolate);
+    QString msg = tr("Interpolating missing meta data") + (QString)(interpolate ? tr(" enabled") : tr(" disabled"));
+    emit sig_hasStatusMessage(msg);
+    MetaDataManager::instance().interpolateMissingMetaData(interpolate);
 }
 
 void Controller::slot_openMetaData()

@@ -69,6 +69,7 @@ struct stringContainer
     static const QString darkStyleIdentifier;
     static const QString useCudaIdentifier;
     static const QString createLogsIdentifier;
+    static const QString interpolateIdentifier;
     // Identifier for LogFile
     static const QString logNameIdentifier;
     static const QString logIsPluginIdentifier;

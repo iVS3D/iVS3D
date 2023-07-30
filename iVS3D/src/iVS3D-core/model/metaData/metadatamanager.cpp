@@ -11,7 +11,7 @@ void MetaDataManager::initMetaDataVideo(QStringList paths, uint picCount, double
     for (QString path : paths) {
         for (std::pair<std::string, AbstractBuilder> a : MetaDataManager::instance().m_availablerReader) {
             MetaDataReader* current = a.second();
-            if (current->parseDataVideo(path, picCount, fps) == true) {
+            if (current->parseDataVideo(path, picCount, fps, m_interpolateMissingMetaData) == true) {
                 m_parsedMetaReader.append(current);
             }
         }
@@ -22,7 +22,7 @@ void MetaDataManager::initMetaDataImages(std::vector<std::string> fileVector)
 {
     for (std::pair<std::string, AbstractBuilder> a : MetaDataManager::instance().m_availablerReader) {
         MetaDataReader* current = a.second();
-        bool result = current->parseDataImage(fileVector);
+        bool result = current->parseDataImage(fileVector, m_interpolateMissingMetaData);
         if (result == true) {
             m_parsedMetaReader.append(current);
         }
@@ -84,6 +84,11 @@ bool MetaDataManager::gpsDataHasAltitude()
         }
     }
     return false;
+}
+
+void MetaDataManager::interpolateMissingMetaData(bool interpolate)
+{
+    m_interpolateMissingMetaData = interpolate;
 }
 
 

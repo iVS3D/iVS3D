@@ -22,9 +22,10 @@ public:
      * @brief parseData Tries to load meta data from the given file
      * @param path Path to the meat data file
      * @param images Reader with the loaded images
+     * @param interpolate indicades wether the reader is allowed to interpolate missing meta data
      * @return @a True if meta data have been loaded @a False otherwise
      */
-    bool parseDataImage(std::vector<std::string> paths);
+    bool parseDataImage(std::vector<std::string> paths, bool interpolate);
 
 private:
     QString m_name = "GPSReaderExif";

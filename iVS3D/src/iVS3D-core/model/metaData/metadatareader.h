@@ -43,16 +43,18 @@ public:
      * @param path Path to the meta data file
      * @param picCount amount of images in the video
      * @param fps fps of the video
+     * @param interpolate indicades wether the reader is allowed to interpolate missing meta data
      * @return @a True if meta data have been loaded @a False otherwise
      */
-    virtual bool parseDataVideo(QString path, int picCount, double fps) { (void)path; (void)picCount; (void)fps; return false;};
+    virtual bool parseDataVideo(QString path, int picCount, double fps, bool interpolate) { (void)path; (void)picCount; (void)fps; (void)interpolate; return false;};
 
     /**
      * @brief parseDataImage Tries to load meta data from the imported images (based on exif)
      * @param paths vector containing all image paths
+     * @param interpolate indicades if the reader is allowed to interpolate missing meta data
      * @return @a True if meta data have been loaded @a False otherwise
      */
-    virtual bool parseDataImage(std::vector<std::string> paths) { (void)paths; return false;};
+    virtual bool parseDataImage(std::vector<std::string> paths, bool interpolate) { (void)paths; (void)interpolate; return false;};
 
 
 };

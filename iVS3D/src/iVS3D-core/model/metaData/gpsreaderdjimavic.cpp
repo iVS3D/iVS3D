@@ -13,7 +13,7 @@ QString GPSReaderDJIMavic::getName()
     return m_name;
 }
 
-bool GPSReaderDJIMavic::parseDataVideo(QString path, int picCount, double fps)
+bool GPSReaderDJIMavic::parseDataVideo(QString path, int picCount, double fps, bool interpolate)
 {
     //fps == -1 -> Input are images
     if (fps == -1) {

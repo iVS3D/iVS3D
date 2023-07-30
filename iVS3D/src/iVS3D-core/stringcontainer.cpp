@@ -55,6 +55,7 @@ const QString stringContainer::standardInputPathIdentifier = "standardInputPath"
 const QString stringContainer::darkStyleIdentifier = "darkStyle";
 const QString stringContainer::useCudaIdentifier = "useCuda";
 const QString stringContainer::createLogsIdentifier = "create logs";
+const QString stringContainer::interpolateIdentifier = "interpolateMetaData";
 
 
 // Identifier for LfogFile
