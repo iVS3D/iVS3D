@@ -3,6 +3,7 @@
 void GPSReader::normaliseGPS(double fps, uint imageNumber)
 {
     int exisitingValues = m_GPSHashs.size();
+    bool hasAltitude = hasAltitudeData();
     //No interpolation is needed
     if (exisitingValues == imageNumber) {
         return;
@@ -23,7 +24,7 @@ void GPSReader::normaliseGPS(double fps, uint imageNumber)
         double deltaT = (t / 1.0) - aValue;
         //do the actuall interpolation
         QGeoCoordinate geo = interpolateSingle(GPSHashsOld.at(aValue), GPSHashsOld.at(aValue + 1), deltaT, 1.0);
-        if (hasAltitudeData()) {
+        if (hasAltitude) {
             addGPSValue(geo.latitude(), geo.longitude(), geo.altitude());
         }
         else {
