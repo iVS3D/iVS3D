@@ -1,8 +1,10 @@
-QT += core gui testlib concurrent
-
-CONFIG += qt console warn_on depend_includepath testcase
+QT += testlib positioning
+QT += gui
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
-TEMPLATE = app
+CONFIG += qt warn_on depend_includepath testcase
+
+CONFIG += c++17
+win32:QMAKE_CXXFLAGS += /std:c++17
 
 #required to build interface for testing
 DEFINES += IVS3DPLUGININTERFACE_LIBRARY

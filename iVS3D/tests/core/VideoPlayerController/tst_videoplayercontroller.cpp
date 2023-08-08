@@ -176,7 +176,7 @@ void tst_videoplayercontroller::test_iterateKeyFrames()
     for (int i = 0; i < 50; ++i) {
         mip->addKeyframe(randomIdx[i]);
     }
-    std::vector<uint> keyframes = mip->getAllKeyframes();
+    std::vector<uint> keyframes = mip->getAllKeyframes(false);
     m_testVPC->slot_toggleKeyframesOnly(true);
     m_testVPC->slot_showFirstImage();
     for (int i = 0; i < (int)keyframes.size(); ++i) {
@@ -198,29 +198,29 @@ void tst_videoplayercontroller::test_SetRemoveKeyframes()
             randomIdx.push_back(picIdx);
         }
     }
-    QVERIFY(mip->getKeyframeCount() == 0);
+    QVERIFY(mip->getKeyframeCount(false) == 0);
 
     for(int i = 0; i < (int)randomIdx.size(); ++i) {
-        uint keyframes = mip->getKeyframeCount();
+        uint keyframes = mip->getKeyframeCount(false);
         m_testVPC->slot_changeIndex(randomIdx[i]);
         m_testVPC->slot_toggleKeyframe();
         QTest::qWait(50);
-        QVERIFY2(keyframes < mip->getKeyframeCount(), "didn't add new keyframe");
+        QVERIFY2(keyframes < mip->getKeyframeCount(false), "didn't add new keyframe");
     }
-    QVERIFY2(randomIdx.size() == mip->getKeyframeCount(), "keyframecount doesn't match randomIdx size");
-    std::vector<uint> mipKF = mip->getAllKeyframes();
+    QVERIFY2(randomIdx.size() == mip->getKeyframeCount(false), "keyframecount doesn't match randomIdx size");
+    std::vector<uint> mipKF = mip->getAllKeyframes(false);
     for(int i = 0; i < (int)randomIdx.size(); ++i) {
         QVERIFY(randomIdx[i] == mipKF[i]);
     }
 
     for(int i = 0; i < (int)randomIdx.size(); ++i) {
-        uint keyframes = mip->getKeyframeCount();
+        uint keyframes = mip->getKeyframeCount(false);
         m_testVPC->slot_changeIndex(randomIdx[i]);
         m_testVPC->slot_toggleKeyframe();
         QTest::qWait(50);
-        QVERIFY2(keyframes > mip->getKeyframeCount(), "didn't remove keyframe");
+        QVERIFY2(keyframes > mip->getKeyframeCount(false), "didn't remove keyframe");
     }
-    QVERIFY(mip->getKeyframeCount() == 0);
+    QVERIFY(mip->getKeyframeCount(false) == 0);
 }
 
 std::vector<uint> tst_videoplayercontroller::genRNum(uint maxNum, uint count)

@@ -15,7 +15,8 @@
 
 #include <QThread>
 
-#include "ialgorithm.h"
+#include "../iVS3D-pluginInterface/iVS3D-pluginInterface_global.h"
+#include "../iVS3D-pluginInterface/ialgorithm.h"
 #include "signalobject.h"
 
 

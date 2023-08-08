@@ -1,15 +1,13 @@
-QT += testlib
+QT += testlib concurrent positioning
 QT -= gui
+
+CONFIG += c++17
+win32:QMAKE_CXXFLAGS += /std:c++17
 
 CONFIG += qt console warn_on depend_includepath testcase
 CONFIG -= app_bundle
 
 TEMPLATE = app
-
-SOURCES +=  tst_applicationsettings.cpp
-
-# opencv
-include(../../../3rdparty.pri)
 
 # resourceloader.pri holdes an absolute path to the testresources folder.
 # to use it in the .cpp files, the path is added to the preprocessesor macros
@@ -24,3 +22,10 @@ unix {
    message("Cannot find setrpath.pri!")
  }
 }
+
+SOURCES +=  tst_applicationsettings.cpp
+
+# opencv
+include(../../../3rdparty.pri)
+
+

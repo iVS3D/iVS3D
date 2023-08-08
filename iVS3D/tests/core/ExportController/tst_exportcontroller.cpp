@@ -76,8 +76,12 @@ void tst_exportcontroller::init()
 
     m_testOW = new OutputWidget(nullptr, "output", TransformManager::instance().getTransformList());
     QVERIFY(m_testOW != nullptr);
-
+#if defined(Q_OS_LINUX)
+    m_testEC = new ExportController(m_testOW, m_testDM, nullptr);
+#elif defined(Q_OS_WIN)
     m_testEC = new ExportController(m_testOW, m_testDM);
+#endif
+
     QVERIFY(m_testEC != nullptr);
 
     m_testOW->setOutputPath(m_testExportPath);

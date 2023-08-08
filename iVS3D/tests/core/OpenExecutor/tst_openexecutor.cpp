@@ -148,7 +148,7 @@ void tst_openExecutor::test_projectFile()
     ModelInputPictures *mip = m_dataManager->getModelInputPictures();
     QCOMPARE(mip->getPicCount(), m_project_mip->getPicCount());
     QCOMPARE(mip->getInputResolution(), m_project_mip->getInputResolution());
-    QCOMPARE(mip->getAllKeyframes(), mip->getAllKeyframes());
+    QCOMPARE(mip->getAllKeyframes(false), mip->getAllKeyframes(false));
     // check ma
     QVERIFY2(m_dataManager->getModelAlgorithm() != nullptr, "no ModelAlgorithm was created");
     ModelAlgorithm *ma = m_dataManager->getModelAlgorithm();

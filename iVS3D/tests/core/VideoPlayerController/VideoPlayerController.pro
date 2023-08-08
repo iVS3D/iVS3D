@@ -1,9 +1,12 @@
-QT += testlib
+QT += testlib concurrent positioning
 QT -= gui
+
+CONFIG += c++17
+win32:QMAKE_CXXFLAGS += /std:c++17
 
 CONFIG += qt console warn_on depend_includepath testcase
 CONFIG -= app_bundle
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+
 TEMPLATE = app
 
 SOURCES +=  tst_videoplayercontroller.cpp

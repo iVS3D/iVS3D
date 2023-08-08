@@ -1,7 +1,12 @@
-QT += core gui testlib concurrent
+QT += testlib concurrent positioning
+QT -= gui
+
+CONFIG += c++17
+win32:QMAKE_CXXFLAGS += /std:c++17
 
 CONFIG += qt console warn_on depend_includepath testcase
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+CONFIG -= app_bundle
+
 TEMPLATE = app
 
 SOURCES +=  tst_exportthread.cpp

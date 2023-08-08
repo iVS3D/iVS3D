@@ -1,9 +1,9 @@
 TEMPLATE = subdirs
 
 SUBDIRS += \
-    blur \
+   # blur \
     core \
-    nthFrame
+   # nthFrame
 
 OTHER_FILES += \
     drf.bat \

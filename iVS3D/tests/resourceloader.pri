@@ -15,12 +15,15 @@ INCLUDEPATH += $$unique(src_dirs)
 INCLUDEPATH += \
     $$IVS_SRC_PATH/iVS3D-pluginInterface \
 
+DEPENDPATH  += $$IVS_SRC_PATH/iVS3D-pluginInterface
+
 
 SOURCES += $$files($$IVS_SRC_PATH/iVS3D-core/controller/*.cpp, true)
 SOURCES += $$files($$IVS_SRC_PATH/iVS3D-core/view/*.cpp, true)
 SOURCES += $$files($$IVS_SRC_PATH/iVS3D-core/model/*.cpp, true)
 SOURCES += $$files($$IVS_SRC_PATH/iVS3D-core/darkstyle/*.cpp, true)
 SOURCES += $$files($$IVS_SRC_PATH/iVS3D-core/plugin/*.cpp, true)
+SOURCES += $$files($$IVS_SRC_PATH/iVS3D-core/ots/*.cpp, true)
 SOURCES += $$IVS_SRC_PATH/iVS3D-core/applicationsettings.cpp
 SOURCES += $$IVS_SRC_PATH/iVS3D-core/stringcontainer.cpp
 HEADERS += $$files($$IVS_SRC_PATH/iVS3D-core/*.h, true)

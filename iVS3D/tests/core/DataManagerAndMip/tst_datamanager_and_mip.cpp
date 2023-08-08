@@ -135,13 +135,13 @@ void tst_datamanager_and_mip::testSortedKeyframes()
     keyframes.erase(std::unique(keyframes.begin(), keyframes.end()), keyframes.end()); //Remove duplicates
 
     QVector<uint> orignalKeyframes = QVector<uint>::fromStdVector(keyframes);
-    QVector<uint> mipKeyframes = QVector<uint>::fromStdVector(mip->getAllKeyframes());
+    QVector<uint> mipKeyframes = QVector<uint>::fromStdVector(mip->getAllKeyframes(false));
     QCOMPARE(orignalKeyframes, mipKeyframes); //Check if the keyframe vectors are equal
 
     for(uint value  : keyframes) { //Remove all keyframes
         mip->removeKeyframe(value);
     }
-    QVERIFY(mip->getAllKeyframes().size() == 0); //Check if keyframe vector is empty
+    QVERIFY(mip->getAllKeyframes(false).size() == 0); //Check if keyframe vector is empty
 }
 
 void tst_datamanager_and_mip::testKeyframesOutOfRange()
@@ -149,16 +149,16 @@ void tst_datamanager_and_mip::testKeyframesOutOfRange()
     QSKIP("MIP doesn't check for wrong keyframe values");
     int numPics = mip->getPicCount();
     mip->addKeyframe(numPics + 100);
-    QVERIFY(mip->getAllKeyframes().size() == 0); //Check if keyframe vector is still empty
+    QVERIFY(mip->getAllKeyframes(false).size() == 0); //Check if keyframe vector is still empty
 }
 
 void tst_datamanager_and_mip::testRemoveInvalidKeyframe()
 {
     mip->removeKeyframe(-1);
-    QVERIFY(mip->getAllKeyframes().size() == 0); //Check if keyframe vector is still empty
+    QVERIFY(mip->getAllKeyframes(false).size() == 0); //Check if keyframe vector is still empty
     int numPics = mip->getPicCount();
     mip->removeKeyframe(numPics + 100);
-    QVERIFY(mip->getAllKeyframes().size() == 0); //Check if keyframe vector is still empty
+    QVERIFY(mip->getAllKeyframes(false).size() == 0); //Check if keyframe vector is still empty
 }
 
 void tst_datamanager_and_mip::cleanupTestCase()

@@ -22,7 +22,6 @@ for(ENTRY, LIBS_LIST) {
   }
  }
 }
-message( )
 message($$RPATH)
 # set rpath
 QMAKE_LFLAGS += '-Wl,--rpath=\'$$RPATH\''

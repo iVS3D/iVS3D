@@ -131,7 +131,7 @@ void tst_exportThread::test_exportVideo()
     for(uint i = 0; i<m_mip->getPicCount() && i<50; i+=5){
         m_mip->addKeyframe(i);
     }
-    qDebug() << QString::number(m_mip->getKeyframeCount());
+    qDebug() << QString::number(m_mip->getKeyframeCount(false));
     m_mip->setBoundaries(QPoint(0,50));
     qDebug() << m_mip->getBoundaries();
 
@@ -217,10 +217,10 @@ void tst_exportThread::test_exportCorrectImages()
     allSubDirs.push_back(m_exportWimages);
     for (int i = 0; i < allSubDirs.length(); ++i) {
         //directories hold right number of files
-        QVERIFY(QDir(allSubDirs[i]).entryList().length() -2 == m_mip->getKeyframeCount());
+        QVERIFY(QDir(allSubDirs[i]).entryList().length() -2 == m_mip->getKeyframeCount(false));
     }
-    std::vector<uint> keyframelist = m_mip->getAllKeyframes();
-    for (uint i = 0; i < m_mip->getKeyframeCount(); ++i) {
+    std::vector<uint> keyframelist = m_mip->getAllKeyframes(false);
+    for (uint i = 0; i < m_mip->getKeyframeCount(false); ++i) {
         cv::Mat mipPic = *m_mip->getPic(keyframelist[i]);
         ImageList comparePic = m_iTransformStub->transform(0, mipPic);
         QVERIFY(comparePic.length() == iTransformOutputNames.length());
