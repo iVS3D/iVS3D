@@ -43,7 +43,17 @@
 
         //Set altitude widget
         m_outputWidget->enableReconstruct(false);
-        bool hasAltitude = MetaDataManager::instance().gpsDataHasAltitude();
+        bool hasAltitude = false;
+        QList<MetaDataReader*> readers = MetaDataManager::instance().loadAllMetaData();
+        for (MetaDataReader* reader : readers) {
+            if (reader->getName().startsWith("GPS")) {
+                GPSReader* gpsReader = dynamic_cast<GPSReader*>(reader);
+                    if (gpsReader->hasAltitudeData()) {
+                        hasAltitude = true;
+                        break;
+                    }
+            }
+        }
         m_outputWidget->enableAltitude(hasAltitude);
         if (hasAltitude) {
             QList<MetaDataReader*> readers = MetaDataManager::instance().loadAllMetaData();
