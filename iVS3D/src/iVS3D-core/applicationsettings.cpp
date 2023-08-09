@@ -160,16 +160,20 @@ bool ApplicationSettings::getCudaAvailable() const
                 }
             }
         }
-        if (_cudaSupported) {
-            if (cv::cuda::getCudaEnabledDeviceCount() < 1) {
-                _cudaSupported = false;
+        try {
+            if (_cudaSupported) {
+                if (cv::cuda::getCudaEnabledDeviceCount() < 1) {
+                    _cudaSupported = false;
+                }
             }
-        }
 
-        // Check if installed GPU is compatible Cuda Version
-        if (_cudaSupported) {
-            cv::cuda::DeviceInfo di;
-            _cudaSupported = di.isCompatible();
+            // Check if installed GPU is compatible Cuda Version
+            if (_cudaSupported) {
+                cv::cuda::DeviceInfo di;
+                _cudaSupported = di.isCompatible();
+            }
+        } catch (cv::Exception e) {
+            _cudaSupported = false;
         }
 
         return _cudaSupported;
