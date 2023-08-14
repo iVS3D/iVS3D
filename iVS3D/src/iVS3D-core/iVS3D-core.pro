@@ -32,7 +32,10 @@ INCLUDEPATH += $$PWD/../iVS3D-pluginInterface
 DEPENDPATH  += $$PWD/../iVS3D-pluginInterface
 
 # Include opencv using a local 3rdparty.pri
-include(../../3rdparty.pri)
+message(SEARCHING FOR EXTERNAL LIBS)
+!include(../../3rdparty.pri){
+	message(FAILED TO FIND 3rdparty.pri)
+}
 
 DISTFILES += \
     ots/ColmapWorkerScript/ColmapWorker.py \
