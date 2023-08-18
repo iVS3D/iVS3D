@@ -116,6 +116,7 @@ std::vector<uint> OptFlowController::sampleImages(const std::vector<uint> &image
     logFile->addCustomEntry(LF_CE_VALUE_USED_BUFFERED, usedBufferedValues, LF_CE_TYPE_ADDITIONAL_INFO);
 
     // ------------ select keyframes ----------------
+    reportProgress(tr("Selecting Keyframes"), 99, receiver);
     logFile->startTimer(LF_SELECT_FRAMES);
     if (flowValues.size() == imageList.size() + 1) {
         return {};
