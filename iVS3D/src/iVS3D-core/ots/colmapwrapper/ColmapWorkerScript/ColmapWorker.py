@@ -676,7 +676,7 @@ def computeMeshedModel(projectImageDir: str, colmapProjectDirPath: str, projectO
         "--working-folder", interface_colmap_dir,
         "--input-file", os.path.join(colmapProjectDirPath, "02_dense"),
         "--output-file", "model.mvs",
-        "--verbosity", "4",
+        "--verbosity", "2",
         "--max-threads", max_threads]
     
     
@@ -724,7 +724,7 @@ def computeMeshedModel(projectImageDir: str, colmapProjectDirPath: str, projectO
         "--working-folder", reconstruct_mesh_dir,
         "--input-file", os.path.join(interface_colmap_dir, "model.mvs"),
         "--output-file", "model.mvs",
-        "--verbosity", "4",
+        "--verbosity", "2",
         "--max-threads", max_threads]
     
     if "estimate-roi" in output:
@@ -797,7 +797,7 @@ def computeMeshedModel(projectImageDir: str, colmapProjectDirPath: str, projectO
             "--resolution-level",  str(resolution_level),
             "--scales",  str(scales),
             "--decimate", str(decimate_ratio),
-            "--verbosity", "4",
+            "--verbosity", "2",
             "--max-threads", max_threads]
     
         p = subprocess.Popen(args, stdout=subprocess.PIPE) 
@@ -887,7 +887,7 @@ def computeMeshedModel(projectImageDir: str, colmapProjectDirPath: str, projectO
         "--global-seam-leveling", str(global_seam_leveling),
         "--local-seam-leveling", str(local_seam_leveling),
         "--orthographic-image-resolution", str(orthographic_image_resolution),
-        "--verbosity", "4",
+        "--verbosity", "2",
         "--max-threads", max_threads]
    
     # check if option "max-texture-size" is available    
