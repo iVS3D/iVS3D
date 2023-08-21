@@ -841,8 +841,10 @@ def computeMeshedModel(projectImageDir: str, colmapProjectDirPath: str, projectO
         file_stats = os.stat(input_file)
         file_size_in_MB = file_stats.st_size / (1024 * 1024)  
 
-        if file_size_in_MB < 50 or quality > 1:
+        if file_size_in_MB < 40 or quality > 1:
             decimate_ratio = 1 
+        else:
+            decimate_ratio = 0
   
     min_resolution = 1280
     if quality == 0:  
