@@ -95,7 +95,7 @@ VideoPlayerController::~VideoPlayerController()
     m_timeline->setEnabled(false);
     m_videoPlayer->setEnabled(false);
 
-    cv::Mat mat = cv::imread(":/icons/ivs3dIcon.png");
+    cv::Mat mat = cv::imread("resources/GUI_ICON_IVS3D_1.png");
     m_videoPlayer->showImage(&mat);
     m_videoPlayer->setKeyframe(false);
     m_videoPlayer->setKeyframeCount(0);
