@@ -264,14 +264,6 @@ void ExportThread::run(){
             m_receiver->slot_displayMessage(QString::number(m_result) + tr(" images where skipped."));
         else if (m_result == 0)
             m_receiver->slot_displayMessage(tr("All images exported successfully."));
-
-        std::stringstream bfss;
-        for (int brokenIdx : brokenFramesIdx) {
-            bfss << brokenIdx;
-            if (brokenIdx != *brokenFramesIdx.end())
-                bfss << LF_DELIMITER;
-        }
-        m_logFile->addCustomEntry(LF_BROKEN_FRAMES+QString::number(random()), QString::fromStdString(bfss.str()));
     };
 
     std::vector<ExportStats*> concurrentStats;

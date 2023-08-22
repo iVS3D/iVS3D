@@ -38,7 +38,12 @@ void VideoPlayer::showImages(std::vector<cv::Mat*> images)
 {
     ui->graphicsView->scene()->clear();
 
-    if(images.size() == 0){
+    bool containsEmptyMat = false;
+    for (auto i : images) {
+        containsEmptyMat |= i->empty();
+    }
+
+    if(images.size() == 0 && !containsEmptyMat){
         ui->graphicsView->show();
         return;
     }
