@@ -66,6 +66,10 @@ void VideoPlayer::showImages(std::vector<cv::Mat*> images)
 
 void VideoPlayer::showImage(cv::Mat *image)
 {
+    if (image->empty()) {
+        cv::Mat *errorImage = new cv::Mat(cv::imread("resources/error.png", cv::IMREAD_UNCHANGED));
+        image = errorImage;
+    }
     std::vector<cv::Mat *> vec;
     vec.push_back(image);
     showImages(vec);
