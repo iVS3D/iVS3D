@@ -14,11 +14,19 @@ std::vector<uint> DistributionSelector::select(std::vector<uint> frameVector, st
     std::vector<uint> keyframes = { frameVector[0] };
     double flowSum = 0.0;
     for (uint flowValuesIdx = 0; flowValuesIdx < flowValues.size() - 1; flowValuesIdx++) {
+        if (flowValues[flowValuesIdx] < 0.0) {
+            continue;
+        }
         flowSum += flowValues[flowValuesIdx];
         // ----------- selection -----------
         if (flowSum >= m_threshold) {
             flowSum = 0.0;
             keyframes.push_back(frameVector[flowValuesIdx + 1]);
+        }
+
+        if (*stopped) {
+            // clear keyframes if algorithm was aborted
+            keyframes = {};
         }
     }
     return keyframes;
