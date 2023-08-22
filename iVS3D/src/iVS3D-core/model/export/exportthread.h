@@ -21,7 +21,6 @@
 #include "progressable.h"
 #include "exportexif.h"
 
-
 /**
  * @class ExportThread
  *
@@ -55,7 +54,7 @@ public:
     ~ExportThread();
 
     /**
-     * @brief getResult returns @a 0 if export was sucesfull, greater @a 0 otherwise.
+     * @brief getResult returns @a 0 if export was sucesfull, @a -1 export failed and @a positiv is the amount of broken images
      * @return The result
      */
     int getResult();
@@ -69,7 +68,7 @@ private:
     QPoint m_resolution;
     QString m_path;
     QString m_name;
-    int m_result = 1;
+    int m_result = 0;
     QRect m_roi;
     std::vector<ITransform*> m_iTransformCopies;
     LogFile *m_logFile;

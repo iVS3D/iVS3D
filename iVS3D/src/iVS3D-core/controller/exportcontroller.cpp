@@ -238,8 +238,8 @@ void ExportController::slot_reconstruct()
 
 void ExportController::slot_export()
 {
-    LogFile *lfExport = LogManager::instance().createLogFile("Export", false);
-    lfExport->setSettings(getOutputSettings());
+    m_lfExport = LogManager::instance().createLogFile("Export", false);
+    m_lfExport->setSettings(getOutputSettings());
 
     if (m_path.endsWith("/")) {
         m_path.chop(1);
@@ -366,11 +366,11 @@ void ExportController::slot_export()
 
     //If Use Crop is checked the current roi is used
     if (m_outputWidget->getCropStatus()) {
-        m_exportExec->startExport(m_resolution, m_path, outputName, m_roi, iTransformCopies, lfExport);
+        m_exportExec->startExport(m_resolution, m_path, outputName, m_roi, iTransformCopies, m_lfExport);
     }
     //Otherwise roi won't be used (-> 0x0 Rect) this wont override m_roi
     else {
-       m_exportExec->startExport(m_resolution, m_path, outputName, QRect(0,0,0,0), iTransformCopies, lfExport);
+       m_exportExec->startExport(m_resolution, m_path, outputName, QRect(0,0,0,0), iTransformCopies, m_lfExport);
     }
 
 
@@ -451,7 +451,9 @@ void ExportController::slot_exportFinished(int result)
     }
 
     auto duration_ms = m_timer.elapsed();
-    emit sig_hasStatusMessage(tr("Export finished after ") + QString::number(duration_ms) + tr("ms"));
+    QString conditionalMsg;
+    emit sig_hasStatusMessage(tr("Export finished after ") + QString::number(duration_ms) + tr("ms")
+                              + tr(" with ") + QString::number(result) + (result == 1 ? tr(" broken image.") : tr(" broken images.")));
 
     // now we have an export, so enable reconstruct
     m_outputWidget->enableReconstruct(true);

@@ -221,6 +221,7 @@ void ExportThread::run(){
     std::function<void(ExportStats*)> writeToDrive = [seqImages, useResize, useRoi, roi, iTransformCopiesSize, fileName, isDirImages, imageFiles, this](ExportStats *stats) {
         QElapsedTimer timer;
         // loop until the computation gets stopped or all images are processed
+        std::vector<int> brokenFramesIdx;
         while(true){
             if (*m_stopped) {
                 m_result = 1;
@@ -238,6 +239,13 @@ void ExportThread::run(){
             }
             stats->addStepEntry(timer.restart(), ExportStats::S_READ);
 
+            // empty mats report a broken image
+            if (mat.empty()) {
+                m_result++;
+                brokenFramesIdx.push_back(idx);
+                continue;
+            }
+
             // resize and crop
             cv::Mat imgToExport = resizeCrop(mat, cv::Size(m_resolution.x(), m_resolution.y()), useResize, roi, useRoi);
             stats->addStepEntry(timer.restart(), ExportStats::S_RESIZE);
@@ -251,6 +259,19 @@ void ExportThread::run(){
             reportProgress();
         }
 
+        // report broken frames
+        if (m_result > 0)
+            m_receiver->slot_displayMessage(QString::number(m_result) + tr(" images where skipped."));
+        else if (m_result == 0)
+            m_receiver->slot_displayMessage(tr("All images exported successfully."));
+
+        std::stringstream bfss;
+        for (int brokenIdx : brokenFramesIdx) {
+            bfss << brokenIdx;
+            if (brokenIdx != *brokenFramesIdx.end())
+                bfss << LF_DELIMITER;
+        }
+        m_logFile->addCustomEntry(LF_BROKEN_FRAMES+QString::number(random()), QString::fromStdString(bfss.str()));
     };
 
     std::vector<ExportStats*> concurrentStats;

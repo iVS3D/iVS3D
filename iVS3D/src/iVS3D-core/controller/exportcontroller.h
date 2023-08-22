@@ -29,7 +29,6 @@
 
 #include <QElapsedTimer>
 
-
 // --- default resolutions in dropbox ---
 #define RESOLUTION_LIST "2560 x 1440 (QHD)|1920 x 1080 (FHD)|1280 x 720 (HD)|1280 x 1024 (HD*)|640 x 480"
 
@@ -202,6 +201,7 @@ private:
     bool createProjectFile(QString defaultpath, QString targetpath, QMap<QString, QString> projectsettings);
     bool createShortcutplusBatch(QString reconstructDir, QString startargs, QString exportDir);
 
+    LogFile *m_lfExport;
     DataManager *m_dataManager;
     ExportExecutor *m_exportExec;
     OutputWidget *m_outputWidget;
