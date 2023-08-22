@@ -12,6 +12,9 @@ std::vector<uint> StaticSelector::select(std::vector<uint> frameVector, std::vec
     double medianFlow = median(copiedFlowValues);
     double allowedDiffFlow = medianFlow * m_threshold;
     for (uint flowValuesIdx = 0; flowValuesIdx < flowValues.size() - 1; flowValuesIdx++) {
+        if (flowValues[flowValuesIdx] < 0.0) {
+            continue;
+        }
         // ----------- selection --------------
         if (flowValues[flowValuesIdx] > allowedDiffFlow) {
             selectedKeyframes.push_back(frameVector[flowValuesIdx + 1]); // flow value represents flow for the next frame (if camera moved enough until next frame)

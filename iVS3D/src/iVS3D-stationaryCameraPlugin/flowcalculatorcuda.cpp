@@ -16,6 +16,8 @@ double FlowCalculatorCuda::calculateFlow(cv::Mat fromMat, cv::Mat toMat)
 {
     if (!m_farn)
         return -1.0;
+    if (fromMat.empty() || toMat.empty())
+        return -1.0;
 
     cv::Mat flow;
     cv::cuda::GpuMat  gpu_from(fromMat), gpu_to(toMat), gpu_flow(fromMat.size(),CV_32FC2);

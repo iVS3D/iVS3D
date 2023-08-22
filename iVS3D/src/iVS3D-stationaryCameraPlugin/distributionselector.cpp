@@ -54,6 +54,9 @@ std::vector<uint> DistributionSelector::selectWithThreshold(std::vector<uint> fr
     std::vector<uint> keyframes = { frameVector[0] };
     double flowSum = 0.0;
     for (uint flowValuesIdx = 0; flowValuesIdx < flowValues.size() - 1; flowValuesIdx++) {
+        if (flowValues[flowValuesIdx] < 0.0) {
+            continue;
+        }
         if (*stopped)
             return keyframes;
         flowSum += flowValues[flowValuesIdx];
@@ -61,6 +64,11 @@ std::vector<uint> DistributionSelector::selectWithThreshold(std::vector<uint> fr
         if (flowSum >= m_threshold) {
             flowSum = 0.0;
             keyframes.push_back(frameVector[flowValuesIdx + 1]);
+        }
+
+        if (*stopped) {
+            // clear keyframes if algorithm was aborted
+            keyframes = {};
         }
     }
     return keyframes;

@@ -33,7 +33,7 @@ public:
     virtual double calculateFlow(cv::Mat fromMat, cv::Mat toMat) = 0;
 protected:
     /**
-     * @brief flowMatToDouble reduces a flow-matrix to a single floating point value
+     * @brief flowMatToDouble reduces a flow-matrix to a single floating point value, if that mat was empty return -1.0
      * @param mat cv::Mat which hold represents the flow-matrix
      * @return double which represents the reduced flow-matrix
      */

@@ -16,6 +16,8 @@ double FlowCalculatorCpu::calculateFlow(cv::Mat fromMat, cv::Mat toMat)
 {
     if (!m_farn)
         return -1.0;
+    if (fromMat.empty() || toMat.empty())
+        return -1.0;
 
     cv::Mat flow(fromMat.size(),CV_32FC2);
     try {
