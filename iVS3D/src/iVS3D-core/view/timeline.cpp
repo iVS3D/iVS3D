@@ -17,7 +17,8 @@ Timeline::Timeline(QWidget *parent) :
     QPixmap pix = drawMarker(m_marker->width() - m_marker->lineWidth(), m_marker->height() - m_marker->lineWidth() - 1, 6, m_marker->height() * 0.5, m_marker->height() * 0.1);
     m_marker->setPixmap(pix);
 
-    const uint boundariesWidth = QGuiApplication::primaryScreen()->size().width() / 20;
+    const uint boundariesWidth = QGuiApplication::primaryScreen()->size().width() / 200;
+//    const uint boundariesWidth = 10;
     // create start boundary-marker
     m_startBoundaryLabel = new SlideableLabel(this);
     m_startBoundaryLabel->setWidth(boundariesWidth);
@@ -90,14 +91,14 @@ void Timeline::resize()
     // setup start boundary marker
     m_startBoundaryLabel->setYLevel(m_totalTimeline->parentWidget()->y());
     m_startBoundaryLabel->setHeight(m_totalTimeline->parentWidget()->height());
-    uint startBoundaryMinX = m_totalTimeline->parentWidget()->x() - m_startBoundaryLabel->width() / 2 - m_startBoundaryLabel->lineWidth();
+    uint startBoundaryMinX = m_totalTimeline->parentWidget()->x();
     uint startBoundaryMaxX = startBoundaryMinX + m_zoomTimeline->width();
     m_startBoundaryLabel->setIntervall(QPoint(startBoundaryMinX, startBoundaryMaxX));
     // setup end boudary marker
     m_endBoundaryLabel->setYLevel(m_totalTimeline->parentWidget()->y());
     m_endBoundaryLabel->setHeight(m_totalTimeline->parentWidget()->height());
-    uint endBoundaryMinX = m_totalTimeline->parentWidget()->x() - m_startBoundaryLabel->width() / 2 - m_startBoundaryLabel->lineWidth();
-    uint endBoundaryMaxX = endBoundaryMinX + m_zoomTimeline->width();
+    uint endBoundaryMinX = m_totalTimeline->parentWidget()->x() - m_startBoundaryLabel->width()/2;
+    uint endBoundaryMaxX = endBoundaryMinX + m_zoomTimeline->width() - m_startBoundaryLabel->width()/2;
     m_endBoundaryLabel->setIntervall(QPoint(endBoundaryMinX, endBoundaryMaxX));
 
     // correct position after resizing
@@ -284,21 +285,26 @@ QPixmap Timeline::drawBoundary(uint pixWidth, uint pixHeight, uint symbolWidth, 
     painter.setPen(pen);
 
     // set lines which are used to draw the symbol
-    uint xMiddle = pixWidth / 2 + pen.width();
-    QLine verticalLine = QLine(xMiddle, topBottomMargin, xMiddle, pixHeight - topBottomMargin);
+    uint xVertical = 0;
+    if (isStart) {
+        xVertical = pen.width();
+    } else {
+        xVertical = pixWidth - 1 - pen.width();
+    }
+    QLine verticalLine = QLine(xVertical, topBottomMargin, xVertical, pixHeight - topBottomMargin);
     QPoint topOutterPoint;
     QPoint bottomOutterPoint;
     if (isStart) {
         // bracket is open to the right side
-        topOutterPoint = QPoint(xMiddle + symbolWidth, topBottomMargin);
-        bottomOutterPoint = QPoint(xMiddle + symbolWidth, pixHeight - topBottomMargin);
+        topOutterPoint = QPoint(xVertical + symbolWidth, topBottomMargin);
+        bottomOutterPoint = QPoint(xVertical + symbolWidth, pixHeight - topBottomMargin);
     } else {
         // bracket is open to the left side
-        topOutterPoint = QPoint(xMiddle - symbolWidth, topBottomMargin);
-        bottomOutterPoint = QPoint(xMiddle - symbolWidth, pixHeight - topBottomMargin);
+        topOutterPoint = QPoint(xVertical - symbolWidth, topBottomMargin);
+        bottomOutterPoint = QPoint(xVertical - symbolWidth, pixHeight - topBottomMargin);
     }
-    QLine topHorizontalLine = QLine(QPoint(xMiddle, topBottomMargin), topOutterPoint);
-    QLine bottomHorizontalLine = QLine(QPoint(xMiddle, pixHeight - topBottomMargin), bottomOutterPoint);
+    QLine topHorizontalLine = QLine(QPoint(xVertical, topBottomMargin), topOutterPoint);
+    QLine bottomHorizontalLine = QLine(QPoint(xVertical, pixHeight - topBottomMargin), bottomOutterPoint);
 
     painter.drawLine(verticalLine);
     painter.drawLine(bottomHorizontalLine);
@@ -391,7 +397,7 @@ void Timeline::sbIndexChanged(int index)
 
 void Timeline::boundaryMoved(int xMovement, SlideableLabel *boundaryLabel)
 {
-    int movedRelPos = boundaryLabel->getRelPosition() + xMovement - boundaryLabel->width() / 2;
+    int movedRelPos = boundaryLabel->getRelPosition() + xMovement /*- boundaryLabel->width() / 2*/;
     int currIndex = qRound(m_totalTimeline->relPosToIndex(movedRelPos));
 
     if (boundaryLabel == m_startBoundaryLabel) {
