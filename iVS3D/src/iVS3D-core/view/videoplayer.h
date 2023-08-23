@@ -4,6 +4,7 @@
 #include <QWidget>
 #include <QShortcut>
 #include <QKeySequence>
+#include <QGraphicsTextItem>
 
 #include "opencv2/core.hpp"
 #include "opencv2/imgproc.hpp"
