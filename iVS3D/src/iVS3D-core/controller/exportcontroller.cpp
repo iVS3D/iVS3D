@@ -372,6 +372,12 @@ void ExportController::slot_export()
 void ExportController::slot_cropExport()
 {
     const cv::Mat* img = m_dataManager->getModelInputPictures()->getPic(m_imageOnPlayerId);
+    if (img->empty()) {
+        QMessageBox *em = new QMessageBox();
+        em->setText(tr("The selected frame is broken and can´t be cropped. Please select another frame to select a new region of intrest."));
+        em->show();
+        return;
+    }
     m_cropDialog = new CropExport(m_outputWidget, img, m_roi);
     connect(m_cropDialog, &CropExport::finished, this, &ExportController::slot_closeCropExport);
     m_cropDialog->open();
@@ -437,7 +443,8 @@ void ExportController::slot_exportFinished(int result)
     }
 
     auto duration_ms = m_timer.elapsed();
-    emit sig_hasStatusMessage(tr("Export finished after ") + QString::number(duration_ms) + tr("ms"));
+    emit sig_hasStatusMessage(tr("Export finished after ") + QString::number(duration_ms) + tr("ms")
+                              + tr(" with ") + QString::number(result) + (result == 1 ? tr(" broken image.") : tr(" broken images.")));
 
     // now we have an export, so enable reconstruct
     m_outputWidget->enableReconstruct(true);
