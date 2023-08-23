@@ -231,6 +231,12 @@ void ExportController::slot_export()
         m_path.chop(1);
     }
 
+    // check export resolution
+    if (validateResolution(m_resolution)) {
+        m_outputWidget->setResolutionValid(false);
+        return;
+    }
+
     emit sig_stopPlay();
 
     //creating export Directory if necessary
@@ -559,7 +565,7 @@ bool ExportController::validateResolution(QPoint resolution)
     Q_ASSERT(mip != nullptr);
     QPoint inputRes = mip->getInputResolution();
     QPoint difRes = inputRes - resolution;
-    if (resolution == QPoint(-1, -1) || difRes.x() < 0 || difRes.y() < 0){
+    if (resolution.x() <= 0 || resolution.y() <= 0 || difRes.x() < 0 || difRes.y() < 0){
         return false;
     }
     return true;
