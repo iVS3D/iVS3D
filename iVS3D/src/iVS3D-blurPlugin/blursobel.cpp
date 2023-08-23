@@ -13,6 +13,8 @@ QString BlurSobel::getName() {
 
 double BlurSobel::singleCalculation(const cv::Mat &image)
 {
+    if (image.empty())
+        return -1.0;
 
     cv::Mat gray;
     cv::cvtColor(image, gray, cv::COLOR_BGR2GRAY);

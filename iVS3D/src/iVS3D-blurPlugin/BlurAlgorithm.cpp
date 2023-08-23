@@ -3,7 +3,8 @@
 
 double BlurAlgorithm::calcOneBluriness(Reader *images, int index)
 {
-    return singleCalculation(images->getPic(index));
+    cv::Mat mat = images->getPic(index);
+    return singleCalculation(mat);
 }
 
 std::vector<double> BlurAlgorithm::calcFullBluriness(Reader *images, Progressable *reciever, volatile bool *stopped, int start, int end, std::vector<double> blurValues)

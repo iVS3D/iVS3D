@@ -14,6 +14,9 @@ QString BlurLaplacian::getName() {
 
 double BlurLaplacian::singleCalculation(const cv::Mat &image)
 {
+    if (image.empty())
+        return -1.0;
+
     cv::Mat gray;
     cv::cvtColor(image, gray, cv::COLOR_BGR2GRAY);
     cv::Mat result;

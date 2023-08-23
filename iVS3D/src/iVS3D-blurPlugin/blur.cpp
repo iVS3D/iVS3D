@@ -392,7 +392,7 @@ std::vector<uint> Blur::sampleKeyframes(Reader *reader,  Progressable *receiver,
 
         for (int window = windowStart; window <= windowEnd; window++) {
             //Check if current blur value exists & calculate them if they don't
-            if (m_blurValues[window] == 0 || m_blurValues[window] == -1) {
+            if (m_blurValues[window] == 0) {
                 m_blurValues[window] = m_usedBlur->calcOneBluriness(reader, window);
             }
         }
@@ -401,6 +401,11 @@ std::vector<uint> Blur::sampleKeyframes(Reader *reader,  Progressable *receiver,
         double currentBestBlur = m_blurValues[currentBestIndex];
 
         for (int window = windowStart; window <= windowEnd; window++) {
+           // DEBUG
+           if (m_blurValues[window] < 0.0) {
+               qDebug() << window;
+           }
+
            if (m_blurValues[window] > currentBestBlur) {
                currentBestIndex = window;
                currentBestBlur = m_blurValues[window];
