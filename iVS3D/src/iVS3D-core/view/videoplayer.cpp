@@ -36,12 +36,24 @@ VideoPlayer::~VideoPlayer()
 
 void VideoPlayer::showImages(std::vector<cv::Mat*> images)
 {
-    ui->graphicsView->scene()->clear();
+    bool containsEmptyMat = false;
+    for (auto i : images) {
+        containsEmptyMat |= i->empty();
+    }
 
-    if(images.size() == 0){
+    if(images.size() == 0 || containsEmptyMat){
+        // add error text to scene
+        ui->graphicsView->setWindowOpacity(0.1);
+        QGraphicsTextItem *errorTextItem =
+                ui->graphicsView->scene()->addText("", QFont(QString(), 69));
+        errorTextItem->setDefaultTextColor(QColor("red"));
+        errorTextItem->setHtml("<b>"+tr("This frame is corrupted. It won´t be exported or considered when selecting keyframes.")+"</b>");
         ui->graphicsView->show();
         return;
     }
+
+    ui->graphicsView->scene()->clear();
+
     QPixmap pixmap;
     if(images.size()>1){
         // display images as overlay
