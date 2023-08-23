@@ -33,7 +33,7 @@ public:
      */
     virtual QString getName() = 0;
     /**
-     * @brief calcOneBluriness calculates blur meassure for one image specified by index.
+     * @brief calcOneBluriness calculates blur meassure for one image specified by index. (-1.0 if the frame is corrupted)
      * @param images The reader to fetch image from
      * @param index The image index
      * @return The blur value
