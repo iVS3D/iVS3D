@@ -55,7 +55,7 @@ ColmapWrapper::ColmapWrapper(const QString iSettingsFile, const bool iSettingsOn
                            iSettingsFile),
       mpTempDir(nullptr),
       mpPyWorkerProcess(new QProcess()), mpMountProcess(new QProcess()),
-      mpSyncProcess(new QProcess()), mCheckWorkerTimer(), mWorkspaceStatus(IN_SYNC),      
+      mpSyncProcess(new QProcess()), mCheckWorkerTimer(), mWorkspaceStatus(IN_SYNC),
       mpUiControls(nullptr)
 {
     this->readSettings();
@@ -122,7 +122,7 @@ void ColmapWrapper::init()
     //--- if running job has not changed, i.e. currently no running job in state file, sync
     //--- workspace from server.
     if (!runningJobChanged && mConnectionType != LOCAL)
-        syncWorkspaceFromServer();   
+        syncWorkspaceFromServer();
 
     mCheckWorkerTimer.start();
 }
@@ -1141,7 +1141,7 @@ bool ColmapWrapper::checkWorkerState()
     //--- if current job has changed read work queue and sync directory
     if (mPyWorker.currentlyRunningJob == nullptr && !isPreviouslyRunningJobNull)
         runningJobChanged = true;
-    else if (mPyWorker.currentlyRunningJob != nullptr
+    else if (!isPreviouslyRunningJobNull && mPyWorker.currentlyRunningJob != nullptr
              && (mPyWorker.currentlyRunningJob->sequenceName != previouslyRunningJob->sequenceName
                  || mPyWorker.currentlyRunningJob->product != previouslyRunningJob->product))
         runningJobChanged = true;
