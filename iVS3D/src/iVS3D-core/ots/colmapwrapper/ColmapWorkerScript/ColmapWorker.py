@@ -6,7 +6,7 @@ import subprocess
 import shutil
 import traceback
 import pymap3d as pm
-
+import glob
 from pathlib import Path
 
 from GpsEntry import GpsEntry
@@ -23,6 +23,9 @@ OPENCV_YAML_HEADER="%YAML:1.0\n---\n"
 YAML_REFRESH_SECS = 1
 LAST_PROGRESS_UPDATE_TIME = 0
 LAST_HEARTBEAT_UPDATE_TIME = 0
+
+CLEAN_FAILED_JOBS = True
+CLEAN_FINISHED_JOBS = True
 
 #---------------------------------------------------------------------------------------------------------------------
 # Class to dump YAML files prepared to be read by OpenCV.
@@ -396,6 +399,7 @@ def computeCameraPoses(colmapDatabaseFilePath: str, projectImageDir: str, colmap
         get_eta_after_step = init_eta_calculation()
         for i in range(len(param_list)):
             params = param_list[i]
+            print("Robust refinemnet with:", params)
             p = subprocess.Popen([COLMAP_BIN, 
                 "bundle_adjuster", 
                 "--input_path", os.path.join(colmapProjectDirPath, "01_sparse", "0"),
@@ -506,13 +510,13 @@ def computeDenseCloud(projectImageDir: str, colmapProjectDirPath: str, projectOu
     # quality 0 - 3 lower is faster
     quality = int(parameterList['quality'])
 
-    maxImgSize = 0
-    if quality == 0:
-        maxImgSize = 1280
-    elif quality == 1:
-        maxImgSize = 1920    
-    else:
-        maxImgSize = 1920 * 100
+    #maxImgSize = 0
+    #if quality == 0:
+    #    maxImgSize = 1280
+    #elif quality == 1:
+    #    maxImgSize = 1920    
+    #else:
+    #    maxImgSize = 1920 * 100
 
 
     input_path = os.path.join(colmapProjectDirPath, "01_sparse", "0")
@@ -532,7 +536,8 @@ def computeDenseCloud(projectImageDir: str, colmapProjectDirPath: str, projectOu
         "--input_path", input_path,
         "--output_path", os.path.join(colmapProjectDirPath, "02_dense"),
         "--output_type", "COLMAP",
-        "--max_image_size", str(maxImgSize)], stdout=subprocess.PIPE)     
+        #"--max_image_size", str(maxImgSize)
+        ], stdout=subprocess.PIPE)     
 
     get_eta_after_step = init_eta_calculation()
     while p.poll() is None:
@@ -841,10 +846,10 @@ def computeMeshedModel(projectImageDir: str, colmapProjectDirPath: str, projectO
         file_stats = os.stat(input_file)
         file_size_in_MB = file_stats.st_size / (1024 * 1024)  
 
-        if file_size_in_MB < 40 or quality > 1:
+        if file_size_in_MB < 50 or quality > 1:
             decimate_ratio = 1 
         else:
-            decimate_ratio = 0
+            decimate_ratio = 0 
   
     min_resolution = 1280
     if quality == 0:  
@@ -1033,15 +1038,8 @@ def writeYaml(yamlFilePath: str, yamlObj):
         writeYaml_raw(yamlFilePath, yamlObj)
 
 ######################################################################################################################
-# Process given job
-# Returns: True if job is processed. False otherwise
-def processJob(workspacePath: str, currentJob: Job) -> bool:
-    print("-- Processing Job ...")
 
-    colmapDatabaseFilePath = os.path.join(workspacePath , currentJob.sequenceName + ".db")
-    projectImageDir = os.path.join(workspacePath, currentJob.sequenceName + ".images")
-    colmapProjectDirPath = os.path.join(workspacePath , currentJob.sequenceName + ".files")
-    projectOutputDirPath = os.path.join(workspacePath , currentJob.sequenceName + ".output")
+def createFolderForSequence(colmapDatabaseFilePath: str, projectImageDir: str, colmapProjectDirPath: str, projectOutputDirPath: str):  
 
     if not os.path.exists(projectImageDir):
         os.makedirs(projectImageDir)
@@ -1057,21 +1055,38 @@ def processJob(workspacePath: str, currentJob: Job) -> bool:
 
     mesh_path = os.path.join(colmapProjectDirPath, "03_mesh")
     if not os.path.exists(mesh_path):
-        os.makedirs(mesh_path)
-    
+        os.makedirs(mesh_path)    
     
     if not os.path.exists(projectOutputDirPath):
         os.makedirs(projectOutputDirPath)
+######################################################################################################################
+# Process given job
+# Returns: True if job is processed. False otherwise
+def processJob(workspacePath: str, currentJob: Job) -> bool:
+    print("-- Processing Job ...")
+
+    colmapDatabaseFilePath = os.path.join(workspacePath , currentJob.sequenceName + ".db")
+    projectImageDir = os.path.join(workspacePath, currentJob.sequenceName + ".images")
+    colmapProjectDirPath = os.path.join(workspacePath , currentJob.sequenceName + ".files")
+    projectOutputDirPath = os.path.join(workspacePath , currentJob.sequenceName + ".output")
+    createFolderForSequence(colmapDatabaseFilePath, projectImageDir, colmapProjectDirPath, projectOutputDirPath)
 
     # if current product type of job is CAMERA_POSES handle creation of project
     if( currentJob.getProductTypeStr() == 'CAMERA_POSES' ):
+
+        if os.path.exists(colmapDatabaseFilePath):
+            os.remove(colmapDatabaseFilePath)          
+            shutil.rmtree(projectImageDir)             
+            shutil.rmtree(colmapProjectDirPath)
+            shutil.rmtree(projectOutputDirPath)        
+            createFolderForSequence(colmapDatabaseFilePath, projectImageDir, colmapProjectDirPath, projectOutputDirPath)
+
 
         # if image path in job description is not in project directory copy into project directory
         if( projectImageDir != currentJob.parameterList["image_path"] ):
             print("Images are outside of project dir. Copying {} -> {}".format(currentJob.parameterList["image_path"], projectImageDir))
             
-            shutil.rmtree(projectImageDir)
-            os.makedirs(projectImageDir)
+           
             copytree(os.path.join(currentJob.parameterList["image_path"]), projectImageDir, dirs_exist_ok=True)  
 
         # end if projectImageDir != image_path
@@ -1187,7 +1202,7 @@ def progressCallback(progress: float, force_Write = False, step=1, eta=0):
             yamlJobEntry["eta"] = str(eta)
 
             writeYaml(WORKER_STATE_YAML_PATH, yamlObj)
-    except e:
+    except Exception as e:             
 
         print("Error while updating progress", e, traceback.format_exc())    
 
@@ -1232,7 +1247,7 @@ def updateHeartBeat():
         with open(COLMAP_RUNNING_PATH, "w") as file:
             file.write(str(int(time.time())))   
 
-    except e:
+    except Exceptio as e:
         print("Error while updating heartbeat", e, traceback.format_exc())   
    
     finally:
@@ -1256,6 +1271,26 @@ def parseArguments():
     parser.add_argument('--openmvs_bin', default="" , help="Path to OpenmVS binary folder.")
     return parser.parse_args()
 
+
+def cleanAfterFailedJob(workspacePath: str, currentJob: Job) -> bool:
+    print("-- Cleaning after failed Job ...")
+
+    colmapDatabaseFilePath = os.path.join(workspacePath , currentJob.sequenceName + ".db")
+    projectImageDir = os.path.join(workspacePath, currentJob.sequenceName + ".images")
+    colmapProjectDirPath = os.path.join(workspacePath , currentJob.sequenceName + ".files")
+    projectOutputDirPath = os.path.join(workspacePath , currentJob.sequenceName + ".output")
+
+    if os.path.exists(colmapDatabaseFilePath):
+        os.remove(colmapDatabaseFilePath) 
+
+    if os.path.exists(projectImageDir):
+        shutil.rmtree(projectImageDir) 
+    
+    if os.path.exists(colmapProjectDirPath):
+        shutil.rmtree(colmapProjectDirPath)
+
+    if os.path.exists(projectOutputDirPath):
+        shutil.rmtree(projectOutputDirPath)
 
 ######################################################################################################################
 if __name__ == "__main__":
@@ -1315,11 +1350,13 @@ if __name__ == "__main__":
         try:
             success = processJob(workspacePath, currentJob)
             if(not success):
+                if CLEAN_FAILED_JOBS:
+                    cleanAfterFailedJob(workspacePath, currentJob)
                 raise Exception("ERROR: Something went wrong when trying to process job {}".format(currentJob))
+
 
         except Exception as e:             
                 # write failed job state to file 
-                print("ERROR: Something went wrong when trying to process job {}".format(currentJob))
                 print(e, traceback.format_exc())
                 setFailedStateToJob()
                 #raise e
@@ -1349,5 +1386,20 @@ if __name__ == "__main__":
         yamlObj["runningJob"].clear()
 
     writeYaml(WORKER_STATE_YAML_PATH, yamlObj)
+
+    if CLEAN_FINISHED_JOBS:
+        colmapDatabaseFilePath = os.path.join(workspacePath , "*.db")
+        projectImageDir = os.path.join(workspacePath,  "*.images")
+        colmapProjectDirPath = os.path.join(workspacePath , "*.files")
+
+        for f in glob.glob(colmapDatabaseFilePath):
+            os.remove(f)
+
+        for f in glob.glob(projectImageDir):
+            shutil.rmtree(f) 
+        
+        for f in glob.glob(colmapProjectDirPath):
+            shutil.rmtree(f) 
+   
 
     print("---------------------------------------------------------")
