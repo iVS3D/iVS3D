@@ -6,6 +6,7 @@
 #include <QMap>
 #include <QVariant>
 #include <QSettings>
+#include <QDebug>
 
 #include "opencv2/core.hpp"
 #ifdef WITH_CUDA

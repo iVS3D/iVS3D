@@ -13,7 +13,6 @@ RC_ICONS = resources/ivs3dIcon.ico
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 src_files = $$files(*.cpp, true)
-message($$src_files)
 for(file, src_files) {
     src_dirs += $$dirname(file)
 }
@@ -32,7 +31,6 @@ INCLUDEPATH += $$PWD/../iVS3D-pluginInterface
 DEPENDPATH  += $$PWD/../iVS3D-pluginInterface
 
 # Include opencv using a local 3rdparty.pri
-message(SEARCHING FOR EXTERNAL LIBS)
 !include(../../3rdparty.pri){
 	message(FAILED TO FIND 3rdparty.pri)
 }
@@ -186,7 +184,6 @@ TRANSLATIONS += \
     $$PWD/translations/core_de.ts
 
 unix:system(lrelease $$PWD/translations/*.ts)
-win32::system(lrelease-pro $$PWD/../../iVS3D.pro)
 
 OTHER_FILES += \
     copy_to_install_dir/colmap/* \

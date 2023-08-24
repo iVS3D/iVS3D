@@ -24,6 +24,7 @@ void ApplicationSettings::setInterpolateMetaData(bool interpolateMetaData)
 void ApplicationSettings::loadSettings()
 {
     QSettings settings(stringContainer::settingsCompany, stringContainer::settingsProgramm);
+    qDebug() << "Loading configuration from " << settings.fileName();
     m_standardInputPath = settings.value(stringContainer::standardInputPathIdentifier).value<QString>();
     m_darkStyle = settings.value(stringContainer::darkStyleIdentifier).value<bool>();
     if(settings.contains(stringContainer::useCudaIdentifier))
