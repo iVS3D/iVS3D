@@ -878,7 +878,7 @@ def computeMeshedModel(projectImageDir: str, colmapProjectDirPath: str, projectO
         elif quality == 2:            
             orthographic_image_resolution = 1920 * 4   
         elif quality > 2:
-            orthographic_image_resolution = 1920 * 100
+            orthographic_image_resolution = 1920 * 16
 
     args = [texture_mesh_bin_path, 
         "--working-folder", texture_mesh_dir,
@@ -903,7 +903,7 @@ def computeMeshedModel(projectImageDir: str, colmapProjectDirPath: str, projectO
     if "max-texture-size" in output:
         max_texture_size = 1920
         if quality > 2:
-            max_texture_size = 1920 * 100
+            max_texture_size = 1920 * 16
         else:
             max_texture_size = 1920 * 2
 
