@@ -53,8 +53,9 @@ ColmapWrapper::ColmapWrapper(const QString iSettingsFile, const bool iSettingsOn
                            QSettings::UserScope,
                            stringContainer::settingsCompany,
                            iSettingsFile),
+      mpTempDir(nullptr),
       mpPyWorkerProcess(new QProcess()), mpMountProcess(new QProcess()),
-      mpSyncProcess(new QProcess()), mCheckWorkerTimer(), mWorkspaceStatus(IN_SYNC),
+      mpSyncProcess(new QProcess()), mCheckWorkerTimer(), mWorkspaceStatus(IN_SYNC),      
       mpUiControls(nullptr)
 {
     this->readSettings();
@@ -67,7 +68,9 @@ ColmapWrapper::ColmapWrapper(const QString iSettingsFile, const bool iSettingsOn
 //==================================================================================================
 ColmapWrapper::~ColmapWrapper()
 {
-    delete mpTempDir;
+    if(mpTempDir!=nullptr && mpTempDir->isValid()){
+        delete mpTempDir;
+    }
 }
 
 //==================================================================================================
@@ -1120,10 +1123,10 @@ bool ColmapWrapper::checkWorkerState()
 
 
     //--- store currently referenced job
-    SJob previouslyRunningJob;
+    SJob* previouslyRunningJob;
     bool isPreviouslyRunningJobNull = true;
     if (mPyWorker.currentlyRunningJob != nullptr) {
-        previouslyRunningJob = *mPyWorker.currentlyRunningJob;
+        previouslyRunningJob = mPyWorker.currentlyRunningJob;
         isPreviouslyRunningJobNull = false;
     }
 
@@ -1139,8 +1142,8 @@ bool ColmapWrapper::checkWorkerState()
     if (mPyWorker.currentlyRunningJob == nullptr && !isPreviouslyRunningJobNull)
         runningJobChanged = true;
     else if (mPyWorker.currentlyRunningJob != nullptr
-             && (mPyWorker.currentlyRunningJob->sequenceName != previouslyRunningJob.sequenceName
-                 || mPyWorker.currentlyRunningJob->product != previouslyRunningJob.product))
+             && (mPyWorker.currentlyRunningJob->sequenceName != previouslyRunningJob->sequenceName
+                 || mPyWorker.currentlyRunningJob->product != previouslyRunningJob->product))
         runningJobChanged = true;
 
     if (runningJobChanged) {
@@ -1395,7 +1398,7 @@ bool ColmapWrapper::deleteJob(const ColmapWrapper::SJob &iJob)
     qDebug() << __PRETTY_FUNCTION__;
 
     int jobIdx = getIndexOfJob(iJob);
-    if (jobIdx == -1) {
+    if (jobIdx == -1 || iJob.state == JOB_RUNNING) {
         return false;
     }
     mJobs.erase(mJobs.begin() + jobIdx);
@@ -1403,7 +1406,7 @@ bool ColmapWrapper::deleteJob(const ColmapWrapper::SJob &iJob)
     //--- erase all jobs of the same sequence that depend on this job
     for (std::vector<ColmapWrapper::SJob>::iterator itr = mJobs.begin() + jobIdx;
          itr != mJobs.end();) {
-        if (itr->sequenceName == iJob.sequenceName
+        if (itr->sequenceName == iJob.sequenceName && itr->state != JOB_RUNNING
             && static_cast<int>(itr->product) > static_cast<int>(iJob.product)) {
             mJobs.erase(itr);
         } else {
@@ -1875,7 +1878,6 @@ void ui::ColmapWrapperControlsFactory::showNewProductDialog()
 
         mpMsWrapper->writeWorkQueueToFile();
         mpMsWrapper->startProcessing();
-        this->mpMsWrapper->checkWorkerState();
     }
 }
 

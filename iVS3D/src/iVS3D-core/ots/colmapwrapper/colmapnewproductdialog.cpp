@@ -29,7 +29,7 @@ NewProductDialog::NewProductDialog(ColmapWrapper *ipWrapper, QWidget *parent)
     ui->l_warningNoImages->setStyleSheet("QLabel { color: red; }");
 
     ui->l_warningSequenceName->setVisible(false);
-    ui->l_warningSequenceName->setStyleSheet("QLabel { color: red; }");   
+    ui->l_warningSequenceName->setStyleSheet("QLabel { color: orange; }");
 
     //--- connections
     connect(ui->pb_selectImagePath,
@@ -218,8 +218,10 @@ void NewProductDialog::onAccepted()
 
                 //--- create destination directory if not exists
                 QDir destDir(importDirPath);
-                if (!destDir.exists())
-                    destDir.mkpath(".");
+                if (destDir.exists()){
+                    destDir.removeRecursively();
+                }
+                destDir.mkpath(".");
 
                 //--- copy files
                 if (imgFiles.size() > 0) {
@@ -456,11 +458,9 @@ void NewProductDialog::validateSequenceName()
                                                            QDir::Files,
                                                            QDir::Name);
 
-    if (!msProjFiles.contains(sequenceName + ".db") && sequenceName != ""
-        && !sequenceName.contains(" ")) {
+    if (!msProjFiles.contains(sequenceName + ".db") && sequenceName != ""  && !sequenceName.contains(" ")) {
         ui->le_sequenceName->setStyleSheet("");
         isSequenceNameValid = true;
-        enableSaveButtonState();
         ui->l_warningSequenceName->setVisible(false);
     } else {
         ui->le_sequenceName->setStyleSheet("QLineEdit { border: 1px solid red; }");
