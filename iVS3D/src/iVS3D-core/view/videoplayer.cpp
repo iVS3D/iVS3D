@@ -45,9 +45,9 @@ void VideoPlayer::showImages(std::vector<cv::Mat*> images)
         // add error text to scene
         ui->graphicsView->setWindowOpacity(0.1);
         QGraphicsTextItem *errorTextItem =
-                ui->graphicsView->scene()->addText("", QFont(QString(), 69));
+                ui->graphicsView->scene()->addText("", QFont(QString(), 100));
         errorTextItem->setDefaultTextColor(QColor("red"));
-        errorTextItem->setHtml("<b>"+tr("This frame is corrupted. It won´t be exported or considered when selecting keyframes.")+"</b>");
+        errorTextItem->setHtml("<b>"+tr("Corrupted frame")+"</b>");
         ui->graphicsView->show();
         return;
     }
