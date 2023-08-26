@@ -278,6 +278,29 @@ void VideoPlayerController::slot_redraw()
 
 void VideoPlayerController::slot_receiveImage(uint idx, const cv::Mat &img)
 {
+    // update status bar with info about corrupted images
+    if (img.empty()) {
+        m_foundCorruptedFrames.insert(idx);
+
+        // create dynamic status bar error message
+        QString errorMsg = (m_foundCorruptedFrames.size() > 1 ? ERROR_MSG_MULTI : ERROR_MSG_SINGLE);
+        std::stringstream ss_foundCorruptedFrames;
+        int listedFramesCount = 0;
+        for (int i : m_foundCorruptedFrames) {
+            ss_foundCorruptedFrames << std::to_string(i);
+            if (listedFramesCount < int(m_foundCorruptedFrames.size())-1)  // prevent trailing ", "
+                ss_foundCorruptedFrames << ", ";
+            if (listedFramesCount > ERROR_MSG_APPROX_COUNT) { // cut listing if there are too many
+                ss_foundCorruptedFrames << "...";
+                break;
+            }
+            listedFramesCount++;
+        }
+        emit sig_hasStatusMessage(errorMsg.arg(QString::fromStdString(ss_foundCorruptedFrames.str())));
+
+        return;
+    }
+
     if(TransformManager::instance().isTransformEnabled()){
         emit sig_sendToITransform(idx,img);
     } else {

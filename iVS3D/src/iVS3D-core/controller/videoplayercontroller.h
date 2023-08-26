@@ -3,6 +3,7 @@
 
 #include <QObject>  // used for signals and slots
 #include <QTimer>   // used for periodic timer events to update displayed image
+#include <set>
 
 #include "plugin/algorithmmanager.h" //used to emit signal that index has changed
 
@@ -17,6 +18,10 @@
 #include "controller/imageiterator.h"
 #include "controller/modelinputiteratorfactory.h"
 #include "view/reallydeletedialog.h"
+
+#define ERROR_MSG_SINGLE QString(tr("Frame %1 is corrupted. It won´t be considered when selecting keyframes or exported at the end of the process."))
+#define ERROR_MSG_MULTI QString(tr("Frames %1 are corrupted. They won´t be considered when selecting keyframes or exported at the end of the process."))
+#define ERROR_MSG_APPROX_COUNT 5
 
 /**
  * @class VideoPlayerController
@@ -228,6 +233,8 @@ private:
     ITransformRequestDequeue *m_transform;
 
     const int m_frametime = 33; //ms between frames
+
+    std::set<int> m_foundCorruptedFrames = {};
 
     void showImage();
 

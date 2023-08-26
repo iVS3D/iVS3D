@@ -41,16 +41,8 @@ void VideoPlayer::showImages(std::vector<cv::Mat*> images)
         containsEmptyMat |= i->empty();
     }
 
-    if(images.size() == 0 || containsEmptyMat){
-        // add error text to scene
-        ui->graphicsView->setWindowOpacity(0.1);
-        QGraphicsTextItem *errorTextItem =
-                ui->graphicsView->scene()->addText("", QFont(QString(), 100));
-        errorTextItem->setDefaultTextColor(QColor("red"));
-        errorTextItem->setHtml("<b>"+tr("Corrupted frame")+"</b>");
-        ui->graphicsView->show();
+    if (images.size() == 0 || containsEmptyMat)
         return;
-    }
 
     ui->graphicsView->scene()->clear();
 
