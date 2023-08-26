@@ -51,5 +51,6 @@ void SlideableLabel::setRelPosition(float delta)
 
 uint SlideableLabel::getRelPosition()
 {
-    return x() - m_xIntervall.x();
+    int nPos = x() - m_xIntervall.x();
+    return nPos < 0 ? 0 : uint(nPos);
 }

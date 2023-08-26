@@ -29,7 +29,7 @@ float TimelineLabel::relPosToIndex(int relativePosition)
     if (index < 0)
         return 0.f;
     else if (index > m_lastIndex + 1)
-        return width();
+        return float(m_lastIndex);
 
     return index;
 }
