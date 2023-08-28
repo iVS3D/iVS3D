@@ -32,19 +32,18 @@ Graphical user interface which is split in five different sections. 1. Input, 2.
 
 ## Plugins
 
-There are currently 4 plugins implemented:
+There are currently 3 plugins implemented:
 
 | Plugin | Description |
 | ------ | ------ |
 | NthFrame Plugin | Selects every N-th frame |
-| Stationary Camera Plugin | Selects images based on camera movement |
+| Camera Movement Plugin | Selects images based on camera movement |
 | Blur Plugin | Avoids blurry images |
-| SemanticSegmentation Plugin | Masks images |
 
 These plugins show different approches to selecting keyframes. iVS3D is build with an open plugin interface for adding new plugins. See [here](doc/create_plugin.md) on how to create your own plugin.
 
 ## 3D Reconstruction
-iVS3D does prepare the data for 3D reconstruction. For now we do not perform the reconstruction itself. On windows iVS3D provides functionality to configure and start [COLMAP] which performs the reconstruction on the prepared data. This saves time and simplifies the reconstruction process. 
+iVS3D does prepare the data for 3D reconstruction. For now we do not perform the reconstruction itself. On windows iVS3D provides functionality to configure and start [COLMAP] which performs the reconstruction on the prepared data. This saves time and simplifies the reconstruction process. Make sure to install python 3.9 or later for the reconstruction! 
 
 > the next section is linux only: OTS integration of colmap is not supported on windows yet!
 
@@ -58,46 +57,29 @@ Reconstruction can be configured to be executed on the local machine or on a rem
 
 We provide builds with and without CUDA for multiple platforms and distributions:
 - Windows 10
-- Debian 10
 - Debian 11
-- Ubuntu 18
 - Ubuntu 22
+
+Note that the CUDA builds support GTX 10xx and RTX series GPUS. Older GPUs or Laptop versions might require to build iVS3D from sources with an OpenCV and CUDA build for that specific GPU.
 
 <!-- To use the included plugin for semantic segmentation you can download the models we used in our paper:
 [Link to models]
 
 To use other models, they have to be in the .onnx format. In addition, the plug-in requires a file that maps the classes to specific colors. -->
 
-The CUDA compute capabilities vary depending on the platform:
-| CUDA version 	| GPUs (exemplary)    | Windows | Debian | Ubuntu
-|---------------|---------------------|---------|--------|-----
-|	5.0    	    |	GeForce GTX 7XX   | ✅      | -     | -
-|	5.2    	    |	GeForce GTX 9XX   | ✅      | -     | ✅
-|	6.1	        |   GeForce GTX 10XX  | ✅      | ✅    | ✅
-|	7.5	        |   GeForce RTX 20XX  | ✅      | ✅    | ✅
-|   8.6         |   GeForce RTX 30XX  | -       | ✅    | -
-
 ## Build from source
 ### Dependencies
 
 iVS3D and the baseline plugins use:
-- [OpenCV] 4.5.0
-- [Qt] Framework 5.12
-- [Python] 3.9
+- [OpenCV] 4.7.0
+- [Qt] Framework 5.15.2
 
 For CUDA support:
-- [NVIDIA CUDA Toolkit API] 10.1
-- [cuDNN] 8.0
+- [NVIDIA CUDA Toolkit API] 12.0
 
-For windows we use [MSVC] 2015 compiler. On linux we use [GCC] 7 compiler.
+For windows we use [MSVC] compiler which is shipped with visual studio. On linux we use [GCC] 10 compiler.
 
-The required dependencies can be imported using the _3rdParty.pri_ file. Further information about including dependencies like OpenCV and CUDA using _.pri_ files can be found [here](doc/3rdparty.md).
-
-Make sure the python dependencies from the _iVS3D/src/iVS3D-core/ots/colmapwrapper/py_requirements.txt_ are installed:
-```sd
-pip install --upgrade -r iVS3D/src/iVS3D-core/ots/colmapwrapper/py_requirements.txt
-```
-For linux use ```pip3``` instead. Make sure these dependencies are installed correctly!
+The required dependencies can be imported using the _3rdParty.pri_ file. Further information about including dependencies using _.pri_ files can be found [here](doc/3rdparty.md).
 
 ### Build iVS3D
 

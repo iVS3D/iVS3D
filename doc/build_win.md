@@ -3,7 +3,7 @@
 # Deploy from source for windows
 To build the project from source on a windows machine you can use the terminal or download Qt Creator from the official Qt website. If you want to use the Qt Creator follow our instructions [here](build_qtcreator.md). To use the terminal follow the instructions in this document.
 
-[Qt] 5.12 and [Visual Studio] 2019 or 2022 have to be installed. Make sure to select [MSVC] 2019 or later on both installations. Clone the iVS3D repository from our GitHub and download [OpenCV] 4.7.0. To build with CUDA you need an OpenCV build which supports CUDA. In this case download [NVIDIA CUDA Toolkit API] as well.
+[Qt] 5.15.2 and [Visual Studio] 2019 or 2022 have to be installed. Make sure to select [MSVC] 2019 or later on both installations. Clone the iVS3D repository from our GitHub and download [OpenCV] 4.7.0. To build with CUDA you need an OpenCV build which supports CUDA. In this case download [NVIDIA CUDA Toolkit API] as well.
 
 Copy the _3rdparty.txt_ file, rename to 3rdparty.pri and set the paths to your OpenCV build there. The file should look something like this:
 

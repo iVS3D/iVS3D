@@ -2,7 +2,7 @@
 
 # Third Party Dependencies
 
-For including 3rd party dependencies such as OpenCV and CUDA we rely on using _3rdparty.pri_ in combination with _.pri_ files for each dependency.
+For including 3rd party dependencies such as OpenCV we rely on using _3rdparty.pri_ in combination with _.pri_ files for each dependency.
 
 ## OpenCV
 You can build OpenCV from source following [these](https://docs.opencv.org/4.5.0/d3/d52/tutorial_windows_install.html) instructions. Make sure to build with OpenCV contrib. For windows set cmake flag `BUILD_opencv_world`.
@@ -13,14 +13,14 @@ Other [usefull cmake flags](https://docs.opencv.org/4.5.0/db/d05/tutorial_config
 - `CMAKE_INSTALL_PREFIX` set install location
 
 
-After OpenCV has been installed create a _opencv450.pri_ file in the installation folder. And add the following content:
+After OpenCV has been installed create a _opencv470.pri_ file in the installation folder. And add the following content:
 <details><summary>Windows</summary>
 <p>
 
 ```sh
-message(USING opencv-4.5.0-msvc2015-cuda)
+message(USING opencv-4.7.0-msvc2019-cuda)
 
-OPENCV_VERSION = "450"
+OPENCV_VERSION = "470"
 OPENCV_PATH = $$PWD
 OPENCV_INC_PATH = $$OPENCV_PATH/include
 OPENCV_LIB_PATH = $$OPENCV_PATH/x64/vc15/lib
@@ -59,7 +59,7 @@ You might have to adjust the `OPENCV_INC_PATH` and `OPENCV_LIB_PATH` to point to
 <p>
 
 ```sh
-message(USING opencv_450_cuda)
+message(USING opencv_470_cuda)
 
 OCV4_PATH = $$PWD
 INCLUDEPATH += $$OCV4_PATH/include
@@ -102,63 +102,4 @@ You might have to add more modules to the `OCV4_LIBS` if you have built them.
 </p>
 </details>
 
-This _opencv450.pri_ can be included when building iVS3D and provides all necessary information about OpenCV for the compiler and linker.
-
-## CUDA
-[NVIDIA CUDA Toolkit API] can be installed using the official installer. In this case make sure it is added to your `PATH` or `LD_LIBRARY_PATH`.
-
-Or built from source as well. In this case you need to create a _cuda.pri_ file with content like this:
-
-```sh
-CUDA_VERS_STR = 10.0.130
-GCC_VERS_STR = 7.3
-
-CUDA_ROOT_DIR = $$PWD/cuda_10.0.130_linux
-CUDA_SDK_DIR = $$PWD/cuda_10.0.130_linux/samples
-
-# add directories and libraries to variables
-unix {	
-	message("Using cuda "$${CUDA_VERS_STR}", GCC "$${GCC_VERS_STR})
-
-  INCLUDEPATH += $${CUDA_ROOT_DIR}/include/ \
-                $${CUDA_SDK_DIR}/common/inc/
-	DEPENDPATH += $${CUDA_ROOT_DIR}/include/
-                $${CUDA_SDK_DIR}/common/inc/
-
-	LIBS += -L$${CUDA_ROOT_DIR}/lib64  
-
-	LIBS += -laccinj64
-	LIBS += -lcublas
-	LIBS += -lcudadevrt
-	LIBS += -lcudart
-	LIBS += -lcudnn
-	LIBS += -lcufft
-	LIBS += -lcufftw
-	LIBS += -lcuinj64
-	LIBS += -lculibos
-	LIBS += -lcurand
-	LIBS += -lcusolver
-	LIBS += -lcusparse
-	LIBS += -lnppc
-	LIBS += -lnppial
-	LIBS += -lnppicc
-	LIBS += -lnppicom
-	LIBS += -lnppidei
-	LIBS += -lnppif
-	LIBS += -lnppig
-	LIBS += -lnppim
-	LIBS += -lnppist
-	LIBS += -lnppisu
-	LIBS += -lnppitc
-	LIBS += -lnpps
-	LIBS += -lnvblas
-	LIBS += -lnvgraph
-	LIBS += -lnvjpeg
-	LIBS += -lnvrtc-builtins
-	LIBS += -lnvrtc
-	LIBS += -lnvToolsExt
-
-}
-```
-
-[NVIDIA CUDA Toolkit API]:    <https://developer.nvidia.com/cuda-zone>
+This _opencv470.pri_ can be included when building iVS3D and provides all necessary information about OpenCV for the compiler and linker.
