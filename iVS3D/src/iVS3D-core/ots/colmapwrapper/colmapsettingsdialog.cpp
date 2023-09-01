@@ -263,11 +263,19 @@ void SettingsDialog::settingsChanged()
     ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
     ui->l_error->setStyleSheet("QLabel { border : none; }");
     ui->l_error->setText("");
-    ui->le_localWorkspace->setStyleSheet("QLineEdit { color : black; }");
-    ui->le_localColmapBinary->setStyleSheet("QLineEdit { color : black; }");
-    ui->le_remoteColmapBinary->setStyleSheet("QLineEdit { color : black; }");
-    ui->le_remoteWorkspace->setStyleSheet("QLineEdit { color : black; }");
-    ui->le_mntPnt->setStyleSheet("QLineEdit { color : black; }");
+    QString css;
+    if(ApplicationSettings::instance().getActiveStyle()) {
+      // were in dark mode
+      css = "QLineEdit { color : white; }";
+    } else {
+      // were in light mode
+      css = "QLineEdit { color : black; }";
+    }
+    ui->le_localWorkspace->setStyleSheet(css);
+    ui->le_localColmapBinary->setStyleSheet(css);
+    ui->le_remoteColmapBinary->setStyleSheet(css);
+    ui->le_remoteWorkspace->setStyleSheet(css);
+    ui->le_mntPnt->setStyleSheet(css);
 }
 
 void SettingsDialog::updateStatusMsg(const QPair<ColmapWrapper::ESetupTestResult,QString> &test, QLineEdit *input)

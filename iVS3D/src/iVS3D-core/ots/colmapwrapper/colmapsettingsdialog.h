@@ -7,6 +7,7 @@
 #include <QLineEdit>
 
 #include "../colmapwrapper.h"
+#include "applicationsettings.h"
 
 namespace lib3d {
 namespace ots {
