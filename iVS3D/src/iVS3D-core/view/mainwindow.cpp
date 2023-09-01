@@ -181,6 +181,7 @@ MainWindow::~MainWindow()
 void MainWindow::closeEvent(QCloseEvent *event)
 {
     QSettings settings(stringContainer::settingsCompany, stringContainer::settingsProgramm);
+    settings.setValue("layoutVersion", QString(UI_LAYOUT_VERSION));
     settings.setValue("windowGeometry", QVariant(geometry()));
     settings.setValue("windowState", saveState());
     settings.setValue("maximized", this->isMaximized());
@@ -191,6 +192,13 @@ void MainWindow::closeEvent(QCloseEvent *event)
 void MainWindow::readSettings()
 {
     QSettings settings(stringContainer::settingsCompany, stringContainer::settingsProgramm);
+    if(
+        settings.value("layoutVersion").isNull()                                                // no version -> very old layout file, dont use!
+        || settings.value("layoutVersion").value<QString>().compare(QString(UI_LAYOUT_VERSION)) != 0     // version of stored layout does not match current layout, dont use!
+        ){
+        qDebug() << "Found incompatible layout file. Falling back to default!";
+        return;
+    }
     if(!settings.value("windowGeometry").isNull()){
         resize(settings.value("windowGeometry").value<QRect>().size());
         restoreState(settings.value("windowState").toByteArray());

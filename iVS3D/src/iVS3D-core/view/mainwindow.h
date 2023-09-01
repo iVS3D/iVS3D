@@ -31,6 +31,8 @@
 
 #include "stringcontainer.h"
 
+#define UI_LAYOUT_VERSION "1.0.0"
+
 //for debug
 #include <opencv2/core.hpp>
 #include <QDebug>
