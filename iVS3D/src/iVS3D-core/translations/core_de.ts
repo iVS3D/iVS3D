@@ -579,16 +579,18 @@
     </message>
     <message>
         <location filename="../view/exportwidget.cpp" line="60"/>
+        <location filename="../view/exportwidget.cpp" line="62"/>
         <source>location to export keyframes to.</source>
         <translation>Ordner in den die Keyframes exportiert werden.</translation>
     </message>
     <message>
         <location filename="../view/exportwidget.cpp" line="60"/>
+        <location filename="../view/exportwidget.cpp" line="62"/>
         <source>export location ha been passed as a start argument. Thus it can not be changed!</source>
         <translation>Ausgabeordner wurde als Startargument übergeben und kann daher nicht verändert werden!</translation>
     </message>
     <message>
-        <location filename="../view/exportwidget.cpp" line="122"/>
+        <location filename="../view/exportwidget.cpp" line="124"/>
         <source>choose output folder</source>
         <translation>Ausgabeordner auswählen</translation>
     </message>
