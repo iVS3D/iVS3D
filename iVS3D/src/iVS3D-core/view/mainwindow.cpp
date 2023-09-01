@@ -107,13 +107,11 @@ MainWindow::MainWindow(QWidget *parent, bool dark, int cuda, bool createLog, boo
         addOtsWindow(otsWidget);
     }
 
+
+
     // store default layout state and add action to reset to this default state
     const auto defaultDockLayout = saveState();
-    const auto defaultGeometry = geometry();
-    ui->menuView->addAction(tr("Reset Layout"), [this,defaultDockLayout,defaultGeometry](){
-        this->setWindowState(Qt::WindowNoState);
-
-        this->setGeometry(defaultGeometry);
+    ui->menuView->addAction(tr("Reset Layout"), [this,defaultDockLayout](){
         this->restoreState(defaultDockLayout);
     }, QKeySequence(Qt::CTRL | Qt::Key_L));
 
@@ -194,7 +192,7 @@ void MainWindow::readSettings()
 {
     QSettings settings(stringContainer::settingsCompany, stringContainer::settingsProgramm);
     if(!settings.value("windowGeometry").isNull()){
-        setGeometry(settings.value("windowGeometry").value<QRect>());
+        resize(settings.value("windowGeometry").value<QRect>().size());
         restoreState(settings.value("windowState").toByteArray());
         if(settings.value("maximized").toBool()) this->setWindowState(this->windowState() | Qt::WindowMaximized);
     }
@@ -289,7 +287,6 @@ void MainWindow::addOtsWindow(QWidget *otsWidget)
     tabifyDockWidget(m_outputDock, dock);
     m_outputDock->raise();
     ui->menuView->insertAction(m_outputDock->toggleViewAction(), dock->toggleViewAction());
-    readSettings();
 }
 
 void MainWindow::addSettingsAction(QAction *action)
