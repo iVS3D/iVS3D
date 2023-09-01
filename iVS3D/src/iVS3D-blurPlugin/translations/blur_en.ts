@@ -83,7 +83,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../blur.cpp" line="422"/>
+        <location filename="../blur.cpp" line="427"/>
         <source>Blur progress</source>
         <translation type="unfinished"></translation>
     </message>
@@ -91,7 +91,7 @@
 <context>
     <name>BlurAlgorithm</name>
     <message>
-        <location filename="../BlurAlgorithm.cpp" line="72"/>
+        <location filename="../BlurAlgorithm.cpp" line="73"/>
         <source>Calculate blur for frame </source>
         <translation type="unfinished"></translation>
     </message>

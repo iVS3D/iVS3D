@@ -83,7 +83,7 @@
         <translation> Keyframes insgesamt</translation>
     </message>
     <message>
-        <location filename="../blur.cpp" line="422"/>
+        <location filename="../blur.cpp" line="427"/>
         <source>Blur progress</source>
         <translation>Unschärfe Berechnung Fortschritt</translation>
     </message>
@@ -103,9 +103,9 @@
         <translation type="vanished"> Bildern insgesamt</translation>
     </message>
     <message>
-        <location filename="../BlurAlgorithm.cpp" line="72"/>
+        <location filename="../BlurAlgorithm.cpp" line="73"/>
         <source>Calculate blur for frame </source>
-        <translation type="unfinished"></translation>
+        <translation>Berechne Unschärfewert für Bild </translation>
     </message>
 </context>
 </TS>
