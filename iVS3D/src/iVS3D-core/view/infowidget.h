@@ -48,7 +48,21 @@ public:
      *
      * @param status true = enable
      */
-    void enableOpenMetaData(bool status);
+    void enableOpenMetaData(bool status, QString tooltip = QString());
+
+    /**
+     * @brief enableInputImages enables "Open Images" button in the widget
+     *
+     * @param status true = enable
+     */
+    void enableOpenImages(bool status, QString tooltip = QString());
+
+    /**
+     * @brief enableInputVideo enables "Open Video" button in the widget
+     *
+     * @param status true = enable
+     */
+    void enableOpenVideo(bool status, QString tooltip = QString());
 
 
 

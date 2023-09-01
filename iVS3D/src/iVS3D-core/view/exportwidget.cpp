@@ -54,6 +54,12 @@ void ExportWidget::enableExport(bool enabled)
     ui->pushButton_export->setEnabled(enabled);
 }
 
+void ExportWidget::enableExportPathEditable(bool enabled)
+{
+    ui->lineEdit->setEnabled(enabled);
+    ui->lineEdit->setToolTip(enabled ? tr("location to export keyframes to.") : tr("export location ha been passed as a start argument. Thus it can not be changed!"));
+}
+
 void ExportWidget::enableReconstruct(bool enabled)
 {
 #if defined(Q_OS_WIN)

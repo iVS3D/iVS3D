@@ -66,6 +66,12 @@ public:
     void enableExport(bool enabled);
 
     /**
+     * @brief enableExportPathEditable enables / disables editting of the export path.
+     * @param editting enabled if @a true, disabled otherwise
+     */
+    void enableExportPathEditable(bool enabled);
+
+    /**
      * @brief enableReconstruct enables / disables the reconstruct button.
      * @param enabled button enabled if @a true, disabled otherwise
      */

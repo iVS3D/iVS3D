@@ -55,6 +55,11 @@ public:
      */
     void enableExport(bool enabled);
     /**
+     * @brief enableExportPathChange enables / disables modification of the export path
+     * @param enabled @a true = modify path, @a false = fixed path
+     */
+    void enableExportPathChange(bool enabled);
+    /**
      * @brief enableReconstruct enables / disables the reconstruct button
      * @param enabled @a true = enable button, @a false = disable button
      */

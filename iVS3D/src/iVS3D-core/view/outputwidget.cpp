@@ -46,6 +46,11 @@ void OutputWidget::enableExport(bool enabled)
     m_exportW->enableExport(enabled);
 }
 
+void OutputWidget::enableExportPathChange(bool enabled)
+{
+    m_exportW->enableExportPathEditable(enabled);
+}
+
 void OutputWidget::enableReconstruct(bool enabled)
 {
     m_exportW->enableReconstruct(enabled);

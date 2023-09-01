@@ -294,6 +294,34 @@ void MainWindow::addSettingsAction(QAction *action)
     ui->menuSettings->insertAction(ui->actionSet_Input_Path, action);
 }
 
+void MainWindow::enableInputButtons(bool status)
+{
+    QString tooltip = status ? QString() : tr("input has been passed as a start argument. Thus it can not be changed!");
+    this->m_inputWidget->enableOpenImages(status, tooltip);
+    this->m_inputWidget->enableOpenVideo(status, tooltip);
+    this->m_inputWidget->enableOpenMetaData(status, tooltip);
+
+    auto enableAction = [status, tooltip](QAction *action){
+        action->setEnabled(status);
+        if(status == false) action->setToolTip(tooltip); // if disabled -> show reason in tooltip
+    };
+
+    enableAction(ui->actionOpen_Input);
+    enableAction(ui->actionOpen_Input_Video);
+    enableAction(ui->actionOpen_Meta_Data);
+    enableAction(ui->actionOpen_Project);
+}
+
+void MainWindow::enableExportPath(bool status)
+{
+    this->m_outputWidget->enableExportPathChange(status);
+}
+
+bool MainWindow::getInputEnabled()
+{
+    return ui->actionOpen_Input->isEnabled();
+}
+
 void MainWindow::on_actionOpen_Project_triggered()
 {
     emit sig_openProject();

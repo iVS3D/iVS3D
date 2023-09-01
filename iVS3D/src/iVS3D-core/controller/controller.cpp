@@ -91,13 +91,16 @@ Controller::Controller(QString inputPath, QString settingsPath, QString outputPa
     }
 
     if (inputPath != nullptr && !inputPath.isEmpty()) {
+        m_mainWindow->enableInputButtons(false);
         m_timer = QElapsedTimer();
         m_timer.start();
         createOpenMessage(m_dataManager->open(inputPath));
     }
 
-    if(outputPath != nullptr && !outputPath.isEmpty())
+    if(outputPath != nullptr && !outputPath.isEmpty()){
+        m_mainWindow->enableExportPath(false);
         m_mainWindow->getOutputWidget()->setOutputPath(outputPath);
+    }
 
     //Disable 'create files for' widget when no transform plugins are found
     m_mainWindow->getOutputWidget()->enableCreateFilesWidget(TransformManager::instance().getTransformCount() != 0);
@@ -531,7 +534,7 @@ void Controller::onSuccessfulOpen()
 
     setInputWidgetInfo(); // initialize input widget with information about new input data
     m_mainWindow->getSamplingWidget()->setAlgorithm(0);
-    m_mainWindow->enableOpenMetaData(true);
+    if(m_mainWindow->getInputEnabled()) m_mainWindow->enableOpenMetaData(true);
     m_mainWindow->enableTools(true);
 
     connect(m_dataManager->getHistory(), &History::sig_historyChanged, this, &Controller::slot_historyChanged);

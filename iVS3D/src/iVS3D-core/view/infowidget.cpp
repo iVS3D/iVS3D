@@ -56,9 +56,22 @@ void InfoWidget::setInfo(QMap<QString, QString> info)
     ui->label->setText(tableHead);
 }
 
-void InfoWidget::enableOpenMetaData(bool status)
+void InfoWidget::enableOpenMetaData(bool status, QString tooltip)
 {
     ui->toolButton_meta->setEnabled(status);
+    if (!tooltip.isEmpty()) ui->toolButton_meta->setToolTip(tooltip);
+}
+
+void InfoWidget::enableOpenImages(bool status, QString tooltip)
+{
+    ui->toolButton_folder->setEnabled(status);
+    if (!tooltip.isEmpty()) ui->toolButton_folder->setToolTip(tooltip);
+}
+
+void InfoWidget::enableOpenVideo(bool status, QString tooltip)
+{
+    ui->toolButton_video->setEnabled(status);
+    if (!tooltip.isEmpty()) ui->toolButton_video->setToolTip(tooltip);
 }
 
 void InfoWidget::on_toolButton_folder_clicked()

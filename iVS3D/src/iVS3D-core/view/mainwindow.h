@@ -151,6 +151,12 @@ public:
 
     void addSettingsAction(QAction *action);
 
+    void enableInputButtons(bool status);
+
+    void enableExportPath(bool status);
+
+    bool getInputEnabled();
+
 
 signals:
     /**
