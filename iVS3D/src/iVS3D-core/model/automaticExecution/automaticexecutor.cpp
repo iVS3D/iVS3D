@@ -78,6 +78,7 @@ void AutomaticExecutor::slot_samplingFinished()
     // disconnect so that for example generateSettings can use them
     QObject::disconnect(m_algoExec, &AlgorithmExecutor::sig_pluginFinished, this, &AutomaticExecutor::slot_samplingFinished);
     QObject::disconnect(m_algoExec, &AlgorithmExecutor::sig_algorithmAborted, this, &AutomaticExecutor::slot_algoAbort);
+    QObject::disconnect(m_exportController, &ExportController::sig_exportFinished, this, &AutomaticExecutor::slot_samplingFinished);
 
     if (m_step < m_stepCount) {
        startMultipleAlgo(m_pluginOrder, m_step);
