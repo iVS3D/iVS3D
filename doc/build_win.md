@@ -28,6 +28,7 @@ Open the deploy.bat file we provide in the tools folder and set your paths in th
 |--------------|---------------------------|-----------|
 | VS_VERSION   | 2019, 2022                | 2022      |
 | VS_EDITION   | Community, Enterprise     | Community |
+
 In case you did not use the default install location you might need to change the `VSVARS_PATH`. The default value is 
 ```sh
 C:\Program Files\Microsoft Visual Studio\%VS_VERSION%\%VS_EDITION%\VC\Auxiliary\Build

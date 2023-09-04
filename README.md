@@ -58,9 +58,11 @@ Reconstruction can be configured to be executed on the local machine or on a rem
 We provide builds with and without CUDA for multiple platforms and distributions:
 - Windows 10
 - Debian 11
-- Ubuntu 22
+- Ubuntu 22.04
 
-Note that the CUDA builds support GTX 10xx and RTX series GPUS. Older GPUs or Laptop versions might require to build iVS3D from sources with an OpenCV and CUDA build for that specific GPU.
+Check the latest release to get a build for your platform!
+
+Note that the CUDA builds support GTX 10xx and RTX series GPUS. Older GPUs or Laptop GPUs might require to build iVS3D from sources with an OpenCV and CUDA build for that specific GPU.
 
 <!-- To use the included plugin for semantic segmentation you can download the models we used in our paper:
 [Link to models]
