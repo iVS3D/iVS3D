@@ -26,6 +26,7 @@ If you are not using CUDA, ignore the `with_cuda{...}` section.
 
 ## Configure Project
 Now you can open the _iVS3D.pro_ project in QtCreator. If prompted to configure your project, select Qt 5.15.2 for MSVC 2019 (windows) or GCC (linux):
+
 ![](QtCreator_configure_project.PNG)
 
 Next, go to the `Projects`-tab (left side). At the top, in the 'Build Settings' section, you can select the debug or release configuration or create a new configuration. In the 'Build Steps' section, add a new build step to run `make install` by clicking 'Add Build Step' -> 'Make'
