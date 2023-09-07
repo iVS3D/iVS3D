@@ -83,6 +83,11 @@ public:
      */
     void setOutputSettings(QMap<QString, QVariant> settings);
 
+    /**
+     * @brief setAltitudeInWidget
+     */
+    void setAltitudeInWidget();
+
 
 signals:
     /**

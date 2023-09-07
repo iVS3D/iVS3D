@@ -307,6 +307,10 @@ void Controller::slot_openMetaData()
     int n = m_dataManager->getModelInputPictures()->loadMetaData(QStringList(filePath));
     if (n > 0) {
         AlgorithmManager::instance().notifyNewMetaData();
+        //Show altitude in the export widget, if existing
+        m_exportController->setAltitudeInWidget();
+        //Update the info widget
+        setInputWidgetInfo();
     }
     QString msg = tr("Loaded ") + QString::number(n) + tr(" meta data feature") + QString(n > 1 ? tr("s") : "");
     emit sig_hasStatusMessage(msg);
