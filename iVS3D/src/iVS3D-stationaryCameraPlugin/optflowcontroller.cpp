@@ -26,7 +26,7 @@ std::vector<uint> OptFlowController::sampleImages(const std::vector<uint> &image
 
     // ---------- create all neccessary components ------------
     reportProgress(tr("Excluding buffered values from computation list"), 0, receiver);
-    // create a vector that containst only indices that need to be gathered (futureFrames + indices with buffered values = imageList)
+    // create a vector that containst only indices that need to be gathered (futureFrames = imageList - indices with buffered values)
     std::vector<uint> futureFrames;
     for (uint imageListIdx = 0; imageListIdx < imageList.size() - 1; imageListIdx++) {
         uint fromIdx = imageList[imageListIdx];

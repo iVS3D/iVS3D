@@ -34,6 +34,7 @@ SOURCES += imagegatherercuda.cpp
 QT += concurrent
 
 SOURCES += \
+    ankerspaceselector.cpp \
     distributionselector.cpp \
     factory.cpp \
     flowcalculator.cpp \
@@ -45,6 +46,7 @@ SOURCES += \
     staticselector.cpp
 
 HEADERS += \
+    ankerspaceselector.h \
     distributionselector.h \
     factory.h \
     flowcalculator.h \
