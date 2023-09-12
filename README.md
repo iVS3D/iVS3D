@@ -1,6 +1,6 @@
-# intelligent Video Sampler 3D ![iVS3D-Logo](doc/GUI_ICON_IVS3D_mini.png)
+# intelligent Video Sampler 3D ![iVS3D-Logo](doc/images/GUI_ICON_IVS3D_mini.png)
 
-![Qt](doc/poweredByQt.png) ![OpenCV](doc/poweredByOpenCV.png)
+![Qt](doc/images/poweredByQt.png) ![OpenCV](doc/images/poweredByOpenCV.png)
 
 >iVS3D is a framework for intelligent pre-processing of image sequences. iVS3D is able to down sample entire videos to a specific frame rate, as well as to resize and crop the individual images. Furthermore, thanks to the modular architecture, it is easy to develop and integrate plugins with additional algorithms. We provide three plugins as baseline methods that enable an intelligent selection of suitable images and can enrichthem with additional information. To filter out images affected by motion blur, we developed a plugin that detects these frames and also searches the spatial neighbourhood for suitable images as replacements. The second plugin uses optical flow to detect redundant imagescaused by a temporarily stationary camera. In our experiments, we show how this approach leads to a more balanced image sampling if the camera speed varies, and that excluding such redundant images leads to a time saving of 8.1 % for our sequences.
 
@@ -27,8 +27,8 @@
 - Supported Plattforms: Windows and Linux
 
 
-![GUI](doc/gui.png)
-Graphical user interface which is split in five different sections. 1. Input, 2. Plugins, 3. Export, 4. Batch processing and 5. Video player with the timeline for keyframes.
+![GUI](doc/images/GUI_overview.png)
+Graphical user interface which is split in five different sections. 1. Input, 2. Sampling, 3. Output, 4. Batch processing and 5. Video player with the timeline for keyframes.
 
 ## Plugins
 
@@ -52,6 +52,24 @@ With the latest update we introduce a seemless integration of [COLMAP] in our so
 Reconstruction can be configured to be executed on the local machine or on a remote machine such as a GPU server. Further information:
 - [local colmap execution](doc/local_colmap_execution.md)
 - [remote colmap execution](doc/remote_colmap_execution.md)
+
+## Getting started
+To guide you through a basic workflow with iVS3D, we provide a tutorial which relies on the linux version. To follow along, download one of our latest [Ready-To-Use Builds](#ready-to-use-builds-for-windows-and-linux) for Debian 11 or Ubuntu 22.04, or [compile from source](#build-from-source) for your platform.
+
+Download a video from the [Tanks and Temples Benchmark](https://www.tanksandtemples.org/), we use the Ignatius video from their training data section.
+
+Run `iVS3D-core` and import the video. This can be done using the `Open Input Video` action in the `File`-menu at the top. Alternatively you can drag and drop the video into the application. Now you can preview the video:
+
+![GUI-tutorial](doc/images/GUI_tutorial.png)
+
+In the timeline underneath the preview, all 7844 images are labeld as keyframes which is indicated by the red line. We want to reduce the amount of keyframes to speed up the reconstruction, so we use the `NthFrame`-Plugin to sample down to one frame per second. In the `Sampling`-tab, select the `NthFrame` plugin and hit `Sample images`. Now we are down to 262 keyframes. To improve the quality of the images, we also run the `Blur` plugin. This will replace blurred keyframes with better images in the neighbourhood. This might take a few minutes since we are processing 4K images.
+
+Once the algorithm finished, we can export the keyframes. In the `Output`-tab select a fitting location and name for this set of keyframes. We choose `my-export` in the example. You can also change the resoultion of the images. To speed things up, we reduce the image resoultion to HD and hit export:
+
+![Output-tutorial](doc/images/Output_tutorial.png)
+
+Now the images have been written to the disk. Open your file-explorer and navigate to the export location you chose to see the result. We can use the images to create a 3D point-cloud with Colmap. For this follow the instructions [here](doc/remote_colmap_execution.md).
+
 
 ## Ready to use builds for Windows and Linux
 
@@ -83,14 +101,9 @@ For windows we use [MSVC] compiler which is shipped with visual studio. On linux
 
 The required dependencies can be imported using the _3rdParty.pri_ file. Further information about including dependencies using _.pri_ files can be found [here](doc/3rdparty.md).
 
-### Build iVS3D
-
-[Build from source with Qt Creator](doc/build_qtcreator.md)
-
-### Deploy iVS3D
-[Deploy from source for windows](doc/build_win.md)
-
-[Deploy from source for linux](doc/build_linux.md)
+### 2 ways to build iVS3D
+- Open and build with [Qt Creator](doc/build_qtcreator.md)
+- Deploy using automated script on [Windows](doc/build_win.md) or [Linux](doc/build_linux.md)
 
 ## Tests
 
@@ -106,6 +119,10 @@ Now you can run the tests within the Test Result tab in Qt Creator.
 ## Licence
 
 see [Licences.txt](Licences.txt)
+
+## Citations
+
+- Knapitsch et al.: _Tanks and Temples Benachmark_ (2017): [website](https://www.tanksandtemples.org/)
 
 ## Authors
 

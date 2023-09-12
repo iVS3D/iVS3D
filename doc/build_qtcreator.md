@@ -27,14 +27,14 @@ If you are not using CUDA, ignore the `with_cuda{...}` section.
 ## Configure Project
 Now you can open the _iVS3D.pro_ project in QtCreator. If prompted to configure your project, select Qt 5.15.2 for MSVC 2019 (windows) or GCC (linux):
 
-![](QtCreator_configure_project.PNG)
+![](images/QtCreator_configure_project.PNG)
 
 Next, go to the `Projects`-tab (left side). At the top, in the 'Build Settings' section, you can select the debug or release configuration or create a new configuration. In the 'Build Steps' section, add a new build step to run `make install` by clicking 'Add Build Step' -> 'Make'
-![](QtCreator_configure_build.PNG)
+![](images/QtCreator_configure_build.PNG)
 
 In the newly added build step, add `install` as a make-argument:
 
-![](QtCreator_configure_install.PNG)
+![](images/QtCreator_configure_install.PNG)
 
 This build step will copy resources such as translations, icons and config files to the build folder and is necessary for the app to execute correctly.
 
@@ -61,7 +61,7 @@ with_cuda{
 ```
 
 To build with CUDA support simply add  ```"CONFIG+=with_cuda"``` as an qmake argument to your build steps:
-![](QtCreator_configure_cuda.PNG)
+![](images/QtCreator_configure_cuda.PNG)
 Note that you need to add the path to the correct bin folder to your PATH variable! Otherwise the app might crash when running cuda code! We recommend to duplicate your build configuration and use one configuartion with and another one without cuda.
 
   [OpenCV]: <https://github.com/opencv>
