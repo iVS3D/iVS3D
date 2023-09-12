@@ -131,9 +131,10 @@ std::vector<uint> OptFlowController::sampleImages(const std::vector<uint> &image
         reportProgress(tr("Buffering values"), progress, receiver);
         if (m_bufferMat.ref<double>(imageList[flowValuesIdx], imageList[flowValuesIdx + 1]) <= 0.0)
             m_bufferMat.ref<double>(imageList[flowValuesIdx], imageList[flowValuesIdx + 1]) = flowValues[flowValuesIdx];
-        // DEBUG write flow values in logFile
-//        logFile->addCustomEntry(LF_CE_NAME_FLOWVALUE, flowValues[flowValuesIdx], LF_CE_TYPE_DEBUG);
     }
+
+    // DEBUG write flow values in logFile
+    logFile->addCustomEntry(LF_CE_NAME_FLOWVALUE, bufferMatToVariant(m_bufferMat), LF_CE_TYPE_DEBUG);
 
     // Display Buffer Info
     QString txt = updateBufferInfo(m_bufferMat.hdr->nodeCount);

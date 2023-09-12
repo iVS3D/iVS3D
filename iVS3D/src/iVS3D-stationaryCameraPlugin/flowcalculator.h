@@ -3,7 +3,8 @@
 
 #include <QObject>
 #include <opencv2/core.hpp>
-#include <QtDebug>
+#include <eigen3/Eigen/SVD>
+#include <iostream>
 
 /**
  * @class FlowCalculator
@@ -45,6 +46,13 @@ private:
      * @return the median of the double vector
      */
     double median(std::vector<double> vec);
+    double graphFunc(uint x, uint y, double ax, double ay, double c, uint w, uint h) const;
+    static double gx(uint x, uint w);
+    static double gy(uint y, uint h);
+
+    // DEBUG
+    uint m_failCounter = 0;
+
 };
 
 #endif // FLOWCALCULATOR_H
