@@ -30,7 +30,7 @@ std::vector<uint> AnkerSpaceSelector::select(std::vector<uint> frameVector, std:
             break;
 
         // select keyframe space with highest distance -> more keyframes neccessary
-        std::pair<uint,uint> ks = keyframeSpaceMap.begin()->second;
+        std::pair<uint,uint> ks = keyframeSpaceMap.rbegin()->second;
         uint k_begin = ks.first;
         uint k_end = ks.second;
 
@@ -38,12 +38,12 @@ std::vector<uint> AnkerSpaceSelector::select(std::vector<uint> frameVector, std:
         uint k_middle = selectKeyframeFromSpace(ks, frameVector, flowValues);
         if  (k_middle == UINT_MAX) {
             // no available Keyframe in selected KeyframeSpace -> remove from posible KeyframeSpaces
-            keyframeSpaceMap.erase(keyframeSpaceMap.begin());
+            keyframeSpaceMap.erase(--keyframeSpaceMap.end());
             continue;
         }
 
         // split keyframe space into two new ones
-        keyframeSpaceMap.erase(keyframeSpaceMap.begin());
+        keyframeSpaceMap.erase(--keyframeSpaceMap.end());
         registerKeySpace(keyframeSpaceMap, frameVector, flowValues, k_begin, k_middle);
         registerKeySpace(keyframeSpaceMap, frameVector, flowValues, k_middle, k_end);
 
