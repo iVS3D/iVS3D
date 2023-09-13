@@ -12,8 +12,8 @@
 - Import of images and videos (.jpg, .jpeg, .png, ..., .mp4, .mov, ...)
 - Drag and drop to import images, videos and open projects
 - Baseline plugins for sampling:
-    - _NthFrame_ Algorithm (selects every N-th frame)
-    - _CameraMovement_ Algorithm (selects images based on camera movement)
+    - _Nth Frame_ Algorithm (selects every N-th frame)
+    - _Stationary Camera Detection_ Algorithm (selects images based on camera movement)
     - _Blur_ Algorithm (avoid blurry images)
     - More _Sampling_-Algorithms can be added using the plugin interface
 - Semantic segmentation to mask challenging areas in the input images to prevent these from being processed
@@ -36,9 +36,9 @@ There are currently 3 plugins implemented:
 
 | Plugin | Description |
 | ------ | ------ |
-| NthFrame Plugin | Selects every N-th frame |
-| Camera Movement Plugin | Selects images based on camera movement |
-| Blur Plugin | Avoids blurry images |
+| NthFrame | Selects every N-th frame |
+| Stationary Camera Detection | Selects images based on camera movement |
+| Blur | Avoids blurry images |
 
 These plugins show different approches to selecting keyframes. iVS3D is build with an open plugin interface for adding new plugins. See [here](doc/create_plugin.md) on how to create your own plugin.
 
