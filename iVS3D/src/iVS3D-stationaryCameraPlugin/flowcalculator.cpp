@@ -1,5 +1,24 @@
 #include "flowcalculator.h"
 
+void FlowCalculator::logDebugInfo(LogFileParent *logFile)
+{
+    std::stringstream ax_stream, ay_stream, cs_stream;
+    for (int i = 0; i < (int)m_axs.size(); i++) {
+        ax_stream << i << "|" << m_axs[i];
+        ay_stream << i << "|" << m_ays[i];
+        cs_stream << i << "|" << m_cs[i];
+        if (i < (int)m_axs.size()-1) {
+            ax_stream << ",";
+            ay_stream << ",";
+            cs_stream << ",";
+        }
+    }
+
+    logFile->addCustomEntry(LF_AXS, QVariant(QString::fromStdString(ax_stream.str())));
+    logFile->addCustomEntry(LF_AYS, QVariant(QString::fromStdString(ay_stream.str())));
+    logFile->addCustomEntry(LF_CS, QVariant(QString::fromStdString(cs_stream.str())));
+}
+
 double FlowCalculator::flowMatToDouble(cv::Mat mat)
 {
     const uint w = mat.size().width;
@@ -36,21 +55,23 @@ double FlowCalculator::flowMatToDouble(cv::Mat mat)
         std::cout << m_failCounter << std::endl;
     }
 
-    mat.release();
-
     /*      calculate movement from graph parameters
-     *   c   = base movement strenght
-     * ax*ay = translation-to-rotation ratio (0: rotation, 1: translation),
-     *         10^6 is cut-off point between translation and rotation
+     *   c   = base movement strength
+     * tr_x,tr_y = translation-to-rotation ratio (0: rotation, 1: translation),
+     *         translatation:  0 - 10 => 1.0
+     *         rotation:      10 - 20 => 1.0 - 0.0
     */
-    double ax = v(0);
-    double ay = v(1);
+    double tr_x = aiToTr(v(0));
+    double tr_y = aiToTr(v(1));
     double c = v(2);
-    ax *= pow(10,6);
-    ay *= pow(10,6);
-    ax = abs(ax) > 1.0 ? 1.0 : abs(ax);
-    ay = abs(ay) > 1.0 ? 1.0 : abs(ay);
-    return c * ax * ay;
+
+    // DEBUG
+    m_axs.push_back(v[0]);
+    m_ays.push_back(v[1]);
+    m_cs.push_back(v[2]);
+    //
+
+    return c * tr_x * tr_y;
 }
 
 double FlowCalculator::median(std::vector<double> vec)
@@ -60,17 +81,24 @@ double FlowCalculator::median(std::vector<double> vec)
     return vec[vec.size() / 2];
 }
 
-double FlowCalculator::graphFunc(uint x, uint y, double ax, double ay, double c, uint w, uint h) const
-{
-    return gx(x,w)*ax + gy(y,h)*ay + c;
-}
-
 double FlowCalculator::gx(uint x, uint w)
 {
-    return pow(((double)x-(double)w/2),2);
+    double x_n = (double)x / (w-1);
+    return pow(((double)x_n-0.5),2);
 }
 
 double FlowCalculator::gy(uint y, uint h)
 {
-    return pow(((double)y-(double)h/2),2);
+    double y_n = (double)y / (h-1);
+    return pow(((double)y_n-0.5),2);
+}
+
+double FlowCalculator::aiToTr(double ai)
+{
+    if (ai <= TR_MIN)
+        return 1.0;
+    else if (TR_MIN < ai && ai <= TR_MAX)
+        return 1.0 - (ai-TR_MIN) / (TR_MAX-TR_MIN);
+    else
+        return 0.0;
 }

@@ -135,6 +135,7 @@ std::vector<uint> OptFlowController::sampleImages(const std::vector<uint> &image
 
     // DEBUG write flow values in logFile
     logFile->addCustomEntry(LF_CE_NAME_FLOWVALUE, bufferMatToVariant(m_bufferMat), LF_CE_TYPE_DEBUG);
+    flowCalculator->logDebugInfo(logFile);
 
     // Display Buffer Info
     QString txt = updateBufferInfo(m_bufferMat.hdr->nodeCount);

@@ -6,6 +6,18 @@
 #include <eigen3/Eigen/SVD>
 #include <iostream>
 
+#include "LogFileParent.h"
+
+// LogFile descriptor
+#define LF_TAG "Debug Info"
+#define LF_FAILCOUNTER "failCounter"
+#define LF_AXS "axs"
+#define LF_AYS "ays"
+#define LF_CS "cs"
+
+#define TR_MIN 10 // minimal value for translation-to-rotation ratio
+#define TR_MAX 20 // maximal value for translation-to-rotation ratio
+
 /**
  * @class FlowCalculator
  *
@@ -32,6 +44,7 @@ public:
      * @return doubel which represents the movement between the images
      */
     virtual double calculateFlow(cv::Mat fromMat, cv::Mat toMat) = 0;
+    void logDebugInfo(LogFileParent *logFile);
 protected:
     /**
      * @brief flowMatToDouble reduces a flow-matrix to a single floating point value, if that mat was empty return -1.0
@@ -46,13 +59,15 @@ private:
      * @return the median of the double vector
      */
     double median(std::vector<double> vec);
-    double graphFunc(uint x, uint y, double ax, double ay, double c, uint w, uint h) const;
     static double gx(uint x, uint w);
     static double gy(uint y, uint h);
+    static double aiToTr(double ai);
 
     // DEBUG
     uint m_failCounter = 0;
-
+    std::vector<double> m_axs = {};
+    std::vector<double> m_ays = {};
+    std::vector<double> m_cs = {};
 };
 
 #endif // FLOWCALCULATOR_H
