@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - "dev"
-      - "github-actions"
 
 jobs:
   trigger-ci-update:
@@ -13,5 +12,5 @@ jobs:
       - name: API Access
         run: curl -X POST --fail -F token=${{ secrets.GITLAB_PIPELINE_TRIGGER_TOKEN }} -F "ref=$TARGET_BRANCH" -F "variables[SUB_BRANCH]=$THIS_BRANCH" ${{ secrets.GITLAB_PIPELINE_URL }} > dump.txt && rm dump.txt
         env:
-          TARGET_BRANCH: ci-api-access
+          TARGET_BRANCH: dev
           THIS_BRANCH: dev
