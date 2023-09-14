@@ -641,8 +641,8 @@ def computeDenseCloud(projectImageDir: str, colmapProjectDirPath: str, projectOu
     progressCallback(95, force_Write=True)
      
     # copy result
-    shutil.copy(os.path.join(colmapProjectDirPath, "02_dense", "fused.ply"),  os.path.join(projectOutputDirPath, "dense_point_cloud.ply")) 
-
+    shutil.copy(os.path.join(colmapProjectDirPath, "02_dense", "fused.ply"),  os.path.join(projectOutputDirPath, "dense_point_cloud.ply.lock")) 
+    os.rename(os.path.join(projectOutputDirPath, "dense_point_cloud.ply.lock"), os.path.join(projectOutputDirPath, "dense_point_cloud.ply"))
     progressCallback(100)
 
     return True
@@ -935,12 +935,14 @@ def computeMeshedModel(projectImageDir: str, colmapProjectDirPath: str, projectO
                 progressCallback(70 + 28, force_Write = True) 
 
     progressCallback(99, force_Write = True)
+      
+    if os.path.exists(os.path.join(colmapProjectDirPath, "03_mesh", "texture", "textured_mesh_orthomap.jpg")):
+        shutil.copy(os.path.join(colmapProjectDirPath, "03_mesh", "texture", "textured_mesh_orthomap.jpg"),  os.path.join(projectOutputDirPath, "textured_mesh_orthomap.jpg"))        
 
-    shutil.copy(os.path.join(colmapProjectDirPath, "03_mesh", "texture", "textured_mesh.obj"),  os.path.join(projectOutputDirPath, "textured_mesh.obj")) 
     shutil.copy(os.path.join(colmapProjectDirPath, "03_mesh", "texture", "textured_mesh_material_0_map_Kd.jpg"),  os.path.join(projectOutputDirPath, "textured_mesh_material_0_map_Kd.jpg")) 
     shutil.copy(os.path.join(colmapProjectDirPath, "03_mesh", "texture", "textured_mesh.mtl"),  os.path.join(projectOutputDirPath, "textured_mesh.mtl")) 
-    if os.path.exists(os.path.join(colmapProjectDirPath, "03_mesh", "texture", "textured_mesh_orthomap.jpg")):
-        shutil.copy(os.path.join(colmapProjectDirPath, "03_mesh", "texture", "textured_mesh_orthomap.jpg"),  os.path.join(projectOutputDirPath, "textured_mesh_orthomap.jpg"))
+    shutil.copy(os.path.join(colmapProjectDirPath, "03_mesh", "texture", "textured_mesh.obj"),  os.path.join(projectOutputDirPath, "textured_mesh.obj.lock")) 
+    os.rename( os.path.join(projectOutputDirPath, "textured_mesh.obj.lock"), os.path.join(projectOutputDirPath, "textured_mesh.obj"))
 
     progressCallback(100, force_Write = True)
 
