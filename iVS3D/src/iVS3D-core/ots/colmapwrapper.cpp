@@ -688,7 +688,7 @@ void ColmapWrapper::readWorkerStateFromFile()
                                              cv::FileStorage::READ | cv::FileStorage::FORMAT_YAML);
         cv::FileNode jobNode = fs["runningJob"];
 
-        int nRunningJob = jobNode.size();
+        nRunningJob = jobNode.size();
         if (nRunningJob > 0) {
             importJob(jobNode[0], runningJob);
             mJobs.insert(mJobs.begin(), runningJob);
