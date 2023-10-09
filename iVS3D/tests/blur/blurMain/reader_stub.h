@@ -20,7 +20,7 @@ class Reader_stub : public Reader
 {
 public:
     Reader_stub(std::vector<uint> picOrder, std::vector<QString> picPaths);
-    cv::Mat getPic(unsigned int, bool);
+    cv::Mat getPic(unsigned int);
     unsigned int getPicCount();
     QString getInputPath() { throw "not implemented"; };
     double getFPS() { throw "not implemented"; };
@@ -31,6 +31,7 @@ public:
     virtual std::vector<std::string> getFileVector() { throw "not implemented"; };
     virtual void addMetaData(MetaData*) { throw "not implemented"; };
     virtual MetaData* getMetaData() { throw "not implemented"; };
+    virtual SequentialReader *createSequentialReader(std::vector<uint> indices) { throw "not implemented"; };
 
 private:
     std::vector<uint> m_picOrder;

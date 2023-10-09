@@ -8,7 +8,7 @@ Reader_stub::Reader_stub(std::vector<uint> picOrder, std::vector<QString> picPat
 
 }
 
-cv::Mat Reader_stub::getPic(uint idx, bool) {
+cv::Mat Reader_stub::getPic(uint idx) {
     QMutexLocker locker(&m_mutex);
     int current = m_picOrder.at(idx);
     cv::Mat ret = cv::imread(m_picPaths.at(current).toStdString());

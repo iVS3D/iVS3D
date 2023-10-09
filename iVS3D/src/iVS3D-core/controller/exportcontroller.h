@@ -26,7 +26,7 @@
 #include <QCoreApplication>
 #include <QSettings>
 #include <QTextStream>
-#include <QMessageBox>>
+#include <QMessageBox>
 
 #include <QElapsedTimer>
 

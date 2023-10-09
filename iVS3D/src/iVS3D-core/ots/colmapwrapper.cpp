@@ -311,6 +311,8 @@ bool ColmapWrapper::testSettings(const SSettings *settings, SSetupResults *resul
         }
         return true;
     }
+
+    return false;
 }
 
 void ColmapWrapper::findColmap()
