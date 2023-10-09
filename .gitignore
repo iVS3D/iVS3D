@@ -113,6 +113,8 @@ iVS3D/src/iVS3D-core/ots/colmapwrapper/ExctractGpsReferenceData.spec
 # Python byte code
 *.pyc
 iVS3D/src/iVS3D-core/build
+*build/
+*install/
 
 ### releases ###
 Releases

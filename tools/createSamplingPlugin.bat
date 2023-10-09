@@ -46,6 +46,26 @@ FOR /F "usebackq delims=" %%a in (`"findstr /n ^^ %TEMPLATE_FILE_PRO%"`) do (
     ENDLOCAL
 )
 
+:: Create CMAKE-file:
+echo Creating cmake-file
+set TEMPLATE_FILE_CMAKE=%~dp0\templates\CMakeLists.txt.template
+:: Create new empty file
+type nul > "%MODULE_PATH%/CMakeLists.txt"
+
+:: iterate template line by line
+SETLOCAL DisableDelayedExpansion
+FOR /F "usebackq delims=" %%a in (`"findstr /n ^^ %TEMPLATE_FILE_CMAKE%"`) do (
+    set "var=%%a"
+    SETLOCAL EnableDelayedExpansion
+    :: replace <-NAME->, <-NAME_LOWER-> and format
+    set "var=!var:<-NAME->=%NAME%!"
+    set "var=!var:<-NAME_LOWER->=%NAME_LOWER%!"
+    set "var=!var:*:=!"
+    :: write updated line to pro file
+    if [!var!]==[] (echo: >> "%MODULE_PATH%/CMakeLists.txt") else (echo !var! >> "%MODULE_PATH%/CMakeLists.txt")
+    ENDLOCAL
+)
+
 :: Create QRC-file:
 echo Creating resources.qrc-file
 set TEMPLATE_FILE_QRC=%~dp0\templates\resources.qrc.template

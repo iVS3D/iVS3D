@@ -4,6 +4,7 @@
 #include "modelinputpictures.h"
 #include "DataManager.h"
 #include "view/outputwidget.h"
+#include "ots/colmapwrapper.h"
 #include "controller/exportcontroller.h"
 #include "resourceloader.h"
 
@@ -30,6 +31,7 @@ private:
     QString m_testExportPath;
     DataManager *m_testDM;
     OutputWidget *m_testOW;
+    lib3d::ots::ColmapWrapper *m_testCW;
     ExportController *m_testEC;
 
 };
