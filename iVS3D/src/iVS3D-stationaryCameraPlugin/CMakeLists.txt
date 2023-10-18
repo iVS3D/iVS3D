@@ -86,6 +86,7 @@ qt5_add_resources(QRC_SRC_FILES
 add_library(${TARGET_NAME} SHARED
     ${HEADER_FILES}
     ${SRC_FILES}
+    ${QRC_SRC_FILES}
 )
 target_link_libraries(${TARGET_NAME}
     iVS3D-pluginInterface
