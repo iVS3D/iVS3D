@@ -1,6 +1,8 @@
 #include "geomap.h"
 
 // Qt
+#include <QQmlContext>
+#include <QQmlEngine>
 #include <QQuickView>
 #include <QTranslator>
 
@@ -12,18 +14,13 @@ GeoMap::GeoMap()
     : mpSigObj(nullptr)
     , mpReader(nullptr)
     , mpSettingsWidget(nullptr)
-    , mpQuickView(nullptr)
     , mpQuickViewContainerWidget(nullptr)
     , mpMapHandler(nullptr)
-    , mpMap(nullptr)
     , mBuffer({})
     , mMetaData({})
     , mGpsData({})
     , mIsQmlMapInitialized(false)
     , mIsGpsAvailable(false)
-    , mpShowGpsButton(nullptr)
-    , mpUseAltitudeCheckBox(nullptr)
-    , mpDeviationSpinBox(nullptr)
 {
     //--- load and install translations
     QTranslator* translator = new QTranslator();
@@ -36,8 +33,6 @@ GeoMap::~GeoMap()
 {
     if (mpQuickViewContainerWidget)
         mpQuickViewContainerWidget->deleteLater();
-    if (mpQuickView)
-        mpQuickView->deleteLater();
 }
 
 //==================================================================================================
@@ -46,9 +41,6 @@ QWidget* GeoMap::getSettingsWidget(QWidget* parent)
     //--- if settings widget is not yet created, do so
     if (!mpSettingsWidget)
         createSettingsWidget(parent);
-
-    if (mpUseAltitudeCheckBox)
-        mpUseAltitudeCheckBox->setVisible(mIsAltitudeAvailable);
 
     return mpSettingsWidget;
 }
@@ -65,58 +57,6 @@ std::vector<uint> GeoMap::sampleImages(const std::vector<uint>& imageList,
                                        bool useCuda, LogFileParent* logFile)
 {
     return imageList;
-
-#ifdef OLD_CODE
-    //--- if gps data does not exist, return unchanged input image list
-    if (!mIsGpsAvailable)
-        return imageList;
-
-    /// IDs / Indices of sampled images that are to be returned
-    std::vector<uint> sampledImgIds;
-
-    //--- initialize return value, first image will always be a keyframe
-    int prevIndex = 0;
-    mGpsData.replace(0, QPair<QPointF, bool>(mGpsData.at(0).first, true));
-    sampledImgIds.push_back(imageList[0]);
-
-    double currentDistance = 0;
-    for (int i = 1; i < imageList.size(); i++)
-    {
-        QPointF current  = mGpsData.at(imageList[i]).first;
-        int currentIndex = imageList[i];
-        if (imageList[i] != i)
-        {
-            for (int k = imageList[i - 1] + 1; k < imageList[i]; k++)
-            {
-                // mGpsData has to be filled with all gps values. Values that aren't in the imageList are added here as false -> unused values
-                mGpsData.replace(k, QPair<QPointF, bool>(mGpsData.at(k).first, false));
-            }
-        }
-        currentDistance += distanceBetweenPoints(prevIndex, currentIndex);
-
-        prevIndex = currentIndex;
-        // if total distance between images is lower then the selected deviation it won't be selected
-        if (currentDistance < mDeviation)
-        {
-            mGpsData.replace(i, QPair<QPointF, bool>(current, false));
-            continue;
-        }
-
-        mGpsData.replace(i, QPair<QPointF, bool>(current, true));
-        currentDistance = 0;
-        sampledImgIds.push_back(imageList[i]);
-    }
-    if (imageList.back() != mpReader->getPicCount())
-    {
-        for (int i = imageList.back(); i < mpReader->getPicCount(); i++)
-        {
-            // mGpsData has to be filled with all gps values. Values that aren't in the imageList are added here
-            mGpsData.append(QPair<QPointF, bool>(mGpsData.at(i).first, false));
-        }
-    }
-
-    return sampledImgIds;
-#endif
 }
 
 //==================================================================================================
@@ -147,26 +87,17 @@ void GeoMap::initialize(Reader* reader, QMap<QString, QVariant> buffer, signalOb
         return;
 
     readMetaData();
-    // if (mpMapHandler)
-    //     mpMapHandler->addPoints(mGpsData);
 }
 
 //==================================================================================================
 void GeoMap::setSettings(QMap<QString, QVariant> settings)
 {
-    QMap<QString, QVariant>::iterator iterator = settings.find(NAME_DEVIATION);
-    if (iterator != settings.end())
-        mDeviation = iterator.value().toDouble();
 }
 
 //==================================================================================================
 QMap<QString, QVariant> GeoMap::getSettings()
 {
-    QString valueDev = QString::number(mDeviation);
-    QMap<QString, QVariant> settings;
-    settings.insert(NAME_DEVIATION, valueDev);
-
-    return settings;
+    return {};
 }
 
 //==================================================================================================
@@ -179,7 +110,9 @@ QMap<QString, QVariant> GeoMap::generateSettings(Progressable* receiver, bool us
 //==================================================================================================
 void GeoMap::onGpsClicked(QPointF gpsPoint, bool used)
 {
-    qDebug() << __PRETTY_FUNCTION__;
+    //--- if no gps is available, return
+    if (!mIsGpsAvailable)
+        return;
 
     QPair<QPointF, bool> current(gpsPoint, !used);
     int currentIndex = mGpsData.indexOf(current);
@@ -188,55 +121,24 @@ void GeoMap::onGpsClicked(QPointF gpsPoint, bool used)
         mGpsData[currentIndex] = QPair<QPointF, bool>(current.first, used);
         currentIndex           = mGpsData.indexOf(current, currentIndex);
     }
+
     emit updateKeyframes(getKeyframesFromGps());
 }
-
-#ifdef OLD_CODE
-void gps::showMapWithPoints()
-{
-    mpMap = new map(mGpsData, this);
-    mpMap->addPoints();
-    mpShowGpsButton->setEnabled(false);
-}
-
-void gps::slot_devChanged(double n)
-{
-    mDeviation = n;
-}
-#endif
 
 //==================================================================================================
 void GeoMap::onNewMetaData()
 {
-    qDebug() << __PRETTY_FUNCTION__;
-
-    //--- if gps data does not yet exist, clear and read meta data
-    // if (!mIsGpsAvailable)
-    // {
     //--- clear all items that might have already been drawn on map
     mGpsData.clear();
     readMetaData();
 
-    if (mpQuickView && mpQuickViewContainerWidget)
+    if (mpQuickViewContainerWidget)
         reinitializeQmlMap();
-
-    // if (mpMapHandler)
-    //     mpMapHandler->addPoints(mGpsData);
-    // }
 }
 
 //==================================================================================================
 void GeoMap::onKeyframesChanged(std::vector<uint> keyframes)
 {
-    //--- if no gps data exist, disable button
-    if (mGpsData.length() <= 0)
-    {
-        if (mpShowGpsButton != nullptr)
-            mpShowGpsButton->setEnabled(false);
-
-        return;
-    }
-
     //--- Check if its the current keyframe list
     if (keyframes == getKeyframesFromGps())
     {
@@ -248,7 +150,7 @@ void GeoMap::onKeyframesChanged(std::vector<uint> keyframes)
         mGpsData[gpsIndex].second = false;
     }
 
-    if (keyframes.size() == 0)
+    if (keyframes.size() == 0 || !mIsGpsAvailable)
     {
         return;
     }
@@ -262,60 +164,6 @@ void GeoMap::onKeyframesChanged(std::vector<uint> keyframes)
 //==================================================================================================
 void GeoMap::createSettingsWidget(QWidget* parent)
 {
-#if 0
-    mpSettingsWidget = new QWidget(parent);
-    mpSettingsWidget->setLayout(new QVBoxLayout());
-    mpSettingsWidget->layout()->setSpacing(10);
-    mpSettingsWidget->layout()->setMargin(0);
-
-    QWidget* buttonWidget = new QWidget(parent);
-    buttonWidget->setLayout(new QHBoxLayout(parent));
-    buttonWidget->layout()->setSpacing(0);
-    buttonWidget->layout()->setMargin(0);
-
-    mpShowGpsButton = new QPushButton();
-    mpShowGpsButton->setText(tr("Show on map"));
-    mpShowGpsButton->setEnabled(mIsGpsAvailable);
-    // QObject::connect(mpShowGpsButton, QOverload<bool>::of(&QPushButton::clicked),
-    //                  this, &GeoMap::showMapWithPoints);
-    buttonWidget->layout()->addWidget(mpShowGpsButton);
-
-    mpSettingsWidget->layout()->addWidget(buttonWidget);
-
-    QWidget* spinBoxWidget = new QWidget(parent);
-    spinBoxWidget->setLayout(new QHBoxLayout(parent));
-    spinBoxWidget->layout()->setSpacing(0);
-    spinBoxWidget->layout()->setMargin(0);
-    spinBoxWidget->layout()->addWidget(new QLabel(tr("Select distance in meter"), parent));
-
-    mpDeviationSpinBox = new QDoubleSpinBox(parent);
-    mpDeviationSpinBox->setMinimum(0);
-    mpDeviationSpinBox->setMaximum(1000);
-    mpDeviationSpinBox->setDecimals(2);
-    mpDeviationSpinBox->setValue(mDeviation);
-    mpDeviationSpinBox->setSingleStep(0.5);
-    mpDeviationSpinBox->setAlignment(Qt::AlignRight);
-    spinBoxWidget->layout()->addWidget(mpDeviationSpinBox);
-    // QObject::connect(mpDeviationSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
-    //                  this, &GeoMap::slot_devChanged);
-    mpSettingsWidget->layout()->addWidget(spinBoxWidget);
-
-    QLabel* LabelDistance = new QLabel(tr("Minimum distance there has to be between two keyframes"));
-    LabelDistance->setStyleSheet(DESCRIPTION_STYLE);
-    LabelDistance->setWordWrap(true);
-    mpSettingsWidget->layout()->addWidget(LabelDistance);
-
-    mpUseAltitudeCheckBox = new QCheckBox(parent);
-    mpUseAltitudeCheckBox->setText("Include altitude in calculation");
-    // QObject::connect(mpUseAltitudeCheckBox, &QCheckBox::clicked,
-    // this, &GeoMap::slot_altitudeCheckChanged);
-    mpSettingsWidget->layout()->addWidget(mpUseAltitudeCheckBox);
-
-    mpSettingsWidget->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
-    mpSettingsWidget->adjustSize();
-#endif
-    qDebug() << __PRETTY_FUNCTION__;
-
     mpSettingsWidget = new QWidget(parent);
     mpSettingsWidget->setLayout(new QVBoxLayout());
     mpSettingsWidget->layout()->setSpacing(10);
@@ -323,55 +171,15 @@ void GeoMap::createSettingsWidget(QWidget* parent)
 
     //--- initialize qml map
     initializeQmlMap();
-    // QQuickView* pQuickView = new QQuickView();
-    // QWidget* pQuickViewContainerWidget =
-    //   QWidget::createWindowContainer(pQuickView, mpSettingsWidget);
-    // mpMapHandler.reset(new MapHandler());
-    // pQuickView->rootContext()->setContextProperty("handler", mpMapHandler.get());
-    // pQuickView->setSource(QUrl("qrc:/map.qml"));
-    // mpSettingsWidget->layout()->addWidget(pQuickViewContainerWidget);
-
-    // if (!pQuickView->errors().isEmpty())
-    // {
-    //     qCritical() << pQuickView->errors();
-    // }
-    // else
-    // {
-    //     //--- make connections to qml map
-
-    //     QObject* qmlRoot = pQuickView->rootObject();
-    //     QObject::connect(qmlRoot, SIGNAL(gpsClicked(QString)),
-    //                      mpMapHandler.get(), SLOT(onQmlGpsClicked(QString)));
-    //     QObject::connect(qmlRoot, SIGNAL(qmlClosed()),
-    //                      mpMapHandler.get(), SLOT(onQmlMapClosed()));
-    //     QObject::connect(qmlRoot, SIGNAL(mapClicked(QString)),
-    //                      mpMapHandler.get(), SLOT(onQmlMapClicked(QString)));
-    //     QObject::connect(qmlRoot, SIGNAL(mapItems(QVariant)),
-    //                      mpMapHandler.get(), SLOT(onQmlMapItems(QVariant)));
-
-    //     QObject::connect(qmlRoot, SIGNAL(deleteSelection()),
-    //                      mpMapHandler.get(), SLOT(onQmlDeleteSelection()));
-    //     QObject::connect(qmlRoot, SIGNAL(selectionBack()),
-    //                      mpMapHandler.get(), SLOT(onQmlSelectionBack()));
-    //     QObject::connect(qmlRoot, SIGNAL(selectionForward()),
-    //                      mpMapHandler.get(), SLOT(onQmlSelectionForward()));
-
-    //     QObject::connect(mpMapHandler.get(), &MapHandler::gpsClicked,
-    //                      this, &GeoMap::onGpsClicked);
-    //     QObject::connect(mpMapHandler.get(), &MapHandler::gpsSelected,
-    //                      this, &GeoMap::onGpsSelected);
-
-    //     //--- set default map center to IOSB
-    //     mpMapHandler->emitAdjustMapCenter(QGeoCoordinate(49.01554184059616, 8.425800420583966));
-
-    //     //--- draw available data onto map
-    //     mpMapHandler->drawGpsDataOnMap();
-    // }
 }
 
 //==================================================================================================
 void GeoMap::onGpsSelected(QPolygonF polyF)
 {
+    //--- if no gps is available, return
+    if (!mIsGpsAvailable)
+        return;
+
     // If polyF has length 0 delete all keyframes
     if (polyF.length() == 0)
     {
@@ -399,13 +207,6 @@ void GeoMap::onGpsSelected(QPolygonF polyF)
     updateKeyframes(getKeyframesFromGps());
 }
 
-#ifdef OLD_CODE
-void gps::slot_altitudeCheckChanged(bool check)
-{
-    mUseAltitude = check;
-}
-#endif
-
 //==================================================================================================
 void GeoMap::readMetaData()
 {
@@ -417,65 +218,16 @@ void GeoMap::readMetaData()
         {
             mMetaData = metaData->loadMetaData(metaName)->getAllMetaData();
 
-            QHash<QString, QVariant> metaHash             = mMetaData[0].toHash();
-            QHash<QString, QVariant>::const_iterator iter = metaHash.find("GPSAltitude");
-            if (iter == metaHash.end())
-            {
-                mIsAltitudeAvailable = false;
-            }
-            else
-            {
-                mIsAltitudeAvailable = true;
-            }
-
             // Initial all frames are keyframes
             for (QVariant var : mMetaData)
             {
                 mGpsData.append(QPair<QPointF, bool>(gpsHashToLatLong(var), true));
             }
             mIsGpsAvailable = true;
-            // Enable button if existing
-            if (mpShowGpsButton != nullptr)
-            {
-                mpShowGpsButton->setEnabled(true);
-            }
+
             return;
         }
     }
-}
-
-//==================================================================================================
-double GeoMap::calculateGreatCircleDistance(QPointF first, QPointF second)
-{
-    // calculate distance between to points using the haversine formula
-    // Earth radius in meters
-    const int r = 6371008;
-    // Convert latitude and longitude to radiant
-    double lat1     = first.x() * (M_PI / 180);
-    double lat2     = second.x() * (M_PI / 180);
-    double latDiff  = (second.x() - first.x()) * (M_PI / 180);
-    double longDiff = (second.y() - first.y()) * (M_PI / 180);
-    // Calculate haversine
-    double a        = pow(sin(latDiff / 2), 2) + cos(lat1) * cos(lat2) * pow(sin(longDiff / 2), 2);
-    double distance = 2 * r * asin(sqrt(a));
-    return distance;
-}
-
-//==================================================================================================
-double GeoMap::distanceBetweenPoints(int first, int second)
-{
-    QGeoCoordinate firstGPS    = gpsHashtoGeoCo(mMetaData.at(first));
-    QGeoCoordinate secondGPS   = gpsHashtoGeoCo(mMetaData.at(second));
-    QPointF firstLatLong       = QPointF(firstGPS.latitude(), firstGPS.longitude());
-    QPointF secondLatLong      = QPointF(secondGPS.latitude(), secondGPS.longitude());
-    double greatCircleDistance = calculateGreatCircleDistance(firstLatLong, secondLatLong);
-    if (!mUseAltitude)
-    {
-        return greatCircleDistance;
-    }
-    double euclidDistance = qSqrt(qPow(greatCircleDistance, 2) +
-                                  qPow(firstGPS.altitude() - secondGPS.altitude(), 2));
-    return euclidDistance;
 }
 
 //==================================================================================================
@@ -510,52 +262,34 @@ QPointF GeoMap::gpsHashToLatLong(QVariant hash)
 //==================================================================================================
 QGeoCoordinate GeoMap::gpsHashtoGeoCo(QVariant hash)
 {
-    QHash<QString, QVariant> gpsHash = hash.toHash();
-    double latitude_abs              = gpsHash.find("GPSLatitude").value().toDouble();
-    double longitude_abs             = gpsHash.find("GPSLongitude").value().toDouble();
-    double latitude                  = (gpsHash.find("GPSLatitudeRef").value().toString() == "N")
-                                         ? latitude_abs
-                                         : latitude_abs * -1;
-    double longitude                 = (gpsHash.find("GPSLongitudeRef").value().toString() == "E")
-                                         ? longitude_abs
-                                         : longitude_abs * -1;
-    if (!mIsAltitudeAvailable)
-    {
-        return QGeoCoordinate(latitude, longitude);
-    }
-    double altitude_abs = gpsHash.find("GPSAltitude").value().toDouble();
-    double altitude     = (gpsHash.find("GPSAltitudeRef").value().toString() == "0")
-                            ? altitude_abs
-                            : altitude_abs * -1;
+    QPointF latLong = gpsHashToLatLong(hash);
 
-    return QGeoCoordinate(latitude, longitude, altitude);
+    return QGeoCoordinate(latLong.x(), latLong.y());
 }
 
 //==================================================================================================
 void GeoMap::initializeQmlMap()
 {
     //--- initialize qml map
-    mpQuickView                = new QQuickView();
-    mpQuickViewContainerWidget = QWidget::createWindowContainer(mpQuickView, mpSettingsWidget);
+    QQuickView* pQuickView     = new QQuickView();
+    mpQuickViewContainerWidget = QWidget::createWindowContainer(pQuickView, mpSettingsWidget);
     mpMapHandler.reset(new MapHandler());
-    mpQuickView->engine()->clearComponentCache();
-    mpQuickView->rootContext()->setContextProperty("handler", mpMapHandler.get());
-    mpQuickView->setSource(QUrl("qrc:/map.qml"));
+    pQuickView->engine()->clearComponentCache();
+    pQuickView->rootContext()->setContextProperty("handler", mpMapHandler.get());
+    pQuickView->setSource(QUrl("qrc:/map.qml"));
     mpSettingsWidget->layout()->addWidget(mpQuickViewContainerWidget);
 
-    if (!mpQuickView->errors().isEmpty())
+    if (!pQuickView->errors().isEmpty())
     {
-        qCritical() << mpQuickView->errors();
+        qCritical() << pQuickView->errors();
     }
     else
     {
         //--- make connections to qml map
 
-        QObject* qmlRoot = mpQuickView->rootObject();
+        QObject* qmlRoot = pQuickView->rootObject();
         QObject::connect(qmlRoot, SIGNAL(gpsClicked(QString)),
                          mpMapHandler.get(), SLOT(onQmlGpsClicked(QString)));
-        QObject::connect(qmlRoot, SIGNAL(qmlClosed()),
-                         mpMapHandler.get(), SLOT(onQmlMapClosed()));
         QObject::connect(qmlRoot, SIGNAL(mapClicked(QString)),
                          mpMapHandler.get(), SLOT(onQmlMapClicked(QString)));
         QObject::connect(qmlRoot, SIGNAL(mapItems(QVariant)),

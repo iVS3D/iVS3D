@@ -35,8 +35,8 @@ set(CMAKE_AUTOUIC ON) # The AUTOGEN_BUILD_DIR is automatically added to the targ
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 if(Build_Plugins)
-    find_package(QT NAMES Qt5 REQUIRED COMPONENTS Quick)
-    find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Quick)
+    find_package(QT NAMES Qt5 REQUIRED COMPONENTS Qml Quick)
+    find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Qml Quick)
 endif() # Build_Plugins
 
 # OpenCV
