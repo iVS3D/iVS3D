@@ -52,6 +52,11 @@ target_compile_definitions(${TARGET_NAME} PRIVATE
     -DIVS3DSEMANTICSEGMENTATIONPLUGIN_LIBRARY
 )
 
+# set rpath
+set_target_properties(${TARGET_NAME} PROPERTIES
+                      INSTALL_RPATH "$ORIGIN"
+)
+
 # add dependency to iVS3D_pluginInterface
 add_dependencies(${TARGET_NAME}
     iVS3D-pluginInterface

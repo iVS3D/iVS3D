@@ -29,6 +29,11 @@ add_library(${TARGET_NAME}  SHARED
     ${PUBLIC_HEADER_FILES}
 )
 
+# set rpath
+set_target_properties(${TARGET_NAME} PROPERTIES
+                      INSTALL_RPATH "$ORIGIN"
+)
+
 # install
 install(TARGETS ${TARGET_NAME} 
     DESTINATION bin/plugins
