@@ -34,6 +34,10 @@ find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Gui Widgets Concurre
 set(CMAKE_AUTOUIC ON) # The AUTOGEN_BUILD_DIR is automatically added to the target's INCLUDE_DIRECTORIES.
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
+if(Build_Plugins)
+    find_package(QT NAMES Qt5 REQUIRED COMPONENTS Quick)
+    find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Quick)
+endif() # Build_Plugins
 
 # OpenCV
 find_package(OpenCV 4.5 REQUIRED COMPONENTS
