@@ -1,0 +1,8 @@
+<RCC>
+    <qresource prefix="/">
+        <file>map.qml</file>
+        <file>mapmarker.qml</file>
+        <file>translations/geomap_de.qm</file>
+        <file>translations/geomap_en.qm</file>
+    </qresource>
+</RCC>
