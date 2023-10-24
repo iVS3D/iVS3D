@@ -23,13 +23,11 @@
 // iVS3D-pluginInterface
 #include "../iVS3D-pluginInterface/ialgorithm.h"
 
-#include "map.h"
 #include "maphandler.h"
 
 #define DESCRIPTION_STYLE "color: rgb(58, 58, 58); border-left: 6px solid  rgb(58, 58, 58); " \
                           "border-top-right-radius: 5px; border-bottom-right-radius: 5px; "   \
                           "background-color: lightblue;"
-#define NAME_DEVIATION "Deviation"
 
 /**
  * @class GeoMap
@@ -146,17 +144,6 @@ class GeoMap : public IAlgorithm
      */
     void onGpsClicked(QPointF gpsPoint, bool used);
 
-#ifdef OLDCODE
-    /**
-     * @brief showMapWithPoints Slot is triggerd when 'Show trace' is clicked
-     */
-    void showMapWithPoints();
-    /**
-     * @brief slot_devChanged Slot is triggerd when the value of 'Select deviation' is changed
-     * @param n Currently selceted deviation
-     */
-    void slot_devChanged(double n);
-#endif
     /**
      * @brief onNewMetaData Slot is triggerd if the core loads new meta data
      */
@@ -173,20 +160,11 @@ class GeoMap : public IAlgorithm
      */
     void onGpsSelected(QPolygonF polyF);
 
-#ifdef OLD_CODE
-    /**
-     * @brief slot_altitudeCheckChanged triggered with check box
-     * @param check
-     */
-    void slot_altitudeCheckChanged(bool check);
-#endif
-
   private:
     void createSettingsWidget(QWidget* parent);
 
     void readMetaData();
-    double calculateGreatCircleDistance(QPointF first, QPointF second);
-    double distanceBetweenPoints(int first, int second);
+
     std::vector<unsigned int> getKeyframesFromGps();
 
     QPointF gpsHashToLatLong(QVariant hash);
@@ -207,9 +185,6 @@ class GeoMap : public IAlgorithm
     /// Pointer to settings widget
     QWidget* mpSettingsWidget;
 
-    /// Pointer to quick view
-    QQuickView* mpQuickView;
-
     /// Pointer to QML container widget
     QWidget* mpQuickViewContainerWidget;
 
@@ -228,36 +203,7 @@ class GeoMap : public IAlgorithm
     bool mIsQmlMapInitialized;
 
     /// Flag indicating if GPS data is available
-    /// TODO: CHECK IF DEPRECATED
     bool mIsGpsAvailable;
-
-    /// Pointer to push button to show GPS data on map
-    /// TODO: DEPRECATED
-    QPushButton* mpShowGpsButton;
-
-    /// Pointer to check box object to use altitude
-    /// TODO: DEPRECATED
-    QCheckBox* mpUseAltitudeCheckBox;
-
-    /// Pointer to map object
-    /// TODO: DEPRECATED
-    map* mpMap;
-
-    /// Pointer to spin box allowing to set the deviation
-    /// TODO: DEPRECATED
-    QDoubleSpinBox* mpDeviationSpinBox;
-
-    /// Flag to set if altitude is to be considered
-    /// TODO: DEPRECATED
-    bool mUseAltitude = false;
-
-    /// Flag indicating if Altitude data is available
-    /// TODO: DEPRECATED
-    bool mIsAltitudeAvailable;
-
-    /// Deviation threshold for the distance between images
-    /// TODO: DEPRECATED
-    double mDeviation = 1;
 };
 
 #endif // IVS3D_GEOMAPPLUGIN_H

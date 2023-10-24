@@ -21,8 +21,6 @@ MapHandler::MapHandler()
 //==================================================================================================
 void MapHandler::addPoints(const QList<QPair<QPointF, bool>>& gpsData)
 {
-    qDebug() << __PRETTY_FUNCTION__;
-
     //--- loop over gps pps data and insert into map if not already inserted
     for (QPair<QPointF, bool> point : gpsData)
     {
@@ -38,18 +36,10 @@ void MapHandler::addPoints(const QList<QPair<QPointF, bool>>& gpsData)
 }
 
 //==================================================================================================
-void MapHandler::setGPSMap(QMap<QPointF, bool> gpsMap)
-{
-    mGpsMap = gpsMap;
-}
-
-//==================================================================================================
 void MapHandler::drawGpsDataOnMap()
 {
     if (mGpsMap.empty())
         return;
-
-    qDebug() << __PRETTY_FUNCTION__;
 
     //--- draw gps points on map
     QMapIterator<QPointF, bool> iter(mGpsMap);
@@ -94,12 +84,6 @@ void MapHandler::onQmlGpsClicked(const QString& text)
     QPointF gpsPoint(*pointLatDouble, *pointLongDouble);
     mGpsMap[gpsPoint] = !mGpsMap[gpsPoint];
     emit gpsClicked(gpsPoint, mGpsMap[gpsPoint]);
-}
-
-//==================================================================================================
-void MapHandler::onQmlMapClosed()
-{
-    emit mapClosed();
 }
 
 //==================================================================================================
@@ -252,8 +236,6 @@ QPointF MapHandler::pointAtGeo(int index)
 //==================================================================================================
 void MapHandler::onQmlMapClicked(const QString& text)
 {
-    qDebug() << __PRETTY_FUNCTION__;
-
     // Get clicked gps point
     QStringList position = text.split("x");
     double latitude      = position[0].toDouble();

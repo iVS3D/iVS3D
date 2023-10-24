@@ -46,8 +46,6 @@ Item {
                     o.objectName = name
                     o.opacity = (used) ? 1.0 : 0.1
                     mapToken.addMapItem(o)
-
-                    console.log("added item ", mapToken.mapItems.length)
                 }
             }
             onAdjustMap : {

@@ -22,14 +22,12 @@ include_directories(
 # set header files
 set(HEADER_FILES
     "${CMAKE_CURRENT_LIST_DIR}/geomap.h"
-    "${CMAKE_CURRENT_LIST_DIR}/map.h"
     "${CMAKE_CURRENT_LIST_DIR}/maphandler.h"
 )
 
 # set source files
 set(SRC_FILES
     "${CMAKE_CURRENT_LIST_DIR}/geomap.cpp"
-    "${CMAKE_CURRENT_LIST_DIR}/map.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/maphandler.cpp"
 )
 

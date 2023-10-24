@@ -40,13 +40,6 @@ class MapHandler : public QObject
     void addPoints(const QList<QPair<QPointF, bool>>& m_gpsData);
 
     /**
-     * @brief setGPSMap Used to set the gpsMap based on which gps points are shown on the map
-     * @param gpsMap QMap with the used gps points and their usage
-     * TODO: CHECK IF DEPRECATED
-     */
-    void setGPSMap(QMap<QPointF, bool> gpsMap);
-
-    /**
      * @brief emitCircleSignal Method to emit the corresponding signal
      * @param coordinate Where to place the point
      * @param name ObjectName of the point
@@ -142,11 +135,7 @@ class MapHandler : public QObject
      * @param used @a true if the point is used AFTER the click @a false otherwise
      */
     void gpsClicked(QPointF gpsPoint, bool used);
-    /**
-     * @brief sig_mapClosed Signal emitted when the map is closed
-     * TODO: CHECK IF DEPRECATED
-     */
-    void mapClosed();
+
     /**
      * @brief gpsSelected Signal emitted when a new polygon has been selected
      * @param polyF The perimeter of the current polygon
@@ -156,9 +145,6 @@ class MapHandler : public QObject
   public slots:
     // Slot to signal which is emitted when a gps point on the map is clicked
     void onQmlGpsClicked(const QString& text);
-    // Slot to signal which is emitted when the map is closed
-    // TODO: CHECK IF DEPRECATED
-    void onQmlMapClosed();
     // Slot to signal which is emitted when the map is right clicked
     void onQmlMapClicked(const QString& text);
     // Slot to signal which returns all items on the map
