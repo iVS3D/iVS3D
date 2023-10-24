@@ -32,6 +32,7 @@ QStringList AlgorithmManager::getAlgorithmNames()
     foreach(IAlgorithm* algorithm, m_algorithmList){
         plugins.append(algorithm->getName());
     }
+
     return plugins;
 }
 
@@ -149,6 +150,9 @@ void AlgorithmManager::loadPlugins(){
     }
     const QStringList entries = pluginsDir.entryList(QDir::Files);
     for (const QString &fileName : entries) {
+        if(fileName == "libiVS3D-pluginInterface.so")
+            continue;
+
         QPluginLoader pluginLoader(pluginsDir.absoluteFilePath(fileName));
         auto *plugin = pluginLoader.instance();
         if(plugin){
@@ -162,6 +166,10 @@ void AlgorithmManager::loadPlugins(){
             } else {
                 pluginLoader.unload();
             }
+        }
+        else
+        {
+            qWarning() << "[WARN]" << pluginLoader.errorString();
         }
     }
 }
