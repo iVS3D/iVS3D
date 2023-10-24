@@ -841,19 +841,6 @@ ColmapWrapper::EProductType ColmapWrapper::QString2EProductType(const QString iS
     return static_cast<EProductType>(idx);
 }
 
-//==================================================================================================
-std::function<void(ColmapWrapper::EProductType, std::string)> ColmapWrapper::customProductOpenFn()
-    const
-{
-    return mCustomProductOpenFn;
-}
-
-//==================================================================================================
-void ColmapWrapper::clearCustomProductOpenFn()
-{
-    mCustomProductOpenFn = std::function<void(EProductType, std::string)>();
-}
-
 void ColmapWrapper::applySettings(const SSettings *settings)
 {
     setConnectionType(settings->connectionType);
@@ -892,31 +879,6 @@ void ColmapWrapper::setUseRobustMode(const bool iUseRobustMode)
 bool ColmapWrapper::useRobustMode()
 {
     return mUseRobustMode;
-}
-
-//==================================================================================================
-void ColmapWrapper::setCustomProductOpenFn(
-    const std::function<void(EProductType, std::string)> &customProductOpenFn)
-{
-    mCustomProductOpenFn = customProductOpenFn;
-}
-
-//==================================================================================================
-void ColmapWrapper::setCustomImportFn(const std::function<bool(std::string, uint)> &customImportFn)
-{
-    mCustomImportFn = customImportFn;
-}
-
-//==================================================================================================
-std::function<bool(std::string, uint)> ColmapWrapper::customImportFn() const
-{
-    return mCustomImportFn;
-}
-
-//==================================================================================================
-void ColmapWrapper::clearCustomImportFn()
-{
-    mCustomImportFn = std::function<bool(std::string, uint)>();
 }
 
 //==================================================================================================

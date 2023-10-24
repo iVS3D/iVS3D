@@ -29,7 +29,7 @@ NewProductDialog::NewProductDialog(ColmapWrapper *ipWrapper, QWidget *parent)
     ui->l_warningNoImages->setStyleSheet("QLabel { color: red; }");
 
     ui->l_warningSequenceName->setVisible(false);
-    ui->l_warningSequenceName->setStyleSheet("QLabel { color: orange; }");
+    ui->l_warningSequenceName->setStyleSheet("QLabel { color: red; }");
 
     //--- connections
     connect(ui->pb_selectImagePath,
@@ -180,88 +180,83 @@ void NewProductDialog::onAccepted()
         return newJob;
     };
 
-    // TODO: copy image files to REMOTE here, if not done already!!!
-
+    //--- compute image path from sequence name
+    QString genericDirPath = "%1/" + ui->le_sequenceName->text() + ".images";
+    QString displayDirPath, importDirPath;
     if (mpColmapWrapper->connectionType() == ColmapWrapper::SSH) {
-        //--- compute image path from sequence name
-        QString genericDirPath = "%1/" + ui->le_sequenceName->text() + ".images";
-        QString displayDirPath = genericDirPath.arg(
+        displayDirPath = genericDirPath.arg(
             QUrl(mpColmapWrapper->remoteWorkspacePath()).toString(QUrl::StripTrailingSlash));
-        QString importDirPath = genericDirPath.arg(
+        importDirPath = genericDirPath.arg(
             QUrl(mpColmapWrapper->mntPntRemoteWorkspacePath()).toString(QUrl::StripTrailingSlash));
+    } else {
+        displayDirPath = genericDirPath.arg(
+            QUrl(mpColmapWrapper->localWorkspacePath()).toString(QUrl::StripTrailingSlash));
+        importDirPath = displayDirPath;
+    }
 
-        //--- if custom import function is set, call it.
-        //--- Otherwise call dfault import procedure, i.e. copying of image files.
-        bool successful = false;
-        std::function<bool(std::string, uint)> custImportFn = mpColmapWrapper->customImportFn();
-        if (custImportFn) {
-            successful = custImportFn(importDirPath.toStdString(), 1);
-        } else {
-            //--- default import routine: Select directory and copy all image files into destination
-            QString srcDirPath = ui->le_imagePath->text();
+    bool successful = false;
 
-            if (!srcDirPath.isEmpty()) {
-                QDir srcDir(srcDirPath);
+    QString srcDirPath = ui->le_imagePath->text();
 
-                //--- list all image files in directory
-                QStringList imgFiles = srcDir.entryList(QStringList() << "*.jpg"
-                                                                      << "*.JPG"
-                                                                      << "*.jepg"
-                                                                      << "*.JEPG"
-                                                                      << "*.png"
-                                                                      << "*.PNG"
-                                                                      << "*.bmp"
-                                                                      << "*.BMP"
-                                                                      << "*.tiff"
-                                                                      << "*.tiff",
-                                                        QDir::Files);
+    if (!srcDirPath.isEmpty()) {
+        QDir srcDir(srcDirPath);
 
-                //--- create destination directory if not exists
-                QDir destDir(importDirPath);
-                if (destDir.exists()){
-                    destDir.removeRecursively();
+        //--- list all image files in directory
+        QStringList imgFiles = srcDir.entryList(QStringList() << "*.jpg"
+                                                              << "*.JPG"
+                                                              << "*.jepg"
+                                                              << "*.JEPG"
+                                                              << "*.png"
+                                                              << "*.PNG"
+                                                              << "*.bmp"
+                                                              << "*.BMP"
+                                                              << "*.tiff"
+                                                              << "*.tiff",
+                                                QDir::Files);
+
+        //--- create destination directory if not exists
+        QDir destDir(importDirPath);
+        if (destDir.exists()) {
+            destDir.removeRecursively();
+        }
+        destDir.mkpath(".");
+
+        //--- copy files
+        if (imgFiles.size() > 0) {
+            QProgressDialog progress(tr("Copying files..."),
+                                     tr("Abort Copy"),
+                                     0,
+                                     imgFiles.size(),
+                                     this);
+            progress.setWindowModality(Qt::WindowModal);
+
+            bool isCanceled = false;
+            for (int i = 0; i < imgFiles.size(); i++) {
+                progress.setValue(i);
+
+                //--- if progress was canceled
+                if (progress.wasCanceled()) {
+                    //--- remove already copied files
+                    for (int j = i - 1; j >= 0; --j)
+                        QFile::remove(importDirPath + QDir::separator() + imgFiles[j]);
+
+                    isCanceled = true;
+                    break;
                 }
-                destDir.mkpath(".");
-
-                //--- copy files
-                if (imgFiles.size() > 0) {
-                    QProgressDialog progress(tr("Copying files..."),
-                                             tr("Abort Copy"),
-                                             0,
-                                             imgFiles.size(),
-                                             this);
-                    progress.setWindowModality(Qt::WindowModal);
-                    progress.setMinimumDuration(500);
-
-                    bool isCanceled = false;
-                    for (int i = 0; i < imgFiles.size(); i++) {
-                        progress.setValue(i);
-
-                        //--- if progress was canceled
-                        if (progress.wasCanceled()) {
-                            //--- remove already copied files
-                            for (int j = i - 1; j >= 0; --j)
-                                QFile::remove(importDirPath + QDir::separator() + imgFiles[j]);
-
-                            isCanceled = true;
-                            break;
-                        }
-                        // copy does not overwrite existing, so should be very perfomant if files already exist
-                        QFile::copy(srcDirPath + QDir::separator() + imgFiles[i],
-                                    importDirPath + QDir::separator() + imgFiles[i]);
-                    }
-                    progress.setValue(imgFiles.size());
-
-                    successful = !isCanceled;
-                } else {
-                    QMessageBox msgWarning;
-                    msgWarning.setText("WARNING!\n No images found.");
-                    msgWarning.setIcon(QMessageBox::Warning);
-                    msgWarning.setWindowTitle("Caution");
-                    msgWarning.exec();
-                    successful = false;
-                }
+                // copy does not overwrite existing, so should be very perfomant if files already exist
+                QFile::copy(srcDirPath + QDir::separator() + imgFiles[i],
+                            importDirPath + QDir::separator() + imgFiles[i]);
             }
+            progress.setValue(imgFiles.size());
+
+            successful = !isCanceled;
+        } else {
+            QMessageBox msgWarning;
+            msgWarning.setText("WARNING!\n No images found.");
+            msgWarning.setIcon(QMessageBox::Warning);
+            msgWarning.setWindowTitle("Caution");
+            msgWarning.exec();
+            successful = false;
         }
 
         if (!successful) {
@@ -432,6 +427,7 @@ void NewProductDialog::validateImagePath()
             isImagePathValid = true;
             enableSaveButtonState();
             ui->l_warningNoImages->setVisible(false);
+            enableSaveButtonState();
             return;
         }
     }
@@ -462,6 +458,7 @@ void NewProductDialog::validateSequenceName()
         ui->le_sequenceName->setStyleSheet("");
         isSequenceNameValid = true;
         ui->l_warningSequenceName->setVisible(false);
+        enableSaveButtonState();
     } else {
         ui->le_sequenceName->setStyleSheet("QLineEdit { border: 1px solid red; }");
         ui->buttonBox->button(QDialogButtonBox::Save)->setEnabled(false);

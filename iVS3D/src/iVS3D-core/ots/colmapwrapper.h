@@ -362,51 +362,6 @@ class ColmapWrapper : public QObject
     ui::ColmapWrapperControlsFactory *getOrCreateUiControlsFactory();
 
     /**
-     * @brief Set fuction implementing custom functionality to import image data into directory.
-     *
-     * The function needs to be of type bool(std::string, uint). The std::string will hold the path to
-     * the directory into which the image data is to be imported. The uint will hold the subsampling
-     * rate in form of every-nth-frame to import (Default = 1, i.e. every frame).
-     */
-    void setCustomImportFn(const std::function<bool (std::string, uint)> &customImportFn);
-
-    /**
-     * @brief Get fuction implementing custom functionality to import image data into directory.
-     *
-     * The function needs is be of type bool(std::string, uint). The std::string will hold the path to
-     * the directory into which the image data is to be imported. The uint will hold the subsampling
-     * rate in form of every-nth-frame to import (Default = 1, i.e. every frame).
-     */
-    std::function<bool (std::string, uint)> customImportFn() const;
-
-    /**
-     * @brief Clear fuction implementing custom functionality to import image data into directory.
-     */
-    void clearCustomImportFn();
-
-    /**
-     * @brief Set fuction implementing custom functionality to open product.
-     *
-     * The function needs to be of type void(EProductType, std::string).
-     * The std::string will hold the path to the file holding the product of type EProductType.
-     */
-    void setCustomProductOpenFn(
-        const std::function<void (ColmapWrapper::EProductType, std::string)> &customProductOpenFn);
-
-    /**
-     * @brief Get fuction implementing custom functionality to open product.
-     *
-     * The function needs to be of type void(EProductType, std::string).
-     * The std::string will hold the path to the file holding the product of type EProductType.
-     */
-    std::function<void (ColmapWrapper::EProductType, std::string)> customProductOpenFn() const;
-
-    /**
-     * @brief Clear fuction implementing custom functionality to open product.
-     */
-    void clearCustomProductOpenFn();
-
-    /**
      * @brief switchWorkspace tries to switch to the local/remote workspace.
      */
     void applySettings(const SSettings *settings);
@@ -809,12 +764,6 @@ class ColmapWrapper : public QObject
 
     /// Pointer to UiControlsFactory object
     ui::ColmapWrapperControlsFactory*    mpUiControls;
-
-    /// Member for custom functionality to import image data
-    std::function<bool(std::string, uint)> mCustomImportFn;
-
-    /// Member for custom functionality to open product
-    std::function<void(ColmapWrapper::EProductType, std::string)> mCustomProductOpenFn;
 
     /// current status of the setup, true if colmap can be used
     bool mSetupSuccessful = false;

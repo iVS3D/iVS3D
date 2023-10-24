@@ -27,6 +27,10 @@ LAST_HEARTBEAT_UPDATE_TIME = 0
 CLEAN_FAILED_JOBS = True
 CLEAN_FINISHED_JOBS = True
 
+# TODO fix global variables
+max_number_of_registered_images = 0
+current_image_number = 0
+number_of_images = 0
 #---------------------------------------------------------------------------------------------------------------------
 # Class to dump YAML files prepared to be read by OpenCV.
 # OpenCV FileStorage expects more indentations.
@@ -138,6 +142,22 @@ def copytree(src, dst, symlinks=False, ignore=None, copy_function=shutil.copy2,
                      ignore=ignore, copy_function=copy_function,
                      ignore_dangling_symlinks=ignore_dangling_symlinks,
                      dirs_exist_ok=dirs_exist_ok)
+
+
+def poll_process_and_scan_logs(p, scan_function = None):
+    while p.poll() is None:
+        output = p.stdout.readline()
+        updateHeartBeat()
+        try:
+            if output != b"":
+                line = output.strip().decode("utf-8")
+                print(line)
+                if scan_function != None:
+                    scan_function(line)
+        except Exception as e:            
+            print("Failed to parse line!")
+            traceback.print_exc()
+
 
 ######################################################################################################################
 # Method to compute list of gps reference data, needed for georegistration, returns false if no valid gps reference data found
@@ -301,23 +321,22 @@ def computeCameraPoses(colmapDatabaseFilePath: str, projectImageDir: str, colmap
     
     p = subprocess.Popen(args, stdout=subprocess.PIPE)     
 
-    number_of_images = 0
     get_eta_after_step = init_eta_calculation()
-    while p.poll() is None:
-        output = p.stdout.readline()
-        updateHeartBeat()
-        if output != b"":
-            line = output.strip().decode("utf-8")
-            print(line)
-            # Scanning COLMAP stdout for progress
-            if "Processed file" in line:               
-                current_images = line[16:-1].split("/")
-                if len(current_images) == 2:
-                    current_image_number, number_of_images = current_images
-                    current_image_number = int(current_image_number)
-                    number_of_images = int(number_of_images)
-                    eta = get_eta_after_step(number_of_images)
-                    progressCallback(round(10 * current_image_number / number_of_images), eta=eta, step=1)
+
+    def scan_function(line):
+        # Scanning COLMAP stdout for progress
+        if "Processed file" in line:               
+            current_images = line[16:-1].split("/")
+            global number_of_images
+            if len(current_images) == 2:
+                current_image_number, number_of_images = current_images
+                current_image_number = int(current_image_number)
+                number_of_images = int(number_of_images)
+                eta = get_eta_after_step(number_of_images)
+                progressCallback(round(10 * current_image_number / number_of_images), eta=eta, step=1)
+
+    poll_process_and_scan_logs(p, scan_function)
+    
 
     if p.poll() != 0:
         return False    
@@ -332,22 +351,20 @@ def computeCameraPoses(colmapDatabaseFilePath: str, projectImageDir: str, colmap
         "--SiftMatching.gpu_index", gpus], stdout=subprocess.PIPE)     
 
     get_eta_after_step = init_eta_calculation()
-    while p.poll() is None:
-        output = p.stdout.readline()
-        updateHeartBeat()
-        if output != b"":
-            line = output.strip().decode("utf-8")
-            print(line)
-            # Scanning COLMAP stdout for progress
-            if "Matching block" in line:               
-                blocks = line[16:-11].split(", ")                            
-                if len(blocks) == 2:
-                    block1_1, block1_2 = blocks[0].split("/")
-                    block2_1, block2_2 = blocks[1].split("/")
-                    current_iteration = int(block2_1) + (int(block1_1) - 1) * int(block1_2)
-                    max_iteration = int(block1_2) ** 2
-                    eta = get_eta_after_step(max_iteration)
-                    progressCallback(10 + round(35 * current_iteration / max_iteration), eta=eta, step=2)
+
+    def scan_function(line):
+        # Scanning COLMAP stdout for progress
+        if "Matching block" in line:               
+            blocks = line[16:-11].split(", ")                            
+            if len(blocks) == 2:
+                block1_1, block1_2 = blocks[0].split("/")
+                block2_1, block2_2 = blocks[1].split("/")
+                current_iteration = int(block2_1) + (int(block1_1) - 1) * int(block1_2)
+                max_iteration = int(block1_2) ** 2
+                eta = get_eta_after_step(max_iteration)
+                progressCallback(10 + round(35 * current_iteration / max_iteration), eta=eta, step=2)
+    
+    poll_process_and_scan_logs(p, scan_function)
 
     if p.poll() != 0:
         return False   
@@ -369,24 +386,23 @@ def computeCameraPoses(colmapDatabaseFilePath: str, projectImageDir: str, colmap
         "--Mapper.ba_global_max_num_iterations", "50",
         "--Mapper.multiple_models", multiModels], stdout=subprocess.PIPE)     
 
+    global max_number_of_registered_images
     max_number_of_registered_images = 0
     get_eta_after_step = init_eta_calculation()
 
-    while p.poll() is None:
-        output = p.stdout.readline()
-        updateHeartBeat()
-        if output != b"":
-            line = output.strip().decode("utf-8")
-            print(line)
-            # Scanning COLMAP stdout for progress
-            if "Registering image" in line:  
-                number_of_registered_images = int(line[18:].split("(")[-1][:-1])
-                if max_number_of_registered_images < number_of_registered_images:
-                    max_number_of_registered_images = number_of_registered_images
-                    eta = get_eta_after_step(number_of_images)
-                    progressCallback(45 + round(45 * max_number_of_registered_images / number_of_images), 
-                        eta=eta, step=3)
-                         
+    def scan_function(line):
+        # Scanning COLMAP stdout for progress
+        if "Registering image" in line:  
+            number_of_registered_images = int(line[18:].split("(")[-1][:-1])
+            global max_number_of_registered_images, number_of_images
+            if max_number_of_registered_images < number_of_registered_images:
+                max_number_of_registered_images = number_of_registered_images
+                eta = get_eta_after_step(number_of_images)
+                progressCallback(45 + round(45 * max_number_of_registered_images / number_of_images), 
+                    eta=eta, step=3)
+    
+    poll_process_and_scan_logs(p, scan_function)
+
     if p.poll() != 0 or not os.path.exists(os.path.join(colmapProjectDirPath, "01_sparse", "0")):
         return False
 
@@ -408,15 +424,10 @@ def computeCameraPoses(colmapDatabaseFilePath: str, projectImageDir: str, colmap
                 "--BundleAdjustment.refine_focal_length", params[0],
                 "--BundleAdjustment.refine_principal_point", params[1],
                 "--BundleAdjustment.refine_extra_params", params[2],
-                "--BundleAdjustment.refine_extrinsics", params[3]], stdout=subprocess.PIPE) 
-                
-            while p.poll() is None:
-                output = p.stdout.readline()
-                updateHeartBeat()
-                if output != b"":
-                    line = output.strip().decode("utf-8")
-                    print(line)  
+                "--BundleAdjustment.refine_extrinsics", params[3]], stdout=subprocess.PIPE)    
             
+            poll_process_and_scan_logs(p, None)
+
             eta = get_eta_after_step(len(param_list))
             progressCallback(90 + i +1 , force_Write = True, eta=eta, step=3)
         
@@ -452,15 +463,10 @@ def computeCameraPoses(colmapDatabaseFilePath: str, projectImageDir: str, colmap
             '--output_path', sparse_out_path,
             '--ref_is_gps', '0',
             '--ref_images_path', os.path.join(colmapProjectDirPath, "01_sparse", "geo", "ImgGpsList_enu.txt"),
-            '--robust_alignment', '0'], stdout=subprocess.PIPE) 
-        
-        while p.poll() is None:
-            output = p.stdout.readline()
-            updateHeartBeat()
-            if output != b"":
-                line = output.strip().decode("utf-8")
-                print(line) 
-        
+            '--robust_alignment', '0'], stdout=subprocess.PIPE)         
+            
+        poll_process_and_scan_logs(p, None)
+
         if p.poll() != 0:
             return False 
 
@@ -540,21 +546,18 @@ def computeDenseCloud(projectImageDir: str, colmapProjectDirPath: str, projectOu
         ], stdout=subprocess.PIPE)     
 
     get_eta_after_step = init_eta_calculation()
-    while p.poll() is None:
-        output = p.stdout.readline()
-        updateHeartBeat()
-        if output != b"":
-            line = output.strip().decode("utf-8")
-            print(line)
-            # Scanning COLMAP stdout for progress
-            if "Undistorting image" in line:   
-                current_images = line[20:-1].split("/")
-                if len(current_images) == 2:
-                    current_image_number, number_of_images = current_images
-                    current_image_number = int(current_image_number)
-                    number_of_images = int(number_of_images)
-                    eta = get_eta_after_step(number_of_images)
-                    progressCallback(round(5 * current_image_number / number_of_images), eta=eta, step=1)
+    def scan_function(line):
+        # Scanning COLMAP stdout for progress
+        if "Undistorting image" in line:   
+            current_images = line[20:-1].split("/")
+            if len(current_images) == 2:
+                current_image_number, number_of_images = current_images
+                current_image_number = int(current_image_number)
+                number_of_images = int(number_of_images)
+                eta = get_eta_after_step(number_of_images)
+                progressCallback(round(5 * current_image_number / number_of_images), eta=eta, step=1)            
+    
+    poll_process_and_scan_logs(p, scan_function)
 
     if p.poll() != 0:
         return False   
@@ -578,22 +581,21 @@ def computeDenseCloud(projectImageDir: str, colmapProjectDirPath: str, projectOu
         "--PatchMatchStereo.cache_size", cacheSize], stdout=subprocess.PIPE)     
 
     get_eta_after_step = init_eta_calculation()
+    global current_image_number
     current_image_number = 0
-    while p.poll() is None:
-        output = p.stdout.readline()
-        updateHeartBeat()
-        if output != b"":
-            line = output.strip().decode("utf-8")
-            print(line)   
-            # Scanning COLMAP stdout for progress
-            if "Processing view" in line:   
-                current_images = line[16:].split(" / ")
-                if len(current_images) == 2:                
-                    _, number_of_images = current_images
-                    current_image_number += 1
-                    number_of_images = int(number_of_images.split(" ")[0])
-                    eta = get_eta_after_step(number_of_images + number_of_images * perform_geom_consistency)
-                    progressCallback(round(5 + 65 * current_image_number / (number_of_images + number_of_images * perform_geom_consistency)), eta=eta, step=2)
+    def scan_function(line): 
+        # Scanning COLMAP stdout for progress
+        if "Processing view" in line:   
+            current_images = line[16:].split(" / ")
+            global current_image_number
+            if len(current_images) == 2:                
+                _, number_of_images = current_images
+                current_image_number += 1
+                number_of_images = int(number_of_images.split(" ")[0])
+                eta = get_eta_after_step(number_of_images + number_of_images * perform_geom_consistency)
+                progressCallback(round(5 + 65 * current_image_number / (number_of_images + number_of_images * perform_geom_consistency)), eta=eta, step=2)            
+    
+    poll_process_and_scan_logs(p, scan_function)
 
     if p.poll() != 0:
         return False 
@@ -619,21 +621,18 @@ def computeDenseCloud(projectImageDir: str, colmapProjectDirPath: str, projectOu
         "--StereoFusion.cache_size", cacheSize], stdout=subprocess.PIPE)     
 
     get_eta_after_step = init_eta_calculation()
-    while p.poll() is None:
-        output = p.stdout.readline()
-        updateHeartBeat()
-        if output != b"":
-            line = output.strip().decode("utf-8")
-            print(line)   
-            # Scanning COLMAP stdout for progress
-            if "Fusing image" in line:   
-                current_images = line[14:].split("]")[0].split("/")
-                if len(current_images) == 2:                
-                    current_image_number, number_of_images = current_images
-                    current_image_number = int(current_image_number)
-                    number_of_images = int(number_of_images)
-                    eta = get_eta_after_step(number_of_images)
-                    progressCallback(round(70 + 25 * current_image_number / number_of_images), eta=eta, step=3)
+    def scan_function(line):
+        # Scanning COLMAP stdout for progress
+        if "Fusing image" in line:   
+            current_images = line[14:].split("]")[0].split("/")
+            if len(current_images) == 2:                
+                current_image_number, number_of_images = current_images
+                current_image_number = int(current_image_number)
+                number_of_images = int(number_of_images)
+                eta = get_eta_after_step(number_of_images)
+                progressCallback(round(70 + 25 * current_image_number / number_of_images), eta=eta, step=3)            
+    
+    poll_process_and_scan_logs(p, scan_function)
 
     if p.poll() != 0:
         return False 
@@ -690,17 +689,14 @@ def computeMeshedModel(projectImageDir: str, colmapProjectDirPath: str, projectO
    
     p = subprocess.Popen(args, stdout=subprocess.PIPE) 
     
-    while p.poll() is None:
-        output = p.stdout.readline()
-        updateHeartBeat()
-        if output != b"":
-            line = output.strip().decode("utf-8")
-            print(line)   
-            if "Point-cloud loaded" in line:   
-                progressCallback(2, force_Write = True)
-            elif "Exported data" in line:
-                progressCallback(2, force_Write = True)
+    def scan_function(line):
+        if "Point-cloud loaded" in line:   
+            progressCallback(2, force_Write = True)
+        elif "Exported data" in line:
+            progressCallback(2, force_Write = True)  
+            
 
+    poll_process_and_scan_logs(p, scan_function)
 
     # Revert back to old folder layout in 02_dense
     if os.path.exists(os.path.join(colmapProjectDirPath, "02_dense","sparse2")):
@@ -737,25 +733,21 @@ def computeMeshedModel(projectImageDir: str, colmapProjectDirPath: str, projectO
    
     p = subprocess.Popen(args, stdout=subprocess.PIPE)     
 
-    while p.poll() is None:
-        output = p.stdout.readline()
-        updateHeartBeat()
-        if output != b"":
-            line = output.strip().decode("utf-8")
-            print(line)  
-            if "Scene loaded from interface format" in line:   
-                progressCallback(5 + 1, force_Write = True)
-            elif "Delaunay tetrahedralization completed" in line:
-                progressCallback(5 + 5, force_Write = True)
-            elif "Delaunay tetrahedras weighting completed" in line:
-                progressCallback(5 + 15, force_Write = True) 
-            elif "Delaunay tetrahedras graph-cut completed" in line:
-                progressCallback(5 + 20, force_Write = True)
-            elif "Mesh reconstruction completed" in line:
-                progressCallback(5 + 25, force_Write = True)
-            elif "Scene saved" in line:
-                progressCallback(5 + 29, force_Write = True)
+    def scan_function(line):
+        if "Scene loaded from interface format" in line:   
+            progressCallback(5 + 1, force_Write = True)
+        elif "Delaunay tetrahedralization completed" in line:
+            progressCallback(5 + 5, force_Write = True)
+        elif "Delaunay tetrahedras weighting completed" in line:
+            progressCallback(5 + 15, force_Write = True) 
+        elif "Delaunay tetrahedras graph-cut completed" in line:
+            progressCallback(5 + 20, force_Write = True)
+        elif "Mesh reconstruction completed" in line:
+            progressCallback(5 + 25, force_Write = True)
+        elif "Scene saved" in line:
+            progressCallback(5 + 29, force_Write = True)             
     
+    poll_process_and_scan_logs(p, scan_function)
 
     file_stats = os.stat(os.path.join(reconstruct_mesh_dir, "model.ply"))
     file_size_in_MB = file_stats.st_size / (1024 * 1024)
@@ -805,14 +797,9 @@ def computeMeshedModel(projectImageDir: str, colmapProjectDirPath: str, projectO
             "--verbosity", "2",
             "--max-threads", max_threads]
     
-        p = subprocess.Popen(args, stdout=subprocess.PIPE) 
-        
-        while p.poll() is None:
-            output = p.stdout.readline()
-            updateHeartBeat()
-            if output != b"":
-                line = output.strip().decode("utf-8")
-                print(line)   
+        p = subprocess.Popen(args, stdout=subprocess.PIPE)   
+    
+    poll_process_and_scan_logs(p, None)
 
     progressCallback(70, force_Write = True)
 
@@ -911,28 +898,25 @@ def computeMeshedModel(projectImageDir: str, colmapProjectDirPath: str, projectO
 
     p = subprocess.Popen(args, stdout=subprocess.PIPE) 
     
-    while p.poll() is None:
-        output = p.stdout.readline()
-        updateHeartBeat()
-        if output != b"":
-            line = output.strip().decode("utf-8")
-            print(line)  
-            if "Scene loaded" in line:   
-                progressCallback(70 + 1, force_Write = True)
-            elif " 0. e:" in line:
-                progressCallback(70 + 6, force_Write = True)
-            elif "10. e:" in line:
-                progressCallback(70 + 12, force_Write = True) 
-            elif "20. e:" in line:
-                progressCallback(70 + 17, force_Write = True)
-            elif "Inference aborted" in line:
-                progressCallback(70 + 20, force_Write = True)
-            elif "local seam leveling completed" in line:
-                progressCallback(70 + 22, force_Write = True) 
-            elif "packing texture completed" in line:
-                progressCallback(70 + 27, force_Write = True) 
-            elif "Scene saved" in line:
-                progressCallback(70 + 28, force_Write = True) 
+    def scan_function(line):
+        if "Scene loaded" in line:   
+            progressCallback(70 + 1, force_Write = True)
+        elif " 0. e:" in line:
+            progressCallback(70 + 6, force_Write = True)
+        elif "10. e:" in line:
+            progressCallback(70 + 12, force_Write = True) 
+        elif "20. e:" in line:
+            progressCallback(70 + 17, force_Write = True)
+        elif "Inference aborted" in line:
+            progressCallback(70 + 20, force_Write = True)
+        elif "local seam leveling completed" in line:
+            progressCallback(70 + 22, force_Write = True) 
+        elif "packing texture completed" in line:
+            progressCallback(70 + 27, force_Write = True) 
+        elif "Scene saved" in line:
+            progressCallback(70 + 28, force_Write = True)         
+
+    poll_process_and_scan_logs(p, scan_function)
 
     progressCallback(99, force_Write = True)
       
@@ -1022,8 +1006,8 @@ def writeYaml_raw(yamlFilePath: str, yamlObj):
             oStream.write(OPENCV_YAML_HEADER)  # handle opencv header
             yaml.dump(yamlObj, oStream, Dumper=OpenCvYamlDumper)
     
-    except yaml.YAMLError as exc:
-        print(exc, traceback.format_exc())
+    except yaml.YAMLError as e:
+        print(e, traceback.format_exc())
 
     finally:
         # remove lock file
@@ -1249,7 +1233,7 @@ def updateHeartBeat():
         with open(COLMAP_RUNNING_PATH, "w") as file:
             file.write(str(int(time.time())))   
 
-    except Exceptio as e:
+    except Exception as e:
         print("Error while updating heartbeat", e, traceback.format_exc())   
    
     finally:

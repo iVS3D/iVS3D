@@ -263,16 +263,8 @@ void ViewWidget::onUpdateToLightTheme()
 void ViewWidget::onOpenActionTriggered(const ColmapWrapper::EProductType iProdType,
                                        const QString iFilePath)
 {
-    //--- if custom import function is set, call it.
-    //--- Otherwise call dfault import procedure, i.e. copying of image files.
-    std::function<void(ColmapWrapper::EProductType, std::string)> custOpenFn
-        = mpColmapWrapper->customProductOpenFn();
-    if (custOpenFn) {
-        custOpenFn(iProdType, iFilePath.toStdString());
-    } else {
-        //--- default open routine: open file in explorer
-        QDesktopServices::openUrl(QUrl("file:" + iFilePath));
-    }
+    //--- default open routine: open file in explorer
+    QDesktopServices::openUrl(QUrl("file:" + iFilePath));
 }
 
 } // namespace colmapwrapper
