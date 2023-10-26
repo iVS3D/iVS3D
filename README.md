@@ -32,22 +32,24 @@ Graphical user interface which is split in five different sections. 1. Input, 2.
 
 ## Plugins
 
-There are currently 3 plugins implemented:
+There are currently 4 plugins implemented:
 
 | Plugin | Description |
 | ------ | ------ |
 | NthFrame | Selects every N-th frame |
 | Stationary Camera Detection | Selects images based on camera movement |
 | Blur | Avoids blurry images |
+| GeoMap | Display and select keyframes on a geographic map, based on the GPS information in the EXIF data.
 
-These plugins show different approches to selecting keyframes. iVS3D is build with an open plugin interface for adding new plugins. See [here](doc/create_plugin.md) on how to create your own plugin.
+
+These plugins show different approaches to selecting keyframes. iVS3D is build with an open plugin interface for adding new plugins. See [here](doc/create_plugin.md) on how to create your own plugin.
 
 ## 3D Reconstruction
 iVS3D does prepare the data for 3D reconstruction. For now we do not perform the reconstruction itself. On windows iVS3D provides functionality to configure and start [COLMAP] which performs the reconstruction on the prepared data. This saves time and simplifies the reconstruction process. Make sure to install python 3.9 or later for the reconstruction! 
 
 > the next section is linux only: OTS integration of colmap is not supported on windows yet!
 
-With the latest update we introduce a seemless integration of [COLMAP] in our software. In the new *Reconstruction* tab you can configure and start colmap reconstructions, view the reconstruction progress, manage the queue and open the finished products.
+With the latest update we introduce a seamless integration of [COLMAP] in our software. In the new *Reconstruction* tab you can configure and start colmap reconstructions, view the reconstruction progress, manage the queue and open the finished products.
 
 Reconstruction can be configured to be executed on the local machine or on a remote machine such as a GPU server. Further information:
 - [local colmap execution](doc/local_colmap_execution.md)
