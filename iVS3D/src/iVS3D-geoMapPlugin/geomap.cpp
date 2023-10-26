@@ -1,6 +1,7 @@
 #include "geomap.h"
 
 // Qt
+#include <QMessageBox>
 #include <QQmlContext>
 #include <QQmlEngine>
 #include <QQuickView>
@@ -166,11 +167,31 @@ void GeoMap::createSettingsWidget(QWidget* parent)
 {
     mpSettingsWidget = new QWidget(parent);
     mpSettingsWidget->setLayout(new QVBoxLayout());
-    mpSettingsWidget->layout()->setSpacing(10);
-    mpSettingsWidget->layout()->setMargin(0);
+    mpSettingsWidget->layout()->setSpacing(3);
+    mpSettingsWidget->layout()->setMargin(3);
 
     //--- initialize qml map
     initializeQmlMap();
+
+    //--- add Help Button
+    QHBoxLayout* pHLayout    = new QHBoxLayout();
+    QPushButton* pHelpButton = new QPushButton(QObject::tr("Help"), mpSettingsWidget);
+    pHLayout->layout()->setSpacing(3);
+    pHLayout->layout()->setMargin(3);
+    pHLayout->addSpacerItem(new QSpacerItem(20, 20, QSizePolicy::MinimumExpanding, QSizePolicy::Minimum));
+    pHLayout->addWidget(pHelpButton);
+    mpSettingsWidget->layout()->addItem(pHLayout);
+
+    //--- connect help button to message box
+    QObject::connect(pHelpButton, &QPushButton::clicked, [&]()
+                     { QMessageBox::about(mpSettingsWidget, "GeoMap Plugin",
+                                          QObject::tr("Select a group of keyframes by using right "
+                                                      "mouse button to draw an encapsulating polygon."
+                                                      "\n\n"
+                                                      "Select or deselect individual keyframes by "
+                                                      "clicking with the left mouse button "
+                                                      "on the location markings.\n\n"
+                                                      "A combination of both is also allowed.")); });
 }
 
 //==================================================================================================
@@ -277,7 +298,10 @@ void GeoMap::initializeQmlMap()
     pQuickView->engine()->clearComponentCache();
     pQuickView->rootContext()->setContextProperty("handler", mpMapHandler.get());
     pQuickView->setSource(QUrl("qrc:/map.qml"));
-    mpSettingsWidget->layout()->addWidget(mpQuickViewContainerWidget);
+
+    //--- insert QuickView container widget at top
+    dynamic_cast<QVBoxLayout*>(mpSettingsWidget->layout())
+      ->insertWidget(0, mpQuickViewContainerWidget);
 
     if (!pQuickView->errors().isEmpty())
     {
