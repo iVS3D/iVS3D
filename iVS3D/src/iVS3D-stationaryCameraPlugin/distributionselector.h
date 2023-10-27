@@ -44,10 +44,12 @@ private:
     double m_threshold = 2.0;
 };
 
-static KeyframeSelector::Settings settings = {
-    KeyframeSelector::Parameter{THRESHOLD_NAME, THRESHOLD_DESCRIPTION, (double)2.0}
-};
+namespace DistributionSelectorNS {
+    static KeyframeSelector::Settings settings = {
+        KeyframeSelector::Parameter{THRESHOLD_NAME, THRESHOLD_DESCRIPTION, (double)2.0}
+    };
 
-REGISTER_SELECTOR("Distribution Selector", DistributionSelector, settings)
+    REGISTER_SELECTOR("Distribution Selector", DistributionSelector, settings)
+}
 
 #endif // DISTRIBUTIONSELECTOR_H

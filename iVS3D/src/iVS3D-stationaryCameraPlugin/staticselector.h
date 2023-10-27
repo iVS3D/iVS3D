@@ -46,10 +46,12 @@ private:
     double median(std::vector<double> &vec);
 };
 
-static KeyframeSelector::Settings settings = {
-    KeyframeSelector::Parameter{THRESHOLD_NAME, DESCRIPTION_THRESHOLD, (double)0.3}
-};
+namespace StaticSelectorNS {
+    static KeyframeSelector::Settings settings = {
+        KeyframeSelector::Parameter{THRESHOLD_NAME, DESCRIPTION_THRESHOLD, (double)0.3}
+    };
 
-REGISTER_SELECTOR("Static Selector", StaticSelector, settings)
+    REGISTER_SELECTOR("Static Selector", StaticSelector, settings)
+}
 
 #endif // STATICSELECTOR_H
