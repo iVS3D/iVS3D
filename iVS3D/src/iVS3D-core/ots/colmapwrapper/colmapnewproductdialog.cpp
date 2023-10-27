@@ -411,8 +411,18 @@ std::vector<ColmapWrapper::SJob> NewProductDialog::getNewJobList() const
 
 void NewProductDialog::enableSaveButtonState()
 {
+    bool isEnabled = isImagePathValid && isSequenceNameValid;
+
+    //--- if in expert mode, one of the products needs to be checked.
+    if(mpColmapWrapper->isInExpertMode())
+        isEnabled &= (ui->cb_prodCameraPoses->isChecked() 
+                        || ui->cb_prodPointCloud->isChecked()
+                        || ui->cb_prodMesh->isChecked());
+    else
+        isEnabled &= ui->cb_prodCameraPoses->isChecked();
+
     ui->buttonBox->button(QDialogButtonBox::Save)
-        ->setEnabled(ui->cb_prodCameraPoses->isChecked() && isImagePathValid && isSequenceNameValid);
+        ->setEnabled(isEnabled);
 }
 
 //==================================================================================================
@@ -467,7 +477,9 @@ void NewProductDialog::validateSequenceName()
                                                            QDir::Files,
                                                            QDir::Name);
 
-    if (!msProjFiles.contains(sequenceName + ".db") && sequenceName != ""  && !sequenceName.contains(" ")) {
+    if ((!msProjFiles.contains(sequenceName + ".db") || mpColmapWrapper->isInExpertMode()) // if in expert mode, the sequence may already exist
+        && sequenceName != ""  && !sequenceName.contains(" ")) 
+    {
         ui->le_sequenceName->setStyleSheet("");
         isSequenceNameValid = true;
         ui->l_warningSequenceName->setVisible(false);
