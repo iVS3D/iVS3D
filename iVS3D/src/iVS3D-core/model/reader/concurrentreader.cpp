@@ -32,4 +32,7 @@ void ConcurrentReader::slot_pull()
     cv::Mat img = m_reader->getPic(m_next_idx);
     emit sig_imageReady(m_next_idx, img);
     m_next_idx = UINT_MAX;
+    m_timer->stop();
+    delete m_timer;
+    m_timer = nullptr;
 }

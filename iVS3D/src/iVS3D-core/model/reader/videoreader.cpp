@@ -61,7 +61,7 @@ cv::Mat VideoReader::getPic(unsigned int index)
     // Jump if:
     // - going backwards
     // - going forward more than MIN_JUMP_DISTANCE
-    if(index < m_currentIndex  || index >= (m_currentIndex + MIN_JUMP_DISTANCE)){
+    if(index <= (uint)m_currentIndex  || index >= (uint)(m_currentIndex + MIN_JUMP_DISTANCE)){
         // jump to the desired index
         m_cap.set(cv::CAP_PROP_POS_FRAMES, index);
         m_cap.read(ret);

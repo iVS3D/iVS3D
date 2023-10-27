@@ -50,6 +50,9 @@ ITransformRequestDequeue *TransformManager::getTransform(uint id)
 
 void TransformManager::selectTransform(uint id)
 {
+    if(id == UINT_MAX){
+        return;
+    }
     emit sig_selectedTransformChanged(id);
 }
 
