@@ -66,6 +66,7 @@ struct stringContainer
     static const QString applicationSettingsIdentifier;
     static const QString reconstructSoftwareIdentifier;
     static const QString standardInputPathIdentifier;
+    static const QString expertModeIdentifier;
     static const QString darkStyleIdentifier;
     static const QString useCudaIdentifier;
     static const QString createLogsIdentifier;

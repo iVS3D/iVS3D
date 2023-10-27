@@ -52,6 +52,7 @@ const QString stringContainer::exportPathIdentifier = "exportPath";
 const QString stringContainer::applicationSettingsIdentifier = "ApplicationSettings";
 const QString stringContainer::reconstructSoftwareIdentifier = "reconstructSoftware";
 const QString stringContainer::standardInputPathIdentifier = "standardInputPath";
+const QString stringContainer::expertModeIdentifier = "expertMode";
 const QString stringContainer::darkStyleIdentifier = "darkStyle";
 const QString stringContainer::useCudaIdentifier = "useCuda";
 const QString stringContainer::createLogsIdentifier = "create logs";

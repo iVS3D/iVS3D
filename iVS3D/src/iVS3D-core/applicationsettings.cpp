@@ -4,6 +4,7 @@
 ApplicationSettings::ApplicationSettings()
 {
     //Set default values
+    m_expertMode = false;
     m_createLogs = true;
     m_useCuda = true;
     loadSettings();
@@ -26,6 +27,7 @@ void ApplicationSettings::loadSettings()
     QSettings settings(stringContainer::settingsCompany, stringContainer::settingsProgramm);
     qDebug() << "Loading configuration from " << settings.fileName();
     m_standardInputPath = settings.value(stringContainer::standardInputPathIdentifier).value<QString>();
+    m_expertMode = settings.value(stringContainer::expertModeIdentifier).value<bool>();
     m_darkStyle = settings.value(stringContainer::darkStyleIdentifier).value<bool>();
     if(settings.contains(stringContainer::useCudaIdentifier))
         m_useCuda = settings.value(stringContainer::useCudaIdentifier).value<bool>();
@@ -44,6 +46,7 @@ void ApplicationSettings::saveSettings()
 {
     QSettings settings(stringContainer::settingsCompany, stringContainer::settingsProgramm);
     settings.setValue(stringContainer::standardInputPathIdentifier, m_standardInputPath);
+    settings.setValue(stringContainer::expertModeIdentifier, m_expertMode);
     settings.setValue(stringContainer::darkStyleIdentifier, m_darkStyle);
     settings.setValue(stringContainer::useCudaIdentifier, m_useCuda);
     settings.setValue(stringContainer::interpolateIdentifier, m_interpolateMetaData);
@@ -83,6 +86,11 @@ void ApplicationSettings::setStandardInputPath(const QString &standardInput) {
     return;
 }
 
+void ApplicationSettings::setExpertMode(bool expertMode)
+{
+    m_expertMode = expertMode;
+    saveSettings();
+}
 
 void ApplicationSettings::setDarkStyle(bool dark)
 {
@@ -111,6 +119,10 @@ QString ApplicationSettings::getStandardInputPath(){
     return this->m_standardInputPath;
 }
 
+bool ApplicationSettings::getExpertMode()
+{
+    return m_expertMode;
+}
 
 bool ApplicationSettings::getDarkStyle()
 {
