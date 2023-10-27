@@ -55,6 +55,12 @@ public:
      */
     void setStandardInputPath(const QString &standardInput);
     /**
+     * @brief Set the use of expert mode.
+     * 
+     * @param expertMode @a true will activate expert mode
+     */
+    void setExpertMode(bool expertMode);
+    /**
      * @brief Sets the darkstyle
      *
      * @param dark @a true will toggle darkstyle
@@ -88,6 +94,12 @@ public:
      * @return QString with the current input path
      */
     QString getStandardInputPath();
+    /**
+     * @brief Returns wether expert mode is activated
+     * 
+     * @return @a true, if expert mode is activated.
+     */
+    bool getExpertMode();
     /**
      * @brief Returns which darkstyle is saved in the settings file
      *
@@ -127,6 +139,7 @@ private:
     ApplicationSettings();
     QMap<QString, QString> m_reconstructPath;
     QString m_standardInputPath;
+    bool m_expertMode;
     bool m_darkStyle;
     bool m_activeStyle;
     bool m_useCuda;

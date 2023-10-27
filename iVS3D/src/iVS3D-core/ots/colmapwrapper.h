@@ -340,6 +340,16 @@ class ColmapWrapper : public QObject
     bool getSetupSuccessful();
 
     /**
+     * @brief Set the use of expert mode.
+     */
+    void setUseExpertMode(const bool useExpertMode);
+
+    /**
+     * @brief Returns true if expert mode is activated.
+     */
+    bool isInExpertMode() const;
+
+    /**
      * @brief Returns wether robustMode should be used.
      */
     bool useRobustMode();
@@ -744,6 +754,9 @@ class ColmapWrapper : public QObject
     /// Settings object.
     QSettings mSettings;
 
+    /// flag wether to use expert mode, in which some 'user-guidance' features ar deactivated
+    bool mUseExpertMode;
+
     /// flag wether to use robust mode
     bool mUseRobustMode;
 
@@ -818,6 +831,7 @@ class ColmapWrapper : public QObject
 
     /// current status of the setup, true if colmap can be used
     bool mSetupSuccessful = false;
+
 };
 
 namespace ui {

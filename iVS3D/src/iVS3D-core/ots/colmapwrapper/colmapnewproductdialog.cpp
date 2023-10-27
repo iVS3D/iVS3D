@@ -78,9 +78,6 @@ NewProductDialog::~NewProductDialog()
 //==================================================================================================
 void NewProductDialog::onProdCameraPosesClicked()
 {
-    ui->cb_prodPointCloud->setEnabled(true);
-    ui->cb_prodPointCloud->setChecked(false);
-
     if (ui->cb_prodCameraPoses->isChecked()) {
         enableSaveButtonState();
     } else {
@@ -98,12 +95,18 @@ void NewProductDialog::onProdCameraPosesClicked()
 void NewProductDialog::onProdPointCloudClicked()
 {
     if (ui->cb_prodPointCloud->isChecked()) {
-        ui->cb_prodCameraPoses->setEnabled(false);
-        ui->cb_prodCameraPoses->setChecked(true);
+        if(!mpColmapWrapper->isInExpertMode())
+        {
+            ui->cb_prodCameraPoses->setEnabled(false);
+            ui->cb_prodCameraPoses->setChecked(true);
+        }
         enableSaveButtonState();
     } else {
-        ui->cb_prodCameraPoses->setEnabled(true);
-        ui->cb_prodCameraPoses->setChecked(false);
+        if(!mpColmapWrapper->isInExpertMode())
+        {
+            ui->cb_prodCameraPoses->setEnabled(true);
+            ui->cb_prodCameraPoses->setChecked(false);
+        }
         ui->buttonBox->button(QDialogButtonBox::Save)->setEnabled(false);
     }
     // TODO
@@ -117,17 +120,23 @@ void NewProductDialog::onProdPointCloudClicked()
 void NewProductDialog::onProdMeshClicked()
 {
     if (ui->cb_prodMesh->isChecked()) {
-        ui->cb_prodCameraPoses->setEnabled(false);
-        ui->cb_prodCameraPoses->setChecked(true);
-        ui->cb_prodPointCloud->setEnabled(false);
-        ui->cb_prodPointCloud->setChecked(true);
+        if(!mpColmapWrapper->isInExpertMode())
+        {
+            ui->cb_prodCameraPoses->setChecked(true);
+            ui->cb_prodCameraPoses->setEnabled(false);
+            ui->cb_prodPointCloud->setChecked(true);
+            ui->cb_prodPointCloud->setEnabled(false);
+        }
         enableSaveButtonState();
 
     } else {
-        ui->cb_prodCameraPoses->setEnabled(true);
-        ui->cb_prodCameraPoses->setChecked(false);
-        ui->cb_prodPointCloud->setEnabled(true);
-        ui->cb_prodPointCloud->setChecked(false);
+        if(!mpColmapWrapper->isInExpertMode())
+        {
+            ui->cb_prodCameraPoses->setChecked(false);
+            ui->cb_prodCameraPoses->setEnabled(true);
+            ui->cb_prodPointCloud->setChecked(false);
+            ui->cb_prodPointCloud->setEnabled(true);
+        }
         ui->buttonBox->button(QDialogButtonBox::Save)->setEnabled(false);
     }
 
