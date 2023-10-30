@@ -17,6 +17,13 @@ file(GLOB_RECURSE UI_FILES
     "${CMAKE_CURRENT_LIST_DIR}/*.ui"
 )
 
+# remove ots files on windows
+if(WIN32)
+    list(FILTER HEADER_FILES EXCLUDE REGEX "ots(.)*h")
+    list(FILTER SRC_FILES EXCLUDE REGEX "ots(.)*cpp")
+    list(FILTER UI_FILES EXCLUDE REGEX "ots(.)*ui")
+endif()
+
 # set include directories
 include_directories(SYSTEM
     ${Qt${QT_VERSION_MAJOR}Core_INCLUDE_DIRS}
@@ -89,10 +96,12 @@ add_dependencies(${TARGET_NAME}
 install(TARGETS ${TARGET_NAME} 
     DESTINATION bin
 )
-install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/copy_to_install_dir/ 
-    DESTINATION bin/colmap
-    FILES_MATCHING PATTERN "*"
-)
+if(WIN32)
+    install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/copy_to_install_dir/ 
+        DESTINATION bin/colmap
+        FILES_MATCHING PATTERN "*"
+    )
+endif()
 
 
 # TODO: Windows Build

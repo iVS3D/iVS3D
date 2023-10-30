@@ -25,8 +25,13 @@ set(PUBLIC_HEADER_FILES
 )
 
 # define library
-add_library(${TARGET_NAME}  SHARED
+add_library(${TARGET_NAME}  STATIC
     ${PUBLIC_HEADER_FILES}
+)
+
+# definition to export the interface
+target_compile_definitions(${TARGET_NAME}
+    PUBLIC IVS3DPLUGININTERFACE_LIBRARY
 )
 
 # set rpath

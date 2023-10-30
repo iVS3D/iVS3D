@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.9.0)
+cmake_minimum_required(VERSION 3.14.0)
 
 # get version from git-tag
 include(cmake/gitversion.cmake)
@@ -21,7 +21,10 @@ set(Build_Tests OFF CACHE BOOL "Build test routines.")
 set(With_CUDA ON CACHE BOOL "Build with CUDA library")
 
 # CXX Flags
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -std=c++17")
+set(CMAKE_CXX_STANDARD 17)
+if(NOT WIN32)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -std=c++17")
+endif()
 
 # Add paths to linker search and installed rpath.
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
