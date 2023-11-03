@@ -2,9 +2,16 @@ cmake_minimum_required(VERSION 3.14.0)
 
 # get version from git-tag
 include(cmake/gitversion.cmake)
+string(TIMESTAMP TODAY "%Y-%m-%d")
 
 # set project name
 project(iVS3D VERSION ${VERSION_STR})
+
+# define version and build date
+set(COMMON_COMPILE_DEFINITIONS ${COMMON_COMPILE_DEFINITIONS}
+    -DIVS3D_VER=${VERSION_STR}
+    -DIVS3D_DAT=${TODAY}
+)
 
 # Set build type to release if not specified otherwise
 if("${CMAKE_BUILD_TYPE}" STREQUAL "")
@@ -39,7 +46,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
 # OpenCV
-find_package(OpenCV 4.5 REQUIRED COMPONENTS
+find_package(OpenCV 4.7 REQUIRED COMPONENTS
     core
     imgcodecs
     videoio
@@ -48,7 +55,7 @@ find_package(OpenCV 4.5 REQUIRED COMPONENTS
 # CUDA (if applicable)
 if(With_CUDA)
 
-    find_package(CUDA 10.1 REQUIRED)
+    find_package(CUDA 12.0 REQUIRED)
 
     # set CUDNN variables
     set(CUDNN_INCLUDE_DIR "${CUDA_TOOLKIT_ROOT_DIR}/include" PATH FORCE)
