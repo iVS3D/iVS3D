@@ -166,6 +166,10 @@ MainWindow::MainWindow(QWidget *parent, bool dark, int cuda, bool createLog, boo
     setAcceptDrops(true);
     //disable automatic execution
     ui->actionStartAutoExec->setEnabled(false);
+
+    ui->actionOpen_Input->setIcon(QIcon(dark ? ":/icons/openFolderIconW" : ":/icons/openFolderIconB"));
+    ui->actionOpen_Input_Video->setIcon( QIcon(dark ? ":/icons/openVideoIconW"  : ":/icons/openVideoIconB"));
+    ui->actionOpen_Meta_Data->setIcon( QIcon(dark ? ":/icons/openMetaIconW"  : ":/icons/openMetaIconB"));
 }
 
 MainWindow::~MainWindow()

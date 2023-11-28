@@ -15,6 +15,7 @@ InfoWidget::InfoWidget(QWidget *parent, QString title, bool dark) :
     ui->setupUi(this);
     ui->toolButton_folder->setIcon(QIcon(dark ? ":/icons/openFolderIconW" : ":/icons/openFolderIconB"));
     ui->toolButton_video->setIcon( QIcon(dark ? ":/icons/openVideoIconW"  : ":/icons/openVideoIconB"));
+    ui->toolButton_meta->setIcon( QIcon(dark ? ":/icons/openMetaIconW"  : ":/icons/openMetaIconB"));
     ui->toolButton_meta->setEnabled(false);
 }
 
