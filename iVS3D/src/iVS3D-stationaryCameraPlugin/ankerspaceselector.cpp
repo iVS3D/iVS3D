@@ -69,6 +69,7 @@ std::vector<uint> AnkerSpaceSelector::nthFrameSelection(std::vector<uint> inputI
     for (int j = 0; j < (int)inputIdx.size(); j+=N) {
         sampledIdx.push_back(inputIdx[j]);
     }
+    sampledIdx.push_back(inputIdx.back());
     return sampledIdx;
 }
 

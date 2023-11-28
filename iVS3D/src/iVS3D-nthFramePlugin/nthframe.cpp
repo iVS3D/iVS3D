@@ -46,7 +46,7 @@ std::vector<uint> NthFrame::sampleImages(const std::vector<unsigned int> &imageL
             return std::vector<unsigned int>();
         }
         // show progress to user
-        int progress = (i * 100 / imageList.size()) ;
+        int progress = (i * 100 / imageList.size());
         QMetaObject::invokeMethod(
                     receiver,
                     "slot_makeProgress",

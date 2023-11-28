@@ -232,7 +232,7 @@ void ExportController::slot_export()
     }
 
     // check export resolution
-    if (validateResolution(m_resolution)) {
+    if (!validateResolution(m_resolution)) {
         m_outputWidget->setResolutionValid(false);
         return;
     }
