@@ -5,12 +5,13 @@ with_cuda{
 #
 #ADD PATH TO OPENCV WITH CUDA HERE (IF USED)
 #
-    include(C:\OpenCV\opencv-4.5.0-msvc2015-cuda-install\opencv-4.5.0-msvc2015-cuda.pri)
+    include(path/to/OpenCv/opencv_4.7.0_contrib_cuda12.0_gcc10.2.1_debian11_x64.pri)
     OPENCV_BIN_PATH = $$OPENCV_LIB_PATH/../bin
     OPENCV_BIN_FILES = *.dll
 
-#path to CUDA 10.1 with cuDNN 8.0.5 (Default path, if CUDA is added to PATH)
-    CUDA_BIN_PATH = $$(CUDA_PATH_V10_1)/bin
+#path to CUDA 12.0 with cuDNN (Default path, if CUDA is added to PATH)
+    include(path/to/Cuda/cuda_12.0_cudnn9.0.0_linux_nvidia500_x86_64/cuda_12.0_cudnn9.0.0_linux_nvidia500_x86_64.pri)
+    CUDA_BIN_PATH = $$(CUDA_PATH_V12_0)/bin
     CUDA_BIN_FILES = *.dll
 } else {
     message(USING OPENCV WITHOUT CUDA)
@@ -19,7 +20,7 @@ with_cuda{
 #
 #ADD PATH TO OPENCV WITHOUT CUDA HERE
 #
-    include(C:\OpenCV\opencv_4.5.0_msvc2015_x86_64\opencv_4.5.0_msvc2015_x86_64.pri)
+    include(path/to/OpenCv/opencv_4.7.0_contrib_gcc10.2.1_debian11_x64.pri)
     OPENCV_BIN_PATH = $$OPENCV_LIB_PATH/../bin
     OPENCV_BIN_FILES = *.dll
 }
@@ -31,3 +32,7 @@ MSVC_BIN_FILES += \
     msvcp140.dll \
     vcruntime140.dll \
     vcruntime140_1.dll
+
+# ORB_SLAM image
+include(path/to/ORB-SLAM3/orbslam3/orbslam3_01.pri)
+include(path/to/Pangolin/pangolin_0.5_gcc10.2.1_debian11_x64.pri)
