@@ -3,8 +3,9 @@
 
 Blur::Blur()
 {
+    QLocale locale = qApp->property("translation").toLocale();
     QTranslator* translator = new QTranslator();
-    translator->load(QLocale::system(), "blur", "_", ":/translations", ".qm");
+    translator->load(locale, "blur", "_", ":/translations", ".qm");
     qApp->installTranslator(translator);
     m_settingsWidget = nullptr;
     m_blurAlgorithms.push_back(new BlurLaplacian());

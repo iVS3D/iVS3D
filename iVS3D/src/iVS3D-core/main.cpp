@@ -44,6 +44,18 @@ void ignoreMessages(QtMsgType type, const QMessageLogContext &context, const QSt
     (void) msg;
 }
 
+void pickLocale(QString preferedLocale){
+    if(preferedLocale.compare("de", Qt::CaseInsensitive) == 0){
+        qApp->setProperty("translation", QLocale(QLocale::German));
+        return;
+    }
+    if(preferedLocale.compare("en", Qt::CaseInsensitive) == 0){
+        qApp->setProperty("translation", QLocale(QLocale::English));
+        return;
+    }
+    qApp->setProperty("translation", QLocale::system());
+}
+
 int main(int argc, char *argv[])
 {
 
@@ -60,6 +72,7 @@ int main(int argc, char *argv[])
     QCommandLineOption autoPath(QStringList() << "a" << "auto", "Load settings from <path>.", "path");
     QCommandLineOption outputPath(QStringList() << "o" << "out", "Save result to <path>.", "path");
     QCommandLineOption logPath(QStringList() << "l" << "log", "Log resulsts and process information to <path>.", "path");
+    QCommandLineOption translation(QStringList() << "t" << "translation", "Translate application to <locale>.", "de/en");
 
     parser.setApplicationDescription("intelligent video sampler 3d is designed to process image sequences and videos for 3d reconstruction. "
                                      "enhance reconstruction quality by filtering out blurry images and masking dynamic objects such as people or cars. "
@@ -73,14 +86,12 @@ int main(int argc, char *argv[])
     parser.addOption(outputPath);
     parser.addOption(noGUI);
     parser.addOption(logPath);
+    parser.addOption(translation);
 
     QStringList arguments;
     for(int i = 0; i < argc; ++i){
         arguments << argv[i];
     }
-
-    QTranslator* translator = new QTranslator();
-    translator->load(QLocale::system(), "core", "_", ":/translations", ".qm");
 
     if(!arguments.contains("--nogui")){
 
@@ -92,6 +103,10 @@ int main(int argc, char *argv[])
         a.setApplicationName("iVS3D");
         a.setApplicationVersion(QString(QUOTE(IVS3D_VER)));
         parser.process(a);
+        pickLocale(parser.value(translation));
+        qDebug() << "Locale: " << qApp->property("translation").toLocale();
+        QTranslator* translator = new QTranslator();
+        translator->load(qApp->property("translation").toLocale(), "core", "_", ":/translations", ".qm");
         a.installTranslator(translator);
 
 #if defined(Q_OS_WIN)
@@ -122,6 +137,10 @@ int main(int argc, char *argv[])
         a.setApplicationName("iVS3D");
         a.setApplicationVersion(QString(QUOTE(IVS3D_VER)));
         parser.process(a);
+        pickLocale(parser.value(translation));
+        qDebug() << "Locale: " << qApp->property("translation").toLocale();
+        QTranslator* translator = new QTranslator();
+        translator->load(qApp->property("translation").toLocale(), "core", "_", ":/translations", ".qm");
         a.installTranslator(translator);
 
 #if defined(Q_OS_WIN)

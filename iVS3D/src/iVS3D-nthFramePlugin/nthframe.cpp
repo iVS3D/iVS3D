@@ -2,8 +2,9 @@
 
 NthFrame::NthFrame()
 {
+    QLocale locale = qApp->property("translation").toLocale();
     QTranslator* translator = new QTranslator();
-    translator->load(QLocale::system(), "nth", "_", ":/translations", ".qm");
+    translator->load(locale, "nth", "_", ":/translations", ".qm");
     qApp->installTranslator(translator);
     m_N = 1;    // N initialized to stepwidth 1
     m_numFrames = 0;

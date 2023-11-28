@@ -2,8 +2,9 @@
 
 OptFlowController::OptFlowController()
 {
+    QLocale locale = qApp->property("translation").toLocale();
     QTranslator* translator = new QTranslator();
-    translator->load(QLocale::system(), "stationary", "_", ":/translations", ".qm");
+    translator->load(locale, "stationary", "_", ":/translations", ".qm");
     qApp->installTranslator(translator);
 }
 
