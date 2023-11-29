@@ -397,7 +397,7 @@ void Timeline::sbIndexChanged(int index)
 
 void Timeline::boundaryMoved(int xMovement, SlideableLabel *boundaryLabel)
 {
-    int movedRelPos = boundaryLabel->getRelPosition() + xMovement /*- boundaryLabel->width() / 2*/;
+    int movedRelPos = boundaryLabel->getRelPosition() + xMovement;
     int currIndex = qRound(m_totalTimeline->relPosToIndex(movedRelPos));
 
     if (boundaryLabel == m_startBoundaryLabel) {
@@ -411,6 +411,9 @@ void Timeline::boundaryMoved(int xMovement, SlideableLabel *boundaryLabel)
         positionBoundaries(m_boundaries.y(), m_boundaries.y());
     }
     positionBoundaries(m_boundaries.x(), m_boundaries.y());
+
+    // display current boundary position
+    emit sig_selectedChanged(currIndex);
 }
 
 void Timeline::slot_totalTimelineClicked(QPoint pos)
