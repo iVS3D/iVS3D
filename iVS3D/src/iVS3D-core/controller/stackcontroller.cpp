@@ -11,20 +11,29 @@ StackController::StackController(OperationStack* opStack, History* mipHistory, S
     m_opStack->addEntry("Loaded input");
 }
 
+StackController::~StackController()
+{
+    m_opStack->clear();
+    m_algoSettings.clear();
+    disconnect(m_opStack, &OperationStack::sig_rowClicked, this, &StackController::slot_rowClicked);
+    disconnect(m_opStack, &OperationStack::sig_clearClicked, this, &StackController::slot_clearClicked);
+}
+
 void StackController::select()
 {
     m_opStack->selectItem(m_history->getCurrentIndex());
 }
 
-void StackController::deleteInvalidFuture()
+void StackController::deleteInvalidFuture(int exportFlag)
 {
-    if (m_history->getCurrentIndex() < m_opStack->getSize() - 1) {
+    int currentIndex = m_history->getCurrentIndex() - exportFlag;
+    if (currentIndex < m_opStack->getSize() - 1) {
         //Dont delete the first element (Loaded input)
-        if (m_history->getCurrentIndex() == 0) {
-            m_opStack->removeItemsAfter(m_history->getCurrentIndex() + 1);
+        if (currentIndex == 0) {
+            m_opStack->removeItemsAfter(currentIndex + 1);
             return;
         }
-        m_opStack->removeItemsAfter(m_history->getCurrentIndex());
+        m_opStack->removeItemsAfter(currentIndex + 1);
     }
 }
 
@@ -114,7 +123,8 @@ void StackController::slot_keyframesChangedByPlugin(QString pluginName)
 
 void StackController::slot_exportFinished(QMap<QString, QVariant> settings)
 {
-    deleteInvalidFuture();
+    //In case of the export, the history is updated BEFORE the stack is updated --> the m_history index has to be reduced by 1
+    deleteInvalidFuture(1);
     QString name = "Export";
     name.append(" - ");
     QMapIterator<QString, QVariant> iter(settings);

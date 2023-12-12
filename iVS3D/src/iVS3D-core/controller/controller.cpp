@@ -8,6 +8,7 @@ Controller::Controller(QString inputPath, QString settingsPath, QString outputPa
 {
     m_videoPlayerController = nullptr;
     m_algorithmController = nullptr;
+    m_stackController = nullptr;
     QStringList algorithms = AlgorithmManager::instance().getAlgorithmNames();
     QStringList transforms = TransformManager::instance().getTransformList();
     int useCuda = -1;
@@ -512,6 +513,7 @@ void Controller::onSuccessfulOpen()
     }
 
     // remove old controllers if existing
+
     if(m_videoPlayerController)
     {
         disconnect(m_videoPlayerController, &VideoPlayerController::sig_hasStatusMessage, m_mainWindow, &MainWindow::slot_displayStatusMessage);
@@ -521,11 +523,14 @@ void Controller::onSuccessfulOpen()
         disconnect(m_algorithmController, &AlgorithmController::sig_hasStatusMessage, m_mainWindow, &MainWindow::slot_displayStatusMessage);
         delete m_algorithmController;
     }
-    if (m_exportController)
-    {
+    if (m_exportController) {
         disconnect(m_exportController, &ExportController::sig_hasStatusMessage, m_mainWindow, &MainWindow::slot_displayStatusMessage);
         delete m_exportController;
     }
+    if (m_stackController) {
+        delete m_stackController;
+    }
+
 
     // --- create new controllers for video player, export and image sampling
     // --- using the new data (in dataManager) and connect to main window

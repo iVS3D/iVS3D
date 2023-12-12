@@ -14,6 +14,7 @@ class StackController : public QObject
 
 public:
     StackController(OperationStack* opStack, History* mipHistory, SamplingWidget* samplingWidget, ExportController* exportController);
+    ~StackController();
     void select();
 
 
@@ -22,7 +23,7 @@ private:
     History* m_history;
     SamplingWidget* m_samplingWidget;
     ExportController* m_exportController;
-    void deleteInvalidFuture();
+    void deleteInvalidFuture(int exportFlag = 0);
     QMap<QString, QPair<int, QMap<QString, QVariant>>> m_algoSettings;
 
 
