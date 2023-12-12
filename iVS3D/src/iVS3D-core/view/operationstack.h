@@ -32,6 +32,7 @@ public:
 
     QString getItemString(int row);
 
+
 public slots:
 
     void slot_itemClicked(QListWidgetItem *item);
@@ -39,6 +40,11 @@ public slots:
 signals:
 
     void sig_rowClicked(int row);
+
+    void sig_clearClicked();
+
+private slots:
+    void on_button_clear_clicked();
 
 private:
     Ui::OperationStack *ui;

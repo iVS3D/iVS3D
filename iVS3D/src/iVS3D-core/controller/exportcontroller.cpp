@@ -440,7 +440,7 @@ void ExportController::slot_exportFinished(int result)
 
     if (result == -1) {
         emit sig_hasStatusMessage(tr("Export failed. Maybe the path is invalid"));
-        emit sig_exportFinished();
+        emit sig_exportFinished(getOutputSettings());
         return;
     }
 
@@ -456,7 +456,7 @@ void ExportController::slot_exportFinished(int result)
     #if defined(Q_OS_LINUX)
         m_colmap->setLocalPresetSequence(m_path.split("/").last(), m_path + "/images");
     #endif
-    emit sig_exportFinished();
+    emit sig_exportFinished(getOutputSettings());
 }
 
 void ExportController::slot_showExportSettings(QMap<QString, QVariant> exportSettings)

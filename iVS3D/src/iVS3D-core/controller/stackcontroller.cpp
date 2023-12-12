@@ -1,11 +1,13 @@
 #include "stackcontroller.h"
 
-StackController::StackController(OperationStack* opStack, History* mipHistory, SamplingWidget* samplingWidget)
+StackController::StackController(OperationStack* opStack, History* mipHistory, SamplingWidget* samplingWidget, ExportController* exportController)
 {
     m_opStack = opStack;
     m_history = mipHistory;
     m_samplingWidget = samplingWidget;
+    m_exportController = exportController;
     connect(m_opStack, &OperationStack::sig_rowClicked, this, &StackController::slot_rowClicked);
+    connect(m_opStack, &OperationStack::sig_clearClicked, this, &StackController::slot_clearClicked);
     m_opStack->addEntry("Loaded input");
 }
 
@@ -50,14 +52,31 @@ void StackController::slot_deleteAllKeyframes()
 }
 
 void StackController::slot_rowClicked(int row)
-{
-    m_history->restoreState(row);
+{   
     QString itemString = m_opStack->getItemString(row);
     if(m_algoSettings.contains(itemString)) {
         QPair<int, QMap<QString, QVariant>> algoData = m_algoSettings.value(itemString);
-        AlgorithmManager::instance().setSettings(algoData.first, algoData.second);
-        m_samplingWidget->setAlgorithm(algoData.first);
+        //-1 == Export
+        if (algoData.first == -1) {
+            m_exportController->setOutputSettings(algoData.second);
+        }
+        //Regular sampling
+        else {
+            AlgorithmManager::instance().setSettings(algoData.first, algoData.second);
+            m_samplingWidget->setAlgorithm(algoData.first);
+        }
+
     }
+    m_history->restoreState(row);
+}
+
+void StackController::slot_clearClicked()
+{
+    m_algoSettings.clear();
+    m_opStack->removeItemsAfter(1);
+    m_history->clear();
+    slot_rowClicked(0);
+    select();
 }
 
 void StackController::slot_algorithmFinished(int index)
@@ -91,4 +110,25 @@ void StackController::slot_keyframesChangedByPlugin(QString pluginName)
 {
     deleteInvalidFuture();
     m_opStack->addEntry("Keyframes changed by plugin " + pluginName);
+}
+
+void StackController::slot_exportFinished(QMap<QString, QVariant> settings)
+{
+    deleteInvalidFuture();
+    QString name = "Export";
+    name.append(" - ");
+    QMapIterator<QString, QVariant> iter(settings);
+    while(iter.hasNext()) {
+        iter.next();
+        QString identifier = iter.key() + " = " + iter.value().toString() + "; ";
+        if (iter.value().toString() == "") {
+            continue;
+        }
+        name.append(identifier);
+    }
+    name.chop(2);
+
+
+    m_opStack->addEntry(name);
+    m_algoSettings.insert(name, {-1, settings});
 }

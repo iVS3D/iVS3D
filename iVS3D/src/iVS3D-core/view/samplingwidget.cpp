@@ -30,6 +30,8 @@ SamplingWidget::SamplingWidget(QWidget *parent, QStringList algorithmList, QStri
     // disable generate Settings buttons
     ui->pushButton_2->setVisible(false);
     ui->radioButton->setVisible(false);
+    ui->label_2->setVisible(false);
+    ui->addAuto->setVisible(false);
     //
 }
 

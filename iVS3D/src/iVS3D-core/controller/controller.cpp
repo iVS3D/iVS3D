@@ -362,6 +362,7 @@ void Controller::slot_exportFinished()
 {
     m_exporting = false;
     TransformManager::instance().enableCuda(ApplicationSettings::instance().getUseCuda());
+    m_dataManager->getHistory()->slot_save();
 }
 
 void Controller::slot_undo()
@@ -569,10 +570,11 @@ void Controller::onSuccessfulOpen()
     connect(m_dataManager->getHistory(), &History::sig_historyChanged, this, &Controller::slot_historyChanged);
 
     //Create the StackController
-    m_stackController = new StackController(m_mainWindow->getOpStack(), m_dataManager->getHistory(), m_mainWindow->getSamplingWidget());
+    m_stackController = new StackController(m_mainWindow->getOpStack(), m_dataManager->getHistory(), m_mainWindow->getSamplingWidget(), m_exportController);
     connect(m_videoPlayerController, &VideoPlayerController::sig_toggleKeyframe, m_stackController, &StackController::slot_toggleKeyframe);
     connect(m_videoPlayerController, &VideoPlayerController::sig_deleteAllKeyframes, m_stackController, &StackController::slot_deleteAllKeyframes);
     connect(m_videoPlayerController, &VideoPlayerController::sig_deleteKeyframes, m_stackController, &StackController::slot_deleteKeyframes);
     connect(m_algorithmController, &AlgorithmController::sig_algorithmFinished, m_stackController, &StackController::slot_algorithmFinished);
     connect(m_algorithmController, &AlgorithmController::sig_keyframesChangedByPlugin, m_stackController, &StackController::slot_keyframesChangedByPlugin);
+    connect(m_exportController, &ExportController::sig_exportFinished, m_stackController, &StackController::slot_exportFinished);
 }

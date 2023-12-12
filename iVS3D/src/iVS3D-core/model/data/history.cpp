@@ -73,6 +73,17 @@ int History::getCurrentIndex()
     return m_currentIndex;
 }
 
+void History::clear()
+{
+    while (m_history.size() > 1) {
+        ModelInputPictures::Memento* l = m_history.last();
+        delete l;
+        m_history.removeLast();
+    }
+    m_currentIndex = 0;
+
+}
+
 void History::slot_save()
 {
     // save state of mip

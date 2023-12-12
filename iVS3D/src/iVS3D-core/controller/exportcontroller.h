@@ -101,8 +101,9 @@ signals:
     void sig_stopPlay();
     /**
      * @brief sig_exportFinished is emitted if an export finished
+     * @param Output settingsa
      */
-    void sig_exportFinished();
+    void sig_exportFinished(QMap<QString, QVariant> settings);
     /**
      * @brief sig_exportStarted is emitted if export started
      */

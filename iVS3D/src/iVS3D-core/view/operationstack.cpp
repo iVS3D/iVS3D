@@ -53,8 +53,15 @@ QString OperationStack::getItemString(int row)
     return ui->listWidget->item(row)->data(Qt::UserRole).toString();
 }
 
+
 void OperationStack::slot_itemClicked(QListWidgetItem *item)
 {
     int row = ui->listWidget->row(item);
     emit sig_rowClicked(row);
 }
+
+void OperationStack::on_button_clear_clicked()
+{
+    emit sig_clearClicked();
+}
+

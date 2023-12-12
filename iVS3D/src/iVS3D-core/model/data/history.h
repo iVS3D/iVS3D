@@ -54,6 +54,8 @@ public:
 
     int getCurrentIndex();
 
+    void clear();
+
 public slots:
     /**
      * @brief slot_save stores the current state of mip.
