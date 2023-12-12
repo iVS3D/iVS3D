@@ -89,6 +89,11 @@ signals:
      */
     void sig_stopPlay();
 
+
+    void sig_algorithmFinished(int index);
+
+    void sig_keyframesChangedByPlugin(QString name);
+
 public slots:
     void slot_updateKeyframes(QString pluginName, std::vector<uint> keyframes);
     void slot_updateBuffer(QString pluginName, QMap<QString, QVariant> buffer);

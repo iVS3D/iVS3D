@@ -146,6 +146,7 @@ void AlgorithmController::slot_updateKeyframes(QString pluginName, std::vector<u
         //Update keyframes if change is sent by currently active plugin
         m_dataManager->getModelInputPictures()->updateMIP(keyframes);
         m_dataManager->getHistory()->slot_save();
+        emit sig_keyframesChangedByPlugin(pluginName);
     }
 }
 
@@ -171,6 +172,8 @@ void AlgorithmController::slot_algorithmFinished(int)
 {
     auto duration_ms = m_timer.elapsed();
     emit sig_hasStatusMessage(AlgorithmManager::instance().getPluginNameToIndex(m_pluginIdx) + tr(" finished after ") + QString::number(duration_ms) + tr("ms"));
+    emit sig_algorithmFinished(m_pluginIdx);
     m_dataManager->getHistory()->slot_save();
     m_algorithmProgressDialog->close();
+
 }

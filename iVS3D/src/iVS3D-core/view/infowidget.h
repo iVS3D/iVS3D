@@ -2,6 +2,7 @@
 #define INFOWIDGET_H
 
 #include <QWidget>
+#include "operationstack.h"
 #include "stringcontainer.h"
 #include "cvmat_qmetadata.h"
 
@@ -71,6 +72,12 @@ public:
      */
     void setColorTheme(ColorTheme theme);
 
+    /**
+     * @brief getOpStack returns the OperationStack displayed on the InfoWidget
+     *
+     * @return Pointer to the current OperationStack
+     */
+    OperationStack* getOpStack();
 
 
 signals:

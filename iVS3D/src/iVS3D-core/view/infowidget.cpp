@@ -17,6 +17,7 @@ InfoWidget::InfoWidget(QWidget *parent, QString title, ColorTheme theme) :
     ui->toolButton_video->setIcon( QIcon(theme == DARK ? ":/icons/openVideoIconW"  : ":/icons/openVideoIconB"));
     ui->toolButton_meta->setIcon( QIcon(theme == DARK ? ":/icons/openMetaIconW"  : ":/icons/openMetaIconB"));
     ui->toolButton_meta->setEnabled(false);
+    ui->opStackWidget->setEnabled(false);
 }
 
 InfoWidget::~InfoWidget()
@@ -55,6 +56,8 @@ void InfoWidget::setInfo(QMap<QString, QString> info)
     tableHead += str;
     tableHead += "</table></body></html>";
     ui->label->setText(tableHead);
+    ui->opStackWidget->clear();
+    ui->opStackWidget->setEnabled(true);
 }
 
 void InfoWidget::enableOpenMetaData(bool status, QString tooltip)
@@ -79,7 +82,12 @@ void InfoWidget::setColorTheme(ColorTheme theme)
 {
     ui->toolButton_folder->setIcon(QIcon(theme == DARK ? ":/icons/openFolderIconW" : ":/icons/openFolderIconB"));
     ui->toolButton_video->setIcon( QIcon(theme == DARK ? ":/icons/openVideoIconW"  : ":/icons/openVideoIconB"));
-    ui->toolButton_meta->setIcon( QIcon(theme == DARK ? ":/icons/openMetaIconW"  : ":/icons/openMetaIconB"));
+    ui->toolButton_meta->setIcon(  QIcon(theme == DARK ? ":/icons/openMetaIconW"  : ":/icons/openMetaIconB"));
+}
+
+OperationStack *InfoWidget::getOpStack()
+{
+    return ui->opStackWidget;
 }
 
 void InfoWidget::on_toolButton_folder_clicked()

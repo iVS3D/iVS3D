@@ -1,34 +1,30 @@
 #include "history.h"
+#include <QDebug>
 
 History::History(ModelInputPictures *mip) : m_mip(mip)
 {
     // create snapshot of initial state
-    m_curr = mip->save();
+    m_currentIndex = 0;
+    m_history.append(mip->save());
 }
 
 History::~History()
 {
-    delete m_curr;
     // wipe future
-    for(auto m : m_future){
+    for(auto m : m_history){
         delete m;
     }
-    m_future.clear();
-    // wipe past
-    for(auto m : m_past){
-        delete m;
-    }
-    m_past.clear();
+    m_history.clear();
 }
 
 bool History::hasFuture()
 {
-    return !m_future.isEmpty();
+    return m_currentIndex < m_history.size() - 1;
 }
 
 bool History::hasPast()
 {
-    return !m_past.isEmpty();
+    return m_currentIndex != 0;
 }
 
 bool History::undo()
@@ -37,12 +33,10 @@ bool History::undo()
     if(!hasPast()) return false;
 
     // get last memento and restore its state
-    auto last = m_past.pop();
+    auto last = m_history.at(m_currentIndex - 1);
     m_mip->restore(last);
 
-    // store as future state for potential redo
-    m_future.push(m_curr);
-    m_curr = last;
+    m_currentIndex--;
     emit sig_historyChanged();
     return true;
 }
@@ -53,43 +47,45 @@ bool History::redo()
     if(!hasFuture()) return false;
 
     // get next memento and restore its state
-    auto next = m_future.pop();
+    auto next = m_history.at(m_currentIndex + 1);
     m_mip->restore(next);
 
-    // store as past state for potential redo
-    m_past.push(m_curr);
-    m_curr = next;
+    m_currentIndex++;
     emit sig_historyChanged();
     return true;
 }
 
-QStringList History::historyList()
+
+bool History::restoreState(int index)
 {
-    QStringList hist;
-    for(auto mem : m_past){
-        auto dat = mem->getSnapshotDate().toString("dd.MM.yyyy");
-        auto time = mem->getSnapshotDate().toString("hh:mm");
-        hist.append(dat + " - " + time);
+    if (index < 0 || index >= m_history.size()) {
+        return false;
     }
-    return hist;
+    auto next = m_history.at(index);
+    m_mip->restore(next);
+    m_currentIndex = index;
+    emit sig_historyChanged();
+    return true;
+}
+
+int History::getCurrentIndex()
+{
+    return m_currentIndex;
 }
 
 void History::slot_save()
 {
     // save state of mip
     auto mem = m_mip->save();
-
-    // store in past
-    if(m_curr)
-        m_past.push(m_curr);
-
-    m_curr = mem;
-
-    // wipe future
-    for(auto m : m_future){
-        delete m;
+    int indexToRemove = m_history.size() - 1;
+    while (indexToRemove > m_currentIndex) {
+        auto toDelete = m_history.at(indexToRemove);
+        delete toDelete;
+        m_history.remove(indexToRemove);
+        indexToRemove--;
     }
-    m_future.clear();
 
+    m_history.append(mem);
+    m_currentIndex++;
     emit sig_historyChanged();
 }

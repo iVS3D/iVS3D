@@ -2,8 +2,6 @@
 #define HISTORY_H
 
 #include <QObject>
-#include <QStack>
-#include <QStringList>
 #include "modelinputpictures.h"
 
 /**
@@ -50,11 +48,11 @@ public:
      * @return returns @a true if a future state was restored
      */
     bool redo();
-    /**
-     * @brief historyList returns the current history as a string list for printing.
-     * @return the history
-     */
-    QStringList historyList();
+
+
+    bool restoreState(int index);
+
+    int getCurrentIndex();
 
 public slots:
     /**
@@ -70,9 +68,9 @@ signals:
 
 private:
     ModelInputPictures *m_mip;
-    QStack<ModelInputPictures::Memento*> m_past;
-    ModelInputPictures::Memento* m_curr;
-    QStack<ModelInputPictures::Memento*> m_future;
+    QVector<ModelInputPictures::Memento*> m_history;
+    int m_currentIndex;
+
 };
 
 #endif // HISTORY_H

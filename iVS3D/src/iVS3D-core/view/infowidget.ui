@@ -148,7 +148,7 @@
      <property name="minimumSize">
       <size>
        <width>0</width>
-       <height>150</height>
+       <height>125</height>
       </size>
      </property>
      <property name="frameShape">
@@ -163,7 +163,7 @@
         <x>0</x>
         <y>0</y>
         <width>209</width>
-        <height>150</height>
+        <height>125</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -205,8 +205,26 @@
      </widget>
     </widget>
    </item>
+   <item>
+    <widget class="OperationStack" name="opStackWidget" native="true">
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>150</height>
+      </size>
+     </property>
+    </widget>
+   </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>OperationStack</class>
+   <extends>QWidget</extends>
+   <header location="global">operationstack.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

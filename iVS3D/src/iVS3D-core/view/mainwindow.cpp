@@ -39,6 +39,7 @@ MainWindow::MainWindow(QWidget *parent, ColorTheme theme, int cuda, bool createL
     m_samplingWidget = new SamplingWidget(this, algorithmList, transformList);
     m_outputWidget = new OutputWidget(this, "Output", transformList);
     m_autoWidget = new AutomaticWidget(this);
+    m_autoWidget->setVisible(false);
 
     // initialize the layout of GUI elements
     m_videoplayer->addWidgetToLayout(m_timeline); // timeline is part of videoplayer-layout
@@ -62,18 +63,18 @@ MainWindow::MainWindow(QWidget *parent, ColorTheme theme, int cuda, bool createL
     dock->setVisible(false);
 #endif
 
-    QDockWidget *d2 = dock;
-    dock = new QDockWidget(tr("Batch processing"), this);
-    dock->setObjectName("Batch");
+    /*QDockWidget *d2 = dock;
+    dock = new QDockWidget(tr("Operation Stack"), this);
+    dock->setObjectName("Stack");
     dock->setAllowedAreas(
                 Qt::BottomDockWidgetArea |
                 Qt::TopDockWidgetArea |
                 Qt::LeftDockWidgetArea |
                 Qt::RightDockWidgetArea);
-    dock->setWidget(addFrame(m_autoWidget));
+    dock->setWidget(addFrame(m_opStack));
     addDockWidget(Qt::BottomDockWidgetArea, dock);
     ui->menuView->addAction(dock->toggleViewAction());
-    splitDockWidget(d2,dock,Qt::Vertical);
+    splitDockWidget(d2,dock,Qt::Vertical);*/
 
 #ifdef HIDE_INPUT_WIDGET
     dock->setVisible(false);
@@ -142,7 +143,7 @@ MainWindow::MainWindow(QWidget *parent, ColorTheme theme, int cuda, bool createL
     m_inputWidget->setEnabled(true);
     m_samplingWidget->setEnabled(false);
     m_outputWidget->setEnabled(false);
-    m_autoWidget->setEnabled(false);
+    //m_opStack->setEnabled(false);
 
     // --- use dark style if selected
     this->setColorTheme(theme);
@@ -345,6 +346,11 @@ void MainWindow::setColorTheme(ColorTheme theme)
     m_videoplayer->setColorTheme(theme);
 }
 
+OperationStack *MainWindow::getOpStack()
+{
+    return m_inputWidget->getOpStack();
+}
+
 void MainWindow::on_actionOpen_Project_triggered()
 {
     emit sig_openProject();
@@ -505,3 +511,5 @@ QFrame *MainWindow::addFrame(QWidget *w)
      f->setLayout(l);
      return f;
 }
+
+

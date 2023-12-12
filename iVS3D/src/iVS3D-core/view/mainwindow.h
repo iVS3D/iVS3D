@@ -29,6 +29,7 @@
 #include "view/about.h"
 #include "view/darkstyle/DarkStyle.h"
 
+#include "operationstack.h"
 #include "stringcontainer.h"
 
 #define UI_LAYOUT_VERSION "1.0.0"
@@ -160,6 +161,14 @@ public:
     bool getInputEnabled();
 
     void setColorTheme(ColorTheme theme);
+
+    /**
+     * @brief getOpStack returns the OperationStack displayed on the InfoWidget
+     *
+     * @return Pointer to the current OperationStack
+     */
+    OperationStack* getOpStack();
+
 
 
 signals:

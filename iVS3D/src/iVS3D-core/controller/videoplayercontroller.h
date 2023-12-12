@@ -215,6 +215,23 @@ signals:
      */
     void sig_sendToITransform(uint idx, const cv::Mat &img);
 
+    /**
+     * @brief [signal] sig_toggleKeyframe notifies about a manual keyframe change by clicking Add keyframe/Remove keyframe
+     * @param idx Index of the changed frame
+     * @param isNowKeyframe @a true if the frame wasn't a keyframe and became one by the user, @a false otherwise
+     */
+    void sig_toggleKeyframe(uint idx, bool isNowKeyframe);
+
+    /**
+     * @brief [signal] sig_deleteKeyframes is emitted when all keyframes are deleted
+     */
+    void sig_deleteKeyframes();
+
+    /**
+     * @brief [signal] sig_deleteAllKeyframes is emitted when frames are reseted to be keyframes
+     */
+    void sig_deleteAllKeyframes();
+
 private slots:
     void slot_timerNextImage();
 

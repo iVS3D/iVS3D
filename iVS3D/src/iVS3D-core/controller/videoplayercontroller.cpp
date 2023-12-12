@@ -42,7 +42,7 @@ VideoPlayerController::VideoPlayerController(QObject *parent, VideoPlayer *playe
     connect(m_videoPlayer, &VideoPlayer::sig_toggleKeyframes, this, &VideoPlayerController::slot_toggleKeyframe);
     connect(m_videoPlayer, &VideoPlayer::sig_toggleKeyframesOnly, this, &VideoPlayerController::slot_toggleKeyframesOnly);
     connect(m_videoPlayer, &VideoPlayer::sig_changeStepsize, this, &VideoPlayerController::slot_changeStepSize);
-    //connect(m_videoPlayer, &VideoPlayer::sig_deleteAllKeyframes, this, &VideoPlayerController::slot_deleteAllKeyframes);
+
 
     // connect timeline
     connect(m_timeline, &Timeline::sig_selectedChanged, this, &VideoPlayerController::slot_changeIndex);
@@ -53,10 +53,6 @@ VideoPlayerController::VideoPlayerController(QObject *parent, VideoPlayer *playe
 
     // connect timer
     connect(m_timer, &QTimer::timeout, this, &VideoPlayerController::slot_timerNextImage);
-
-    // connect algoController
-    //connect(algoController, &AlgorithmController::sig_updateView, this, &VideoPlayerController::slot_redraw);
-    //connect(algoController, QOverload<cv::Mat*,int>::of(&AlgorithmController::sig_transformFinished), this, &VideoPlayerController::slot_imageProcessed);
 
     ConcurrentReader *r = m_dataManager->getModelInputPictures()->createConcurrentReader();
     r->moveToThread(&workerThread);
@@ -84,6 +80,7 @@ VideoPlayerController::~VideoPlayerController()
     disconnect(m_videoPlayer, &VideoPlayer::sig_toggleKeyframes, this, &VideoPlayerController::slot_toggleKeyframe);
     disconnect(m_videoPlayer, &VideoPlayer::sig_toggleKeyframesOnly, this, &VideoPlayerController::slot_toggleKeyframesOnly);
     disconnect(m_videoPlayer, &VideoPlayer::sig_changeStepsize, this, &VideoPlayerController::slot_changeStepSize);
+
 
     // connect timeline
     disconnect(m_timeline, &Timeline::sig_selectedChanged, this, &VideoPlayerController::slot_changeIndex);
@@ -155,8 +152,10 @@ void VideoPlayerController::slot_toggleKeyframe()
 {
     if(m_dataManager->getModelInputPictures()->isKeyframe(m_imageIndex)){
         m_dataManager->getModelInputPictures()->removeKeyframe(m_imageIndex);
+        emit sig_toggleKeyframe(m_imageIndex, false);
     } else {
         m_dataManager->getModelInputPictures()->addKeyframe(m_imageIndex);
+        emit sig_toggleKeyframe(m_imageIndex, true);
     }
     m_dataManager->getHistory()->slot_save();
     m_videoPlayer->setKeyframe(m_dataManager->getModelInputPictures()->isKeyframe(m_imageIndex));
@@ -219,10 +218,12 @@ void VideoPlayerController::slot_deleteKeyframes()
 {
     uint index = m_timeline->selectedFrame();
     m_dataManager->getModelInputPictures()->updateMIP(std::vector<unsigned int>());
+    emit sig_deleteKeyframes();
     m_dataManager->getHistory()->slot_save();
     m_timeline->selectFrame(index);
     //force to enable correct buttons
     slot_toggleKeyframesOnly(m_keyframesOnly);
+
 }
 
 void VideoPlayerController::slot_deleteAllKeyframes()
@@ -239,10 +240,12 @@ void VideoPlayerController::slot_deleteAllKeyframes()
         }
         m_dataManager->getModelInputPictures()->updateMIP(allFrames);
         m_dataManager->getModelInputPictures()->setBoundaries(bs);
+        emit sig_deleteAllKeyframes();
         m_dataManager->getHistory()->slot_save();
         m_timeline->selectFrame(index);
         //force to enable correct buttons
         slot_toggleKeyframesOnly(m_keyframesOnly);
+
     }
 }
 

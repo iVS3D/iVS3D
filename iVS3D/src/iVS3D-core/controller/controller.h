@@ -13,6 +13,7 @@
 #include "applicationsettings.h"
 #include "automaticexecutor.h"
 #include "automaticexecsettings.h"
+#include "stackcontroller.h"
 
 #include "view/mainwindow.h"
 #include "view/progressdialog.h"
@@ -160,6 +161,7 @@ private:
     AlgorithmController* m_algorithmController;
     ExportController *m_exportController;
     AutomaticController* m_automaticController;
+    StackController *m_stackController;
     MainWindow* m_mainWindow;
     DataManager* m_dataManager;
     OpenExecutor *m_openExec;

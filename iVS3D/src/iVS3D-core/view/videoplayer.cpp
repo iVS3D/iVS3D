@@ -10,7 +10,19 @@ VideoPlayer::VideoPlayer(QWidget *parent, ColorTheme theme) :
     ui->graphicsView->setAcceptDrops(false);
     ui->widget->setLayout(new QVBoxLayout(this));
     ui->widget->layout()->setContentsMargins(0,0,0,0);
+<<<<<<< HEAD
     setColorTheme(theme);
+=======
+    m_dark = dark;
+    QString col = m_dark ? "W" : "B";
+    ui->pushButton_resetKeyframes->setIcon(QIcon(":/icons/trashIcon" + col));
+    ui->pushButton_firstPic->setIcon(QIcon(":/icons/fastRewindIcon" + col));
+    ui->pushButton_lastPic->setIcon(QIcon(":/icons/fastForwardIcon" + col));
+    ui->pushButton_nextPic->setIcon(QIcon(":/icons/nextIcon" + col));
+    ui->pushButton_prevPic->setIcon(QIcon(":/icons/prevIcon" + col));
+    ui->pushButton_playPause->setIcon(QIcon(":/icons/playIcon" + col));
+
+>>>>>>> f621fab (Initial commit of a stack visualizing the keyframe history)
     m_nextSC = new QShortcut(QKeySequence(/*Qt::CTRL + */Qt::Key_Right), this);
     m_prevSC = new QShortcut(QKeySequence(/*Qt::CTRL + */Qt::Key_Left), this);
 
@@ -184,7 +196,7 @@ void VideoPlayer::on_spinBox_stepsize_valueChanged(int arg1)
     emit sig_changeStepsize(arg1);
 }
 
-void VideoPlayer::on_pushButton_clicked()
+void VideoPlayer::on_pushButton_resetKeyframes_clicked()
 {
     emit sig_deleteAllKeyframes();
 }

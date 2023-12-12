@@ -190,7 +190,7 @@ private slots:
     void on_checkBox_onlyKeyframes_stateChanged(int arg1);
     void on_pushButton_setKeyframe_clicked();
     void on_spinBox_stepsize_valueChanged(int arg1);
-    void on_pushButton_clicked();
+    void on_pushButton_resetKeyframes_clicked();
 
 private:
     Ui::VideoPlayer *ui;
