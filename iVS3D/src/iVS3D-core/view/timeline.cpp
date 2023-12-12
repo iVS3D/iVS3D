@@ -10,6 +10,8 @@ Timeline::Timeline(QWidget *parent) :
     m_highlighter = new SlideableLabel(this);
     m_highlighter->setStyleSheet("background-color: rgba(0, 139, 208, 150 );");
     m_highlighter->setFrameStyle(QFrame::Box);
+    m_highlighter->setPixmap(QPixmap(":/icons/magnifierIconBW"));
+    m_highlighter->setAlignment(Qt::AlignCenter);
     // create marker
     m_marker = new SlideableLabel(this);
     m_marker->setWidth(10);
@@ -231,7 +233,7 @@ QPointF Timeline::getHighlighterRange()
 void Timeline::setupSpinBoxes()
 {
     // setup zoomSpinBox
-    m_zoomSpinBox->setMinimum(0.1);
+    m_zoomSpinBox->setMinimum(1.0);
     float maxZoom = (float)(50 * m_zoomTimeline->width()) / m_frameCount;
     maxZoom = maxZoom > 50 ? 50 : maxZoom;
     m_zoomSpinBox->setMaximum(maxZoom);

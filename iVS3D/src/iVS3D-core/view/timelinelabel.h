@@ -6,6 +6,7 @@
 #include <QPainter>
 #include <QMouseEvent>
 #include <QtMath>
+#include <QColor>
 
 // color definitions
 #define INBOUND_COLOR Qt::red

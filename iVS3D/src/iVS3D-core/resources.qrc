@@ -29,6 +29,7 @@
         <file alias="undoIconW">resources/ic_undo_white.png</file>
         <file alias="redoIconB">resources/ic_redo_black.png</file>
         <file alias="redoIconW">resources/ic_redo_white.png</file>
+        <file alias="magnifierIconBW">resources/magnifying-glass-solid.svg</file>
     </qresource>
     <qresource prefix="/">
         <file>translations/core_de.qm</file>

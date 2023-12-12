@@ -126,7 +126,7 @@
          <string/>
         </property>
         <property name="styleSheet">
-         <string notr="true">background-color: rgb(188, 188, 188);</string>
+         <string notr="true">background-color: rgba(0, 139, 208,150);</string>
         </property>
         <property name="frameShape">
          <enum>QFrame::Box</enum>
@@ -154,7 +154,7 @@
          <string>Range of zoom timeline relative to all images</string>
         </property>
         <property name="locale">
-         <locale language="C" country="AnyCountry"/>
+         <locale language="C" country="AnyTerritory"/>
         </property>
         <property name="alignment">
          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
