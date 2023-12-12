@@ -367,11 +367,13 @@ void Controller::slot_exportFinished()
 void Controller::slot_undo()
 {
     m_dataManager->getHistory()->undo();
+    m_stackController->select();
 }
 
 void Controller::slot_redo()
 {
     m_dataManager->getHistory()->redo();
+    m_stackController->select();
 }
 
 void Controller::slot_historyChanged()
@@ -567,7 +569,7 @@ void Controller::onSuccessfulOpen()
     connect(m_dataManager->getHistory(), &History::sig_historyChanged, this, &Controller::slot_historyChanged);
 
     //Create the StackController
-    m_stackController = new StackController(m_mainWindow->getOpStack(), m_dataManager->getHistory());
+    m_stackController = new StackController(m_mainWindow->getOpStack(), m_dataManager->getHistory(), m_mainWindow->getSamplingWidget());
     connect(m_videoPlayerController, &VideoPlayerController::sig_toggleKeyframe, m_stackController, &StackController::slot_toggleKeyframe);
     connect(m_videoPlayerController, &VideoPlayerController::sig_deleteAllKeyframes, m_stackController, &StackController::slot_deleteAllKeyframes);
     connect(m_videoPlayerController, &VideoPlayerController::sig_deleteKeyframes, m_stackController, &StackController::slot_deleteKeyframes);

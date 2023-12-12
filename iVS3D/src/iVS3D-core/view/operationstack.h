@@ -27,6 +27,11 @@ public:
      */
     void removeItemsAfter(int row);
 
+
+    void selectItem(int row);
+
+    QString getItemString(int row);
+
 public slots:
 
     void slot_itemClicked(QListWidgetItem *item);

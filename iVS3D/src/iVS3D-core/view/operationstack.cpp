@@ -19,6 +19,7 @@ void OperationStack::addEntry(QString name)
 {
     QString number = "(" + QString::number(getSize() + 1) + ")  ";
     QListWidgetItem* newItem = new QListWidgetItem(number + name);
+    newItem->setData(Qt::UserRole, name);
     ui->listWidget->addItem(newItem);
     ui->listWidget->setCurrentItem(newItem);
 }
@@ -39,6 +40,17 @@ void OperationStack::removeItemsAfter(int row)
         auto item = ui->listWidget->takeItem(getSize() - 1);
         delete item;
     }
+}
+
+void OperationStack::selectItem(int row)
+{
+    auto selected_item = ui->listWidget->item(row);
+    ui->listWidget->setCurrentItem(selected_item);
+}
+
+QString OperationStack::getItemString(int row)
+{
+    return ui->listWidget->item(row)->data(Qt::UserRole).toString();
 }
 
 void OperationStack::slot_itemClicked(QListWidgetItem *item)

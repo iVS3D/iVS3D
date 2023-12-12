@@ -1,11 +1,17 @@
 #include "stackcontroller.h"
 
-StackController::StackController(OperationStack* opStack, History* mipHistory)
+StackController::StackController(OperationStack* opStack, History* mipHistory, SamplingWidget* samplingWidget)
 {
     m_opStack = opStack;
     m_history = mipHistory;
+    m_samplingWidget = samplingWidget;
     connect(m_opStack, &OperationStack::sig_rowClicked, this, &StackController::slot_rowClicked);
     m_opStack->addEntry("Loaded input");
+}
+
+void StackController::select()
+{
+    m_opStack->selectItem(m_history->getCurrentIndex());
 }
 
 void StackController::deleteInvalidFuture()
@@ -46,6 +52,12 @@ void StackController::slot_deleteAllKeyframes()
 void StackController::slot_rowClicked(int row)
 {
     m_history->restoreState(row);
+    QString itemString = m_opStack->getItemString(row);
+    if(m_algoSettings.contains(itemString)) {
+        QPair<int, QMap<QString, QVariant>> algoData = m_algoSettings.value(itemString);
+        AlgorithmManager::instance().setSettings(algoData.first, algoData.second);
+        m_samplingWidget->setAlgorithm(algoData.first);
+    }
 }
 
 void StackController::slot_algorithmFinished(int index)
@@ -72,6 +84,7 @@ void StackController::slot_algorithmFinished(int index)
 
     } 
     m_opStack->addEntry(name);
+    m_algoSettings.insert(name, {index, settings});
 }
 
 void StackController::slot_keyframesChangedByPlugin(QString pluginName)

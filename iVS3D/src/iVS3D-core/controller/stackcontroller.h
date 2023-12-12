@@ -4,7 +4,7 @@
 #include <QObject>
 #include "history.h"
 #include "operationstack.h"
-
+#include "samplingwidget.h"
 
 
 class StackController : public QObject
@@ -12,13 +12,16 @@ class StackController : public QObject
     Q_OBJECT
 
 public:
-    StackController(OperationStack* opStack, History* mipHistory);
+    StackController(OperationStack* opStack, History* mipHistory, SamplingWidget* samplingWidget);
+    void select();
 
 
 private:
     OperationStack* m_opStack;
     History* m_history;
+    SamplingWidget* m_samplingWidget;
     void deleteInvalidFuture();
+    QMap<QString, QPair<int, QMap<QString, QVariant>>> m_algoSettings;
 
 
 public slots:
