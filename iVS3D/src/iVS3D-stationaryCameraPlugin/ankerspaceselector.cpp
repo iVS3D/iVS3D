@@ -8,11 +8,11 @@ std::vector<uint> AnkerSpaceSelector::select(std::vector<uint> frameVector, std:
     if (frameVector.size() < 1) {
         return {};
     }
-    int targetKeyframeCount = frameVector.size() * (1.0-m_frameReduction);
+    int targetKeyframeCount = (int)ceil((float)frameVector.size() / m_frameReduction);
 
     //      select anker frames
     // gather anker frames with nframe over orbKeyframes
-    int ankerRatio = ANKER_TO_FILL_RATIO / (1.0-m_frameReduction);
+    int ankerRatio = ANKER_TO_FILL_RATIO * m_frameReduction;
     std::vector<uint> keyframes = nthFrameSelection(frameVector, ankerRatio);
 
     //      setup keyframe spaces
@@ -59,7 +59,7 @@ std::vector<uint> AnkerSpaceSelector::select(std::vector<uint> frameVector, std:
 void AnkerSpaceSelector::readSettings(Settings settings) {
     for (auto s : settings) {
         if (s.name == FRAMEREDUCTION_NAME) {
-            m_frameReduction = s.value.toDouble();
+            m_frameReduction = s.value.toInt();
         }
     }
 }

@@ -8,7 +8,7 @@
 #include "factory.h"
 
 #define FRAMEREDUCTION_NAME QObject::tr("Frame reduction")
-#define FRAMEREDUCTION_DESCRIPTION QObject::tr("Describes how many frames should be removed. (0.00=none, 1.00=all, -N=disabled). If this parameter is set the threshold used as start value for the binary search.")
+#define FRAMEREDUCTION_DESCRIPTION QObject::tr("Describes how many frames should be removed. Reduces the amount of images by factor K.")
 #define ANKER_TO_FILL_RATIO 5 // every xth selected keyframe is an anker frame
 
 /**
@@ -57,11 +57,11 @@ private:
                                  std::vector<double> &flowValues);
 
     // member variables
-    double m_frameReduction = 0.90;
+    int m_frameReduction = 30;
 };
 
 static KeyframeSelector::Settings settings = {
-    KeyframeSelector::Parameter{FRAMEREDUCTION_NAME, FRAMEREDUCTION_DESCRIPTION, (double)0.90}
+    KeyframeSelector::Parameter{FRAMEREDUCTION_NAME, FRAMEREDUCTION_DESCRIPTION, (int) 30}
 };
 
 REGISTER_SELECTOR("Ankerspace Selector", AnkerSpaceSelector, settings)
