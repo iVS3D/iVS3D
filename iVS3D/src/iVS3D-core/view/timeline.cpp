@@ -8,7 +8,7 @@ Timeline::Timeline(QWidget *parent) :
 
     // create highlighter
     m_highlighter = new SlideableLabel(this);
-    m_highlighter->setStyleSheet("background-color: rgba(0, 139, 208, 150 );");
+    m_highlighter->setStyleSheet("background-color: rgba(0, 139, 208, 150 ); border-width: 1px; border-style: solid; border-color: black;");
     m_highlighter->setFrameStyle(QFrame::Box);
     m_highlighter->setPixmap(QPixmap(":/icons/magnifierIconBW"));
     m_highlighter->setAlignment(Qt::AlignCenter);
