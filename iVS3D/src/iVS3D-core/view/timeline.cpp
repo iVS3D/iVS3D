@@ -20,7 +20,6 @@ Timeline::Timeline(QWidget *parent) :
     m_marker->setPixmap(pix);
 
     const uint boundariesWidth = QGuiApplication::primaryScreen()->size().width() / 200;
-//    const uint boundariesWidth = 10;
     // create start boundary-marker
     m_startBoundaryLabel = new SlideableLabel(this);
     m_startBoundaryLabel->setWidth(boundariesWidth);
@@ -83,24 +82,21 @@ void Timeline::resize()
     // setup marker
     m_marker->setYLevel(m_zoomTimeline->parentWidget()->y());
     m_marker->setHeight(m_zoomTimeline->parentWidget()->height());
-    uint markerMinX = m_zoomTimeline->parentWidget()->x() - m_marker->width() / 2 - m_marker->lineWidth() + 3;
+    uint markerMinX = m_zoomTimeline->x() - m_marker->width() / 2 - m_marker->lineWidth() + 3;
     uint markerMaxX = markerMinX + m_zoomTimeline->width();
-    m_marker->setIntervall(QPoint(markerMinX, markerMaxX));
-    // set bounderies for the second time to adjust the maxX
-    markerMaxX = m_zoomTimeline->indexToRelPos(m_frameCount - 1);
     m_marker->setIntervall(QPoint(markerMinX, markerMaxX));
 
     // setup start boundary marker
     m_startBoundaryLabel->setYLevel(m_totalTimeline->parentWidget()->y());
     m_startBoundaryLabel->setHeight(m_totalTimeline->parentWidget()->height());
-    uint startBoundaryMinX = m_totalTimeline->parentWidget()->x();
+    uint startBoundaryMinX = m_totalTimeline->x();
     uint startBoundaryMaxX = startBoundaryMinX + m_zoomTimeline->width();
     m_startBoundaryLabel->setIntervall(QPoint(startBoundaryMinX, startBoundaryMaxX));
     // setup end boudary marker
     m_endBoundaryLabel->setYLevel(m_totalTimeline->parentWidget()->y());
     m_endBoundaryLabel->setHeight(m_totalTimeline->parentWidget()->height());
-    uint endBoundaryMinX = m_totalTimeline->parentWidget()->x() - m_startBoundaryLabel->width()/2;
-    uint endBoundaryMaxX = endBoundaryMinX + m_zoomTimeline->width() - m_startBoundaryLabel->width()/2;
+    uint endBoundaryMinX = m_totalTimeline->x() - m_startBoundaryLabel->width()/2;
+    uint endBoundaryMaxX = endBoundaryMinX + m_totalTimeline->width() - m_startBoundaryLabel->width()/2;
     m_endBoundaryLabel->setIntervall(QPoint(endBoundaryMinX, endBoundaryMaxX));
 
     // correct position after resizing
@@ -413,9 +409,6 @@ void Timeline::boundaryMoved(int xMovement, SlideableLabel *boundaryLabel)
         positionBoundaries(m_boundaries.y(), m_boundaries.y());
     }
     positionBoundaries(m_boundaries.x(), m_boundaries.y());
-
-    // display current boundary position
-    emit sig_selectedChanged(currIndex);
 }
 
 void Timeline::slot_totalTimelineClicked(QPoint pos)
