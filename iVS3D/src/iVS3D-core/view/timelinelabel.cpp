@@ -110,10 +110,11 @@ QPixmap TimelineLabel::drawPixmap(bool timeStamps, QPoint boundaries)
         }
 
         uint x = indexToRelPos(index);
-        QLine line = QLine(x, lineMarginTop, x, lineHeight + lineMarginBottom);
         if (lowerBound <= index && index <= upperBound) {
+            QLine line = QLine(x, lineMarginTop, x, lineHeight + lineMarginBottom);
             inBoundKeyframeLines.push_back(line);
         } else {
+            QLine line = QLine(x, lineMarginTop + lineHeight / 3, x, lineHeight + lineMarginBottom);
             outOfBoundKeyframeLines.push_back(line);
         }
     }
@@ -126,5 +127,26 @@ QPixmap TimelineLabel::drawPixmap(bool timeStamps, QPoint boundaries)
     painter.setPen(pen);
     painter.drawLines(outOfBoundKeyframeLines);
 
+    // draw boundaries
+    if (timeStamps) {
+        pen.setColor(BOUNDARY_COLOR);
+        pen.setWidth(2);
+        painter.setPen(pen);
+        painter.drawLines(boundaryLines(boundaries));
+    }
     return pix;
+}
+
+QVector<QLine> TimelineLabel::boundaryLines(QPoint boundaries)
+{
+    QVector<QLine> lines;
+    uint labelHeight = this->height();
+    uint xOffsetLowerBound = indexToRelPos(boundaries.x());
+    uint xOffsetUpperBound = indexToRelPos(boundaries.y());
+
+    lines.push_back(QLine(QPoint(xOffsetLowerBound, 0),
+                          QPoint(xOffsetLowerBound, labelHeight - 1)));
+    lines.push_back(QLine(QPoint(xOffsetUpperBound, 0),
+                          QPoint(xOffsetUpperBound, labelHeight - 1)));
+    return lines;
 }

@@ -22,6 +22,7 @@
 #define ERROR_MSG_SINGLE QString(tr("Frame %1 is corrupted. It won´t be considered when selecting keyframes or exported at the end of the process."))
 #define ERROR_MSG_MULTI QString(tr("Frames %1 are corrupted. They won´t be considered when selecting keyframes or exported at the end of the process."))
 #define ERROR_MSG_APPROX_COUNT 5
+#define BOUDNARY_STATIONARY_DURATION 1000 // in ms
 
 /**
  * @class VideoPlayerController
@@ -234,12 +235,14 @@ signals:
 
 private slots:
     void slot_timerNextImage();
+    void slot_boundaryStopped();
 
 private:
     VideoPlayer *m_videoPlayer;
     Timeline *m_timeline;
     DataManager *m_dataManager;
-    QTimer *m_timer;
+    QTimer *m_frametimer;
+    QTimer *m_boundaryMoveTimer;
     unsigned int m_imageIndex;
     unsigned int m_imageIndexOnScreen;
     unsigned int m_stepsize;

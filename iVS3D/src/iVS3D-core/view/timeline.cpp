@@ -90,7 +90,7 @@ void Timeline::resize()
     m_startBoundaryLabel->setYLevel(m_totalTimeline->parentWidget()->y());
     m_startBoundaryLabel->setHeight(m_totalTimeline->parentWidget()->height());
     uint startBoundaryMinX = m_totalTimeline->x();
-    uint startBoundaryMaxX = startBoundaryMinX + m_zoomTimeline->width();
+    uint startBoundaryMaxX = startBoundaryMinX + m_totalTimeline->width();
     m_startBoundaryLabel->setIntervall(QPoint(startBoundaryMinX, startBoundaryMaxX));
     // setup end boudary marker
     m_endBoundaryLabel->setYLevel(m_totalTimeline->parentWidget()->y());

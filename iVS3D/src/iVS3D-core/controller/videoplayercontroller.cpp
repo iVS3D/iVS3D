@@ -1,4 +1,4 @@
-#include "videoplayercontroller.h"
+﻿#include "videoplayercontroller.h"
 
 
 VideoPlayerController::VideoPlayerController(QObject *parent, VideoPlayer *player, Timeline *timeline, DataManager *dataManager, AlgorithmController *algoController)
@@ -7,8 +7,8 @@ VideoPlayerController::VideoPlayerController(QObject *parent, VideoPlayer *playe
     m_videoPlayer = player;
     m_timeline = timeline;
     m_dataManager = dataManager;
-    m_timer = new QTimer();
-    m_timer->start(m_frametime);
+    m_frametimer = new QTimer();
+    m_frametimer->start(m_frametime);
     m_imageIndex = 0;
     m_imageIndexOnScreen = 1;
     m_stepsize = 1;
@@ -17,6 +17,10 @@ VideoPlayerController::VideoPlayerController(QObject *parent, VideoPlayer *playe
     m_iterator = ModelInputIteratorFactory::createIterator(ModelInputIteratorFactory::Images);
     m_algoController = algoController;
 
+    m_boundaryMoveTimer = new QTimer(this);
+    m_boundaryMoveTimer->setSingleShot(true);
+    m_boundaryMoveTimer->setInterval(BOUDNARY_STATIONARY_DURATION);
+    connect(m_boundaryMoveTimer, &QTimer::timeout, this, &VideoPlayerController::slot_boundaryStopped);
 
     m_videoPlayer->setEnabled(true);
     m_videoPlayer->setEnabledBackBtns(false);
@@ -52,7 +56,7 @@ VideoPlayerController::VideoPlayerController(QObject *parent, VideoPlayer *playe
     connect(m_dataManager->getModelInputPictures(), &ModelInputPictures::sig_mipChanged, this, &VideoPlayerController::slot_mipChanged);
 
     // connect timer
-    connect(m_timer, &QTimer::timeout, this, &VideoPlayerController::slot_timerNextImage);
+    connect(m_frametimer, &QTimer::timeout, this, &VideoPlayerController::slot_timerNextImage);
 
     ConcurrentReader *r = m_dataManager->getModelInputPictures()->createConcurrentReader();
     r->moveToThread(&workerThread);
@@ -91,11 +95,6 @@ VideoPlayerController::~VideoPlayerController()
     // gui cleanup
     m_timeline->setEnabled(false);
     m_videoPlayer->setEnabled(false);
-
-    // cv::Mat mat = cv::imread(":/icons/GUI_ICON_IVS3D_1.png");
-    // m_videoPlayer->showImage(&mat);
-    // m_videoPlayer->setKeyframe(false);
-    // m_videoPlayer->setKeyframeCount(0);
 
     workerThread.quit();
     workerThread.wait();
@@ -257,6 +256,26 @@ void VideoPlayerController::slot_stopPlay()
 
 void VideoPlayerController::slot_updateBoundaries(QPoint boundaries)
 {
+    int frameCount = m_dataManager->getModelInputPictures()->getPicCount();
+    if (boundaries.x() < 0)
+        boundaries.setX(0);
+    if (boundaries.y() >= frameCount)
+        boundaries.setY(frameCount-1);
+
+    QPoint oldBoundaries = m_dataManager->getModelInputPictures()->getBoundaries();
+    int changedBoundIdx = 0;
+    if (oldBoundaries.x() != boundaries.x())
+        changedBoundIdx = boundaries.x();
+    else if (oldBoundaries.y() != boundaries.y())
+        changedBoundIdx = boundaries.y();
+    else
+        return;
+
+    m_imageIndexOnScreen = changedBoundIdx;
+    emit sig_read(changedBoundIdx);
+
+    m_boundaryMoveTimer->start(); // reset timer to indicate boundary is still moving
+
     m_dataManager->getModelInputPictures()->setBoundaries(boundaries);
     uint inBoundKeyframeCount = m_dataManager->getModelInputPictures()->getKeyframeCount(true);
     m_videoPlayer->setKeyframeCount(inBoundKeyframeCount);
@@ -356,6 +375,12 @@ void VideoPlayerController::slot_timerNextImage()
         }
     }
 
+}
+
+void VideoPlayerController::slot_boundaryStopped()
+{
+    m_imageIndexOnScreen = m_imageIndex;
+    emit sig_read(m_imageIndex);
 }
 
 void VideoPlayerController::showImage()

@@ -10,8 +10,9 @@
 
 // color definitions
 #define INBOUND_COLOR Qt::red
-#define OUTOFBOUND_COLOR Qt::darkGray
+#define OUTOFBOUND_COLOR Qt::black
 #define TIMESTAMP_COLOR Qt::black
+#define BOUNDARY_COLOR Qt::black
 
 /**
  * @class TimelineLabel
@@ -96,6 +97,7 @@ private:
     bool m_drawTimestamps = true;
 
     QPixmap drawPixmap(bool timeStamps, QPoint boundaries);
+    QVector<QLine> boundaryLines(QPoint boundaries);
 };
 
 #endif // TIMELINELABEL_H
