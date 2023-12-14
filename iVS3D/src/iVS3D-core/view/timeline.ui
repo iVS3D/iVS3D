@@ -132,9 +132,6 @@ border-color: black;</string>
         <property name="toolTip">
          <string>Range of zoom timeline relative to all images</string>
         </property>
-        <property name="locale">
-         <locale language="C" country="AnyTerritory"/>
-        </property>
         <property name="alignment">
          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
         </property>
