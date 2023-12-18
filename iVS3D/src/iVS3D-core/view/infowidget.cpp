@@ -79,6 +79,7 @@ void InfoWidget::setColorTheme(ColorTheme theme)
 {
     ui->toolButton_folder->setIcon(QIcon(theme == DARK ? ":/icons/openFolderIconW" : ":/icons/openFolderIconB"));
     ui->toolButton_video->setIcon( QIcon(theme == DARK ? ":/icons/openVideoIconW"  : ":/icons/openVideoIconB"));
+    ui->toolButton_meta->setIcon( QIcon(theme == DARK ? ":/icons/openMetaIconW"  : ":/icons/openMetaIconB"));
 }
 
 void InfoWidget::on_toolButton_folder_clicked()
