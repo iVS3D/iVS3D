@@ -55,11 +55,11 @@ public:
      */
     void setStandardInputPath(const QString &standardInput);
     /**
-     * @brief Set the use of expert mode.
+     * @brief Disable sanity checks for ots product configuration.
      * 
-     * @param expertMode @a true will activate expert mode
+     * @param disableChecks @a true will disbale checks and allow for (potentially) faulty configurations. Only use if you know what you are doing!
      */
-    void setExpertMode(bool expertMode);
+    void setDisableChecks(bool disableChecks);
     /**
      * @brief Sets the darkstyle
      *
@@ -95,11 +95,11 @@ public:
      */
     QString getStandardInputPath();
     /**
-     * @brief Returns wether expert mode is activated
+     * @brief Returns wether sanity checks in ots product configuration are disabled
      * 
-     * @return @a true, if expert mode is activated.
+     * @return @a true, if checks are disabled
      */
-    bool getExpertMode();
+    bool getDisableChecks();
     /**
      * @brief Returns which darkstyle is saved in the settings file
      *
@@ -139,7 +139,7 @@ private:
     ApplicationSettings();
     QMap<QString, QString> m_reconstructPath;
     QString m_standardInputPath;
-    bool m_expertMode;
+    bool m_disableChecks;
     bool m_darkStyle;
     bool m_activeStyle;
     bool m_useCuda;

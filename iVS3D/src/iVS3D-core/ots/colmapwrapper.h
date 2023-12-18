@@ -342,12 +342,12 @@ class ColmapWrapper : public QObject
     /**
      * @brief Set the use of expert mode.
      */
-    void setUseExpertMode(const bool useExpertMode);
+    void setChecksDisabled(const bool noChecks);
 
     /**
      * @brief Returns true if expert mode is activated.
      */
-    bool isInExpertMode() const;
+    bool areChecksDisabled() const;
 
     /**
      * @brief Returns wether robustMode should be used.
@@ -710,7 +710,7 @@ class ColmapWrapper : public QObject
     QSettings mSettings;
 
     /// flag wether to use expert mode, in which some 'user-guidance' features ar deactivated
-    bool mUseExpertMode;
+    bool mNoChecks;
 
     /// flag wether to use robust mode
     bool mUseRobustMode;

@@ -19,7 +19,7 @@ Controller::Controller(QString inputPath, QString settingsPath, QString outputPa
 #if defined(Q_OS_LINUX)
     const auto otsTheme = ApplicationSettings::instance().getDarkStyle() ? lib3d::ots::ui::ETheme::DARK : lib3d::ots::ui::ETheme::LIGHT;
 
-    m_colmapWrapper->setUseExpertMode(ApplicationSettings::instance().getExpertMode());
+    m_colmapWrapper->setChecksDisabled(ApplicationSettings::instance().getDisableChecks());
 
     otsWidget = new QWidget;
     otsWidget->setLayout(new QVBoxLayout);

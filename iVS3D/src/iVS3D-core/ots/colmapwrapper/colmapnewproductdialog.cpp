@@ -95,14 +95,14 @@ void NewProductDialog::onProdCameraPosesClicked()
 void NewProductDialog::onProdPointCloudClicked()
 {
     if (ui->cb_prodPointCloud->isChecked()) {
-        if(!mpColmapWrapper->isInExpertMode())
+        if(!mpColmapWrapper->areChecksDisabled())
         {
             ui->cb_prodCameraPoses->setEnabled(false);
             ui->cb_prodCameraPoses->setChecked(true);
         }
         enableSaveButtonState();
     } else {
-        if(!mpColmapWrapper->isInExpertMode())
+        if(!mpColmapWrapper->areChecksDisabled())
         {
             ui->cb_prodCameraPoses->setEnabled(true);
             ui->cb_prodCameraPoses->setChecked(false);
@@ -120,7 +120,7 @@ void NewProductDialog::onProdPointCloudClicked()
 void NewProductDialog::onProdMeshClicked()
 {
     if (ui->cb_prodMesh->isChecked()) {
-        if(!mpColmapWrapper->isInExpertMode())
+        if(!mpColmapWrapper->areChecksDisabled())
         {
             ui->cb_prodCameraPoses->setChecked(true);
             ui->cb_prodCameraPoses->setEnabled(false);
@@ -130,7 +130,7 @@ void NewProductDialog::onProdMeshClicked()
         enableSaveButtonState();
 
     } else {
-        if(!mpColmapWrapper->isInExpertMode())
+        if(!mpColmapWrapper->areChecksDisabled())
         {
             ui->cb_prodCameraPoses->setChecked(false);
             ui->cb_prodCameraPoses->setEnabled(true);
@@ -409,7 +409,7 @@ void NewProductDialog::enableSaveButtonState()
     bool isEnabled = isImagePathValid && isSequenceNameValid;
 
     //--- if in expert mode, one of the products needs to be checked.
-    if(mpColmapWrapper->isInExpertMode())
+    if(mpColmapWrapper->areChecksDisabled())
         isEnabled &= (ui->cb_prodCameraPoses->isChecked() 
                         || ui->cb_prodPointCloud->isChecked()
                         || ui->cb_prodMesh->isChecked());
@@ -473,7 +473,7 @@ void NewProductDialog::validateSequenceName()
                                                            QDir::Files,
                                                            QDir::Name);
 
-    if ((!msProjFiles.contains(sequenceName + ".db") || mpColmapWrapper->isInExpertMode()) // if in expert mode, the sequence may already exist
+    if ((!msProjFiles.contains(sequenceName + ".db") || mpColmapWrapper->areChecksDisabled()) // if in expert mode, the sequence may already exist
         && sequenceName != ""  && !sequenceName.contains(" ")) 
     {
         ui->le_sequenceName->setStyleSheet("");

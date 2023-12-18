@@ -371,7 +371,7 @@ void ColmapWrapper::restoreDefaultSettings()
 
 void ColmapWrapper::loadDefaultSettings()
 {
-    mUseExpertMode=false;
+    mNoChecks=false;
     mUseRobustMode=false;
     mLocalColmapBinPath="";
     mRemoteColmapBinPath="";
@@ -873,15 +873,15 @@ void ColmapWrapper::applySettings(const SSettings *settings)
 }
 
 //==================================================================================================
-void ColmapWrapper::setUseExpertMode(const bool iUseExpertMode)
+void ColmapWrapper::setChecksDisabled(const bool iNoChecks)
 {
-    mUseExpertMode = iUseExpertMode;
+    mNoChecks = iNoChecks;
 }
 
 //==================================================================================================
-bool ColmapWrapper::isInExpertMode() const
+bool ColmapWrapper::areChecksDisabled() const
 {
-    return mUseExpertMode;
+    return mNoChecks;
 }
 
 //==================================================================================================
