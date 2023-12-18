@@ -27,96 +27,32 @@
     <number>0</number>
    </property>
    <item>
-    <widget class="QWidget" name="hWidget_total" native="true">
-     <layout class="QHBoxLayout" name="hLayout_total">
-      <property name="spacing">
-       <number>15</number>
-      </property>
-      <property name="leftMargin">
-       <number>0</number>
-      </property>
-      <property name="topMargin">
-       <number>0</number>
-      </property>
-      <property name="rightMargin">
-       <number>0</number>
-      </property>
-      <property name="bottomMargin">
-       <number>0</number>
-      </property>
-      <item>
-       <widget class="QSpinBox" name="spinBox_index">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="minimumSize">
-         <size>
-          <width>100</width>
-          <height>0</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>100</width>
-          <height>16777215</height>
-         </size>
-        </property>
-        <property name="toolTip">
-         <string>Current image index</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="TimelineLabel" name="label_totalTimeline">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">background-color: rgb(188, 188, 188);
-border-width: 1px;
-border-style: solid;
-border-color: black;</string>
-        </property>
-        <property name="frameShape">
-         <enum>QFrame::Box</enum>
-        </property>
-        <property name="text">
-         <string>label_totalTimeline</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item>
-    <widget class="QWidget" name="hWidget_zoom" native="true">
-     <layout class="QHBoxLayout" name="hLayout_zoom">
-      <property name="spacing">
-       <number>15</number>
-      </property>
-      <property name="leftMargin">
-       <number>0</number>
-      </property>
-      <property name="topMargin">
-       <number>0</number>
-      </property>
-      <property name="rightMargin">
-       <number>0</number>
-      </property>
-      <property name="bottomMargin">
-       <number>0</number>
-      </property>
-      <item>
-       <widget class="QDoubleSpinBox" name="spinBox_zoom">
+    <layout class="QGridLayout" name="gridLayout">
+     <item row="1" column="1">
+      <widget class="QPushButton" name="pushButton">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="icon">
+        <iconset resource="../resources.qrc">
+         <normaloff>:/icons/magnifierIconBW</normaloff>:/icons/magnifierIconBW</iconset>
+       </property>
+       <property name="flat">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QDoubleSpinBox" name="spinBox_zoom">
         <property name="minimumSize">
          <size>
           <width>100</width>
@@ -148,32 +84,37 @@ border-color: black;</string>
          <double>0.100000000000000</double>
         </property>
        </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="pushButton">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
+     </item>
+     <item row="0" column="0">
+      <widget class="QSpinBox" name="spinBox_index">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
-        <property name="text">
-         <string/>
+        <property name="minimumSize">
+         <size>
+          <width>100</width>
+          <height>0</height>
+         </size>
         </property>
-        <property name="icon">
-         <iconset resource="../resources.qrc">
-          <normaloff>:/icons/magnifierIconBW</normaloff>:/icons/magnifierIconBW</iconset>
+        <property name="maximumSize">
+         <size>
+          <width>100</width>
+          <height>16777215</height>
+         </size>
         </property>
-        <property name="flat">
-         <bool>true</bool>
+        <property name="toolTip">
+         <string>Current image index</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
         </property>
        </widget>
-      </item>
-      <item>
-       <widget class="TimelineLabel" name="label_zoomTimeline">
+     </item>
+     <item row="1" column="2">
+      <widget class="TimelineLabel" name="label_zoomTimeline">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
           <horstretch>0</horstretch>
@@ -196,13 +137,34 @@ border-color: black;</string>
          <string>label_zoomTimeline</string>
         </property>
        </widget>
-      </item>
-     </layout>
-    </widget>
+     </item>
+     <item row="0" column="2">
+      <widget class="TimelineLabel" name="label_totalTimeline">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">background-color: rgb(188, 188, 188);
+border-width: 1px;
+border-style: solid;
+border-color: black;</string>
+        </property>
+        <property name="frameShape">
+         <enum>QFrame::Box</enum>
+        </property>
+        <property name="text">
+         <string>label_totalTimeline</string>
+        </property>
+       </widget>
+     </item>
+    </layout>
    </item>
   </layout>
  </widget>
- <customwidgets>
+  <customwidgets>
   <customwidget>
    <class>TimelineLabel</class>
    <extends>QLabel</extends>

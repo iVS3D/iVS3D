@@ -114,7 +114,7 @@ QPixmap TimelineLabel::drawPixmap(bool timeStamps, QPoint boundaries)
             QLine line = QLine(x, lineMarginTop, x, lineHeight + lineMarginBottom);
             inBoundKeyframeLines.push_back(line);
         } else {
-            QLine line = QLine(x, lineMarginTop + lineHeight / 3, x, lineHeight + lineMarginBottom);
+            QLine line = QLine(x, lineMarginTop + lineHeight / 2, x, lineHeight + lineMarginBottom);
             outOfBoundKeyframeLines.push_back(line);
         }
     }

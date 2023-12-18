@@ -10,7 +10,7 @@
 
 // color definitions
 #define INBOUND_COLOR Qt::red
-#define OUTOFBOUND_COLOR Qt::black
+#define OUTOFBOUND_COLOR QColor(72, 74, 73)
 #define TIMESTAMP_COLOR Qt::black
 #define BOUNDARY_COLOR Qt::black
 

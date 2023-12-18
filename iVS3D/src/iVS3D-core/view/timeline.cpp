@@ -71,8 +71,8 @@ void Timeline::resize()
 {
     int currentImage = m_indexSpinBox->value();
     // setup highlighter
-    m_highlighter->setYLevel(m_totalTimeline->parentWidget()->y());
-    m_highlighter->setHeight(m_totalTimeline->parentWidget()->height());
+    m_highlighter->setYLevel(m_totalTimeline->y());
+    m_highlighter->setHeight(m_totalTimeline->height());
     updateHighlighterWidth();
 
     // set frames for each timelineLabel
@@ -80,21 +80,21 @@ void Timeline::resize()
     m_zoomTimeline->updateTimelinelabel(&this->m_keyframes, getHighlighterRange(), true, m_boundaries);
 
     // setup marker
-    m_marker->setYLevel(m_zoomTimeline->parentWidget()->y());
-    m_marker->setHeight(m_zoomTimeline->parentWidget()->height());
+    m_marker->setYLevel(m_zoomTimeline->y());
+    m_marker->setHeight(m_zoomTimeline->height());
     uint markerMinX = m_zoomTimeline->x() - m_marker->width() / 2 - m_marker->lineWidth() + 3;
     uint markerMaxX = markerMinX + m_zoomTimeline->width();
     m_marker->setIntervall(QPoint(markerMinX, markerMaxX));
 
     // setup start boundary marker
-    m_startBoundaryLabel->setYLevel(m_totalTimeline->parentWidget()->y());
-    m_startBoundaryLabel->setHeight(m_totalTimeline->parentWidget()->height());
+    m_startBoundaryLabel->setYLevel(m_totalTimeline->y());
+    m_startBoundaryLabel->setHeight(m_totalTimeline->height());
     uint startBoundaryMinX = m_totalTimeline->x();
     uint startBoundaryMaxX = startBoundaryMinX + m_totalTimeline->width();
     m_startBoundaryLabel->setIntervall(QPoint(startBoundaryMinX, startBoundaryMaxX));
     // setup end boudary marker
-    m_endBoundaryLabel->setYLevel(m_totalTimeline->parentWidget()->y());
-    m_endBoundaryLabel->setHeight(m_totalTimeline->parentWidget()->height());
+    m_endBoundaryLabel->setYLevel(m_totalTimeline->y());
+    m_endBoundaryLabel->setHeight(m_totalTimeline->height());
     uint endBoundaryMinX = m_totalTimeline->x() - m_startBoundaryLabel->width()/2;
     uint endBoundaryMaxX = endBoundaryMinX + m_totalTimeline->width() - m_startBoundaryLabel->width()/2;
     m_endBoundaryLabel->setIntervall(QPoint(endBoundaryMinX, endBoundaryMaxX));
@@ -149,7 +149,7 @@ void Timeline::updateHighlighterWidth()
     // change label width
     Q_ASSERT(relativeWidth <= 1);
     m_highlighter->setWidth(m_totalTimeline->width() * relativeWidth);
-    uint minX_Highlighter = m_totalTimeline->parentWidget()->x() + m_totalTimeline->x();
+    uint minX_Highlighter = m_totalTimeline->x();
     uint maxX_Highlighter = minX_Highlighter + m_totalTimeline->width() - m_highlighter->width();
     m_highlighter->setIntervall(QPoint(minX_Highlighter, maxX_Highlighter));
 
