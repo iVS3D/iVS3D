@@ -336,6 +336,9 @@ void MainWindow::setColorTheme(ColorTheme theme)
     // assign a color palette for each theme
     QApplication::setStyle(theme==ColorTheme::DARK ? new DarkStyle : QStyleFactory::create("Fusion"));
     // update icon colors according to the theme
+    ui->actionOpen_Input->setIcon(QIcon(theme == DARK ? ":/icons/openFolderIconW" : ":/icons/openFolderIconB"));
+    ui->actionOpen_Input_Video->setIcon( QIcon(theme == DARK ? ":/icons/openVideoIconW"  : ":/icons/openVideoIconB"));
+    ui->actionOpen_Meta_Data->setIcon( QIcon(theme == DARK ? ":/icons/openMetaIconW"  : ":/icons/openMetaIconB"));
 
     // notify children to update colors as well
     m_inputWidget->setColorTheme(theme);

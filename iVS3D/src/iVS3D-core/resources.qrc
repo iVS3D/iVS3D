@@ -9,8 +9,8 @@
         <file alias="openFolderIconW">resources/openfolder_white.png</file>
         <file alias="openVideoIconB">resources/openvideo_black.png</file>
         <file alias="openVideoIconW">resources/openvideo_white.png</file>
-        <file alias="openMetaIconB">resources/ic_metadata_black.png</file>
-        <file alias="openMetaIconW">resources/ic_metadata_white.png</file>
+        <file alias="openMetaIconB">resources/ic_satellite_black.png</file>
+        <file alias="openMetaIconW">resources/ic_satellite_white.png</file>
         <file alias="fastForwardIconB">resources/ic_fast_forward_black.png</file>
         <file alias="fastForwardIconW">resources/ic_fast_forward_white.png</file>
         <file alias="fastRewindIconB">resources/ic_fast_rewind_black.png</file>
