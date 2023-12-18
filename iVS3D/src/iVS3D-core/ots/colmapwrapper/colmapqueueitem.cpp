@@ -97,6 +97,8 @@ QueueItemActive::QueueItemActive(ColmapWrapper::SJob job, QWidget *parent)
                             .append(QString::number(job.step))
                             .append(" ")
                             .append(time.toString("hh:mm:ss")));
+    ui->l_name->setStyleSheet("color: black;");
+    ui->l_progress->setStyleSheet("color: black;");
 }
 
 //==================================================================================================
