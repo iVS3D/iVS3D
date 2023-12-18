@@ -2,6 +2,7 @@
 #define APPLICATIONSETTINGS_H
 
 #include "stringcontainer.h"
+#include "cvmat_qmetadata.h"
 #include <QObject>
 #include <QMap>
 #include <QVariant>
@@ -65,7 +66,7 @@ public:
      *
      * @param dark @a true will toggle darkstyle
      */
-    void setDarkStyle(bool dark);
+    void setColorTheme(ColorTheme theme);
     /**
      * @brief setUseCuda Sets use cuda boolean
      * @param useCuda @a true if cuda is used, @a false otherwise
@@ -105,13 +106,7 @@ public:
      *
      * @return @a true if darkstyle is saved
      */
-    bool getDarkStyle();
-    /**
-     * @brief Returns if darksytle is currently toggled
-     *
-     * @return @a true if darkstyle is active
-     */
-    bool getActiveStyle();
+    ColorTheme getColorTheme();
     /**
      * @brief Returns if use CUDA is enabled
      * @return @a true if cuda is enabled
@@ -140,8 +135,7 @@ private:
     QMap<QString, QString> m_reconstructPath;
     QString m_standardInputPath;
     bool m_disableChecks;
-    bool m_darkStyle;
-    bool m_activeStyle;
+    ColorTheme m_colorTheme;
     bool m_useCuda;
     bool m_createLogs;
     bool m_interpolateMetaData;

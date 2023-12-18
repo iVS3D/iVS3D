@@ -19,12 +19,11 @@
 
 
 
-MainWindow::MainWindow(QWidget *parent, bool dark, int cuda, bool createLog, bool interpolateMetaData, QStringList algorithmList, QStringList transformList, QWidget *otsWidget)
+MainWindow::MainWindow(QWidget *parent, ColorTheme theme, int cuda, bool createLog, bool interpolateMetaData, QStringList algorithmList, QStringList transformList, QWidget *otsWidget)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    ui->actionuse_DarkStyle->setCheckable(true);
 
 #if defined(Q_OS_WIN)
     addSettingsAction(ui->actionSet_Reconstructiontool_Path);
@@ -34,9 +33,9 @@ MainWindow::MainWindow(QWidget *parent, bool dark, int cuda, bool createLog, boo
     // --- for sampling and export of images or 3d-reconstruction
 
     // all GUI elements have main window as parent
-    m_videoplayer = new VideoPlayer(this, dark);
+    m_videoplayer = new VideoPlayer(this, theme);
     m_timeline = new Timeline(this);
-    m_inputWidget = new InfoWidget(this, "Input", dark);
+    m_inputWidget = new InfoWidget(this, "Input", theme);
     m_samplingWidget = new SamplingWidget(this, algorithmList, transformList);
     m_outputWidget = new OutputWidget(this, "Output", transformList);
     m_autoWidget = new AutomaticWidget(this);
@@ -146,10 +145,8 @@ MainWindow::MainWindow(QWidget *parent, bool dark, int cuda, bool createLog, boo
     m_autoWidget->setEnabled(false);
 
     // --- use dark style if selected
-    if(dark){
-        QApplication::setStyle(new DarkStyle);
-        ui->actionuse_DarkStyle->setChecked(true);
-    }
+    this->setColorTheme(theme);
+
     if(cuda < 0){
         ui->actionUse_CUDA->setEnabled(false);
     } else {
@@ -334,6 +331,17 @@ bool MainWindow::getInputEnabled()
     return ui->actionOpen_Input->isEnabled();
 }
 
+void MainWindow::setColorTheme(ColorTheme theme)
+{
+    // assign a color palette for each theme
+    QApplication::setStyle(theme==ColorTheme::DARK ? new DarkStyle : QStyleFactory::create("Fusion"));
+    // update icon colors according to the theme
+
+    // notify children to update colors as well
+    m_inputWidget->setColorTheme(theme);
+    m_videoplayer->setColorTheme(theme);
+}
+
 void MainWindow::on_actionOpen_Project_triggered()
 {
     emit sig_openProject();
@@ -404,9 +412,10 @@ std::vector<uint> MainWindow::generateKeyframes(uint totalFrames, uint keyframeC
     return keyframes;
 }
 
-void MainWindow::on_actionuse_DarkStyle_toggled(bool checked)
+void MainWindow::on_actionToggleTheme_triggered()
 {
-    emit sig_changeDarkStyle(checked);
+    //QApplication::setStyle(checked ? new DarkStyle : QStyleFactory::create("Fusion"));
+    emit sig_toggleTheme();
 }
 
 void MainWindow::dragEnterEvent(QDragEnterEvent *event)

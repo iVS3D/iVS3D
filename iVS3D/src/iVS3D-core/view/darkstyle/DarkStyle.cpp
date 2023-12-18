@@ -29,9 +29,10 @@ DarkStyle::DarkStyle() : DarkStyle(styleBase()) {}
 DarkStyle::DarkStyle(QStyle *style) : QProxyStyle(style) {}
 
 QStyle *DarkStyle::styleBase(QStyle *style) const {
-  static QStyle *base =
+  /*static QStyle *base =
       !style ? QStyleFactory::create(QStringLiteral("Fusion")) : style;
-  return base;
+  return base;*/
+    return QStyleFactory::create(QStringLiteral("Fusion"));
 }
 
 QStyle *DarkStyle::baseStyle() const { return styleBase(); }
@@ -65,7 +66,7 @@ void DarkStyle::polish(QPalette &palette) {
 
 void DarkStyle::polish(QApplication *app) {
   if (!app) return;
-
+/*
   // increase font size for better reading,
   // setPointSize was reduced from +2 because when applied this way in Qt5, the
   // font is larger than intended for some reason
@@ -80,5 +81,5 @@ void DarkStyle::polish(QApplication *app) {
     QString qsStylesheet = QString::fromLatin1(qfDarkstyle.readAll());
     app->setStyleSheet(qsStylesheet);
     qfDarkstyle.close();
-  }
+  }*/
 }

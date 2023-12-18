@@ -17,7 +17,7 @@ Controller::Controller(QString inputPath, QString settingsPath, QString outputPa
 
     QWidget *otsWidget = nullptr;
 #if defined(Q_OS_LINUX)
-    const auto otsTheme = ApplicationSettings::instance().getDarkStyle() ? lib3d::ots::ui::ETheme::DARK : lib3d::ots::ui::ETheme::LIGHT;
+    const auto otsTheme = ApplicationSettings::instance().getColorTheme() == ColorTheme::DARK ? lib3d::ots::ui::ETheme::DARK : lib3d::ots::ui::ETheme::LIGHT;
 
     m_colmapWrapper->setChecksDisabled(ApplicationSettings::instance().getDisableChecks());
 
@@ -25,13 +25,14 @@ Controller::Controller(QString inputPath, QString settingsPath, QString outputPa
     otsWidget->setLayout(new QVBoxLayout);
     //otsWidget->layout()->addWidget(m_colmapWrapper->getOrCreateUiControlsFactory()->createSettingsPushButton());
     otsWidget->layout()->addWidget(m_colmapWrapper->getOrCreateUiControlsFactory()->createViewWidget(nullptr));
-    otsWidget->layout()->addWidget(m_colmapWrapper->getOrCreateUiControlsFactory()->createNewProductPushButton(otsTheme, nullptr));
+    m_newProductPushButton = m_colmapWrapper->getOrCreateUiControlsFactory()->createNewProductPushButton(otsTheme, nullptr);
+    otsWidget->layout()->addWidget(m_newProductPushButton);
 
 #endif
     bool interpolateMetaData = ApplicationSettings::instance().getInterpolateMetaData();
     m_mainWindow = new MainWindow(
                 nullptr,
-                ApplicationSettings::instance().getDarkStyle(),
+                ApplicationSettings::instance().getColorTheme(),
                 useCuda,
                 ApplicationSettings::instance().getCreateLogs(),
                 interpolateMetaData,
@@ -45,7 +46,8 @@ Controller::Controller(QString inputPath, QString settingsPath, QString outputPa
     m_mainWindow->enableTools(false);
 
 #if defined(Q_OS_LINUX)
-    m_mainWindow->addSettingsAction(m_colmapWrapper->getOrCreateUiControlsFactory()->createSettingsAction(otsTheme, nullptr));
+    m_colmapWrapperSettingsAction = m_colmapWrapper->getOrCreateUiControlsFactory()->createSettingsAction(otsTheme, nullptr);
+    m_mainWindow->addSettingsAction(m_colmapWrapperSettingsAction);
 
     m_colmapWrapper->getOrCreateUiControlsFactory()->updateIconTheme(otsTheme);
 #endif
@@ -70,7 +72,7 @@ Controller::Controller(QString inputPath, QString settingsPath, QString outputPa
     connect(m_mainWindow, &MainWindow::sig_saveProject, this, &Controller::slot_saveProject);
     connect(m_mainWindow, &MainWindow::sig_changeReconstructPath, this, &Controller::slot_addReconstructPath);
     connect(m_mainWindow, &MainWindow::sig_changeDefaultInputPath, this, &Controller::slot_changeDefaultInputPath);
-    connect(m_mainWindow, &MainWindow::sig_changeDarkStyle, this, &Controller::slot_changeDarkStyle);
+    connect(m_mainWindow, &MainWindow::sig_toggleTheme, this, &Controller::slot_toggleColorTheme);
     connect(m_mainWindow, &MainWindow::sig_changeUseCuda, this, &Controller::slot_changeUseCuda);
     connect(m_mainWindow, &MainWindow::sig_changeCreateLogFile, this, &Controller::slot_changeCreateLogFile);
     connect(m_mainWindow, &MainWindow::sig_openMetaData, this, &Controller::slot_openMetaData);
@@ -267,10 +269,29 @@ void Controller::slot_changeDefaultInputPath()
     emit sig_hasStatusMessage(tr("Standard input path changed"));
 }
 
-void Controller::slot_changeDarkStyle(bool dark)
+void Controller::slot_toggleColorTheme()
 {
-    ApplicationSettings::instance().setDarkStyle(dark);
-    emit sig_hasStatusMessage(tr("GUI changed to ") + QString((dark ? tr("dark") : tr("light"))) + tr(" style -- restart to activate changes"));
+    if(ApplicationSettings::instance().getColorTheme() == ColorTheme::LIGHT){
+        ApplicationSettings::instance().setColorTheme(ColorTheme::DARK);
+    } else {
+        ApplicationSettings::instance().setColorTheme(ColorTheme::LIGHT);
+    }
+    m_mainWindow->setColorTheme(ApplicationSettings::instance().getColorTheme());
+
+#ifdef Q_OS_LINUX
+    const auto otsTheme = ApplicationSettings::instance().getColorTheme() == ColorTheme::DARK ? lib3d::ots::ui::ETheme::DARK : lib3d::ots::ui::ETheme::LIGHT;
+    m_colmapWrapper->getOrCreateUiControlsFactory()->updateIconTheme(otsTheme);
+    // update icons of settings action and new product button
+    m_colmapWrapper->getOrCreateUiControlsFactory()->createSettingsAction(otsTheme, m_mainWindow, m_colmapWrapperSettingsAction);
+    m_colmapWrapper->getOrCreateUiControlsFactory()->createNewProductPushButton(otsTheme, m_mainWindow, m_newProductPushButton);
+#endif
+    // notify the plugins next!
+}
+
+void Controller::slot_changeColorTheme(ColorTheme theme)
+{
+    ApplicationSettings::instance().setColorTheme(theme);
+    emit sig_hasStatusMessage(tr("GUI color theme changed to ") + QString((theme == ColorTheme::DARK ? tr("dark") : tr("light"))) + tr(" style"));
 }
 
 void Controller::slot_changeUseCuda(bool useCuda)

@@ -7,8 +7,8 @@ ApplicationSettings::ApplicationSettings()
     m_disableChecks = false;
     m_createLogs = true;
     m_useCuda = true;
+    m_colorTheme = LIGHT;
     loadSettings();
-    m_activeStyle = m_darkStyle;
 }
 
 bool ApplicationSettings::getInterpolateMetaData()
@@ -28,7 +28,7 @@ void ApplicationSettings::loadSettings()
     qDebug() << "Loading configuration from " << settings.fileName();
     m_standardInputPath = settings.value(stringContainer::standardInputPathIdentifier).value<QString>();
     m_disableChecks = settings.value(stringContainer::disableChecksIdentifier).value<bool>();
-    m_darkStyle = settings.value(stringContainer::darkStyleIdentifier).value<bool>();
+    m_colorTheme = settings.value(stringContainer::colorThemeIdentifier).value<ColorTheme>();
     if(settings.contains(stringContainer::useCudaIdentifier))
         m_useCuda = settings.value(stringContainer::useCudaIdentifier).value<bool>();
     QVariantMap reconstructMap = settings.value(stringContainer::reconstructSoftwareIdentifier).value<QVariantMap>();
@@ -47,7 +47,7 @@ void ApplicationSettings::saveSettings()
     QSettings settings(stringContainer::settingsCompany, stringContainer::settingsProgramm);
     settings.setValue(stringContainer::standardInputPathIdentifier, m_standardInputPath);
     settings.setValue(stringContainer::disableChecksIdentifier, m_disableChecks);
-    settings.setValue(stringContainer::darkStyleIdentifier, m_darkStyle);
+    settings.setValue(stringContainer::colorThemeIdentifier, m_colorTheme);
     settings.setValue(stringContainer::useCudaIdentifier, m_useCuda);
     settings.setValue(stringContainer::interpolateIdentifier, m_interpolateMetaData);
     QVariantMap reconstructMap;
@@ -92,9 +92,9 @@ void ApplicationSettings::setDisableChecks(bool disableChecks)
     saveSettings();
 }
 
-void ApplicationSettings::setDarkStyle(bool dark)
+void ApplicationSettings::setColorTheme(ColorTheme theme)
 {
-    m_darkStyle = dark;
+    m_colorTheme = theme;
     saveSettings();
 }
 
@@ -124,14 +124,9 @@ bool ApplicationSettings::getDisableChecks()
     return m_disableChecks;
 }
 
-bool ApplicationSettings::getDarkStyle()
+ColorTheme ApplicationSettings::getColorTheme()
 {
-    return m_darkStyle;
-}
-
-bool ApplicationSettings::getActiveStyle()
-{
-    return m_activeStyle;
+    return m_colorTheme;
 }
 
 bool ApplicationSettings::getUseCuda()

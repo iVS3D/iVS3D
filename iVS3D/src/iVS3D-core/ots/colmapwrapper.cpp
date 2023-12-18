@@ -1823,7 +1823,7 @@ ui::ColmapWrapperControlsFactory::ColmapWrapperControlsFactory(ColmapWrapper *ip
     connect(mpMsWrapper,
             &ColmapWrapper::settingsApplied,
             this,
-            &ColmapWrapperControlsFactory::onSetupChanged);
+            &ColmapWrapperControlsFactory::onSetupChanged); 
 }
 
 //==================================================================================================

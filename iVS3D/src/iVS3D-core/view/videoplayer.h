@@ -10,6 +10,7 @@
 #include "opencv2/imgproc.hpp"
 #include "opencv2/imgcodecs.hpp"
 #include "ui_videoplayer.h"
+#include "cvmat_qmetadata.h"
 
 
 namespace Ui {
@@ -52,7 +53,7 @@ public:
      * @param parent Parent for the QWidget
      * @param dark Gui is dark if @a true, light otherwise
      */
-    explicit VideoPlayer(QWidget *parent = nullptr, bool dark = false);
+    explicit VideoPlayer(QWidget *parent = nullptr, ColorTheme theme = DARK);
 
     ~VideoPlayer();
 
@@ -122,6 +123,12 @@ public:
      */
     void removeWidgetFromLayout(QWidget *widget);
 
+    /**
+     * @brief setColorTheme updates text and icon colors according to a given theme
+     * @param theme
+     */
+    void setColorTheme(ColorTheme theme);
+
 signals:
 
     /**
@@ -187,7 +194,7 @@ private slots:
 
 private:
     Ui::VideoPlayer *ui;
-    bool m_dark;
+    ColorTheme m_colorTheme;
     QShortcut *m_prevSC;
     QShortcut *m_nextSC;
 

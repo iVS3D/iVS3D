@@ -67,6 +67,16 @@ SettingsDialog::SettingsDialog(ColmapWrapper *ipWrapper, QWidget *parent)
   connect(ui->le_remoteOpenMVSBinaryFolder, &QLineEdit::textChanged, this, &SettingsDialog::settingsChanged);
   connect(ui->le_mntPnt, &QLineEdit::textChanged, this, &SettingsDialog::settingsChanged);
 
+  ColmapWrapperControlsFactory *pCtrlFactory = mpColmapWrapper->getOrCreateUiControlsFactory();
+  connect(pCtrlFactory,
+          &ColmapWrapperControlsFactory::updateToDarkTheme,
+          this,
+          &SettingsDialog::onUpdateToDarkTheme);
+  connect(pCtrlFactory,
+          &ColmapWrapperControlsFactory::updateToLightTheme,
+          this,
+          &SettingsDialog::onUpdateToLightTheme);
+
   //--- hide remote settings (default)
   ui->f_remote->setVisible(false);
   //updateStatusMsg();
@@ -75,7 +85,17 @@ SettingsDialog::SettingsDialog(ColmapWrapper *ipWrapper, QWidget *parent)
 //==================================================================================================
 SettingsDialog::~SettingsDialog()
 {
-    delete ui;
+  delete ui;
+}
+
+void SettingsDialog::onUpdateToDarkTheme()
+{
+  settingsChanged();
+}
+
+void SettingsDialog::onUpdateToLightTheme()
+{
+  settingsChanged();
 }
 
 //==================================================================================================
@@ -263,14 +283,8 @@ void SettingsDialog::settingsChanged()
     ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
     ui->l_error->setStyleSheet("QLabel { border : none; }");
     ui->l_error->setText("");
-    QString css;
-    if(ApplicationSettings::instance().getActiveStyle()) {
-      // were in dark mode
-      css = "QLineEdit { color : white; }";
-    } else {
-      // were in light mode
-      css = "QLineEdit { color : black; }";
-    }
+    QString textColor = this->palette().text().color().name();
+    QString css = "QLineEdit { color : " + textColor +"; }";
     ui->le_localWorkspace->setStyleSheet(css);
     ui->le_localColmapBinary->setStyleSheet(css);
     ui->le_remoteColmapBinary->setStyleSheet(css);

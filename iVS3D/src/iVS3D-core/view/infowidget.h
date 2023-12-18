@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include "stringcontainer.h"
+#include "cvmat_qmetadata.h"
 
 #include <QRegExp>
 #include <QRegularExpression>
@@ -34,7 +35,7 @@ public:
      * @param parent The parent QWidget
      * @param title The text to display up top
      */
-    explicit InfoWidget(QWidget *parent = nullptr, QString title = "Info", bool dark = false);
+    explicit InfoWidget(QWidget *parent = nullptr, QString title = "Info", ColorTheme theme = LIGHT);
     ~InfoWidget();
 
     /**
@@ -63,6 +64,12 @@ public:
      * @param status true = enable
      */
     void enableOpenVideo(bool status, QString tooltip = QString());
+
+    /**
+     * @brief setColorTheme updates text and icon colors according to a given theme
+     * @param theme
+     */
+    void setColorTheme(ColorTheme theme);
 
 
 

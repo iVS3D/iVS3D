@@ -49,7 +49,7 @@
      <x>0</x>
      <y>0</y>
      <width>1024</width>
-     <height>22</height>
+     <height>23</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -70,7 +70,7 @@
     </property>
     <addaction name="actionSet_Input_Path"/>
     <addaction name="separator"/>
-    <addaction name="actionuse_DarkStyle"/>
+    <addaction name="actionToggleTheme"/>
     <addaction name="actionUse_CUDA"/>
     <addaction name="actionCreate_log_file"/>
     <addaction name="actionInterpolate_missing_meta_data"/>
@@ -158,9 +158,12 @@
     <string>Open Input Video</string>
    </property>
   </action>
-  <action name="actionuse_DarkStyle">
+  <action name="actionToggleTheme">
    <property name="text">
-    <string>Use DarkStyle</string>
+    <string>Toggle theme</string>
+   </property>
+   <property name="toolTip">
+    <string>Toggle color theme between dark and light mode</string>
    </property>
   </action>
   <action name="actionHelp">

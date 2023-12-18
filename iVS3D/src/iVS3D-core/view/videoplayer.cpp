@@ -1,7 +1,7 @@
 #include "videoplayer.h"
 
 
-VideoPlayer::VideoPlayer(QWidget *parent, bool dark) :
+VideoPlayer::VideoPlayer(QWidget *parent, ColorTheme theme) :
     QWidget(parent),
     ui(new Ui::VideoPlayer)
 {
@@ -10,15 +10,7 @@ VideoPlayer::VideoPlayer(QWidget *parent, bool dark) :
     ui->graphicsView->setAcceptDrops(false);
     ui->widget->setLayout(new QVBoxLayout(this));
     ui->widget->layout()->setContentsMargins(0,0,0,0);
-    m_dark = dark;
-    QString col = m_dark ? "W" : "B";
-    ui->pushButton->setIcon(QIcon(":/icons/trashIcon" + col));
-    ui->pushButton_firstPic->setIcon(QIcon(":/icons/fastRewindIcon" + col));
-    ui->pushButton_lastPic->setIcon(QIcon(":/icons/fastForwardIcon" + col));
-    ui->pushButton_nextPic->setIcon(QIcon(":/icons/nextIcon" + col));
-    ui->pushButton_prevPic->setIcon(QIcon(":/icons/prevIcon" + col));
-    ui->pushButton_playPause->setIcon(QIcon(":/icons/playIcon" + col));
-
+    setColorTheme(theme);
     m_nextSC = new QShortcut(QKeySequence(/*Qt::CTRL + */Qt::Key_Right), this);
     m_prevSC = new QShortcut(QKeySequence(/*Qt::CTRL + */Qt::Key_Left), this);
 
@@ -102,7 +94,7 @@ void VideoPlayer::setEnabledForwardBtns(bool enabled)
 
 void VideoPlayer::setPlaying(bool playing)
 {
-    QString col = m_dark ? "W" : "B";
+    QString col = m_colorTheme == DARK ? "W" : "B";
     ui->pushButton_playPause->setIcon(playing ? QIcon(":/icons/pauseIcon" + col) : QIcon(":/icons/playIcon" + col));
 }
 
@@ -127,6 +119,18 @@ void VideoPlayer::addWidgetToLayout(QWidget *widget)
 void VideoPlayer::removeWidgetFromLayout(QWidget *widget)
 {
     ui->widget->layout()->removeWidget(widget);
+}
+
+void VideoPlayer::setColorTheme(ColorTheme theme)
+{
+    m_colorTheme = theme;
+    QString col = m_colorTheme==DARK ? "W" : "B";
+    ui->pushButton->setIcon(QIcon(":/icons/trashIcon" + col));
+    ui->pushButton_firstPic->setIcon(QIcon(":/icons/fastRewindIcon" + col));
+    ui->pushButton_lastPic->setIcon(QIcon(":/icons/fastForwardIcon" + col));
+    ui->pushButton_nextPic->setIcon(QIcon(":/icons/nextIcon" + col));
+    ui->pushButton_prevPic->setIcon(QIcon(":/icons/prevIcon" + col));
+    ui->pushButton_playPause->setIcon(QIcon(":/icons/playIcon" + col));
 }
 
 

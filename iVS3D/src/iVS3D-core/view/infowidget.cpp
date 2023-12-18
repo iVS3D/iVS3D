@@ -8,14 +8,14 @@
  *
  * Creates an InfoWidget with and displays the given \a title at the top.
  */
-InfoWidget::InfoWidget(QWidget *parent, QString title, bool dark) :
+InfoWidget::InfoWidget(QWidget *parent, QString title, ColorTheme theme) :
     QWidget(parent),
     ui(new Ui::InfoWidget)
 {
     ui->setupUi(this);
-    ui->toolButton_folder->setIcon(QIcon(dark ? ":/icons/openFolderIconW" : ":/icons/openFolderIconB"));
-    ui->toolButton_video->setIcon( QIcon(dark ? ":/icons/openVideoIconW"  : ":/icons/openVideoIconB"));
-    ui->toolButton_meta->setIcon( QIcon(dark ? ":/icons/openMetaIconW"  : ":/icons/openMetaIconB"));
+    ui->toolButton_folder->setIcon(QIcon(theme == DARK ? ":/icons/openFolderIconW" : ":/icons/openFolderIconB"));
+    ui->toolButton_video->setIcon( QIcon(theme == DARK ? ":/icons/openVideoIconW"  : ":/icons/openVideoIconB"));
+    ui->toolButton_meta->setIcon( QIcon(theme == DARK ? ":/icons/openMetaIconW"  : ":/icons/openMetaIconB"));
     ui->toolButton_meta->setEnabled(false);
 }
 
@@ -73,6 +73,12 @@ void InfoWidget::enableOpenVideo(bool status, QString tooltip)
 {
     ui->toolButton_video->setEnabled(status);
     if (!tooltip.isEmpty()) ui->toolButton_video->setToolTip(tooltip);
+}
+
+void InfoWidget::setColorTheme(ColorTheme theme)
+{
+    ui->toolButton_folder->setIcon(QIcon(theme == DARK ? ":/icons/openFolderIconW" : ":/icons/openFolderIconB"));
+    ui->toolButton_video->setIcon( QIcon(theme == DARK ? ":/icons/openVideoIconW"  : ":/icons/openVideoIconB"));
 }
 
 void InfoWidget::on_toolButton_folder_clicked()

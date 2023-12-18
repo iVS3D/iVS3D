@@ -76,7 +76,7 @@ void ExportWidget::setResolutionValid(bool valid)
     QPalette colorPalette = this->ui->comboBox->palette();
     if (valid) {
         ApplicationSettings as = ApplicationSettings::instance();
-        if (as.getActiveStyle()) {
+        if (as.getColorTheme() == DARK) {
             //darkstyle on
             colorPalette.setColor(QPalette::Text, Qt::white);
         }

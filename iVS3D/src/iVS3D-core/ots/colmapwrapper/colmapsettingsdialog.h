@@ -32,6 +32,8 @@ class SettingsDialog : public QDialog
     ~SettingsDialog();
 
   public slots:
+    void onUpdateToDarkTheme();
+    void onUpdateToLightTheme();
     void onShow();
     void onStatusChanged();
     void onQuit();

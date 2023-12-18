@@ -105,10 +105,14 @@ public slots:
      */
     void slot_changeDefaultInputPath();
     /**
-     * @brief slot_changeDarkStyle Slot is called when 'Use darkstyle' is clicked.
-     * It will change the dark style bool in ApplicationSettings.
+     * @brief slot_toggleColorTheme Slot is called when color theme is changed by the user. Toggles between different themes.
      */
-    void slot_changeDarkStyle(bool dark);
+    void slot_toggleColorTheme();
+    /**
+     * @brief slot_changeColorTheme Slot is called when a specific color theme is selected.
+     * @param theme The selected color theme
+     */
+    void slot_changeColorTheme(ColorTheme theme);
     /**
      * @brief slot_changeUseCuda Slot is called when 'CUDA' is clicked.
      * @param useCuda @a true if CUDA is marked
@@ -137,6 +141,12 @@ signals:
      */
     void sig_hasStatusMessage(QString message);
 
+    /**
+     * @brief [signal] sig_colorThemeChanged() is emitted when the color theme is changed.
+     * @param theme the new color theme
+     */
+    void sig_colorThemeChanged(ColorTheme theme);
+
 private slots:
     void slot_openFinished(int result);
     void slot_exportStarted();
@@ -155,6 +165,8 @@ private:
     OpenExecutor *m_openExec;
     #if defined(Q_OS_LINUX)
         lib3d::ots::ColmapWrapper *m_colmapWrapper;
+        QAction *m_colmapWrapperSettingsAction;
+        QPushButton *m_newProductPushButton;
     #endif
     bool m_exporting = false;
     //Prevents multiple drag and drops at the same time

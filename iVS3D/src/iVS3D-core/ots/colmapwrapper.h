@@ -785,7 +785,7 @@ class ColmapWrapper : public QObject
 
 namespace ui {
 
-  /**
+    /**
    * @brief Class providing ui elements for controlling ColmapWrapper
    * @author Ruf, Boitumelo <boitumelo.ruf@iosb.fraunhofer.de>
    */

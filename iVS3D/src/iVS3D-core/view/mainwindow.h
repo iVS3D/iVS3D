@@ -70,7 +70,7 @@ public:
      * @param algorithmList holds identifier(names) of all loaded plugins(algorithms)
 	 * @param transformList holds identifier(names) of all loaded transform plugins
      */
-    MainWindow(QWidget *parent = nullptr, bool dark = false, int cuda = -1, bool createLog = false,  bool interpolateMetaData = true, QStringList algorithmList = QStringList(tr("no algorithm")), QStringList transformList = QStringList(""), QWidget *otsWidget = nullptr);
+    MainWindow(QWidget *parent = nullptr, ColorTheme theme = ColorTheme::LIGHT, int cuda = -1, bool createLog = false,  bool interpolateMetaData = true, QStringList algorithmList = QStringList(tr("no algorithm")), QStringList transformList = QStringList(""), QWidget *otsWidget = nullptr);
 
     /**
       * @brief delete members and disconnect connections
@@ -159,6 +159,8 @@ public:
 
     bool getInputEnabled();
 
+    void setColorTheme(ColorTheme theme);
+
 
 signals:
     /**
@@ -206,11 +208,9 @@ signals:
      */
     void sig_changeLayoutStyle(bool horizontal);
     /**
-     * @brief sig_changeDarkStyle "Use DarkStyle" in menu-bar
-     *
-     * @param dark layout is in dark mode
+     * @brief sig_toggleTheme "Toggle theme" in menu-bar
      */
-    void sig_changeDarkStyle(bool dark);
+    void sig_toggleTheme();
     /**
      * @brief sig_changeUseCuda is emitted if the useCuda option is toggled
      * @param useCuda @a true if cuda is enabled
@@ -261,7 +261,7 @@ private slots:
     void on_actionInfo_triggered();
     void on_actionOpen_Input_Video_triggered();
     void on_actionHelp_triggered();
-    void on_actionuse_DarkStyle_toggled(bool);
+    void on_actionToggleTheme_triggered();
     void on_actionUse_CUDA_triggered();
     void on_actionLicence_triggered();
     void on_actionCreate_log_file_triggered();
