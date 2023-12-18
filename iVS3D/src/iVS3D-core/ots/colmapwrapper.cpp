@@ -1665,11 +1665,12 @@ QPushButton *ui::ColmapWrapperControlsFactory::createNewProductPushButton(ui::ET
         mpMsWrapperNewProductDialog->setModal(false);
     }
 
-    connect(pPushButton,
+    if(!rhs){
+        connect(pPushButton,
             &QPushButton::clicked,
             this,
             &ColmapWrapperControlsFactory::showNewProductDialog);
-
+    }
     connect(this,
             &ColmapWrapperControlsFactory::enableNewProductButtons,
             pPushButton,
@@ -1701,12 +1702,12 @@ QToolButton *ui::ColmapWrapperControlsFactory::createNewProductToolButton(ui::ET
             new colmapwrapper::NewProductDialog(mpMsWrapper, parent));
         mpMsWrapperNewProductDialog->setModal(false);
     }
-
-    connect(pToolButton,
+    if(!rhs){
+        connect(pToolButton,
             &QToolButton::clicked,
             this,
             &ColmapWrapperControlsFactory::showNewProductDialog);
-
+    }
     return pToolButton;
 }
 
