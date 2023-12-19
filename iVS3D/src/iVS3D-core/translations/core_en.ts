@@ -58,7 +58,7 @@
     </message>
     <message>
         <location filename="../controller/algorithmcontroller.cpp" line="131"/>
-        <location filename="../controller/algorithmcontroller.cpp" line="173"/>
+        <location filename="../controller/algorithmcontroller.cpp" line="174"/>
         <source>ms</source>
         <translation type="unfinished"></translation>
     </message>
@@ -73,12 +73,12 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/algorithmcontroller.cpp" line="167"/>
+        <location filename="../controller/algorithmcontroller.cpp" line="168"/>
         <source>Computing preview ...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/algorithmcontroller.cpp" line="173"/>
+        <location filename="../controller/algorithmcontroller.cpp" line="174"/>
         <source> finished after </source>
         <translation type="unfinished"></translation>
     </message>
@@ -163,215 +163,215 @@
 <context>
     <name>Controller</name>
     <message>
-        <location filename="../controller/controller.cpp" line="127"/>
+        <location filename="../controller/controller.cpp" line="128"/>
         <source>Wait for export to finish before importing new images.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="131"/>
+        <location filename="../controller/controller.cpp" line="132"/>
         <source>Choose Folder</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="133"/>
-        <location filename="../controller/controller.cpp" line="152"/>
-        <location filename="../controller/controller.cpp" line="222"/>
-        <location filename="../controller/controller.cpp" line="231"/>
-        <location filename="../controller/controller.cpp" line="264"/>
-        <location filename="../controller/controller.cpp" line="327"/>
+        <location filename="../controller/controller.cpp" line="134"/>
+        <location filename="../controller/controller.cpp" line="153"/>
+        <location filename="../controller/controller.cpp" line="223"/>
+        <location filename="../controller/controller.cpp" line="232"/>
+        <location filename="../controller/controller.cpp" line="265"/>
+        <location filename="../controller/controller.cpp" line="328"/>
         <source>Input canceled</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="145"/>
+        <location filename="../controller/controller.cpp" line="146"/>
         <source>Wait for export to finish before importing a new video.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="150"/>
+        <location filename="../controller/controller.cpp" line="151"/>
         <source>Choose Video</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="176"/>
+        <location filename="../controller/controller.cpp" line="177"/>
         <source>Wait for export to finish before importing new files.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="202"/>
+        <location filename="../controller/controller.cpp" line="203"/>
         <source>Wait for export to finish before importing new project.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="207"/>
+        <location filename="../controller/controller.cpp" line="208"/>
         <source>Choose project file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="229"/>
+        <location filename="../controller/controller.cpp" line="230"/>
         <source>Save project</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="240"/>
-        <location filename="../controller/controller.cpp" line="247"/>
+        <location filename="../controller/controller.cpp" line="241"/>
+        <location filename="../controller/controller.cpp" line="248"/>
         <source>Project saved</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="262"/>
+        <location filename="../controller/controller.cpp" line="263"/>
         <source>Choose standard input path</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="269"/>
+        <location filename="../controller/controller.cpp" line="270"/>
         <source>Standard input path changed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="294"/>
+        <location filename="../controller/controller.cpp" line="295"/>
         <source>dark</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="294"/>
+        <location filename="../controller/controller.cpp" line="295"/>
         <source>light</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="294"/>
+        <location filename="../controller/controller.cpp" line="295"/>
         <source>GUI color theme changed to </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="294"/>
+        <location filename="../controller/controller.cpp" line="295"/>
         <source> style</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="303"/>
+        <location filename="../controller/controller.cpp" line="304"/>
         <source>CUDA enabled</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="303"/>
+        <location filename="../controller/controller.cpp" line="304"/>
         <source>CUDA disabled</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="309"/>
+        <location filename="../controller/controller.cpp" line="310"/>
         <source>Create log files</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="309"/>
-        <location filename="../controller/controller.cpp" line="317"/>
+        <location filename="../controller/controller.cpp" line="310"/>
+        <location filename="../controller/controller.cpp" line="318"/>
         <source> enabled</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="309"/>
-        <location filename="../controller/controller.cpp" line="317"/>
+        <location filename="../controller/controller.cpp" line="310"/>
+        <location filename="../controller/controller.cpp" line="318"/>
         <source> disabled</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="317"/>
+        <location filename="../controller/controller.cpp" line="318"/>
         <source>Interpolating missing meta data</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="325"/>
+        <location filename="../controller/controller.cpp" line="326"/>
         <source>Choose Meta Data</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="338"/>
+        <location filename="../controller/controller.cpp" line="339"/>
         <source>Loaded </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="338"/>
-        <location filename="../controller/controller.cpp" line="400"/>
+        <location filename="../controller/controller.cpp" line="339"/>
+        <location filename="../controller/controller.cpp" line="404"/>
         <source> meta data feature</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="338"/>
-        <location filename="../controller/controller.cpp" line="400"/>
+        <location filename="../controller/controller.cpp" line="339"/>
+        <location filename="../controller/controller.cpp" line="404"/>
         <source>s</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="387"/>
+        <location filename="../controller/controller.cpp" line="391"/>
         <source>No images found after </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="387"/>
-        <location filename="../controller/controller.cpp" line="401"/>
-        <location filename="../controller/controller.cpp" line="404"/>
+        <location filename="../controller/controller.cpp" line="391"/>
+        <location filename="../controller/controller.cpp" line="405"/>
+        <location filename="../controller/controller.cpp" line="408"/>
         <source>ms</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="399"/>
-        <location filename="../controller/controller.cpp" line="404"/>
+        <location filename="../controller/controller.cpp" line="403"/>
+        <location filename="../controller/controller.cpp" line="408"/>
         <source>Import of </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="399"/>
+        <location filename="../controller/controller.cpp" line="403"/>
         <source> images and </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="401"/>
+        <location filename="../controller/controller.cpp" line="405"/>
         <source> finished after </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="404"/>
+        <location filename="../controller/controller.cpp" line="408"/>
         <source> images finished after </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="423"/>
+        <location filename="../controller/controller.cpp" line="427"/>
         <source>#Frames  </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="427"/>
+        <location filename="../controller/controller.cpp" line="431"/>
         <source>Resolution  </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="431"/>
+        <location filename="../controller/controller.cpp" line="435"/>
         <source>FPS </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="432"/>
+        <location filename="../controller/controller.cpp" line="436"/>
         <source>Video duration </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="437"/>
+        <location filename="../controller/controller.cpp" line="441"/>
         <source>Loaded Meta Data</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="497"/>
+        <location filename="../controller/controller.cpp" line="501"/>
         <source>Project </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="497"/>
+        <location filename="../controller/controller.cpp" line="501"/>
         <source> with </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="498"/>
+        <location filename="../controller/controller.cpp" line="502"/>
         <source> images loaded</source>
         <translation type="unfinished"></translation>
     </message>
@@ -932,48 +932,61 @@ p, li { white-space: pre-wrap; }
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.cpp" line="49"/>
+        <location filename="../view/mainwindow.cpp" line="50"/>
         <source>Input</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.cpp" line="66"/>
-        <source>Batch processing</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../view/mainwindow.cpp" line="82"/>
+        <location filename="../view/mainwindow.cpp" line="83"/>
         <source>Sampling</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.cpp" line="93"/>
+        <location filename="../view/mainwindow.cpp" line="94"/>
         <source>Output</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.cpp" line="113"/>
+        <location filename="../view/mainwindow.cpp" line="114"/>
         <source>Reset Layout</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.cpp" line="286"/>
+        <location filename="../view/mainwindow.cpp" line="287"/>
         <source>Reconstruction</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.cpp" line="308"/>
+        <location filename="../view/mainwindow.cpp" line="309"/>
         <source>input has been passed as a start argument. Thus it can not be changed!</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.h" line="73"/>
+        <location filename="../view/mainwindow.h" line="74"/>
         <source>no algorithm</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.h" line="84"/>
+        <location filename="../view/mainwindow.h" line="85"/>
         <source>not saved</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>OperationStack</name>
+    <message>
+        <location filename="../view/operationstack.ui" line="14"/>
+        <source>Form</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../view/operationstack.ui" line="20"/>
+        <source>Keyframe History</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../view/operationstack.ui" line="37"/>
+        <source>Clear</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -1172,27 +1185,27 @@ p, li { white-space: pre-wrap; }
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/samplingwidget.ui" line="93"/>
+        <location filename="../view/samplingwidget.ui" line="150"/>
         <source>Add to processing</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/samplingwidget.ui" line="100"/>
+        <location filename="../view/samplingwidget.ui" line="109"/>
         <source> Generate settings</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/samplingwidget.ui" line="126"/>
+        <location filename="../view/samplingwidget.ui" line="99"/>
         <source>Start the selected sampling algorithm</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/samplingwidget.ui" line="129"/>
+        <location filename="../view/samplingwidget.ui" line="102"/>
         <source>Sample images</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/samplingwidget.ui" line="136"/>
+        <location filename="../view/samplingwidget.ui" line="116"/>
         <source>Generate settings</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1202,7 +1215,7 @@ p, li { white-space: pre-wrap; }
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/samplingwidget.ui" line="150"/>
+        <location filename="../view/samplingwidget.ui" line="136"/>
         <source>Sampling</source>
         <translation type="unfinished"></translation>
     </message>

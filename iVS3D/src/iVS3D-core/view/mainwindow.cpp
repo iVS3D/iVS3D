@@ -340,6 +340,9 @@ void MainWindow::setColorTheme(ColorTheme theme)
     ui->actionOpen_Input->setIcon(QIcon(theme == DARK ? ":/icons/openFolderIconW" : ":/icons/openFolderIconB"));
     ui->actionOpen_Input_Video->setIcon( QIcon(theme == DARK ? ":/icons/openVideoIconW"  : ":/icons/openVideoIconB"));
     ui->actionOpen_Meta_Data->setIcon( QIcon(theme == DARK ? ":/icons/openMetaIconW"  : ":/icons/openMetaIconB"));
+    ui->actionRedo->setIcon(QIcon(theme == DARK ? ":/icons/redoIconW"  : ":/icons/redoIconB"));
+    ui->actionUndo->setIcon(QIcon(theme == DARK ? ":/icons/undoIconW"  : ":/icons/undoIconB"));
+    ui->actionDelete_All_Keyframes->setIcon(QIcon(theme == DARK ? ":/icons/resetIconW"  : ":/icons/resetIconB"));
 
     // notify children to update colors as well
     m_inputWidget->setColorTheme(theme);

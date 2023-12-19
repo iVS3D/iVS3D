@@ -23,6 +23,12 @@
         <file alias="nextIconW">resources/ic_skip_next_white.png</file>
         <file alias="prevIconB">resources/ic_skip_previous_black.png</file>
         <file alias="prevIconW">resources/ic_skip_previous_white.png</file>
+        <file alias="resetIconB">resources/ic_reset_black.png</file>
+        <file alias="resetIconW">resources/ic_reset_white.png</file>
+        <file alias="undoIconB">resources/ic_undo_black.png</file>
+        <file alias="undoIconW">resources/ic_undo_white.png</file>
+        <file alias="redoIconB">resources/ic_redo_black.png</file>
+        <file alias="redoIconW">resources/ic_redo_white.png</file>
     </qresource>
     <qresource prefix="/">
         <file>translations/core_de.qm</file>
