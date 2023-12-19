@@ -1,5 +1,5 @@
 #include "operationstack.h"
-#include "ui_operationstack.h"
+
 
 OperationStack::OperationStack(QWidget *parent) :
     QWidget(parent),

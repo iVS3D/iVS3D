@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include <QListWidget>
+#include "ui_operationstack.h"
 
 namespace Ui {
 class OperationStack;
