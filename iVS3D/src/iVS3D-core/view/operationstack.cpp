@@ -26,7 +26,7 @@ void OperationStack::addEntry(QString name)
 
 void OperationStack::clear()
 {
-    ui->listWidget->clear();
+    emit sig_clearClicked();
 }
 
 int OperationStack::getSize()

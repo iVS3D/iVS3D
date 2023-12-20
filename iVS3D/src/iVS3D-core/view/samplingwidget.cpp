@@ -30,8 +30,8 @@ SamplingWidget::SamplingWidget(QWidget *parent, QStringList algorithmList, QStri
     // disable generate Settings buttons
     ui->pushButton_2->setVisible(false);
     ui->radioButton->setVisible(false);
-    ui->label_2->setVisible(false);
     ui->addAuto->setVisible(false);
+    ui->label_3->setVisible(false);
     //
 }
 
@@ -122,17 +122,16 @@ void SamplingWidget::on_addAuto_clicked()
 void SamplingWidget::showSamplingBtns()
 {
     HIDE_WIDGET(m_cbPreviewTransform)
-    ui->label_2->setVisible(true);
-    ui->label_3->setVisible(true);
+//    ui->label_2->setVisible(true);
+//    ui->label_3->setVisible(true);
 //    ui->pushButton_2->setVisible(true);
     SHOW_WIDGET(ui->pushButton);
 //    ui->radioButton->setVisible(true);
-    ui->addAuto->setVisible(true);
+//    ui->addAuto->setVisible(true);
 }
 
 void SamplingWidget::showTransformBtns()
 {
-    ui->label_2->setVisible(false);
     ui->label_3->setVisible(false);
 //    ui->pushButton_2->setVisible(false);
     HIDE_WIDGET(ui->pushButton);
