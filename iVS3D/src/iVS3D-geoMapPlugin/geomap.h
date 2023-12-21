@@ -14,6 +14,7 @@
 #include <QPushButton>
 #include <QSpinBox>
 #include <QWidget>
+#include <QTabWidget>
 
 // iVS3D-core
 #include "../iVS3D-core/model/progressable.h"
@@ -29,6 +30,8 @@
                           "border-top-right-radius: 5px; border-bottom-right-radius: 5px; "   \
                           "background-color: lightblue;"
 
+#define NAME_Distance "Distance"
+#define NAME_Altitude "Altitude"
 /**
  * @class GeoMap
  *
@@ -160,6 +163,19 @@ class GeoMap : public IAlgorithm
      */
     void onGpsSelected(QPolygonF polyF);
 
+    /**
+     * @brief slot_devChanged Slot is triggerd when the value of mpSpinBoxDist is changed
+     * @param n Currently selceted distance
+     */
+    void slot_distChanged(double n);
+
+    /**
+     * @brief slot_altitudeCheckChanged triggered with check box mpAltitudeCheck
+     * @param check
+     */
+    void slot_altitudeCheckChanged(bool check);
+
+
   private:
     void createSettingsWidget(QWidget* parent);
 
@@ -173,6 +189,8 @@ class GeoMap : public IAlgorithm
     void initializeQmlMap();
     void reinitializeQmlMap();
 
+    double distanceBetweenPoints(int first, int second);
+    double greatCircleDistance(QPointF first, QPointF second);
     //--- MEMBER DECLARATION ---//
 
   private:
@@ -183,10 +201,16 @@ class GeoMap : public IAlgorithm
     Reader* mpReader;
 
     /// Pointer to settings widget
-    QWidget* mpSettingsWidget;
+    QTabWidget* mpSettingsWidget;
 
     /// Pointer to QML container widget
     QWidget* mpQuickViewContainerWidget;
+
+    /// Pointer to the map widget
+    QWidget* mpMapWidget;
+
+    /// Pointer to the sampling widget
+    QWidget* mpSamplingWidget;
 
     /// Pointer to map handler
     std::shared_ptr<MapHandler> mpMapHandler;
@@ -197,6 +221,9 @@ class GeoMap : public IAlgorithm
     /// List of available meta data
     QList<QVariant> mMetaData;
 
+    /// Flag indicating if altitude data is available
+    bool mAltitudeExisting = false;
+
     /// List of GPS data associated with the images
     QList<QPair<QPointF, bool>> mGpsData;
 
@@ -204,6 +231,19 @@ class GeoMap : public IAlgorithm
 
     /// Flag indicating if GPS data is available
     bool mIsGpsAvailable;
+
+    /// Pointer to distance spin box
+    QDoubleSpinBox* mpSpinBoxDist;
+
+    /// Pointer to altitude check box
+    QCheckBox* mpAltitudeCheckBox = nullptr;
+
+    /// sampling flag indicating if altitude data should be used for distance calculation
+    bool mUseAltitude = false;
+
+    /// distance for sampling set by the user
+    double mDistance = 1;
+
 };
 
 #endif // IVS3D_GEOMAPPLUGIN_H

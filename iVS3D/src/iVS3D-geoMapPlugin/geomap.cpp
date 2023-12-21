@@ -6,9 +6,11 @@
 #include <QQmlEngine>
 #include <QQuickView>
 #include <QTranslator>
+#include <QtMath>
 
 // iVS3D-core
 #include "../iVS3D-core/model/metaData/metadata.h"
+
 
 //==================================================================================================
 GeoMap::GeoMap()
@@ -57,7 +59,48 @@ std::vector<uint> GeoMap::sampleImages(const std::vector<uint>& imageList,
                                        Progressable* receiver, volatile bool* stopped,
                                        bool useCuda, LogFileParent* logFile)
 {
-    return imageList;
+    std::vector<uint> ret;
+    if (!mIsGpsAvailable) {
+        return imageList;
+    }
+
+    int prevIndex = 0;
+    mGpsData.replace(0, QPair<QPointF, bool> (mGpsData.at(0).first, true));
+    ret.push_back(imageList[0]);
+
+    double currentDistance = 0;
+    // first image will always be a keyframe
+    for (int i = 1; i < imageList.size(); i++) {
+        QPointF current = mGpsData.at(imageList[i]).first;
+        int currentIndex = imageList[i];
+        if (imageList[i] != i) {
+            for (int k = imageList[i - 1] + 1; k < imageList[i]; k++) {
+                // mGpsData has to be filled with all gps values. Values that aren't in the imageList are added here as false -> unused values
+                mGpsData.replace(k, QPair<QPointF, bool> (mGpsData.at(k).first, false));
+            }
+        }
+        currentDistance += distanceBetweenPoints(prevIndex, currentIndex);
+
+        prevIndex = currentIndex;
+        // if total distance between images is lower then the selected deviation it won't be selected
+        if (currentDistance < mDistance) {
+            mGpsData.replace(i, QPair<QPointF, bool>(current, false));
+            continue;
+        }
+
+        mGpsData.replace(i, QPair<QPointF, bool>(current, true));
+        currentDistance = 0;
+        ret.push_back(imageList[i]);
+    }
+    if (imageList.back() != mpReader->getPicCount()) {
+        for (int i = imageList.back(); i < mpReader->getPicCount(); i++) {
+            // mGpsData has to be filled with all gps values. Values that aren't in the imageList are added here
+            mGpsData.append(QPair<QPointF, bool> (mGpsData.at(i).first, false));
+        }
+    }
+
+    return ret;
+
 }
 
 //==================================================================================================
@@ -93,12 +136,29 @@ void GeoMap::initialize(Reader* reader, QMap<QString, QVariant> buffer, signalOb
 //==================================================================================================
 void GeoMap::setSettings(QMap<QString, QVariant> settings)
 {
+    QMap<QString, QVariant>::iterator iterator = settings.find(NAME_Distance);
+    if (iterator != settings.end()) {
+        mDistance = iterator.value().toDouble();
+        mpSpinBoxDist->setValue(mDistance);
+    }
+
+    iterator = settings.find(NAME_Altitude);
+    if (iterator != settings.end()) {
+        mUseAltitude = iterator.value().toBool();
+        mpAltitudeCheckBox->setChecked(mUseAltitude);
+    }
+
 }
 
 //==================================================================================================
 QMap<QString, QVariant> GeoMap::getSettings()
 {
-    return {};
+    QString valueDev = QString::number(mDistance);
+    QMap<QString, QVariant> settings;
+    settings.insert(NAME_Distance, valueDev);
+    settings.insert(NAME_Altitude, mUseAltitude);
+    return settings;
+
 }
 
 //==================================================================================================
@@ -165,26 +225,27 @@ void GeoMap::onKeyframesChanged(std::vector<uint> keyframes)
 //==================================================================================================
 void GeoMap::createSettingsWidget(QWidget* parent)
 {
-    mpSettingsWidget = new QWidget(parent);
-    mpSettingsWidget->setLayout(new QVBoxLayout());
-    mpSettingsWidget->layout()->setSpacing(3);
-    mpSettingsWidget->layout()->setMargin(3);
+    mpSettingsWidget = new QTabWidget(parent);
+    mpMapWidget = new QWidget(mpSettingsWidget);
+    mpMapWidget->setLayout(new QVBoxLayout());
+    mpMapWidget->layout()->setSpacing(3);
+    mpMapWidget->layout()->setMargin(3);
 
     //--- initialize qml map
     initializeQmlMap();
 
     //--- add Help Button
     QHBoxLayout* pHLayout    = new QHBoxLayout();
-    QPushButton* pHelpButton = new QPushButton(QObject::tr("Help"), mpSettingsWidget);
+    QPushButton* pHelpButton = new QPushButton(QObject::tr("Help"), mpMapWidget);
     pHLayout->layout()->setSpacing(3);
     pHLayout->layout()->setMargin(3);
     pHLayout->addSpacerItem(new QSpacerItem(20, 20, QSizePolicy::MinimumExpanding, QSizePolicy::Minimum));
     pHLayout->addWidget(pHelpButton);
-    mpSettingsWidget->layout()->addItem(pHLayout);
+    mpMapWidget->layout()->addItem(pHLayout);
 
     //--- connect help button to message box
     QObject::connect(pHelpButton, &QPushButton::clicked, [&]()
-                     { QMessageBox::about(mpSettingsWidget, "GeoMap Plugin",
+                     { QMessageBox::about(mpMapWidget, "GeoMap Plugin",
                                           QObject::tr("Select a group of keyframes by using right "
                                                       "mouse button to draw an encapsulating polygon."
                                                       "\n\n"
@@ -192,6 +253,53 @@ void GeoMap::createSettingsWidget(QWidget* parent)
                                                       "clicking with the left mouse button "
                                                       "on the location markings.\n\n"
                                                       "A combination of both is also allowed.")); });
+
+    //--- add map to the tab widget
+    mpSettingsWidget->addTab(mpMapWidget, "Map");
+
+    //--- create the sampling widget
+    mpSamplingWidget = new QWidget(mpSettingsWidget);
+    mpSamplingWidget->setLayout(new QVBoxLayout());
+    mpSamplingWidget->layout()->setSpacing(10);
+    mpSamplingWidget->layout()->setMargin(0);
+
+    QWidget* spinBoxWidget = new QWidget(parent);
+    spinBoxWidget->setLayout(new QHBoxLayout(parent));
+    spinBoxWidget->layout()->setSpacing(0);
+    spinBoxWidget->layout()->setMargin(0);
+    spinBoxWidget->layout()->addWidget(new QLabel(tr("Select distance in meter"),parent));
+
+    mpSpinBoxDist = new QDoubleSpinBox(parent);
+    mpSpinBoxDist->setMinimum(0);
+    mpSpinBoxDist->setMaximum(1000);
+    mpSpinBoxDist->setDecimals(2);
+    mpSpinBoxDist->setValue(mDistance);
+    mpSpinBoxDist->setSingleStep(0.5);
+    mpSpinBoxDist->setAlignment(Qt::AlignRight);
+    spinBoxWidget->layout()->addWidget(mpSpinBoxDist);
+    QObject::connect(mpSpinBoxDist, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &GeoMap::slot_distChanged);
+    mpSamplingWidget->layout()->addWidget(spinBoxWidget);
+
+    QLabel *LabelDistance = new QLabel(tr("Minimum distance between two keyframes"));
+    LabelDistance->setStyleSheet(DESCRIPTION_STYLE);
+    LabelDistance->setWordWrap(true);
+    mpSamplingWidget->layout()->addWidget(LabelDistance);
+
+
+    mpAltitudeCheckBox = new QCheckBox(parent);
+    mpAltitudeCheckBox->setText("Include altitude in calculation");
+    QObject::connect(mpAltitudeCheckBox, &QCheckBox::clicked, this, &GeoMap::slot_altitudeCheckChanged);
+    if (!mAltitudeExisting) {
+        mpAltitudeCheckBox->setVisible(false);
+    }
+    mpSamplingWidget->layout()->addWidget(mpAltitudeCheckBox);
+
+    mpSamplingWidget->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+    mpSamplingWidget->adjustSize();
+
+    //--- add sampling widget to tab widget
+    mpSettingsWidget->addTab(mpSamplingWidget, "Sampling");
+
 }
 
 //==================================================================================================
@@ -228,6 +336,16 @@ void GeoMap::onGpsSelected(QPolygonF polyF)
     updateKeyframes(getKeyframesFromGps());
 }
 
+void GeoMap::slot_distChanged(double n)
+{
+    mDistance = n;
+}
+
+void GeoMap::slot_altitudeCheckChanged(bool check)
+{
+    mUseAltitude = check;
+}
+
 //==================================================================================================
 void GeoMap::readMetaData()
 {
@@ -238,6 +356,19 @@ void GeoMap::readMetaData()
         if (metaName.startsWith("GPS"))
         {
             mMetaData = metaData->loadMetaData(metaName)->getAllMetaData();
+
+            QHash<QString, QVariant> metaHash = mMetaData[0].toHash();
+            QHash<QString, QVariant>::iterator iter = metaHash.find("GPSAltitude");
+            if (iter == metaHash.end()) {
+                mAltitudeExisting = false;
+            }
+            else {
+                mAltitudeExisting = true;
+                if (mpAltitudeCheckBox) {
+                    mpAltitudeCheckBox->setVisible(false);
+                }
+            }
+
 
             // Initial all frames are keyframes
             for (QVariant var : mMetaData)
@@ -293,14 +424,14 @@ void GeoMap::initializeQmlMap()
 {
     //--- initialize qml map
     QQuickView* pQuickView     = new QQuickView();
-    mpQuickViewContainerWidget = QWidget::createWindowContainer(pQuickView, mpSettingsWidget);
+    mpQuickViewContainerWidget = QWidget::createWindowContainer(pQuickView, mpMapWidget);
     mpMapHandler.reset(new MapHandler());
     pQuickView->engine()->clearComponentCache();
     pQuickView->rootContext()->setContextProperty("handler", mpMapHandler.get());
     pQuickView->setSource(QUrl("qrc:/map.qml"));
 
     //--- insert QuickView container widget at top
-    dynamic_cast<QVBoxLayout*>(mpSettingsWidget->layout())
+    dynamic_cast<QVBoxLayout*>(mpMapWidget->layout())
       ->insertWidget(0, mpQuickViewContainerWidget);
 
     if (!pQuickView->errors().isEmpty())
@@ -343,10 +474,45 @@ void GeoMap::initializeQmlMap()
 void GeoMap::reinitializeQmlMap()
 {
     //--- remove old map widget
-    mpSettingsWidget->layout()->removeWidget(mpQuickViewContainerWidget);
+    mpMapWidget->layout()->removeWidget(mpQuickViewContainerWidget);
     if (mpQuickViewContainerWidget)
         delete mpQuickViewContainerWidget;
 
     //--- initialize map
     initializeQmlMap();
+}
+
+double GeoMap::distanceBetweenPoints(int first, int second)
+{
+    QGeoCoordinate firstGPS = gpsHashtoGeoCo(mMetaData.at(first));
+        QGeoCoordinate secondGPS = gpsHashtoGeoCo(mMetaData.at(second));
+        QPointF firstLatLong = QPointF(firstGPS.latitude(), firstGPS.longitude());
+        QPointF secondLatLong = QPointF(secondGPS.latitude(), secondGPS.longitude());
+        double distance = greatCircleDistance(firstLatLong, secondLatLong);
+        if (!mAltitudeExisting || !mUseAltitude) {
+            return distance;
+        }
+        double pow = qPow(distance, 2);
+        double sqrt = qSqrt(qPow(distance, 2));
+        double pow2 = qPow(firstGPS.altitude() - secondGPS.altitude(), 2);
+        double euclidDistance = qSqrt(qPow(distance, 2) + qPow(firstGPS.altitude() - secondGPS.altitude(), 2));
+        return euclidDistance;
+
+}
+
+double GeoMap::greatCircleDistance(QPointF first, QPointF second)
+{
+    // caculate distance between to points using the haversine formula
+    // earth radius in meters
+    const int r = 6371008;
+    // convert latitude and longitude to radiant
+    double lat1 = first.x() * (M_PI / 180);
+    double lat2 = second.x() * (M_PI / 180);
+    double latDiff = (second.x() - first.x()) * (M_PI / 180);
+    double longDiff = (second.y() - first.y()) * (M_PI / 180);
+    // calculate haversine
+    double a = pow(sin(latDiff/2), 2) + cos(lat1) * cos(lat2) * pow(sin(longDiff/2), 2);
+    double distance = 2 * r * asin(sqrt(a));
+    return distance;
+
 }
