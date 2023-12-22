@@ -26,7 +26,7 @@ void OperationStack::addEntry(QString name)
 
 void OperationStack::clear()
 {
-    emit sig_clearClicked();
+    removeItemsAfter(0); // keep the first element which is import
 }
 
 int OperationStack::getSize()
