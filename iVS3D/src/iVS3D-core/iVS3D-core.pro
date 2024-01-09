@@ -18,10 +18,13 @@ for(file, src_files) {
 }
 INCLUDEPATH += $$unique(src_dirs)
 INCLUDEPATH += $$_PRO_FILE_PWD_
-SOURCES += $$files(*.cpp, true)
+SOURCES += $$files(*.cpp, true) \
+    view/historyitem.cpp
 FORMS += $$files(*.ui, true) \
-    ots/colmapwrapper/colmapqueueitem_failed.ui
-HEADERS += $$files(*.h, true)
+    ots/colmapwrapper/colmapqueueitem_failed.ui \
+    view/historyitem.ui
+HEADERS += $$files(*.h, true) \
+    view/historyitem.h
 
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/release -liVS3D-pluginInterface
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/debug -liVS3D-pluginInterface

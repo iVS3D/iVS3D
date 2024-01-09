@@ -4,6 +4,7 @@
 #include <QWidget>
 #include <QListWidget>
 #include "ui_operationstack.h"
+#include "historyitem.h"
 
 namespace Ui {
 class OperationStack;
@@ -49,6 +50,7 @@ private slots:
 
 private:
     Ui::OperationStack *ui;
+    QList<HistoryItem*> t;
 };
 
 #endif // OPERATIONSTACK_H

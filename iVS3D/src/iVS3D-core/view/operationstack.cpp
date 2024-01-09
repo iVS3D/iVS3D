@@ -1,3 +1,4 @@
+
 #include "operationstack.h"
 
 
@@ -18,10 +19,13 @@ OperationStack::~OperationStack()
 void OperationStack::addEntry(QString name)
 {
     QString number = "(" + QString::number(getSize() + 1) + ")  ";
-    QListWidgetItem* newItem = new QListWidgetItem(number + name);
-    newItem->setData(Qt::UserRole, name);
-    ui->listWidget->addItem(newItem);
-    ui->listWidget->setCurrentItem(newItem);
+    HistoryItem* newItem = new HistoryItem(ui->listWidget, name);
+    t.append(newItem);
+    QListWidgetItem* listItem = new QListWidgetItem();
+    ui->listWidget->addItem(listItem);
+    listItem->setSizeHint(newItem->size());
+    ui->listWidget->setItemWidget(listItem, newItem);
+    ui->listWidget->setCurrentItem(listItem);
 }
 
 void OperationStack::clear()
