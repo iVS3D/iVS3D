@@ -24,7 +24,7 @@ Item {
         PluginParameter
         {
             name: "osm.mapping.custom.host"
-            value: "https://a.basemaps.cartocdn.com/rastertiles/voyager_nolabels/"
+            value: "http://a.basemaps.cartocdn.com/rastertiles/voyager_nolabels/"
         }
 
     }

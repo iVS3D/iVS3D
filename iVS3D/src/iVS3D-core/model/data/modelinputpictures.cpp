@@ -35,9 +35,13 @@ ModelInputPictures::ModelInputPictures(QString inputPath)
         QFileInfo info = QFileInfo (inputPath);
         QDir dir = info.dir();
         QString metaName = info.baseName().append(".srt");
-        if (dir.exists(metaName)) {
+
+        QStringList entryList = dir.entryList(QDir::Files | QDir::NoDotAndDotDot, QDir::IgnoreCase);
+
+        if (entryList.contains(metaName, Qt::CaseInsensitive)) {
             loadMetaData(QStringList(dir.filePath(metaName)));
         }
+
     }
 
     m_boundaries = QPoint(0,m_reader->getPicCount()-1);
