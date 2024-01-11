@@ -5,11 +5,10 @@ import argparse
 import subprocess
 import shutil
 import traceback
-import pymap3d as pm
 import glob
 from pathlib import Path
 
-from GpsEntry import GpsEntry
+from GpsEntry import GpsEntry, geodetic2enu
 import yaml 
 import exifread
 
@@ -241,7 +240,7 @@ def computeGpsRefernceList(colmapProjectDirPath: str, sequenceName: str, geoDir:
         gpsEntry = GpsEntry(0,0,0)
         gpsEntry.readFromExif(tags)
 
-        enu_x, enu_y, enu_z = pm.geodetic2enu(gpsEntry.lat, gpsEntry.long, gpsEntry.alt, lat, lon, alt)
+        enu_x, enu_y, enu_z = geodetic2enu(gpsEntry.lat, gpsEntry.long, gpsEntry.alt, lat, lon, alt)
         fout_enu.write('{} {:.3f} {:.3f} {:.3f}\r\n'.format(os.path.basename(imgFilename), enu_x, enu_y, enu_z))
         fout_enu.flush()  
 

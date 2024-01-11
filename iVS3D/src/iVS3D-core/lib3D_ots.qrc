@@ -76,51 +76,7 @@
         <file>ots/colmapwrapper/remoteBootstrapper.sh</file>
         <file>ots/colmapwrapper/ColmapWorkerScript/ColmapWorker.py</file>
         <file>ots/colmapwrapper/ColmapWorkerScript/GpsEntry.py</file>
-        <file>ots/colmapwrapper/ColmapWorkerScript/pymap3d/ecef.py</file>
-        <file>ots/colmapwrapper/ColmapWorkerScript/pymap3d/haversine.py</file>
-        <file>ots/colmapwrapper/ColmapWorkerScript/pymap3d/spherical.py</file>
-        <file>ots/colmapwrapper/ColmapWorkerScript/pymap3d/utils.py</file>
-        <file>ots/colmapwrapper/ColmapWorkerScript/pymap3d/aer.py</file>
-        <file>ots/colmapwrapper/ColmapWorkerScript/pymap3d/los.py</file>
-        <file>ots/colmapwrapper/ColmapWorkerScript/pymap3d/lox.py</file>
-        <file>ots/colmapwrapper/ColmapWorkerScript/pymap3d/mathfun.py</file>
-        <file>ots/colmapwrapper/ColmapWorkerScript/pymap3d/ellipsoid.py</file>
-        <file>ots/colmapwrapper/ColmapWorkerScript/pymap3d/eci.py</file>
-        <file>ots/colmapwrapper/ColmapWorkerScript/pymap3d/ned.py</file>
-        <file>ots/colmapwrapper/ColmapWorkerScript/pymap3d/__init__.py</file>
-        <file>ots/colmapwrapper/ColmapWorkerScript/pymap3d/timeconv.py</file>
-        <file>ots/colmapwrapper/ColmapWorkerScript/pymap3d/azelradec.py</file>
-        <file>ots/colmapwrapper/ColmapWorkerScript/pymap3d/latitude.py</file>
-        <file>ots/colmapwrapper/ColmapWorkerScript/pymap3d/vincenty.py</file>
-        <file>ots/colmapwrapper/ColmapWorkerScript/pymap3d/rsphere.py</file>
-        <file>ots/colmapwrapper/ColmapWorkerScript/pymap3d/vallado.py</file>
-        <file>ots/colmapwrapper/ColmapWorkerScript/pymap3d/enu.py</file>
-        <file>ots/colmapwrapper/ColmapWorkerScript/pymap3d/rcurve.py</file>
-        <file>ots/colmapwrapper/ColmapWorkerScript/pymap3d/sidereal.py</file>
-        <file>ots/colmapwrapper/ColmapWorkerScript/pymap3d/vdist/__main__.py</file>
-        <file>ots/colmapwrapper/ColmapWorkerScript/pymap3d/vdist/__init__.py</file>
-        <file>ots/colmapwrapper/ColmapWorkerScript/pymap3d/vreckon/__main__.py</file>
-        <file>ots/colmapwrapper/ColmapWorkerScript/pymap3d/vreckon/__init__.py</file>
-        <file>ots/colmapwrapper/ColmapWorkerScript/pymap3d/tests/test_aer.py</file>
-        <file>ots/colmapwrapper/ColmapWorkerScript/pymap3d/tests/test_latitude.py</file>
-        <file>ots/colmapwrapper/ColmapWorkerScript/pymap3d/tests/test_vincenty_dist.py</file>
-        <file>ots/colmapwrapper/ColmapWorkerScript/pymap3d/tests/test_eci.py</file>
-        <file>ots/colmapwrapper/ColmapWorkerScript/pymap3d/tests/test_rcurve.py</file>
-        <file>ots/colmapwrapper/ColmapWorkerScript/pymap3d/tests/test_spherical.py</file>
-        <file>ots/colmapwrapper/ColmapWorkerScript/pymap3d/tests/test_time.py</file>
-        <file>ots/colmapwrapper/ColmapWorkerScript/pymap3d/tests/test_enu.py</file>
-        <file>ots/colmapwrapper/ColmapWorkerScript/pymap3d/tests/test_look_spheroid.py</file>
-        <file>ots/colmapwrapper/ColmapWorkerScript/pymap3d/tests/test_rhumb.py</file>
-        <file>ots/colmapwrapper/ColmapWorkerScript/pymap3d/tests/test_sky.py</file>
-        <file>ots/colmapwrapper/ColmapWorkerScript/pymap3d/tests/test_geodetic.py</file>
-        <file>ots/colmapwrapper/ColmapWorkerScript/pymap3d/tests/test_elliposid.py</file>
-        <file>ots/colmapwrapper/ColmapWorkerScript/pymap3d/tests/test_vincenty_vreckon.py</file>
-        <file>ots/colmapwrapper/ColmapWorkerScript/pymap3d/tests/test_rsphere.py</file>
-        <file>ots/colmapwrapper/ColmapWorkerScript/pymap3d/tests/test_pyproj.py</file>
-        <file>ots/colmapwrapper/ColmapWorkerScript/pymap3d/tests/__init__.py</file>
-        <file>ots/colmapwrapper/ColmapWorkerScript/pymap3d/tests/test_sidereal.py</file>
-        <file>ots/colmapwrapper/ColmapWorkerScript/pymap3d/tests/test_ned.py</file>
-        <file>ots/colmapwrapper/ColmapWorkerScript/pymap3d/tests/test_vincenty.py</file>
+        <file>ots/colmapwrapper/ColmapWorkerScript/ellipsoid.py</file>
         <file>ots/colmapwrapper/ColmapWorkerScript/yaml/composer.py</file>
         <file>ots/colmapwrapper/ColmapWorkerScript/yaml/emitter.py</file>
         <file>ots/colmapwrapper/ColmapWorkerScript/yaml/serializer.py</file>
