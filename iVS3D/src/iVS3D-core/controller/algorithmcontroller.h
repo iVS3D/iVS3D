@@ -19,6 +19,11 @@
 #define NO_IMAGE -1
 #define NO_TRANSFORM -1
 
+// wait the specified amount of milliseconds before displaying the progress dialog when running an algorithm.
+// This is done to avoid popup and immediate closing of the dialog on very fast algorithms such as NthFrame.
+// If the algorithm is faster than the PROGRESS_DIALOG_DELAY_MS, then the dialog is not shown at all.
+#define PROGRESS_DIALOG_DELAY_MS 500
+
 /**
  * @class AlgorithmController
  *
@@ -61,6 +66,11 @@ public slots:
      * @brief Slot which is called, when 'Sample images' is clicked. The slot will start the algorithm by calling the AlgorithmExecutor
      */
     void slot_startAlgorithm();
+    /**
+     * @brief Slot which is called after a sampling process of settings generation process is started. The call to this slot can be delayed,
+     * so the dialog is shown only if the execution of the process takes a certain amount of time.
+     */
+    void slot_showProgessDialog();
     /**
      * @brief Slot which is called, when 'Generate settings' is clicked. The slot will start the algorithm by calling the AlgorithmExecutor
      */
@@ -125,5 +135,8 @@ private:
 
     // plugin runtime
     QElapsedTimer m_timer;
+
+    bool m_processRunning = false;
+    bool m_progressDialogActivated = false;
 };
 #endif // ALGORITHMCONTROLLER_H

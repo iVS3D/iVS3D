@@ -86,11 +86,23 @@ void AlgorithmController::slot_startAlgorithm()
     connect(m_algorithmProgressDialog, &ProgressDialog::sig_abort, m_algExec, &AlgorithmExecutor::slot_abort);
     connect(m_algExec, &AlgorithmExecutor::sig_progress, m_algorithmProgressDialog, &ProgressDialog::slot_displayProgress);
 
-    // display progress dialog and start algorithm
+    m_processRunning = true;
+    m_progressDialogActivated = false;
+
+    // start algorithm and display progress dialog (delayed)
     m_timer = QElapsedTimer();
     m_timer.start();
-    m_algorithmProgressDialog->show();
     m_algExec->startSampling(m_pluginIdx);
+    QTimer::singleShot(PROGRESS_DIALOG_DELAY_MS, this, &AlgorithmController::slot_showProgessDialog); // wait for 100ms before displaying the dialog
+}
+
+void AlgorithmController::slot_showProgessDialog()
+{
+    // if the process is still running then display the dialog
+    if (m_processRunning && !m_progressDialogActivated){
+        m_progressDialogActivated = true;
+        m_algorithmProgressDialog->show();
+    }
 }
 
 void AlgorithmController::slot_startGenerateSettings()
@@ -118,18 +130,24 @@ void AlgorithmController::slot_startGenerateSettings()
     connect(m_algorithmProgressDialog, &ProgressDialog::sig_abort, m_algExec, &AlgorithmExecutor::slot_abort);
     connect(m_algExec, &AlgorithmExecutor::sig_progress, m_algorithmProgressDialog, &ProgressDialog::slot_displayProgress);
 
+    m_processRunning = true;
+    m_progressDialogActivated = false;
+
     // display progress dialog and start algorithm
     m_timer = QElapsedTimer();
     m_timer.start();
-    m_algorithmProgressDialog->show();
     m_algExec->startGenerateSettings(m_pluginIdx);
+    QTimer::singleShot(PROGRESS_DIALOG_DELAY_MS, this, &AlgorithmController::slot_showProgessDialog); // wait for 100ms before displaying the dialog
 }
 
 void AlgorithmController::slot_algorithmAborted()
 {
+    m_processRunning = false;
     auto duration_ms = m_timer.elapsed();
     emit sig_hasStatusMessage(AlgorithmManager::instance().getPluginNameToIndex(m_pluginIdx) + tr(" aborted after ") + QString::number(duration_ms) + tr("ms"));
-    m_algorithmProgressDialog->close();
+    if(m_progressDialogActivated){
+        m_algorithmProgressDialog->close();
+    }
 }
 
 
@@ -170,10 +188,12 @@ void AlgorithmController::startNextTransform()
 
 void AlgorithmController::slot_algorithmFinished(int)
 {
+    m_processRunning = false;
     auto duration_ms = m_timer.elapsed();
+    if(m_progressDialogActivated){
+        m_algorithmProgressDialog->close();
+    }
     emit sig_hasStatusMessage(AlgorithmManager::instance().getPluginNameToIndex(m_pluginIdx) + tr(" finished after ") + QString::number(duration_ms) + tr("ms"));
     emit sig_algorithmFinished(m_pluginIdx);
     m_dataManager->getHistory()->slot_save();
-    m_algorithmProgressDialog->close();
-
 }
