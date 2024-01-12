@@ -103,6 +103,19 @@ if(WIN32)
     )
 endif()
 
+if(Update_Translations)
+    add_custom_target(UpdateTranslations-${TARGET_NAME}
+        COMMAND lupdate ${CMAKE_CURRENT_LIST_DIR} -ts ${TRANSLATION_FILES} -no-obsolete
+    )
+
+    add_dependencies(${TARGET_NAME}
+        UpdateTranslations-${TARGET_NAME}
+    )
+
+    add_dependencies(BuildTranslations-${TARGET_NAME}
+        UpdateTranslations-${TARGET_NAME}
+    )
+endif()
 
 # TODO: Windows Build
 #   - Deploy DLLs

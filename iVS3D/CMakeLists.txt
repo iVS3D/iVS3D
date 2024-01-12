@@ -24,6 +24,9 @@ set(Build_Plugins ON CACHE BOOL "Build plugins.")
 # Set 'Build_Tests' option (default false)
 set(Build_Tests OFF CACHE BOOL "Build test routines.")
 
+# Set 'Update_Translations' option (default false)
+set(Update_Translations OFF CACHE BOOL "Enable rescanning sources to update .ts files.")
+
 # Set 'With_CUDA' option (default true)
 set(With_CUDA ON CACHE BOOL "Build with CUDA library")
 
@@ -39,8 +42,8 @@ set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 # 3rd_party
 
 # Qt
-find_package(QT NAMES Qt5 REQUIRED COMPONENTS Core Gui Widgets Concurrent Positioning)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Gui Widgets Concurrent Positioning)
+find_package(QT NAMES Qt5 REQUIRED COMPONENTS Core Gui Widgets Concurrent Positioning LinguistTools)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Gui Widgets Concurrent Positioning LinguistTools)
 set(CMAKE_AUTOUIC ON) # The AUTOGEN_BUILD_DIR is automatically added to the target's INCLUDE_DIRECTORIES.
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
@@ -66,6 +69,12 @@ if(With_CUDA)
     )
 
 endif() # With_CUDA
+
+if(Update_Translations)
+    # Qt Linguist
+    find_package(QT NAMES Qt5 REQUIRED COMPONENTS LinguistTools)
+    find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS LinguistTools)
+endif()
 
 # subdirectories
 

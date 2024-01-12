@@ -305,7 +305,9 @@ void VideoPlayerController::slot_receiveImage(uint idx, const cv::Mat &img)
         m_foundCorruptedFrames.insert(idx);
 
         // create dynamic status bar error message
-        QString errorMsg = (m_foundCorruptedFrames.size() > 1 ? ERROR_MSG_MULTI : ERROR_MSG_SINGLE);
+        QString errorMsg = (m_foundCorruptedFrames.size() > 1 ?
+                                tr("Frames %1 are corrupted. They won´t be considered when selecting keyframes or exported at the end of the process.") :
+                                tr("Frame %1 is corrupted. It won´t be considered when selecting keyframes or exported at the end of the process."));
         std::stringstream ss_foundCorruptedFrames;
         int listedFramesCount = 0;
         for (int i : m_foundCorruptedFrames) {

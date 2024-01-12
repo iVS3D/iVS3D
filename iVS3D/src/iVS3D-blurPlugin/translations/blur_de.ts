@@ -91,18 +91,6 @@
 <context>
     <name>BlurAlgorithm</name>
     <message>
-        <source>Calculate blur of frame number </source>
-        <translation type="vanished">Berechne Unschärfe Wert von Bild Nummer </translation>
-    </message>
-    <message>
-        <source> of </source>
-        <translation type="vanished"> von </translation>
-    </message>
-    <message>
-        <source> total frames</source>
-        <translation type="vanished"> Bildern insgesamt</translation>
-    </message>
-    <message>
         <location filename="../BlurAlgorithm.cpp" line="73"/>
         <source>Calculate blur for frame </source>
         <translation>Berechne Unschärfewert für Bild </translation>
