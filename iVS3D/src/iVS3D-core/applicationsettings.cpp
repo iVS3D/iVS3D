@@ -8,12 +8,38 @@ ApplicationSettings::ApplicationSettings()
     m_createLogs = true;
     m_useCuda = true;
     m_colorTheme = LIGHT;
+    m_locale = QLocale::system();
+    if(!getAvailableLocales().contains(m_locale)){
+        m_locale = getAvailableLocales()[0];
+    }
     loadSettings();
 }
 
 bool ApplicationSettings::getInterpolateMetaData()
 {
     return m_interpolateMetaData;
+}
+
+const QList<QLocale> ApplicationSettings::getAvailableLocales()
+{
+    QLocale us_english(QLocale::English, QLocale::UnitedStates);
+    QLocale german(QLocale::German, QLocale::Germany);
+    return { us_english, german };
+}
+
+QLocale ApplicationSettings::getLocale()
+{
+    return m_locale;
+}
+
+bool ApplicationSettings::setLocale(QLocale locale)
+{
+    if(!getAvailableLocales().contains(locale)){
+        return false;
+    }
+    m_locale = locale;
+    saveSettings();
+    return true;
 }
 
 void ApplicationSettings::setInterpolateMetaData(bool interpolateMetaData)
@@ -40,6 +66,7 @@ void ApplicationSettings::loadSettings()
     }
     m_createLogs = settings.value(stringContainer::createLogsIdentifier).value<bool>();
     m_interpolateMetaData = settings.value(stringContainer::interpolateIdentifier).value<bool>();
+    m_locale = settings.value(stringContainer::localeIdentifier).value<QLocale>();
 }
 
 void ApplicationSettings::saveSettings()
@@ -58,6 +85,7 @@ void ApplicationSettings::saveSettings()
     }
     settings.setValue(stringContainer::reconstructSoftwareIdentifier, reconstructMap);
     settings.setValue(stringContainer::createLogsIdentifier, m_createLogs);
+    settings.setValue(stringContainer::localeIdentifier, m_locale);
 }
 
 

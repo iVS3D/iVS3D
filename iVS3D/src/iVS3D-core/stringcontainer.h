@@ -71,6 +71,7 @@ struct stringContainer
     static const QString useCudaIdentifier;
     static const QString createLogsIdentifier;
     static const QString interpolateIdentifier;
+    static const QString localeIdentifier;
     // Identifier for LogFile
     static const QString logNameIdentifier;
     static const QString logIsPluginIdentifier;

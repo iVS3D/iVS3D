@@ -155,6 +155,8 @@ private slots:
     void slot_undo();
     void slot_redo();
     void slot_historyChanged();
+    void slot_selectLanguage(QLocale language);
+    void slot_restart();
 
 private:
     VideoPlayerController *m_videoPlayerController;

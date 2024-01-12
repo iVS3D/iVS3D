@@ -57,6 +57,7 @@ const QString stringContainer::colorThemeIdentifier = "colorTheme";
 const QString stringContainer::useCudaIdentifier = "useCuda";
 const QString stringContainer::createLogsIdentifier = "create logs";
 const QString stringContainer::interpolateIdentifier = "interpolateMetaData";
+const QString stringContainer::localeIdentifier = "locale";
 
 
 // Identifier for LfogFile

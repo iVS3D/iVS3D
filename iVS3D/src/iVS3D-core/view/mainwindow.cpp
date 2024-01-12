@@ -19,7 +19,7 @@
 
 
 
-MainWindow::MainWindow(QWidget *parent, ColorTheme theme, int cuda, bool createLog, bool interpolateMetaData, QStringList algorithmList, QStringList transformList, QWidget *otsWidget)
+MainWindow::MainWindow(QWidget *parent, ColorTheme theme, int cuda, bool createLog, bool interpolateMetaData, QList<QLocale> locales, QLocale selectedLocale, QStringList algorithmList, QStringList transformList, QWidget *otsWidget)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
@@ -168,6 +168,30 @@ MainWindow::MainWindow(QWidget *parent, ColorTheme theme, int cuda, bool createL
     ui->actionOpen_Input->setIcon(QIcon(theme == DARK ? ":/icons/openFolderIconW" : ":/icons/openFolderIconB"));
     ui->actionOpen_Input_Video->setIcon( QIcon(theme == DARK ? ":/icons/openVideoIconW"  : ":/icons/openVideoIconB"));
     ui->actionOpen_Meta_Data->setIcon( QIcon(theme == DARK ? ":/icons/openMetaIconW"  : ":/icons/openMetaIconB"));
+
+    QMenu *languageMenu = new QMenu(tr("Language"), this);
+
+    // Create an action group for exclusive selection
+    QActionGroup *actionGroup = new QActionGroup(this);
+    actionGroup->setExclusive(true);
+
+    // Add actions for each available locale
+    for (const QLocale &locale : locales) {
+        QAction *action = new QAction(locale.nativeLanguageName(), this);
+        action->setData(locale);
+        action->setCheckable(true);
+
+        // Highlight the selected language
+        if (locale.language() == selectedLocale.language()) {
+            action->setChecked(true);
+        }
+
+        connect(action, &QAction::triggered, this, &MainWindow::on_changeLanguage);
+        actionGroup->addAction(action);
+        languageMenu->addAction(action);
+    }
+
+    ui->menuSettings->addMenu(languageMenu);
 }
 
 MainWindow::~MainWindow()
@@ -498,6 +522,40 @@ void MainWindow::on_actionDelete_All_Keyframes_triggered()
 void MainWindow::on_actionDelete_Keyframes_triggered()
 {
     emit sig_deleteKeyframesBoundaries();
+}
+
+void MainWindow::on_changeLanguage()
+{
+    QAction *action = qobject_cast<QAction *>(sender());
+    if (action && action->isChecked()) {
+        // Retrieve the selected locale from the action's data
+        QLocale selectedLocale = action->data().toLocale();
+        QString msg = "Selected Language: " + selectedLocale.nativeLanguageName();
+        slot_displayStatusMessage(msg);
+        emit sig_selectLanguage(selectedLocale);
+
+        // the language matches the currently active language -> no restart required
+        if (selectedLocale.language() == qApp->property("translation").toLocale().language()){
+            return;
+        }
+
+        // Otherwise ask the user to restart the application
+        QMessageBox msgBox(this);
+        msgBox.setWindowTitle(tr("Language Change"));
+        msgBox.setText(tr("The application needs to be restarted for the language change to take effect. Make sure to save your project before restarting!"));
+
+        // Change the text of the OK button
+        msgBox.setButtonText(QMessageBox::Ok, tr("Restart Now"));
+        // Add a "Restart Later" button
+        msgBox.addButton(tr("Restart Later"), QMessageBox::RejectRole);
+
+
+        int result = msgBox.exec();
+
+        if (result == QMessageBox::Ok) {
+            emit sig_restart();
+        }
+    }
 }
 
 QFrame *MainWindow::addFrame(QWidget *w)

@@ -18,6 +18,7 @@
 #include <QMimeData>
 #include <QDockWidget>
 #include <QFrame>
+#include <QMessageBox>
 
 #include "view/videoplayer.h"
 #include "view/timeline.h"
@@ -71,7 +72,16 @@ public:
      * @param algorithmList holds identifier(names) of all loaded plugins(algorithms)
 	 * @param transformList holds identifier(names) of all loaded transform plugins
      */
-    MainWindow(QWidget *parent = nullptr, ColorTheme theme = ColorTheme::LIGHT, int cuda = -1, bool createLog = false,  bool interpolateMetaData = true, QStringList algorithmList = QStringList(tr("no algorithm")), QStringList transformList = QStringList(""), QWidget *otsWidget = nullptr);
+    MainWindow(
+        QWidget *parent = nullptr,
+        ColorTheme theme = ColorTheme::LIGHT,
+        int cuda = -1, bool createLog = false,
+        bool interpolateMetaData = true,
+        QList<QLocale> locales = {QLocale(QLocale::English), QLocale(QLocale::German)},
+        QLocale selectedLocale = QLocale::system(),
+        QStringList algorithmList = QStringList(tr("no algorithm")),
+        QStringList transformList = QStringList(""),
+        QWidget *otsWidget = nullptr);
 
     /**
       * @brief delete members and disconnect connections
@@ -251,6 +261,10 @@ signals:
 
     void sig_quit();
 
+    void sig_selectLanguage(QLocale locale);
+
+    void sig_restart();
+
 
 public slots:
     /**
@@ -286,6 +300,7 @@ private slots:
     void on_actionDelete_All_Keyframes_triggered();
 
     void on_actionDelete_Keyframes_triggered();
+    void on_changeLanguage();
 
 private:
     QFrame *addFrame(QWidget *w);

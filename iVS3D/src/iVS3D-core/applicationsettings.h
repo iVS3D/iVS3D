@@ -8,6 +8,7 @@
 #include <QVariant>
 #include <QSettings>
 #include <QDebug>
+#include <QLocale>
 
 #include "opencv2/core.hpp"
 #ifdef WITH_CUDA
@@ -127,6 +128,26 @@ public:
      * @return @a true if interpolation is enabled
      */
     bool getInterpolateMetaData();
+    /**
+     * @brief Returns a list of available locales for translating the application.
+     * @return The list of QLocale
+     */
+    const QList<QLocale> getAvailableLocales();
+    /**
+     * @brief Returns the currently selected locale.
+     * @return The locale for translation.
+     */
+    QLocale getLocale();
+    /**
+     * @brief setLocale selects a locale for translation. The local has to be supported by the application.
+     * Available locales can be accessed by using @a getAvailableLocales(). If the selected locale is not
+     * supported, then the current locale is not changed.
+     *
+     * IMPORTANT: The locale is only applied when the applications starts next time!
+     * @param locale The locale to use for translation
+     * @return Returns @a true if the locale is supported and @a false otherwise.
+     */
+    bool setLocale(QLocale locale);
 
 
 
@@ -141,6 +162,7 @@ private:
     bool m_interpolateMetaData;
     void loadSettings();
     void saveSettings();
+    QLocale m_locale;
 };
 
 

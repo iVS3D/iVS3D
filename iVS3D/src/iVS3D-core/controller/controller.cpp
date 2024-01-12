@@ -16,6 +16,9 @@ Controller::Controller(QString inputPath, QString settingsPath, QString outputPa
         useCuda = ApplicationSettings::instance().getUseCuda();
     }
 
+    QList<QLocale> locales = ApplicationSettings::instance().getAvailableLocales();
+    QLocale selectedLocale = ApplicationSettings::instance().getLocale();
+
     QWidget *otsWidget = nullptr;
 #if defined(Q_OS_LINUX)
     const auto otsTheme = ApplicationSettings::instance().getColorTheme() == ColorTheme::DARK ? lib3d::ots::ui::ETheme::DARK : lib3d::ots::ui::ETheme::LIGHT;
@@ -37,6 +40,8 @@ Controller::Controller(QString inputPath, QString settingsPath, QString outputPa
                 useCuda,
                 ApplicationSettings::instance().getCreateLogs(),
                 interpolateMetaData,
+                locales,
+                selectedLocale,
                 algorithms,
                 transforms,
                 otsWidget
@@ -79,6 +84,9 @@ Controller::Controller(QString inputPath, QString settingsPath, QString outputPa
     connect(m_mainWindow, &MainWindow::sig_openMetaData, this, &Controller::slot_openMetaData);
     connect(m_mainWindow, &MainWindow::sig_undo, this, &Controller::slot_undo);
     connect(m_mainWindow, &MainWindow::sig_redo, this, &Controller::slot_redo);
+    connect(m_mainWindow, &MainWindow::sig_selectLanguage, this, &Controller::slot_selectLanguage);
+    connect(m_mainWindow, &MainWindow::sig_restart, this, &Controller::slot_restart);
+
 #if defined(Q_OS_LINUX)
     connect(m_mainWindow, &MainWindow::sig_quit, m_colmapWrapper->getOrCreateUiControlsFactory(), &lib3d::ots::ui::ColmapWrapperControlsFactory::onQuit);
 #endif
@@ -382,6 +390,20 @@ void Controller::slot_historyChanged()
 {
     m_mainWindow->enableRedo(m_dataManager->getHistory()->hasFuture());
     m_mainWindow->enableUndo(m_dataManager->getHistory()->hasPast());
+}
+
+void Controller::slot_selectLanguage(QLocale language)
+{
+    ApplicationSettings::instance().setLocale(language);
+}
+
+void Controller::slot_restart()
+{
+    // Quit the current instance
+    QCoreApplication::quit();
+
+    // Start a new instance of the application
+    QProcess::startDetached(qApp->arguments()[0], qApp->arguments());
 }
 
 void Controller::createOpenMessage(int numPics)
