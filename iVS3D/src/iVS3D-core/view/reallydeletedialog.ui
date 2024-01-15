@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>247</width>
-    <height>65</height>
+    <width>258</width>
+    <height>68</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -35,7 +35,7 @@
    <item>
     <widget class="QLabel" name="label">
      <property name="text">
-      <string>Do you want to clear all keyframes?</string>
+      <string>Do you want to reset all selected images?</string>
      </property>
     </widget>
    </item>

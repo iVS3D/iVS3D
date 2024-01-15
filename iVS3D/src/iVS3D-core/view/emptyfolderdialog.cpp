@@ -6,7 +6,7 @@ EmptyFolderDialog::EmptyFolderDialog(QWidget *parent, const QString &path) :
     ui(new Ui::EmptyFolderDialog)
 {
     ui->setupUi(this);
-    ui->outputLabel->setText("Selected folder: \"" + path + "\"");
+    ui->outputLabel->setText("Selected directory: \"" + path + "\"");
 }
 
 EmptyFolderDialog::~EmptyFolderDialog()

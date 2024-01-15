@@ -56,7 +56,7 @@
     </message>
     <message>
         <source>Stationary Camera Detection</source>
-        <translation>Stationäre Kamera Erkennung</translation>
+        <translation type="vanished">Stationäre Kamera Erkennung</translation>
     </message>
     <message>
         <source>Threshold</source>
@@ -69,6 +69,10 @@
     <message>
         <source>If the rotation between two frames differs more than the defind percentage of the median rotation in the given frame sequence it is declared stationary.</source>
         <translation>Ein Frame wird als Keyframe deklariert falls eine geringe Drehung zwischen diesem und dem vorherigen Frame existiert. Der Schwellwert legt dabei fest wie viel Prozent des Medians an Rotation unterschritten werden müssen.</translation>
+    </message>
+    <message>
+        <source>Stationary camera detection</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 </TS>

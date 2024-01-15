@@ -66,7 +66,8 @@ void VideoPlayer::showImage(cv::Mat *image)
 void VideoPlayer::setKeyframe(bool isKeyframe)
 {
     ui->graphicsView->setStyleSheet(isKeyframe ? "background-color:black; border: 3px solid red;" : "background-color:black; border: 3px solid black;");
-    ui->pushButton_setKeyframe->setText(isKeyframe ? tr("Clear Keyframe") : tr("Set Keyframe"));
+    ui->pushButton_setKeyframe->setText(isKeyframe ? tr("Deselect current image")
+                                                   : tr(" Select current image "));
 }
 
 

@@ -46,7 +46,7 @@
      <item>
       <widget class="QLabel" name="label">
        <property name="text">
-        <string>Output folder</string>
+        <string>Output directory</string>
        </property>
       </widget>
      </item>
@@ -110,7 +110,7 @@
         <item>
          <widget class="QLabel" name="label_4">
           <property name="text">
-           <string>Altitude of the first image</string>
+           <string>Altitude of the first image in m</string>
           </property>
          </widget>
         </item>
@@ -146,8 +146,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>350</width>
-           <height>39</height>
+           <width>323</width>
+           <height>55</height>
           </rect>
          </property>
          <layout class="QHBoxLayout" name="horizontalLayout_6">
@@ -203,31 +203,18 @@
         <string>Define ROI for export</string>
        </property>
        <property name="text">
-        <string>Crop</string>
+        <string>Select ROI</string>
        </property>
       </widget>
      </item>
      <item>
       <widget class="QCheckBox" name="checkBox">
        <property name="text">
-        <string>Use crop</string>
+        <string>Use ROI</string>
        </property>
       </widget>
      </item>
     </layout>
-   </item>
-   <item>
-    <widget class="QPushButton" name="pushButton_addAuto">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="text">
-      <string>Add export to batch processing</string>
-     </property>
-    </widget>
    </item>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
@@ -243,7 +230,7 @@
         <string>Export keyframes to output folder</string>
        </property>
        <property name="text">
-        <string>Export</string>
+        <string>Export images to directory</string>
        </property>
       </widget>
      </item>

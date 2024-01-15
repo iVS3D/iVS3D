@@ -41,23 +41,23 @@ void StackController::slot_toggleKeyframe(uint idx, bool isNowKeyframe)
 {
     deleteInvalidFuture();
     if (isNowKeyframe) {
-        m_opStack->addEntry("Add keyframe " + QString::number(idx));
+        m_opStack->addEntry("Add image " + QString::number(idx));
     }
     else {
-        m_opStack->addEntry("Remove keyframe " + QString::number(idx));
+        m_opStack->addEntry("Remove image " + QString::number(idx));
     }
 }
 
 void StackController::slot_deleteKeyframes()
 {
     deleteInvalidFuture();
-    m_opStack->addEntry("Delete all keyframes");
+    m_opStack->addEntry("Reset selection");
 }
 
 void StackController::slot_deleteAllKeyframes()
 {
     deleteInvalidFuture();
-    m_opStack->addEntry("Reset all keyframes");
+    m_opStack->addEntry("Reset selection");
 }
 
 void StackController::slot_rowClicked(int row)

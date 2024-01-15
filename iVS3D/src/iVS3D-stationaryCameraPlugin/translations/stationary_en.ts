@@ -55,10 +55,6 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Stationary Camera Detection</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>Threshold</source>
         <translation type="unfinished"></translation>
     </message>
@@ -68,6 +64,10 @@
     </message>
     <message>
         <source>If the rotation between two frames differs more than the defind percentage of the median rotation in the given frame sequence it is declared stationary.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Stationary camera detection</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

@@ -446,7 +446,7 @@ QString Controller::getNameFromPath(QString path, QString dataFormat) {
 void Controller::setInputWidgetInfo() {
     QMap<QString, QString> info;
     QString picCount = QString::number(m_dataManager->getModelInputPictures()->getPicCount());
-    info.insert(tr("#Frames  "), picCount);
+    info.insert(tr("Number of images  "), picCount);
     QString x = QString::number(m_dataManager->getModelInputPictures()->getInputResolution().x());
     QString y = QString::number(m_dataManager->getModelInputPictures()->getInputResolution().y());
     QString resolution = x + " x " + y;

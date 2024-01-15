@@ -73,7 +73,7 @@
         <x>0</x>
         <y>0</y>
         <width>385</width>
-        <height>148</height>
+        <height>151</height>
        </rect>
       </property>
      </widget>
@@ -140,7 +140,7 @@
         <string>Start the selected sampling algorithm</string>
        </property>
        <property name="text">
-        <string>Sample images</string>
+        <string>Start selection</string>
        </property>
       </widget>
      </item>

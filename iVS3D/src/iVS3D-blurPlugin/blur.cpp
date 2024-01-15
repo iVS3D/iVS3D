@@ -70,7 +70,7 @@ std::vector<uint> Blur::sampleImages(const std::vector<unsigned int> &imageList,
 
 QString Blur::getName() const
 {
-    return tr("Blur");
+    return tr("Blur detection");
 }
 
 
@@ -193,7 +193,7 @@ void Blur::createSettingsWidget(QWidget *parent)
     w->setLayout(new QHBoxLayout(parent));
     w->layout()->setSpacing(0);
     w->layout()->setMargin(0);
-    w->layout()->addWidget(new QLabel(tr("Select blur "),parent));
+    w->layout()->addWidget(new QLabel(tr("Select filter "), parent));
 
     m_comboBoxBlur = new QComboBox(parent);
     for (BlurAlgorithm* b : m_blurAlgorithms) {
@@ -225,8 +225,7 @@ void Blur::createSettingsWidget(QWidget *parent)
 
     m_settingsWidget->layout()->addWidget(ws);
 
-
-    QLabel *windowSize = new QLabel(tr("Number of images around the frame"));
+    QLabel *windowSize = new QLabel(tr("Number of images used for local window"));
     windowSize->setStyleSheet(DESCRIPTION_STYLE);
     windowSize->setWordWrap(true);
     m_settingsWidget->layout()->addWidget(windowSize);

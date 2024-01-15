@@ -33,14 +33,6 @@ ViewWidget::ViewWidget(ColmapWrapper *ipMsWrapper, QWidget *parent)
 {
     ui->setupUi(this);
 
-    connect(ui->pb_startProcessing,
-            &QPushButton::clicked,
-            mpColmapWrapper,
-            &ColmapWrapper::startProcessing);
-    connect(ui->pb_syncWorkspace,
-            &QPushButton::clicked,
-            mpColmapWrapper,
-            &ColmapWrapper::syncWorkspaceFromServer);
     connect(ui->pb_openLogFile,
             &QPushButton::clicked,
             mpColmapWrapper,
@@ -51,10 +43,6 @@ ViewWidget::ViewWidget(ColmapWrapper *ipMsWrapper, QWidget *parent)
             &ColmapWrapper::workerStateUpdate,
             this,
             &ViewWidget::refreshWorkerState);
-    connect(mpColmapWrapper,
-            &ColmapWrapper::workspaceStatusUpdate,
-            this,
-            &ViewWidget::refreshWorkspaceStatus);
 
     ColmapWrapperControlsFactory *pCtrlFactory = mpColmapWrapper->getOrCreateUiControlsFactory();
     connect(pCtrlFactory,
@@ -68,7 +56,6 @@ ViewWidget::ViewWidget(ColmapWrapper *ipMsWrapper, QWidget *parent)
 
     this->refreshJobQueue();
     this->refreshWorkerState();
-    this->refreshWorkspaceStatus();
 }
 
 //==================================================================================================
@@ -192,42 +179,18 @@ void ViewWidget::refreshWorkerState()
         ui->l_colmapStatus->setText(tr("Idle"));
         ui->l_colmapStatus->setStyleSheet("QLabel { color : green; }");
 
-        ui->pb_startProcessing->setEnabled(true);
     } break;
 
     case ColmapWrapper::WORKER_RUNNING: {
         ui->l_colmapStatus->setText(tr("Running"));
         ui->l_colmapStatus->setStyleSheet("QLabel { color : orange; }");
 
-        ui->pb_startProcessing->setEnabled(false);
     } break;
 
     case ColmapWrapper::WORKER_FAILED: {
         ui->l_colmapStatus->setText(tr("Failed"));
         ui->l_colmapStatus->setStyleSheet("QLabel { color : red; }");
 
-        ui->pb_startProcessing->setEnabled(true);
-    } break;
-    }
-}
-
-//==================================================================================================
-void ViewWidget::refreshWorkspaceStatus()
-{
-    switch (mpColmapWrapper->getWorkspaceStatus()) {
-    default:
-    case ColmapWrapper::IN_SYNC: {
-        ui->l_workspaceStatus->setText(tr("In Sync"));
-        ui->l_workspaceStatus->setStyleSheet("QLabel { color : green; }");
-
-        ui->pb_syncWorkspace->setEnabled(true);
-    } break;
-
-    case ColmapWrapper::SYNCING: {
-        ui->l_workspaceStatus->setText(tr("Syncing"));
-        ui->l_workspaceStatus->setStyleSheet("QLabel { color : orange; }");
-
-        ui->pb_syncWorkspace->setEnabled(false);
     } break;
     }
 }
@@ -242,8 +205,6 @@ void ViewWidget::onClearHistoryClicked()
 //==================================================================================================
 void ViewWidget::onUpdateToDarkTheme()
 {
-    ui->pb_startProcessing->setIcon(QIcon(":/assets/icons/glyphicons-174-play-dark.png"));
-    ui->pb_syncWorkspace->setIcon(QIcon(":/assets/icons/glyphicons-82-refresh-dark.png"));
     ui->pb_openLogFile->setIcon(QIcon(":/assets/icons/filetypes-4-log-dark.png"));
 
     mCurrentTheme = DARK;
@@ -252,8 +213,6 @@ void ViewWidget::onUpdateToDarkTheme()
 //==================================================================================================
 void ViewWidget::onUpdateToLightTheme()
 {
-    ui->pb_startProcessing->setIcon(QIcon(":/assets/icons/glyphicons-174-play.png"));
-    ui->pb_syncWorkspace->setIcon(QIcon(":/assets/icons/glyphicons-82-refresh.png"));
     ui->pb_openLogFile->setIcon(QIcon(":/assets/icons/filetypes-4-log.png"));
 
     mCurrentTheme = LIGHT;

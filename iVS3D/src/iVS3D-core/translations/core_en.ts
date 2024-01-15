@@ -5,26 +5,31 @@
     <name>About</name>
     <message>
         <location filename="../view/about.ui" line="26"/>
+        <location filename="../ui_about.h" line="86"/>
         <source>About</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/about.ui" line="32"/>
+        <location filename="../ui_about.h" line="87"/>
         <source>intelligent Video Sampler 3D</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/about.ui" line="44"/>
+        <location filename="../ui_about.h" line="88"/>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Patrick Binder, Daniel Brommer, Lennart Ruck, Dominik Wüst, Dominic Zahn&lt;/p&gt;&lt;p&gt;Fraunhofer IOSB, Karlsruhe&lt;/p&gt;&lt;p&gt;Supervisor: Max Hermann &amp;amp; Thomas Pollok&lt;/p&gt;&lt;p&gt;(Created as part of PSE at the Karlsruhe Institut of Technlogy in the winter term 2020/21)&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;For further information about iVS3D visit our &lt;a href=&quot;https://github.com/iVS3D/iVS3D&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;GitHub&lt;/span&gt;&lt;/a&gt; page.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/about.ui" line="59"/>
+        <location filename="../ui_about.h" line="89"/>
         <source>built date: tt.mm.yyyy</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/about.ui" line="66"/>
+        <location filename="../ui_about.h" line="90"/>
         <source>vX.X.X</source>
         <translation type="unfinished"></translation>
     </message>
@@ -52,33 +57,33 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/algorithmcontroller.cpp" line="131"/>
+        <location filename="../controller/algorithmcontroller.cpp" line="147"/>
         <source> aborted after </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/algorithmcontroller.cpp" line="131"/>
-        <location filename="../controller/algorithmcontroller.cpp" line="174"/>
+        <location filename="../controller/algorithmcontroller.cpp" line="147"/>
+        <location filename="../controller/algorithmcontroller.cpp" line="196"/>
         <source>ms</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/algorithmcontroller.cpp" line="138"/>
+        <location filename="../controller/algorithmcontroller.cpp" line="156"/>
         <source>Preview enabled.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/algorithmcontroller.cpp" line="138"/>
+        <location filename="../controller/algorithmcontroller.cpp" line="156"/>
         <source>Preview disabled.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/algorithmcontroller.cpp" line="168"/>
+        <location filename="../controller/algorithmcontroller.cpp" line="186"/>
         <source>Computing preview ...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/algorithmcontroller.cpp" line="174"/>
+        <location filename="../controller/algorithmcontroller.cpp" line="196"/>
         <source> finished after </source>
         <translation type="unfinished"></translation>
     </message>
@@ -136,26 +141,31 @@
     <name>AutomaticWidget</name>
     <message>
         <location filename="../view/automaticwidget.ui" line="26"/>
+        <location filename="../ui_automaticwidget.h" line="96"/>
         <source>Form</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/automaticwidget.ui" line="49"/>
+        <location filename="../ui_automaticwidget.h" line="97"/>
         <source>Start batch processing</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/automaticwidget.ui" line="69"/>
+        <location filename="../ui_automaticwidget.h" line="98"/>
         <source>Remove</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/automaticwidget.ui" line="89"/>
+        <location filename="../ui_automaticwidget.h" line="99"/>
         <source>Save config</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/automaticwidget.ui" line="96"/>
+        <location filename="../ui_automaticwidget.h" line="100"/>
         <source>Load config</source>
         <translation type="unfinished"></translation>
     </message>
@@ -337,7 +347,7 @@
     </message>
     <message>
         <location filename="../controller/controller.cpp" line="449"/>
-        <source>#Frames  </source>
+        <source>Number of images  </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -380,21 +390,25 @@
     <name>CropExport</name>
     <message>
         <location filename="../view/cropexport.ui" line="14"/>
+        <location filename="../ui_cropexport.h" line="105"/>
         <source>Select ROI</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/cropexport.ui" line="31"/>
+        <location filename="../ui_cropexport.h" line="106"/>
         <source>Select ROI by drawing a box on the image</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/cropexport.ui" line="54"/>
+        <location filename="../ui_cropexport.h" line="107"/>
         <source>Abort</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/cropexport.ui" line="74"/>
+        <location filename="../ui_cropexport.h" line="108"/>
         <source>Crop</source>
         <translation type="unfinished"></translation>
     </message>
@@ -403,22 +417,26 @@
     <name>EmptyFolderDialog</name>
     <message>
         <location filename="../view/emptyfolderdialog.ui" line="45"/>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;The selected output folder &lt;/span&gt;&lt;span style=&quot; font-size:10pt; color:#ff0000;&quot;&gt;is not empty&lt;/span&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Do you want to continue the export?&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;If you continue the export, &lt;/span&gt;&lt;span style=&quot; font-size:10pt; color:#ff0000;&quot;&gt;all files&lt;/span&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt; inside the output folder &lt;/span&gt;&lt;span style=&quot; font-size:10pt; color:#ff0000;&quot;&gt;will irreversibly be deleted!&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Ignore will lead to potential overwriting of existing files.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <location filename="../ui_emptyfolderdialog.h" line="115"/>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;The selected output directory &lt;/span&gt;&lt;span style=&quot; font-size:10pt; color:#ff0000;&quot;&gt;is not empty&lt;/span&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Would you like to continue exporting?&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;If you delete and continue, &lt;/span&gt;&lt;span style=&quot; font-size:10pt; color:#ff0000;&quot;&gt;all files&lt;/span&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt; inside the output directory &lt;/span&gt;&lt;span style=&quot; font-size:10pt; color:#ff0000;&quot;&gt;will be irreversibly deleted!&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Ignore will lead to potential overwriting of existing files.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/emptyfolderdialog.ui" line="114"/>
+        <location filename="../ui_emptyfolderdialog.h" line="117"/>
         <source>Delete and Continue</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/emptyfolderdialog.ui" line="124"/>
+        <location filename="../ui_emptyfolderdialog.h" line="118"/>
         <source>Ignore</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/emptyfolderdialog.ui" line="134"/>
-        <source>Abort</source>
+        <location filename="../ui_emptyfolderdialog.h" line="119"/>
+        <source>Cancel</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -504,72 +522,80 @@
     <name>ExportWidget</name>
     <message>
         <location filename="../view/exportwidget.ui" line="26"/>
+        <location filename="../ui_exportwidget.h" line="215"/>
         <source>Form</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/exportwidget.ui" line="49"/>
-        <source>Output folder</source>
+        <location filename="../ui_exportwidget.h" line="216"/>
+        <source>Output directory</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/exportwidget.ui" line="56"/>
+        <location filename="../ui_exportwidget.h" line="218"/>
         <source>Browse for output folder</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/exportwidget.ui" line="59"/>
+        <location filename="../ui_exportwidget.h" line="220"/>
         <source>...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/exportwidget.ui" line="68"/>
+        <location filename="../ui_exportwidget.h" line="222"/>
         <source>Enter output folder path here</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/exportwidget.ui" line="77"/>
+        <location filename="../ui_exportwidget.h" line="224"/>
         <source>Output resolution</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/exportwidget.ui" line="113"/>
-        <source>Altitude of the first image</source>
+        <location filename="../ui_exportwidget.h" line="225"/>
+        <source>Altitude of the first image in m</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../view/exportwidget.ui" line="206"/>
+        <location filename="../ui_exportwidget.h" line="230"/>
+        <source>Select ROI</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../view/exportwidget.ui" line="213"/>
+        <location filename="../ui_exportwidget.h" line="231"/>
+        <source>Use ROI</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../view/exportwidget.ui" line="233"/>
+        <location filename="../ui_exportwidget.h" line="235"/>
+        <source>Export images to directory</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/exportwidget.ui" line="135"/>
+        <location filename="../ui_exportwidget.h" line="226"/>
         <source>Create files for:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/exportwidget.ui" line="203"/>
+        <location filename="../ui_exportwidget.h" line="228"/>
         <source>Define ROI for export</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/exportwidget.ui" line="206"/>
-        <source>Crop</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../view/exportwidget.ui" line="213"/>
-        <source>Use crop</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../view/exportwidget.ui" line="228"/>
-        <source>Add export to batch processing</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../view/exportwidget.ui" line="243"/>
+        <location filename="../view/exportwidget.ui" line="230"/>
+        <location filename="../ui_exportwidget.h" line="233"/>
         <source>Export keyframes to output folder</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../view/exportwidget.ui" line="246"/>
-        <source>Export</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -599,36 +625,43 @@
     <name>InfoWidget</name>
     <message>
         <location filename="../view/infowidget.ui" line="26"/>
+        <location filename="../ui_infowidget.h" line="134"/>
         <source>Form</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/infowidget.ui" line="84"/>
+        <location filename="../ui_infowidget.h" line="136"/>
         <source>M</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/infowidget.ui" line="103"/>
+        <location filename="../ui_infowidget.h" line="138"/>
         <source>Import images from folder</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/infowidget.ui" line="106"/>
+        <location filename="../ui_infowidget.h" line="140"/>
         <source>F</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/infowidget.ui" line="125"/>
+        <location filename="../ui_infowidget.h" line="142"/>
         <source>Import video</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/infowidget.ui" line="128"/>
+        <location filename="../ui_infowidget.h" line="144"/>
         <source>V</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/infowidget.ui" line="191"/>
+        <location filename="../ui_infowidget.h" line="145"/>
         <source>TextLabel</source>
         <translation type="unfinished"></translation>
     </message>
@@ -637,6 +670,7 @@
     <name>InputAutomaticWidget</name>
     <message>
         <location filename="../view/inputautomaticwidget.ui" line="20"/>
+        <location filename="../ui_inputautomaticwidget.h" line="48"/>
         <source>Form</source>
         <translation type="unfinished"></translation>
     </message>
@@ -645,11 +679,13 @@
     <name>LicenceDialog</name>
     <message>
         <location filename="../view/licencedialog.ui" line="14"/>
+        <location filename="../ui_licencedialog.h" line="46"/>
         <source>Licenses</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/licencedialog.ui" line="20"/>
+        <location filename="../ui_licencedialog.h" line="47"/>
         <source>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
@@ -742,192 +778,231 @@ p, li { white-space: pre-wrap; }
     <name>MainWindow</name>
     <message>
         <location filename="../view/mainwindow.ui" line="14"/>
+        <location filename="../ui_mainwindow.h" line="189"/>
         <source>intelligent Video Sampler 3D</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/mainwindow.ui" line="40"/>
+        <location filename="../ui_mainwindow.h" line="240"/>
         <source>PushButton</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/mainwindow.ui" line="57"/>
+        <location filename="../ui_mainwindow.h" line="241"/>
         <source>File</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/mainwindow.ui" line="69"/>
+        <location filename="../ui_mainwindow.h" line="242"/>
         <source>Settings</source>
         <translation type="unfinished">Settings</translation>
     </message>
     <message>
         <location filename="../view/mainwindow.ui" line="80"/>
+        <location filename="../ui_mainwindow.h" line="243"/>
         <source>About</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/mainwindow.ui" line="88"/>
+        <location filename="../ui_mainwindow.h" line="244"/>
         <source>View</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/mainwindow.ui" line="93"/>
+        <location filename="../ui_mainwindow.h" line="245"/>
         <source>Tools</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/mainwindow.ui" line="112"/>
+        <location filename="../ui_mainwindow.h" line="190"/>
         <source>Open Project</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/mainwindow.ui" line="120"/>
+        <location filename="../ui_mainwindow.h" line="191"/>
         <source>Save Project</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/mainwindow.ui" line="128"/>
+        <location filename="../ui_mainwindow.h" line="192"/>
         <source>Save Project As ...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/mainwindow.ui" line="133"/>
+        <location filename="../ui_mainwindow.h" line="193"/>
         <source>Open Input Folder</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/mainwindow.ui" line="138"/>
+        <location filename="../ui_mainwindow.h" line="194"/>
         <source>Manage reconstruction tools </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/mainwindow.ui" line="143"/>
+        <location filename="../ui_mainwindow.h" line="195"/>
         <source>Set input Path</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/mainwindow.ui" line="148"/>
+        <location filename="../ui_mainwindow.h" line="196"/>
         <source>Change layout style</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/mainwindow.ui" line="153"/>
+        <location filename="../ui_mainwindow.h" line="197"/>
         <source>Info</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/mainwindow.ui" line="158"/>
+        <location filename="../ui_mainwindow.h" line="198"/>
         <source>Open Input Video</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/mainwindow.ui" line="171"/>
+        <location filename="../ui_mainwindow.h" line="203"/>
         <source>Help</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/mainwindow.ui" line="179"/>
+        <location filename="../ui_mainwindow.h" line="204"/>
         <source>Use CUDA</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/mainwindow.ui" line="184"/>
+        <location filename="../ui_mainwindow.h" line="205"/>
         <source>Licence</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/mainwindow.ui" line="189"/>
         <location filename="../view/mainwindow.ui" line="192"/>
+        <location filename="../ui_mainwindow.h" line="206"/>
+        <location filename="../ui_mainwindow.h" line="208"/>
         <source>Start automatic execution</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/mainwindow.ui" line="197"/>
+        <location filename="../ui_mainwindow.h" line="210"/>
         <source>Setup automatic execution</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/mainwindow.ui" line="205"/>
+        <location filename="../ui_mainwindow.h" line="211"/>
         <source>Create log file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/mainwindow.ui" line="213"/>
+        <location filename="../ui_mainwindow.h" line="212"/>
         <source>Open Meta Data</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/mainwindow.ui" line="218"/>
+        <location filename="../ui_mainwindow.h" line="213"/>
         <source>Undo</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/mainwindow.ui" line="221"/>
+        <location filename="../ui_mainwindow.h" line="215"/>
         <source>Ctrl+Z</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/mainwindow.ui" line="226"/>
+        <location filename="../ui_mainwindow.h" line="217"/>
         <source>Redo</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/mainwindow.ui" line="229"/>
+        <location filename="../ui_mainwindow.h" line="219"/>
         <source>Ctrl+Y</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/mainwindow.ui" line="234"/>
+        <location filename="../ui_mainwindow.h" line="221"/>
         <source>Reset Boundaries</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/mainwindow.ui" line="237"/>
+        <location filename="../ui_mainwindow.h" line="223"/>
         <source>Ctrl+R</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/mainwindow.ui" line="242"/>
+        <location filename="../ui_mainwindow.h" line="225"/>
         <source>Reset Keyframes</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/mainwindow.ui" line="245"/>
+        <location filename="../ui_mainwindow.h" line="227"/>
         <source>Resets keyframes to default</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/mainwindow.ui" line="253"/>
+        <location filename="../ui_mainwindow.h" line="232"/>
         <source>Delete Keyframes inside boundaries</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/mainwindow.ui" line="267"/>
+        <location filename="../ui_mainwindow.h" line="239"/>
         <source>Interpolate missing meta data</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/mainwindow.ui" line="248"/>
+        <location filename="../ui_mainwindow.h" line="230"/>
         <source>Shift+Del</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/mainwindow.ui" line="163"/>
+        <location filename="../ui_mainwindow.h" line="199"/>
         <source>Toggle theme</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/mainwindow.ui" line="166"/>
+        <location filename="../ui_mainwindow.h" line="201"/>
         <source>Toggle color theme between dark and light mode</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/mainwindow.ui" line="256"/>
+        <location filename="../ui_mainwindow.h" line="234"/>
         <source>Delete keyframes within boundaries</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/mainwindow.ui" line="259"/>
+        <location filename="../ui_mainwindow.h" line="237"/>
         <source>Ctrl+Del</source>
         <translation type="unfinished"></translation>
     </message>
@@ -938,12 +1013,17 @@ p, li { white-space: pre-wrap; }
     </message>
     <message>
         <location filename="../view/mainwindow.cpp" line="83"/>
-        <source>Sampling</source>
+        <source>Image selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/mainwindow.cpp" line="94"/>
-        <source>Output</source>
+        <source>Export</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../view/mainwindow.cpp" line="311"/>
+        <source>3D-Reconstruction</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -954,11 +1034,6 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../view/mainwindow.cpp" line="172"/>
         <source>Language</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../view/mainwindow.cpp" line="311"/>
-        <source>Reconstruction</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -1001,16 +1076,19 @@ p, li { white-space: pre-wrap; }
     <name>OperationStack</name>
     <message>
         <location filename="../view/operationstack.ui" line="14"/>
+        <location filename="../ui_operationstack.h" line="62"/>
         <source>Form</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/operationstack.ui" line="20"/>
-        <source>Keyframe History</source>
+        <location filename="../ui_operationstack.h" line="63"/>
+        <source>Executed steps</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/operationstack.ui" line="37"/>
+        <location filename="../ui_operationstack.h" line="64"/>
         <source>Clear</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1019,17 +1097,20 @@ p, li { white-space: pre-wrap; }
     <name>ProgressDialog</name>
     <message>
         <location filename="../view/progressdialog.ui" line="35"/>
+        <location filename="../ui_progressdialog.h" line="84"/>
         <source>Progress</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/progressdialog.ui" line="62"/>
+        <location filename="../ui_progressdialog.h" line="85"/>
         <source>Processing images...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/progressdialog.ui" line="72"/>
-        <source>Abort</source>
+        <location filename="../ui_progressdialog.h" line="86"/>
+        <source>Cancel</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -1042,12 +1123,14 @@ p, li { white-space: pre-wrap; }
     <name>ProgressWidget</name>
     <message>
         <location filename="../view/progresswidget.ui" line="26"/>
+        <location filename="../ui_progresswidget.h" line="96"/>
         <source>Form</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/progresswidget.ui" line="94"/>
-        <source>Abort</source>
+        <location filename="../ui_progresswidget.h" line="99"/>
+        <source>Cancel</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -1059,17 +1142,29 @@ p, li { white-space: pre-wrap; }
 <context>
     <name>QObject</name>
     <message>
-        <location filename="../ots/colmapwrapper.cpp" line="1651"/>
-        <location filename="../ots/colmapwrapper.cpp" line="1690"/>
         <source>Create new product to be processed by COLMAP</source>
-        <translation>Create new product to be processed by COLMAP</translation>
+        <translation type="vanished">Create new product to be processed by COLMAP</translation>
+    </message>
+    <message>
+        <location filename="../ots/colmapwrapper.cpp" line="1651"/>
+        <source>Start 3D-Reconstruction using COLMAP</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ots/colmapwrapper.cpp" line="1690"/>
+        <source>Start 3D-reconstruction using COLMAP</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../ots/colmapwrapper.cpp" line="1720"/>
-        <location filename="../ots/colmapwrapper.cpp" line="1749"/>
-        <location filename="../ots/colmapwrapper.cpp" line="1777"/>
         <source>Open COLMAP Wrapper Settings</source>
         <translation>Open ColmapWrapper Settings</translation>
+    </message>
+    <message>
+        <location filename="../ots/colmapwrapper.cpp" line="1749"/>
+        <location filename="../ots/colmapwrapper.cpp" line="1777"/>
+        <source>Open COLMAP settings</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../ots/colmapwrapper/colmapsettingsdialog.cpp" line="18"/>
@@ -1081,21 +1176,25 @@ p, li { white-space: pre-wrap; }
     <name>ReallyDeleteDialog</name>
     <message>
         <location filename="../view/reallydeletedialog.ui" line="32"/>
+        <location filename="../ui_reallydeletedialog.h" line="79"/>
         <source>Clear All Keyframes</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/reallydeletedialog.ui" line="38"/>
-        <source>Do you want to clear all keyframes?</source>
+        <location filename="../ui_reallydeletedialog.h" line="80"/>
+        <source>Do you want to reset all selected images?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/reallydeletedialog.ui" line="60"/>
+        <location filename="../ui_reallydeletedialog.h" line="81"/>
         <source>OK</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/reallydeletedialog.ui" line="67"/>
+        <location filename="../ui_reallydeletedialog.h" line="82"/>
         <source>Cancel</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1105,51 +1204,62 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../view/reconstructdialog.ui" line="26"/>
         <location filename="../view/reconstructdialog.ui" line="201"/>
+        <location filename="../ui_reconstructdialog.h" line="157"/>
+        <location filename="../ui_reconstructdialog.h" line="171"/>
         <source>Reconstruct</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/reconstructdialog.ui" line="46"/>
+        <location filename="../ui_reconstructdialog.h" line="158"/>
         <source>Select Export</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/reconstructdialog.ui" line="53"/>
+        <location filename="../ui_reconstructdialog.h" line="160"/>
         <source>Select exported keyframes to reconstruct</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/reconstructdialog.ui" line="76"/>
+        <location filename="../ui_reconstructdialog.h" line="162"/>
         <source>Select reconstruct tool</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/reconstructdialog.ui" line="83"/>
+        <location filename="../ui_reconstructdialog.h" line="164"/>
         <source>hint: add your tool in settings-&gt;manage reconstruction tools</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/reconstructdialog.ui" line="100"/>
+        <location filename="../ui_reconstructdialog.h" line="166"/>
         <source>Start arguments for reconstruct tool executable</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/reconstructdialog.ui" line="119"/>
+        <location filename="../ui_reconstructdialog.h" line="167"/>
         <source>gui</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/reconstructdialog.ui" line="129"/>
+        <location filename="../ui_reconstructdialog.h" line="168"/>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use &amp;quot;gui&amp;quot; and the checkbox below to start the COLMAP gui w/o a project file.&lt;/p&gt;&lt;p&gt;Use &amp;quot;automatic_reconstructor&amp;quot; to start an automatic reconstruction (the software will add needed start arguments itsself).&lt;/p&gt;&lt;p&gt;Use any other start arguments and the software will create a batch file to manually start COLMAP with those start arguments.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/reconstructdialog.ui" line="155"/>
+        <location filename="../ui_reconstructdialog.h" line="169"/>
         <source>Create project file automatically (Colmap)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/reconstructdialog.ui" line="188"/>
+        <location filename="../ui_reconstructdialog.h" line="170"/>
         <source>Cancel</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1158,21 +1268,25 @@ p, li { white-space: pre-wrap; }
     <name>ReconstructionToolsDialog</name>
     <message>
         <location filename="../view/reconstructiontoolsdialog.ui" line="14"/>
+        <location filename="../ui_reconstructiontoolsdialog.h" line="67"/>
         <source>Reconstruction Tools</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/reconstructiontoolsdialog.ui" line="20"/>
+        <location filename="../ui_reconstructiontoolsdialog.h" line="69"/>
         <source>Hint: Double klick to edit display name</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/reconstructiontoolsdialog.ui" line="32"/>
+        <location filename="../ui_reconstructiontoolsdialog.h" line="71"/>
         <source>Remove</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/reconstructiontoolsdialog.ui" line="39"/>
+        <location filename="../ui_reconstructiontoolsdialog.h" line="72"/>
         <source>Add</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1196,46 +1310,55 @@ p, li { white-space: pre-wrap; }
     <name>SamplingWidget</name>
     <message>
         <location filename="../view/samplingwidget.ui" line="26"/>
+        <location filename="../ui_samplingwidget.h" line="136"/>
         <source>Form</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/samplingwidget.ui" line="46"/>
+        <location filename="../ui_samplingwidget.h" line="137"/>
         <source>Algorithm</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/samplingwidget.ui" line="53"/>
+        <location filename="../ui_samplingwidget.h" line="139"/>
         <source>Select an algorithm for sampling keyframes...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/samplingwidget.ui" line="114"/>
+        <location filename="../ui_samplingwidget.h" line="144"/>
         <source>Add to processing</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <location filename="../view/samplingwidget.ui" line="143"/>
+        <location filename="../ui_samplingwidget.h" line="148"/>
+        <source>Start selection</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location filename="../view/samplingwidget.ui" line="100"/>
+        <location filename="../ui_samplingwidget.h" line="142"/>
         <source> Generate settings</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/samplingwidget.ui" line="140"/>
+        <location filename="../ui_samplingwidget.h" line="146"/>
         <source>Start the selected sampling algorithm</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/samplingwidget.ui" line="143"/>
-        <source>Sample images</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../view/samplingwidget.ui" line="93"/>
+        <location filename="../ui_samplingwidget.h" line="141"/>
         <source>Generate settings</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/samplingwidget.ui" line="107"/>
+        <location filename="../ui_samplingwidget.h" line="143"/>
         <source>Sampling</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1249,31 +1372,37 @@ p, li { white-space: pre-wrap; }
     <name>Timeline</name>
     <message>
         <location filename="../view/timeline.ui" line="14"/>
+        <location filename="../ui_timeline.h" line="119"/>
         <source>Form</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/timeline.ui" line="137"/>
+        <location filename="../ui_timeline.h" line="132"/>
         <source>label_zoomTimeline</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/timeline.ui" line="69"/>
+        <location filename="../ui_timeline.h" line="122"/>
         <source>Range of zoom timeline relative to all images</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/timeline.ui" line="78"/>
+        <location filename="../ui_timeline.h" line="125"/>
         <source>%</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/timeline.ui" line="159"/>
+        <location filename="../ui_timeline.h" line="133"/>
         <source>label_totalTimeline</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/timeline.ui" line="109"/>
+        <location filename="../ui_timeline.h" line="127"/>
         <source>Current image index</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1282,57 +1411,62 @@ p, li { white-space: pre-wrap; }
     <name>VideoPlayer</name>
     <message>
         <location filename="../view/videoplayer.ui" line="20"/>
+        <location filename="../ui_videoplayer.h" line="221"/>
         <source>Form</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/videoplayer.ui" line="230"/>
-        <source>Only keyframes</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../view/videoplayer.ui" line="250"/>
-        <source>Keyframe count:</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../view/videoplayer.ui" line="257"/>
+        <location filename="../ui_videoplayer.h" line="233"/>
         <source>0</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/videoplayer.ui" line="276"/>
-        <source>Set keyframe</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../view/videoplayer.ui" line="296"/>
-        <source>Reset</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../view/videoplayer.ui" line="315"/>
+        <location filename="../ui_videoplayer.h" line="237"/>
         <source>Clear keyframe selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/videoplayer.ui" line="195"/>
+        <location filename="../ui_videoplayer.h" line="227"/>
         <source>Step size</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/videoplayer.ui" line="214"/>
+        <location filename="../ui_videoplayer.h" line="229"/>
         <source>Stepsize for play</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/videoplayer.cpp" line="69"/>
-        <source>Clear Keyframe</source>
+        <location filename="../view/videoplayer.ui" line="230"/>
+        <location filename="../ui_videoplayer.h" line="231"/>
+        <source>Display only selected images</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../view/videoplayer.ui" line="250"/>
+        <location filename="../ui_videoplayer.h" line="232"/>
+        <source>Number of selected images</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../view/videoplayer.ui" line="276"/>
+        <location filename="../ui_videoplayer.h" line="234"/>
+        <location filename="../view/videoplayer.cpp" line="70"/>
+        <source> Select current image </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../view/videoplayer.ui" line="296"/>
+        <location filename="../ui_videoplayer.h" line="235"/>
+        <source>Reset selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/videoplayer.cpp" line="69"/>
-        <source>Set Keyframe</source>
+        <source>Deselect current image</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -1353,11 +1487,13 @@ p, li { white-space: pre-wrap; }
     <name>helpDialog</name>
     <message>
         <location filename="../view/helpdialog.ui" line="14"/>
+        <location filename="../ui_helpdialog.h" line="65"/>
         <source>Help</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../view/helpdialog.ui" line="35"/>
+        <location filename="../ui_helpdialog.h" line="66"/>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;h1 style=&quot; margin-top:18px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:xx-large; font-weight:600;&quot;&gt;Keyboard shortcuts&lt;/span&gt;&lt;/h1&gt;&lt;p&gt;
 &lt;table&gt;
   &lt;tr&gt;&lt;th&gt;Key Sequence&lt;/th&gt;&lt;th&gt;Action&lt;/th&gt;&lt;/tr&gt;
@@ -1387,9 +1523,13 @@ p, li { white-space: pre-wrap; }
 <context>
     <name>lib3d::ots::ui::ColmapWrapperControlsFactory</name>
     <message>
-        <location filename="../ots/colmapwrapper.cpp" line="1654"/>
         <source> New Product</source>
-        <translation> New Product</translation>
+        <translation type="vanished"> New Product</translation>
+    </message>
+    <message>
+        <location filename="../ots/colmapwrapper.cpp" line="1654"/>
+        <source> Start 3D-Reconstruction</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../ots/colmapwrapper.cpp" line="1723"/>
@@ -1405,178 +1545,246 @@ p, li { white-space: pre-wrap; }
 <context>
     <name>lib3d::ots::ui::colmapwrapper::NewProductDialog</name>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="23"/>
         <source>Project</source>
-        <translation>Project</translation>
+        <translation type="vanished">Project</translation>
     </message>
     <message>
         <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="31"/>
+        <location filename="../ui_colmapnewproductdialog.h" line="566"/>
         <source>Name:</source>
         <translation>Name:</translation>
     </message>
     <message>
         <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="51"/>
+        <location filename="../ui_colmapnewproductdialog.h" line="567"/>
         <source>Invalid sequence name</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="84"/>
+        <location filename="../ui_colmapnewproductdialog.h" line="568"/>
         <source>Images:</source>
         <translation>Images:</translation>
     </message>
     <message>
         <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="104"/>
+        <location filename="../ui_colmapnewproductdialog.h" line="569"/>
         <source>No images found in directory</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="151"/>
+        <location filename="../ui_colmapnewproductdialog.h" line="571"/>
         <source>Select image path...</source>
         <translation>Select Images ...</translation>
     </message>
     <message>
         <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="186"/>
+        <location filename="../ui_colmapnewproductdialog.h" line="574"/>
         <source>Product</source>
         <translation>Product(s)</translation>
     </message>
     <message>
         <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="197"/>
+        <location filename="../ui_colmapnewproductdialog.h" line="575"/>
         <source>1. Camera Poses</source>
         <translation>1. Camera Poses</translation>
     </message>
     <message>
         <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="211"/>
+        <location filename="../ui_colmapnewproductdialog.h" line="576"/>
         <source>2. Dense Point Cloud</source>
         <translation>2. Dense Pointcloud</translation>
     </message>
     <message>
         <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="225"/>
+        <location filename="../ui_colmapnewproductdialog.h" line="578"/>
         <source>Currently not usable, due to georegistration</source>
         <translation>Currently not usable, due to georegistration</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="437"/>
-        <source>Share intrinsics between images:</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="474"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="529"/>
+        <location filename="../ui_colmapnewproductdialog.h" line="598"/>
         <source>Optional intrinsic parameters (comma seperated):</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="508"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="563"/>
+        <location filename="../ui_colmapnewproductdialog.h" line="599"/>
         <source>GPU ids (-1 to use all):</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="557"/>
-        <source>Robust mode (Higher probability of success at the expense of quality):</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="588"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="612"/>
+        <location filename="../ui_colmapnewproductdialog.h" line="601"/>
         <source>Images could have very high focal length:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="631"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="655"/>
+        <location filename="../ui_colmapnewproductdialog.h" line="604"/>
         <source>Cache size for dense fusion:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="696"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="720"/>
+        <location filename="../ui_colmapnewproductdialog.h" line="606"/>
         <source>Mesh</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="704"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="728"/>
+        <location filename="../ui_colmapnewproductdialog.h" line="607"/>
         <source>Max threads for mesh reconstruction (0 to use all)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="724"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="748"/>
+        <location filename="../ui_colmapnewproductdialog.h" line="608"/>
         <source>0</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="320"/>
-        <source>Settings</source>
-        <translation>Settings</translation>
+        <source>3. Meshed Model</source>
+        <translation type="vanished">3. Surface Model</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="356"/>
+        <source>Settings</source>
+        <translation type="vanished">Settings</translation>
+    </message>
+    <message>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="448"/>
+        <location filename="../ui_colmapnewproductdialog.h" line="591"/>
         <source>Camera Poses</source>
         <translation>Camera Poses</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="415"/>
+        <source>Camera Model:</source>
+        <translation type="vanished">Camera Model:</translation>
+    </message>
+    <message>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="507"/>
+        <location filename="../ui_colmapnewproductdialog.h" line="593"/>
         <source>OPENCV</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="408"/>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="420"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="500"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="512"/>
+        <location filename="../ui_colmapnewproductdialog.h" line="594"/>
+        <location filename="../ui_colmapnewproductdialog.h" line="597"/>
         <source>RADIAL</source>
         <translation></translation>
     </message>
     <message>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="23"/>
+        <location filename="../ui_colmapnewproductdialog.h" line="565"/>
+        <source>Start 3D-reconstruction using COLMAP</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="231"/>
+        <location filename="../ui_colmapnewproductdialog.h" line="580"/>
         <source>3. Meshed and textured Model</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="243"/>
+        <location filename="../ui_colmapnewproductdialog.h" line="581"/>
         <source>Trade-off between quality and runtime</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="251"/>
+        <location filename="../ui_colmapnewproductdialog.h" line="582"/>
         <source>Fast</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="268"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="274"/>
+        <location filename="../ui_colmapnewproductdialog.h" line="583"/>
         <source>Medium</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="288"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="300"/>
+        <location filename="../ui_colmapnewproductdialog.h" line="584"/>
         <source>Quality</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="305"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="323"/>
+        <location filename="../ui_colmapnewproductdialog.h" line="585"/>
         <source>Best Quality</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="364"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="337"/>
+        <location filename="../ui_colmapnewproductdialog.h" line="586"/>
+        <source>Share intrinsics between images (sequence contains no camera zoom):</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="374"/>
+        <location filename="../ui_colmapnewproductdialog.h" line="588"/>
+        <source>Robust mode (Higher probability of success for challenging scenes):</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="406"/>
+        <location filename="../ui_colmapnewproductdialog.h" line="590"/>
+        <source>Edit advanced settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="456"/>
+        <location filename="../ui_colmapnewproductdialog.h" line="592"/>
         <source>Camera model:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="425"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="517"/>
+        <location filename="../ui_colmapnewproductdialog.h" line="595"/>
         <source>PINHOLE</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="543"/>
+        <source>Single Camera:</source>
+        <translation type="vanished">Single Camera:</translation>
+    </message>
+    <message>
+        <source>Multiple Models:</source>
+        <translation type="vanished">Multiple Models:</translation>
+    </message>
+    <message>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="598"/>
+        <location filename="../ui_colmapnewproductdialog.h" line="600"/>
         <source>-1</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="666"/>
+        <source>Max Image Size:</source>
+        <translation type="vanished">Maximum Image Size:</translation>
+    </message>
+    <message>
+        <source>Cache Size:</source>
+        <translation type="vanished">Cache Size:</translation>
+    </message>
+    <message>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="690"/>
+        <location filename="../ui_colmapnewproductdialog.h" line="605"/>
         <source> GB</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="623"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="647"/>
+        <location filename="../ui_colmapnewproductdialog.h" line="603"/>
         <source>Dense Point Cloud</source>
         <translation>Dense Pointcloud</translation>
     </message>
     <message>
         <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="14"/>
+        <location filename="../ui_colmapnewproductdialog.h" line="564"/>
         <source>New Product</source>
         <translation>New Product</translation>
     </message>
@@ -1600,16 +1808,19 @@ p, li { white-space: pre-wrap; }
     <name>lib3d::ots::ui::colmapwrapper::QueueItem</name>
     <message>
         <location filename="../ots/colmapwrapper/colmapqueueitem.ui" line="32"/>
+        <location filename="../ui_colmapqueueitem.h" line="141"/>
         <source>Form</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../ots/colmapwrapper/colmapqueueitem.ui" line="86"/>
+        <location filename="../ui_colmapqueueitem.h" line="142"/>
         <source>aaaaaaaaaaaaaaaaaaaaaaa</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../ots/colmapwrapper/colmapqueueitem.ui" line="105"/>
+        <location filename="../ui_colmapqueueitem.h" line="143"/>
         <source>In der Warteschlange</source>
         <translation>Pending</translation>
     </message>
@@ -1618,16 +1829,19 @@ p, li { white-space: pre-wrap; }
     <name>lib3d::ots::ui::colmapwrapper::QueueItemFailed</name>
     <message>
         <location filename="../ots/colmapwrapper/colmapqueueitem_failed.ui" line="69"/>
+        <location filename="../ui_colmapqueueitem_failed.h" line="154"/>
         <source>Form</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../ots/colmapwrapper/colmapqueueitem_failed.ui" line="131"/>
+        <location filename="../ui_colmapqueueitem_failed.h" line="155"/>
         <source>aaaaaaaaaaaaaaaaaaaaaaa</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../ots/colmapwrapper/colmapqueueitem_failed.ui" line="150"/>
+        <location filename="../ui_colmapqueueitem_failed.h" line="156"/>
         <source>Failed</source>
         <translation type="unfinished">Failed</translation>
     </message>
@@ -1636,16 +1850,19 @@ p, li { white-space: pre-wrap; }
     <name>lib3d::ots::ui::colmapwrapper::QueueItemFinished</name>
     <message>
         <location filename="../ots/colmapwrapper/colmapqueueitem_finished.ui" line="69"/>
+        <location filename="../ui_colmapqueueitem_finished.h" line="154"/>
         <source>Form</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../ots/colmapwrapper/colmapqueueitem_finished.ui" line="131"/>
+        <location filename="../ui_colmapqueueitem_finished.h" line="155"/>
         <source>aaaaaaaaaaaaaaaaaaaaaaa</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../ots/colmapwrapper/colmapqueueitem_finished.ui" line="150"/>
+        <location filename="../ui_colmapqueueitem_finished.h" line="156"/>
         <source>Fertig</source>
         <translation>Done</translation>
     </message>
@@ -1654,16 +1871,19 @@ p, li { white-space: pre-wrap; }
     <name>lib3d::ots::ui::colmapwrapper::QueueItemRunning</name>
     <message>
         <location filename="../ots/colmapwrapper/colmapqueueitem_running.ui" line="69"/>
+        <location filename="../ui_colmapqueueitem_running.h" line="173"/>
         <source>Form</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../ots/colmapwrapper/colmapqueueitem_running.ui" line="126"/>
+        <location filename="../ui_colmapqueueitem_running.h" line="174"/>
         <source>aaaaaaaaaaaaaaaaaaaaaaa</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../ots/colmapwrapper/colmapqueueitem_running.ui" line="141"/>
+        <location filename="../ui_colmapqueueitem_running.h" line="175"/>
         <source>Progress:</source>
         <translation>Progress:</translation>
     </message>
@@ -1672,56 +1892,67 @@ p, li { white-space: pre-wrap; }
     <name>lib3d::ots::ui::colmapwrapper::SettingsDialog</name>
     <message>
         <location filename="../ots/colmapwrapper/colmapsettingsdialog.ui" line="26"/>
+        <location filename="../ui_colmapsettingsdialog.h" line="467"/>
         <source>Colmap Wrapper Settings</source>
         <translation>ColmapWrapper - Settings</translation>
     </message>
     <message>
         <location filename="../ots/colmapwrapper/colmapsettingsdialog.ui" line="34"/>
+        <location filename="../ui_colmapsettingsdialog.h" line="468"/>
         <source>Connection to COLMAP:</source>
         <translation>Connection to COLMAP:</translation>
     </message>
     <message>
         <location filename="../ots/colmapwrapper/colmapsettingsdialog.ui" line="55"/>
+        <location filename="../ui_colmapsettingsdialog.h" line="469"/>
         <source>Local</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../ots/colmapwrapper/colmapsettingsdialog.ui" line="60"/>
+        <location filename="../ui_colmapsettingsdialog.h" line="470"/>
         <source>SSH</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../ots/colmapwrapper/colmapsettingsdialog.ui" line="72"/>
+        <location filename="../ui_colmapsettingsdialog.h" line="472"/>
         <source>Synchronization interval:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../ots/colmapwrapper/colmapsettingsdialog.ui" line="121"/>
+        <location filename="../ui_colmapsettingsdialog.h" line="474"/>
         <source>Local workspace path:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../ots/colmapwrapper/colmapsettingsdialog.ui" line="198"/>
+        <location filename="../ui_colmapsettingsdialog.h" line="476"/>
         <source>COLMAP binary (local):</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../ots/colmapwrapper/colmapsettingsdialog.ui" line="260"/>
+        <location filename="../ui_colmapsettingsdialog.h" line="478"/>
         <source>OpenMVS binary folder (local):</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../ots/colmapwrapper/colmapsettingsdialog.ui" line="459"/>
+        <location filename="../ui_colmapsettingsdialog.h" line="484"/>
         <source>COLMAP binary (remote):</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../ots/colmapwrapper/colmapsettingsdialog.ui" line="499"/>
+        <location filename="../ui_colmapsettingsdialog.h" line="485"/>
         <source>OpenMVS binary folder (remote):</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../ots/colmapwrapper/colmapsettingsdialog.ui" line="98"/>
+        <location filename="../ui_colmapsettingsdialog.h" line="473"/>
         <source> seconds</source>
         <translation> seconds</translation>
     </message>
@@ -1730,36 +1961,46 @@ p, li { white-space: pre-wrap; }
         <location filename="../ots/colmapwrapper/colmapsettingsdialog.ui" line="249"/>
         <location filename="../ots/colmapwrapper/colmapsettingsdialog.ui" line="308"/>
         <location filename="../ots/colmapwrapper/colmapsettingsdialog.ui" line="624"/>
+        <location filename="../ui_colmapsettingsdialog.h" line="475"/>
+        <location filename="../ui_colmapsettingsdialog.h" line="477"/>
+        <location filename="../ui_colmapsettingsdialog.h" line="479"/>
+        <location filename="../ui_colmapsettingsdialog.h" line="488"/>
         <source>...</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../ots/colmapwrapper/colmapsettingsdialog.ui" line="331"/>
+        <location filename="../ui_colmapsettingsdialog.h" line="480"/>
         <source>Address:</source>
         <translation>Address:</translation>
     </message>
     <message>
         <location filename="../ots/colmapwrapper/colmapsettingsdialog.ui" line="374"/>
+        <location filename="../ui_colmapsettingsdialog.h" line="481"/>
         <source>User:</source>
         <translation>User:</translation>
     </message>
     <message>
         <location filename="../ots/colmapwrapper/colmapsettingsdialog.ui" line="420"/>
+        <location filename="../ui_colmapsettingsdialog.h" line="482"/>
         <source>Make sure to copy ssh key of client onto server:</source>
         <translation>Note: copy ssh key of client onto server:</translation>
     </message>
     <message>
         <location filename="../ots/colmapwrapper/colmapsettingsdialog.ui" line="445"/>
+        <location filename="../ui_colmapsettingsdialog.h" line="483"/>
         <source>ssh-copy-id -i .ssh/&lt;pub-key-file&gt; &lt;user&gt;@&lt;address&gt;</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../ots/colmapwrapper/colmapsettingsdialog.ui" line="533"/>
+        <location filename="../ui_colmapsettingsdialog.h" line="486"/>
         <source>Workspace Path (remote):</source>
         <translation>Workspace Path (remote):</translation>
     </message>
     <message>
         <location filename="../ots/colmapwrapper/colmapsettingsdialog.ui" line="573"/>
+        <location filename="../ui_colmapsettingsdialog.h" line="487"/>
         <source>Workspace mountpoint (local):</source>
         <translation>Workspace mountpoint (local):</translation>
     </message>
@@ -1798,59 +2039,68 @@ p, li { white-space: pre-wrap; }
     <name>lib3d::ots::ui::colmapwrapper::ViewWidget</name>
     <message>
         <location filename="../ots/colmapwrapper/colmapviewwidget.ui" line="26"/>
+        <location filename="../ui_colmapviewwidget.h" line="133"/>
         <source>Form</source>
         <translation></translation>
     </message>
     <message>
         <location filename="../ots/colmapwrapper/colmapviewwidget.ui" line="34"/>
+        <location filename="../ui_colmapviewwidget.h" line="134"/>
         <source>COLMAP Status:</source>
         <translation>COLMAP Status:</translation>
     </message>
     <message>
         <location filename="../ots/colmapwrapper/colmapviewwidget.ui" line="57"/>
-        <location filename="../ots/colmapwrapper/colmapviewwidget.ui" line="120"/>
+        <location filename="../ui_colmapviewwidget.h" line="135"/>
         <source>&lt;status&gt;</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapviewwidget.ui" line="97"/>
         <source>Workspace Status:</source>
-        <translation>Workspace Status:</translation>
+        <translation type="vanished">Workspace Status:</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapviewwidget.ui" line="170"/>
+        <location filename="../ots/colmapwrapper/colmapviewwidget.ui" line="67"/>
+        <location filename="../ui_colmapviewwidget.h" line="136"/>
         <source>Open Log File</source>
         <translation>Open Log File</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapviewwidget.ui" line="206"/>
+        <source>Produkte</source>
+        <translation type="vanished">Products</translation>
+    </message>
+    <message>
+        <location filename="../ots/colmapwrapper/colmapviewwidget.ui" line="103"/>
+        <location filename="../ui_colmapviewwidget.h" line="137"/>
         <source>Warteschlange</source>
         <translation>Queue</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapviewwidget.cpp" line="192"/>
+        <location filename="../ots/colmapwrapper/colmapviewwidget.cpp" line="179"/>
         <source>Idle</source>
         <translation>Idle</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapviewwidget.cpp" line="199"/>
+        <location filename="../ots/colmapwrapper/colmapviewwidget.cpp" line="185"/>
         <source>Running</source>
         <translation>Running</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapviewwidget.cpp" line="206"/>
+        <location filename="../ots/colmapwrapper/colmapviewwidget.cpp" line="191"/>
         <source>Failed</source>
         <translation>Failed</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapviewwidget.cpp" line="220"/>
         <source>In Sync</source>
-        <translation>In Sync</translation>
+        <translation type="vanished">In Sync</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapviewwidget.cpp" line="227"/>
         <source>Syncing</source>
-        <translation>Syncing</translation>
+        <translation type="vanished">Syncing</translation>
+    </message>
+    <message>
+        <source>Öffnen</source>
+        <translation type="vanished">Open</translation>
     </message>
 </context>
 <context>

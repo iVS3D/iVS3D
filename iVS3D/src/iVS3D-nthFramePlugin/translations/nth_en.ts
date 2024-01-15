@@ -8,27 +8,23 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Nth-Frame progress</source>
+        <source>Nth-Image progress</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Select N </source>
+        <source>Nth image selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>keep lonely keyframes</source>
+        <source>Select every Nth image</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Every Nth frame is selected as keyframe.</source>
+        <source>Keep isolated images</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>When selecting strictly every Nth frame, lonely keyframes or small batches are unlikely to get selected for larger N. Select additional keyframes in thinly populated areas.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>NthFrame</source>
+        <source>When selecting strictly every Nth frame, isolated images or small batches are unlikely to get selected for larger N.</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

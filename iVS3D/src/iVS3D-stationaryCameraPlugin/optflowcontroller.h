@@ -39,7 +39,7 @@
 #include "flowcalculator.h"
 #include <opencv2/video.hpp>
 
-#define PLUGIN_NAME QObject::tr("Stationary Camera Detection")
+#define PLUGIN_NAME QObject::tr("Stationary camera detection")
 // widget
 #define SELECTOR_DROPDOWN QObject::tr("Mode")
 #define DOWNSAMPLE_LABEL_TEXT QObject::tr("Sampling resolution")

@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>873</width>
+    <width>1109</width>
     <height>473</height>
    </rect>
   </property>
@@ -227,7 +227,7 @@
      <item>
       <widget class="QCheckBox" name="checkBox_onlyKeyframes">
        <property name="text">
-        <string>Only keyframes</string>
+        <string>Display only selected images</string>
        </property>
       </widget>
      </item>
@@ -247,7 +247,7 @@
      <item>
       <widget class="QLabel" name="label">
        <property name="text">
-        <string>Keyframe count:</string>
+        <string>Number of selected images</string>
        </property>
       </widget>
      </item>
@@ -273,7 +273,7 @@
         </size>
        </property>
        <property name="text">
-        <string>Set keyframe</string>
+        <string> Select current image </string>
        </property>
       </widget>
      </item>
@@ -293,7 +293,7 @@
      <item>
       <widget class="QLabel" name="label_2">
        <property name="text">
-        <string>Reset</string>
+        <string>Reset selection</string>
        </property>
       </widget>
      </item>

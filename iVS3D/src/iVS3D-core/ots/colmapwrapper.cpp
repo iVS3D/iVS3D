@@ -1648,10 +1648,10 @@ QPushButton *ui::ColmapWrapperControlsFactory::createNewProductPushButton(ui::ET
                                                                           QPushButton *rhs)
 {
     QPushButton *pPushButton = (!rhs) ? new QPushButton(parent) : rhs;
-    pPushButton->setToolTip(QObject::tr("Create new product to be processed by COLMAP"));
+    pPushButton->setToolTip(QObject::tr("Start 3D-Reconstruction using COLMAP"));
     //  pPushButton->setFixedSize( 28, 28 );
     pPushButton->setIconSize(QSize(16, 16));
-    pPushButton->setText(tr(" New Product"));
+    pPushButton->setText(tr(" Start 3D-Reconstruction"));
     if (iTheme == DARK) {
         pPushButton->setIcon(QIcon(":/assets/icons/glyphicons-37-file-dark.png"));
     } else {
@@ -1687,7 +1687,7 @@ QToolButton *ui::ColmapWrapperControlsFactory::createNewProductToolButton(ui::ET
                                                                           QToolButton *rhs)
 {
     QToolButton *pToolButton = (!rhs) ? new QToolButton(parent) : rhs;
-    pToolButton->setToolTip(QObject::tr("Create new product to be processed by COLMAP"));
+    pToolButton->setToolTip(QObject::tr("Start 3D-reconstruction using COLMAP"));
     pToolButton->setFixedSize(16, 16);
     pToolButton->setIconSize(QSize(16, 16));
     if (iTheme == DARK) {
@@ -1746,7 +1746,7 @@ QToolButton *ui::ColmapWrapperControlsFactory::createSettingsToolButton(ETheme i
                                                                         QToolButton *rhs)
 {
     QToolButton *pToolButton = (!rhs) ? new QToolButton(parent) : rhs;
-    pToolButton->setToolTip(QObject::tr("Open COLMAP Wrapper Settings"));
+    pToolButton->setToolTip(QObject::tr("Open COLMAP settings"));
     pToolButton->setFixedSize(16, 16);
     pToolButton->setIconSize(QSize(16, 16));
     if (iTheme == DARK) {
@@ -1774,7 +1774,7 @@ QAction *ui::ColmapWrapperControlsFactory::createSettingsAction(ui::ETheme iThem
                                                                 QAction *rhs)
 {
     QAction *pAction = (!rhs) ? new QAction(parent) : rhs;
-    pAction->setToolTip(QObject::tr("Open COLMAP Wrapper Settings"));
+    pAction->setToolTip(QObject::tr("Open COLMAP settings"));
     pAction->setCheckable(false);
     pAction->setText(tr("Colmap Wrapper Settings"));
 

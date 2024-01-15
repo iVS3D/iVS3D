@@ -49,7 +49,7 @@
    <item>
     <widget class="QLabel" name="label_currentOperation">
      <property name="text">
-      <string> </string>
+      <string/>
      </property>
     </widget>
    </item>
@@ -91,7 +91,7 @@
      <item>
       <widget class="QPushButton" name="pushButton_abort">
        <property name="text">
-        <string>Abort</string>
+        <string>Cancel</string>
        </property>
       </widget>
      </item>

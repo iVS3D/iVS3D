@@ -4,11 +4,6 @@
 <context>
     <name>Blur</name>
     <message>
-        <location filename="../blur.cpp" line="73"/>
-        <source>Blur</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../blur.cpp" line="102"/>
         <location filename="../blur.cpp" line="177"/>
         <source>not calculated</source>
@@ -22,13 +17,8 @@
     </message>
     <message>
         <location filename="../blur.cpp" line="105"/>
-        <location filename="../blur.cpp" line="258"/>
+        <location filename="../blur.cpp" line="257"/>
         <source>Blur value for the current image is not calculated</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../blur.cpp" line="196"/>
-        <source>Select blur </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -42,48 +32,58 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../blur.cpp" line="229"/>
-        <source>Number of images around the frame</source>
+        <location filename="../blur.cpp" line="73"/>
+        <source>Blur detection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../blur.cpp" line="239"/>
+        <location filename="../blur.cpp" line="196"/>
+        <source>Select filter </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../blur.cpp" line="228"/>
+        <source>Number of images used for local window</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../blur.cpp" line="238"/>
         <source>Set local deviation</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../blur.cpp" line="253"/>
+        <location filename="../blur.cpp" line="252"/>
         <source>Deviation from the image to the window average blur</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../blur.cpp" line="300"/>
+        <location filename="../blur.cpp" line="299"/>
         <source>Calculate blur of frame number </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../blur.cpp" line="300"/>
-        <location filename="../blur.cpp" line="384"/>
+        <location filename="../blur.cpp" line="299"/>
+        <location filename="../blur.cpp" line="383"/>
         <source> of </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../blur.cpp" line="300"/>
+        <location filename="../blur.cpp" line="299"/>
         <source> total frames</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../blur.cpp" line="384"/>
+        <location filename="../blur.cpp" line="383"/>
         <source>Calculate blur of Keyframe number </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../blur.cpp" line="384"/>
+        <location filename="../blur.cpp" line="383"/>
         <source> total keyframes</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../blur.cpp" line="428"/>
+        <location filename="../blur.cpp" line="427"/>
         <source>Blur progress</source>
         <translation type="unfinished"></translation>
     </message>

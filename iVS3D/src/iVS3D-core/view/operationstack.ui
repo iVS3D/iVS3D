@@ -17,7 +17,7 @@
    <item>
     <widget class="QLabel" name="label">
      <property name="text">
-      <string>Keyframe History</string>
+      <string>Executed steps</string>
      </property>
     </widget>
    </item>

@@ -73,13 +73,13 @@ std::vector<uint> NthFrame::sampleImages(const std::vector<unsigned int> &imageL
                               "slot_makeProgress",
                               Qt::DirectConnection,
                               Q_ARG(int, 100),
-                              Q_ARG(QString, tr("Nth-Frame progress")));
+                              Q_ARG(QString, tr("Nth-Image progress")));
     return keyframes;
 }
 
 QString NthFrame::getName() const
 {
-    return tr("NthFrame");
+    return tr("Nth image selection");
 }
 
 void NthFrame::initialize(Reader *reader, QMap<QString, QVariant>, signalObject *so)
@@ -148,7 +148,7 @@ void NthFrame::createSettingsWidget(QWidget *parent)
     w->setLayout(new QHBoxLayout(parent));
     w->layout()->setSpacing(0);
     w->layout()->setMargin(0);
-    w->layout()->addWidget(new QLabel(tr("Select N "),parent));
+    w->layout()->addWidget(new QLabel(tr("Select every Nth image"), parent));
 
     m_spinBox = new QSpinBox(parent);
     m_spinBox->setMinimum(1);
@@ -160,17 +160,13 @@ void NthFrame::createSettingsWidget(QWidget *parent)
 
     m_settingsWidget->layout()->addWidget(w);
 
-    QLabel *txt = new QLabel(tr("Every Nth frame is selected as keyframe."));
-    txt->setStyleSheet(DESCRIPTION_STYLE);
-    txt->setWordWrap(true);
-    m_settingsWidget->layout()->addWidget(txt);
-
-    m_checkBox = new QCheckBox(tr("keep lonely keyframes"), parent);
+    m_checkBox = new QCheckBox(tr("Keep isolated images"), parent);
     m_checkBox->setChecked(m_keepLonely);
     connect(m_checkBox, &QCheckBox::toggled, this, &NthFrame::slot_checkboxToggled);
     m_settingsWidget->layout()->addWidget(m_checkBox);
 
-    QLabel *txt2 = new QLabel(tr("When selecting strictly every Nth frame, lonely keyframes or small batches are unlikely to get selected for larger N. Select additional keyframes in thinly populated areas."));
+    QLabel *txt2 = new QLabel(tr("When selecting strictly every Nth frame, isolated images or "
+                                 "small batches are unlikely to get selected for larger N."));
     txt2->setStyleSheet(DESCRIPTION_STYLE);
     txt2->setWordWrap(true);
     m_settingsWidget->layout()->addWidget(txt2);

@@ -80,8 +80,8 @@ MainWindow::MainWindow(QWidget *parent, ColorTheme theme, int cuda, bool createL
     dock->setVisible(false);
 #endif
 
-    dock = new QDockWidget(tr("Sampling"), this);
-    dock->setObjectName("Sampling");
+    dock = new QDockWidget(tr("Image selection"), this);
+    dock->setObjectName("Image selection");
     dock->setAllowedAreas(
                 Qt::BottomDockWidgetArea |
                 Qt::TopDockWidgetArea |
@@ -91,8 +91,8 @@ MainWindow::MainWindow(QWidget *parent, ColorTheme theme, int cuda, bool createL
     addDockWidget(Qt::BottomDockWidgetArea, dock);
     ui->menuView->addAction(dock->toggleViewAction());
 
-    dock = new QDockWidget(tr("Output"), this);
-    dock->setObjectName("Output");
+    dock = new QDockWidget(tr("Export"), this);
+    dock->setObjectName("Export");
     dock->setAllowedAreas(
                 Qt::BottomDockWidgetArea |
                 Qt::TopDockWidgetArea |
@@ -308,8 +308,8 @@ void MainWindow::enableTools(bool status)
 
 void MainWindow::addOtsWindow(QWidget *otsWidget)
 {
-    QDockWidget *dock = new QDockWidget(tr("Reconstruction"), this);
-    dock->setObjectName("Reconstruction");
+    QDockWidget *dock = new QDockWidget(tr("3D-Reconstruction"), this);
+    dock->setObjectName("3D-Reconstruction");
     dock->setAllowedAreas(
                 Qt::BottomDockWidgetArea |
                 Qt::TopDockWidgetArea |
