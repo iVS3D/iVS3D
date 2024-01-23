@@ -9,7 +9,7 @@
     </message>
     <message>
         <source>Creating calculation units</source>
-        <translation>Berechnungs Einheiten erstellen</translation>
+        <translation>Berechnungseinheiten werden erstellt</translation>
     </message>
     <message>
         <source>Calculating flow between frame </source>
@@ -55,10 +55,6 @@
         <translation> optische Fluss Werte gespeichert.</translation>
     </message>
     <message>
-        <source>Stationary Camera Detection</source>
-        <translation type="vanished">Stationäre Kamera Erkennung</translation>
-    </message>
-    <message>
         <source>Threshold</source>
         <translation>Schwellwert</translation>
     </message>
@@ -72,7 +68,7 @@
     </message>
     <message>
         <source>Stationary camera detection</source>
-        <translation type="unfinished"></translation>
+        <translation>Stationäre Kamera erkennen</translation>
     </message>
 </context>
 </TS>

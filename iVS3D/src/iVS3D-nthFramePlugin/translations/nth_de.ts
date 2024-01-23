@@ -8,30 +8,6 @@
         <translation>Jedes N-te Bild berechnen</translation>
     </message>
     <message>
-        <source>Nth-Frame progress</source>
-        <translation type="vanished">Fortschritt N-te Bilder</translation>
-    </message>
-    <message>
-        <source>Select N </source>
-        <translation type="vanished">N auswählen </translation>
-    </message>
-    <message>
-        <source>keep lonely keyframes</source>
-        <translation type="vanished">Einzelne Keyframes erhalten</translation>
-    </message>
-    <message>
-        <source>Every Nth frame is selected as keyframe.</source>
-        <translation type="vanished">Jedes N-te Bild wird als Keyframe gewählt.</translation>
-    </message>
-    <message>
-        <source>When selecting strictly every Nth frame, lonely keyframes or small batches are unlikely to get selected for larger N. Select additional keyframes in thinly populated areas.</source>
-        <translation type="vanished">Wenn stritk jedes N-te Bild gewählt wird, können Bereiche mit nur sehr wenigen Keyframes verloren gehen. Diese Option wählt weitere Keyframes in diesen dünn besiedelten Bereichen aus.</translation>
-    </message>
-    <message>
-        <source>NthFrame</source>
-        <translation type="vanished">N-te Bilder</translation>
-    </message>
-    <message>
         <source>Nth-Image progress</source>
         <translation>Fortschritt N-te Bilder</translation>
     </message>

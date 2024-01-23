@@ -296,7 +296,7 @@ std::vector<uint> Blur::sampleAllImages(Reader *reader,  Progressable *receiver,
 
         if (receiver != nullptr) {
             int progress = ((i - start) * 100 / picCount);
-            QString currentProgress = tr("Calculate blur of frame number ") + QString::number(i - start) + tr(" of ") + QString::number(picCount) + tr(" total frames");
+            QString currentProgress = progressMessage(i - start, picCount);
             QMetaObject::invokeMethod(receiver, "slot_makeProgress", Qt::DirectConnection, Q_ARG(int, progress), Q_ARG(QString, currentProgress));
         }
 
@@ -380,7 +380,7 @@ std::vector<uint> Blur::sampleKeyframes(Reader *reader,  Progressable *receiver,
 
         if (receiver != nullptr) {
             int progress = (i  * 100 / picCount);
-            QString currentProgress = tr("Calculate blur of Keyframe number ") + QString::number(i) + tr(" of ") + QString::number(sharpImages.size()) + tr(" total keyframes");
+            QString currentProgress = progressMessage(i, (int)sharpImages.size());
             //receiver->slot_makeProgress(progress, currentProgress);
             QMetaObject::invokeMethod(
                         receiver,
@@ -426,6 +426,11 @@ std::vector<uint> Blur::sampleKeyframes(Reader *reader,  Progressable *receiver,
                 Q_ARG(int, 100),
                 Q_ARG(QString, tr("Blur progress")));
     return sampledImages;
+}
+
+QString Blur::progressMessage(int curr, int total)
+{
+    return tr("Calculate blur value for image ") + QString::number(curr) + tr(" of ") + QString::number(total);
 }
 
 

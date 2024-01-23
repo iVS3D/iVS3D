@@ -8,7 +8,7 @@ StackController::StackController(OperationStack* opStack, History* mipHistory, S
     m_exportController = exportController;
     connect(m_opStack, &OperationStack::sig_rowClicked, this, &StackController::slot_rowClicked);
     connect(m_opStack, &OperationStack::sig_clearClicked, this, &StackController::slot_clearClicked);
-    m_opStack->addEntry("Loaded input");
+    m_opStack->addEntry(tr("Loaded input"));
 }
 
 StackController::~StackController()
@@ -41,23 +41,23 @@ void StackController::slot_toggleKeyframe(uint idx, bool isNowKeyframe)
 {
     deleteInvalidFuture();
     if (isNowKeyframe) {
-        m_opStack->addEntry("Add image " + QString::number(idx));
+        m_opStack->addEntry(QString(tr("Add image %1")).arg(QString::number(idx)));
     }
     else {
-        m_opStack->addEntry("Remove image " + QString::number(idx));
+        m_opStack->addEntry(QString(tr("Remove image %1")).arg(QString::number(idx)));
     }
 }
 
 void StackController::slot_deleteKeyframes()
 {
     deleteInvalidFuture();
-    m_opStack->addEntry("Reset selection");
+    m_opStack->addEntry(tr("Reset selection"));
 }
 
 void StackController::slot_deleteAllKeyframes()
 {
     deleteInvalidFuture();
-    m_opStack->addEntry("Reset selection");
+    m_opStack->addEntry(tr("Reset selection"));
 }
 
 void StackController::slot_rowClicked(int row)
@@ -95,7 +95,7 @@ void StackController::slot_algorithmFinished(int index)
     QString name;
     name = AlgorithmManager::instance().getPluginNameToIndex(index);
     if (settings.isEmpty()) {
-        name.append("  -  Generated settings");
+        name.append(tr("  -  Generated settings"));
     }
     else {
         name.append(" - ");
@@ -118,14 +118,14 @@ void StackController::slot_algorithmFinished(int index)
 void StackController::slot_keyframesChangedByPlugin(QString pluginName)
 {
     deleteInvalidFuture();
-    m_opStack->addEntry("Keyframes changed by plugin " + pluginName);
+    m_opStack->addEntry(QString(tr("Image selection changed by plugin %1")).arg(pluginName));
 }
 
 void StackController::slot_exportFinished(QMap<QString, QVariant> settings)
 {
     //In case of the export, the history is updated BEFORE the stack is updated --> the m_history index has to be reduced by 1
     deleteInvalidFuture(1);
-    QString name = "Export";
+    QString name = tr("Export");
     name.append(" - ");
     QMapIterator<QString, QVariant> iter(settings);
     while(iter.hasNext()) {

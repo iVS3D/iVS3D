@@ -57,29 +57,13 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../blur.cpp" line="299"/>
-        <source>Calculate blur of frame number </source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../blur.cpp" line="299"/>
-        <location filename="../blur.cpp" line="383"/>
+        <location filename="../blur.cpp" line="433"/>
         <source> of </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../blur.cpp" line="299"/>
-        <source> total frames</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../blur.cpp" line="383"/>
-        <source>Calculate blur of Keyframe number </source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../blur.cpp" line="383"/>
-        <source> total keyframes</source>
+        <location filename="../blur.cpp" line="433"/>
+        <source>Calculate blur value for image </source>
         <translation type="unfinished"></translation>
     </message>
     <message>

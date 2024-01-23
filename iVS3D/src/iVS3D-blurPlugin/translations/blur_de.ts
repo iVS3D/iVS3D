@@ -4,10 +4,6 @@
 <context>
     <name>Blur</name>
     <message>
-        <source>Blur</source>
-        <translation type="vanished">Unschärfe</translation>
-    </message>
-    <message>
         <location filename="../blur.cpp" line="102"/>
         <location filename="../blur.cpp" line="177"/>
         <source>not calculated</source>
@@ -26,10 +22,6 @@
         <translation>Unschärfe Wert für das aktuelle Bild ist nicht berechnet</translation>
     </message>
     <message>
-        <source>Select blur </source>
-        <translation type="vanished">Unschärfe Algorithmus wählen </translation>
-    </message>
-    <message>
         <location filename="../blur.cpp" line="207"/>
         <source>Blur algorithm to be used</source>
         <translation>Verwendeter Algorithmus</translation>
@@ -38,10 +30,6 @@
         <location filename="../blur.cpp" line="216"/>
         <source>Set window size</source>
         <translation>Fenstergröße wählen</translation>
-    </message>
-    <message>
-        <source>Number of images around the frame</source>
-        <translation type="vanished">Anzahl der Bild um das aktuelle Bild</translation>
     </message>
     <message>
         <location filename="../blur.cpp" line="73"/>
@@ -69,30 +57,14 @@
         <translation>Abweichung des aktuelle Bild zum durchschnittlichen Unschärfe Wert</translation>
     </message>
     <message>
-        <location filename="../blur.cpp" line="299"/>
-        <source>Calculate blur of frame number </source>
-        <translation>Berechne Unschärfe Wert von Bild Nummer </translation>
-    </message>
-    <message>
-        <location filename="../blur.cpp" line="299"/>
-        <location filename="../blur.cpp" line="383"/>
+        <location filename="../blur.cpp" line="433"/>
         <source> of </source>
         <translation> von </translation>
     </message>
     <message>
-        <location filename="../blur.cpp" line="299"/>
-        <source> total frames</source>
-        <translation> Bildern insgesamt</translation>
-    </message>
-    <message>
-        <location filename="../blur.cpp" line="383"/>
-        <source>Calculate blur of Keyframe number </source>
-        <translation>Berechne Unschärfe Wert von Bild Nummer </translation>
-    </message>
-    <message>
-        <location filename="../blur.cpp" line="383"/>
-        <source> total keyframes</source>
-        <translation> Keyframes insgesamt</translation>
+        <location filename="../blur.cpp" line="433"/>
+        <source>Calculate blur value for image </source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../blur.cpp" line="427"/>

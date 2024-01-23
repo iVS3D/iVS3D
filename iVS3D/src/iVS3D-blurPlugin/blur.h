@@ -157,6 +157,7 @@ private:
     std::vector<double> splitDoubleString(QString string);
     std::vector<uint> sampleAllImages(Reader *reader, Progressable *receiver, volatile bool *stopped, int start, int end);
     std::vector<uint> sampleKeyframes(Reader *reader, Progressable *receiver, volatile bool *stopped, std::vector<uint> sharpImages);
+    QString progressMessage(int curr, int total);
     void computeBuffer();
     QLabel* m_infoLabel;
 };
