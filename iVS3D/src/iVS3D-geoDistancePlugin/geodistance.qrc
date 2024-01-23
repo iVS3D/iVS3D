@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file>translations/geodistance_de.qm</file>
+        <file>translations/geodistance_en.qm</file>
+    </qresource>
+</RCC>
