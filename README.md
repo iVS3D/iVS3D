@@ -11,7 +11,7 @@
 
 - Import of images and videos (.jpg, .jpeg, .png, ..., .mp4, .mov, ...)
 - Drag and drop to import images, videos, and open projects
-- Baseline plugins for sampling:
+- Baseline plugins for selecting images:
     - _Nth Frame_ Algorithm (selects every N-th frame)
     - _Stationary Camera Detection_ Algorithm (selects images based on camera movement)
     - _Blur_ Algorithm (avoid blurry images)
@@ -29,7 +29,7 @@
 
 
 ![GUI](doc/images/GUI_overview.png)
-The graphical user interface is split into five different sections. 1. Input, 2. Sampling, 3. Output, 4. Batch processing and 5. Video player with the timeline for keyframes.
+The graphical user interface is split into five different sections. 1. Input, 2. Sampling, 3. Export, 4. Executed steps and 5. Video player with the timeline for selected images.
 
 ## Plugins
 
@@ -58,17 +58,19 @@ Reconstruction can be configured to be executed on the local machine or a remote
 ## Getting started
 To guide you through a basic workflow with iVS3D, we provide a tutorial that relies on the Linux version. To follow along, download one of our latest [Ready-To-Use Builds](#ready-to-use-builds-for-windows-and-linux) for Debian 11 or Ubuntu 22.04, or [compile from source](#build-from-source) for your platform.
 
-Download a video from the [Tanks and Temples Benchmark](https://www.tanksandtemples.org/), we use the Ignatius video from their training data section.
+Download a video from the [Tanks and Temples Benchmark](https://www.tanksandtemples.org/), we use the Lighthouse video.
 
 Run `iVS3D-core` and import the video. This can be done using the `Open Input Video` action in the `File`-menu at the top. Alternatively, you can drag and drop the video into the application. Now you can preview the video:
 
 ![GUI-tutorial](doc/images/GUI_tutorial.png)
 
-In the timeline underneath the preview, all 7844 images are marked as selected, which is indicated by the red line. We want to reduce the number of images to speed up the reconstruction, so we use the `NthFrame`-Plugin to sample down to one image per second. In the `Sampling` tab, select the `NthFrame` plugin and hit `Sample images`. Now we are down to 262 selected images. To improve the quality of the images, we also run the `Blur` plugin. This will replace blurred images with better ones in the neighborhood. This might take a few minutes since we are processing 4K images.
+In the timeline underneath the preview, all 8321 images are marked as selected, which is indicated by the red line. We want to reduce the number of images to speed up the reconstruction, so we use the `Nth image selection`-Plugin to sample down to one image per second. In the `Image selection` tab, select the `Nth image selection` plugin and hit `Start selection`. Now we are down to 277 selected images. To improve the quality of the images, we also run the `Blur detection` plugin. This will replace blurred images with better ones in the neighborhood. This might take a few minutes since we are processing 4K images.
 
-Once the algorithm is finished, we can export the selected images. In the `Output`-tab select a fitting location and name for this set of images. We choose `my-export` in the example. You can also change the resolution of the images. To speed things up, we reduced the image resolution to HD and hit export:
+You can see all the steps that were performed in the `Executed steps` tab. There can revert to an older selection of images if you wish.
 
-![Output-tutorial](doc/images/Output_tutorial.png)
+Once the algorithm is finished, we can export the selected images. In the `Export`-tab select a fitting location and name for this set of images. We choose `export` in the example. You can also change the resolution of the images. To speed things up, we reduced the image resolution to HD and hit export:
+
+![Output-tutorial](doc/images/export_tutorial.png)
 
 Now the images have been written to the disk. Open your file explorer and navigate to the export location you chose to see the result. We can use the images to create a 3D point cloud with Colmap. For this follow the instructions [here](doc/remote_colmap_execution.md).
 
@@ -136,7 +138,7 @@ Fraunhofer IOSB, Karlsruhe
 
 Supervisor: Max Hermann & Thomas Pollok
 
-Created as part of PSE at the Karlsruhe Institut of Technology in the winter term 2020/21
+Created as part of PSE at the Karlsruhe Institute of Technology in the winter term 2020/21
 
   [COLMAP]: https://demuc.de/colmap/
   [OpenCV]: https://github.com/opencv
