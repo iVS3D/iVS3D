@@ -1010,7 +1010,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
     <message>
         <location filename="../view/operationstack.ui" line="37"/>
         <source>Clear</source>
-        <translation>Bereinigen</translation>
+        <translation>Löschen</translation>
     </message>
 </context>
 <context>
