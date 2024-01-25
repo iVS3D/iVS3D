@@ -177,7 +177,11 @@ MainWindow::MainWindow(QWidget *parent, ColorTheme theme, int cuda, bool createL
 
     // Add actions for each available locale
     for (const QLocale &locale : locales) {
-        QAction *action = new QAction(locale.nativeLanguageName(), this);
+        QString name = locale.nativeLanguageName();
+        if(name.contains("English")){
+            name = "English";
+        }
+        QAction *action = new QAction(name, this);
         action->setData(locale);
         action->setCheckable(true);
 

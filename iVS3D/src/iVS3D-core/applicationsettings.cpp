@@ -22,9 +22,9 @@ bool ApplicationSettings::getInterpolateMetaData()
 
 const QList<QLocale> ApplicationSettings::getAvailableLocales()
 {
-    QLocale us_english(QLocale::English, QLocale::UnitedStates);
-    QLocale german(QLocale::German, QLocale::Germany);
-    return { us_english, german };
+    QLocale english(QLocale::English);
+    QLocale german(QLocale::German);
+    return { english, german };
 }
 
 QLocale ApplicationSettings::getLocale()
