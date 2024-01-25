@@ -22,6 +22,9 @@ QWidget *OptFlowController::getSettingsWidget(QWidget *parent)
 
 std::vector<uint> OptFlowController::sampleImages(const std::vector<uint> &imageList, Progressable *receiver, volatile bool *stopped, bool useCuda, LogFileParent *logFile)
 {
+    if (imageList.size() == 1) {
+        return imageList;
+    }
     // ----------- setup and creating hardware specific elements ----------------
     KeyframeSelector::Settings selectorSettings = m_selectorSettingsMap.value(m_activeSelector);
 

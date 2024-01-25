@@ -56,7 +56,6 @@ void InfoWidget::setInfo(QMap<QString, QString> info)
     tableHead += str;
     tableHead += "</table></body></html>";
     ui->label->setText(tableHead);
-    ui->opStackWidget->removeItemsAfter(1);
     ui->opStackWidget->setEnabled(true);
 }
 
