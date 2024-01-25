@@ -56,6 +56,8 @@ public:
 
     void clear();
 
+    int getCurrentNumImages();
+
 public slots:
     /**
      * @brief slot_save stores the current state of mip.
@@ -74,5 +76,6 @@ private:
     int m_currentIndex;
 
 };
+
 
 #endif // HISTORY_H

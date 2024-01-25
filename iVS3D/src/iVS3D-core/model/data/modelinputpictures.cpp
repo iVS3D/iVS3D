@@ -330,6 +330,11 @@ QDateTime ModelInputPictures::Memento::getSnapshotDate()
     return m_dateTime;
 }
 
+int ModelInputPictures::Memento::getNumImages()
+{
+    return m_state.size();
+}
+
 ModelInputPictures::Memento::Memento(std::vector<uint> state) : m_state(state) { m_dateTime = QDateTime::currentDateTime(); }
 
 std::vector<uint> ModelInputPictures::Memento::getState()

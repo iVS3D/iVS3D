@@ -84,6 +84,12 @@ void History::clear()
 
 }
 
+int History::getCurrentNumImages()
+{
+    ModelInputPictures::Memento* current = m_history.at(m_currentIndex);
+    return current->getNumImages();
+}
+
 void History::slot_save()
 {
     // save state of mip

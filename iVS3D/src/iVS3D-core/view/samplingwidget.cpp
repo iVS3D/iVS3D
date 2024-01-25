@@ -70,6 +70,9 @@ int SamplingWidget::getSelctedType()
 
 void SamplingWidget::setAlgorithm(int idx)
 {
+    if (m_editMode) {
+        exitEditMode();
+    }
     ui->comboBoxAlgo->setCurrentIndex(idx);
 }
 
@@ -78,8 +81,18 @@ void SamplingWidget::disablePreview()
     m_cbPreviewTransform->setChecked(false);
 }
 
+void SamplingWidget::toEditMode()
+{
+    ui->pushButton->setText("Edit");
+    m_editMode = true;
+}
+
 void SamplingWidget::slot_selectedAlgoChanged(int idx)
 {
+    if (m_editMode) {
+        exitEditMode();
+        sig_exitEditMode();
+    }
     if(idx<m_separatorIdx){
         emit sig_selectedAlgorithmChanged(idx);
         showSamplingBtns();
@@ -94,7 +107,14 @@ void SamplingWidget::slot_selectedAlgoChanged(int idx)
 
 void SamplingWidget::slot_startSamplingPressed()
 {
-    emit sig_startSampling();
+    if (m_editMode) {
+        exitEditMode();
+        emit sig_startEdit();
+    }
+    else {
+       emit sig_startSampling();
+    }
+
 }
 
 void SamplingWidget::slot_startGeneratePressed()
@@ -143,4 +163,10 @@ void SamplingWidget::showTransformBtns()
 void SamplingWidget::showNoBtns()
 {
     ui->pushButton->setEnabled(false);
+}
+
+void SamplingWidget::exitEditMode()
+{
+    ui->pushButton->setText("Sample");
+    m_editMode = false;
 }

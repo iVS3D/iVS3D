@@ -56,6 +56,8 @@ public:
      */
     void loadPluginList(QString path);
 
+    void manualAdd(QPair<QString, QMap<QString, QVariant>> nameSettingsPair);
+
 public slots:
     /**
      * @brief slot_addAuto Connected to the SamplingWidget, used to add a plugin

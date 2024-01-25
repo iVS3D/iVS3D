@@ -85,6 +85,11 @@ void AutomaticExecSettings::loadPluginList(QString path)
     }
 }
 
+void AutomaticExecSettings::manualAdd(QPair<QString, QMap<QString, QVariant> > nameSettingsPair)
+{
+    m_algoList.append(nameSettingsPair);
+}
+
 
 void AutomaticExecSettings::slot_addAuto(int idx, bool generate)
 {

@@ -63,6 +63,9 @@ public:
          * @return The date and time of creation
          */
         QDateTime getSnapshotDate();
+
+        int getNumImages();
+
     private:
         Memento(std::vector<uint> state);
         std::vector<uint> getState();

@@ -18,7 +18,7 @@ public:
     explicit OperationStack(QWidget *parent = nullptr);
     ~OperationStack();
 
-    void addEntry(QString name);
+    void addEntry(QString name, QString data = "");
 
     void clear();
 
@@ -34,16 +34,26 @@ public:
 
     QString getItemString(int row);
 
+    void exitEditMode(int row);
+
+    void clearSelection();
+
+    void pendingAfter(int row);
+
 
 public slots:
 
     void slot_itemClicked(QListWidgetItem *item);
+
+    void slot_editClicked(int index);
 
 signals:
 
     void sig_rowClicked(int row);
 
     void sig_clearClicked();
+
+    void sig_editClicked(int row);
 
 private slots:
     void on_button_clear_clicked();

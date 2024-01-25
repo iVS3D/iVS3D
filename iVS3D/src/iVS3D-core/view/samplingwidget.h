@@ -78,6 +78,9 @@ public:
 
     void disablePreview();
 
+    void toEditMode();
+
+    void exitEditMode();
 
 signals:
 
@@ -118,6 +121,11 @@ signals:
      */
     void sig_addAuto(int idx, bool generate);
 
+    void sig_exitEditMode();
+
+    void sig_startEdit();
+
+
 private slots:
     void slot_selectedAlgoChanged(int idx);
     void slot_startSamplingPressed();
@@ -131,10 +139,12 @@ private:
     QWidget *m_placeholder;
     QCheckBox *m_cbPreviewTransform;
     int m_separatorIdx;
+    bool m_editMode = false;
 
     void showSamplingBtns();
     void showTransformBtns();
     void showNoBtns();
+
 };
 
 #define HIDE_WIDGET(W) ui->gridLayout->removeWidget(W); W->setVisible(false);
