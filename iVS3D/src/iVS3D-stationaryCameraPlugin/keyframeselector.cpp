@@ -1,12 +1,10 @@
-#include "staticselector.h"
+#include "keyframeselector.h"
 
-StaticSelector::StaticSelector(KeyframeSelector::Settings settings)
-{
-    readSettings(settings);
+KeyframeSelector::KeyframeSelector(double threshold) {
+    m_threshold = threshold;
 }
 
-std::vector<uint> StaticSelector::select(std::vector<uint> frameVector, std::vector<double> flowValues, volatile bool *stopped)
-{
+std::vector<uint> KeyframeSelector::select(std::vector<uint> frameVector, std::vector<double> flowValues, volatile bool *stopped) {
     std::vector<uint> selectedKeyframes = { frameVector[0] };
     std::vector<double> copiedFlowValues = flowValues; // median is in place and reorders vector
     double medianFlow = median(copiedFlowValues);
@@ -27,13 +25,7 @@ std::vector<uint> StaticSelector::select(std::vector<uint> frameVector, std::vec
     return selectedKeyframes;
 }
 
-void StaticSelector::readSettings(KeyframeSelector::Settings settings)
-{
-    m_threshold = settings.first().value.toDouble();
-}
-
-double StaticSelector::median(std::vector<double> &vec)
-{
+double KeyframeSelector::median(std::vector<double> &vec) {
     std::vector<double>::iterator median = vec.begin() + vec.size() / 2;
     std::nth_element(vec.begin(), median, vec.end());
     return vec[vec.size() / 2];

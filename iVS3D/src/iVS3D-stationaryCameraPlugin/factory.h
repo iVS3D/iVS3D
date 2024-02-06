@@ -19,8 +19,6 @@
 #define CUDA 0
 #define CPU 1
 
-typedef std::function<KeyframeSelector *(KeyframeSelector::Settings)> AbstractKeyframeSelector;
-
 /**
  * @class Factory
  *
@@ -56,30 +54,12 @@ public:
                      Reader *reader,
                      double downSampleFactor,
                      bool useCuda,
-                     QString selectorName,
-                     KeyframeSelector::Settings selectorSettings);
-    /**
-     * @brief getAllSelectors returns a map which includes name and default settings for every available KeyframeSelector
-     * @return is a QMap the name of the selector as its key, while the value represents the default settings
-     */
-    QMap<QString, KeyframeSelector::Settings> getAllSelectors();
-
-    bool reg(QString selectorName, AbstractKeyframeSelector builder, KeyframeSelector::Settings selectorSettings);
+                     double threshold);
 
 private:
     Factory();
     ImageGatherer *createImageGatherer(std::vector<uint> futureFrames, Reader *reader, double downSampleFactor, bool useCuda);
     FlowCalculator *createFlowCalculator(bool useCuda);
-    KeyframeSelector *createKeyframeSelector(QString name, KeyframeSelector::Settings settings);
-    // member variables
-    QMap<QString, QPair<AbstractKeyframeSelector, KeyframeSelector::Settings>> m_availableSelectors;
 };
-
-template<typename Implementaion>
-KeyframeSelector *builder(KeyframeSelector::Settings settings) {
-    return new Implementaion(settings);
-}
-
-#define REGISTER_SELECTOR(name, impl, settings) const bool res = Factory::instance().reg(name, builder<impl>, settings);
 
 #endif // FACTORY_H

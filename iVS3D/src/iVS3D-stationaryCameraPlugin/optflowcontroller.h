@@ -39,9 +39,10 @@
 #include "flowcalculator.h"
 #include <opencv2/video.hpp>
 
-#define PLUGIN_NAME QObject::tr("Stationary camera detection")
+#define PLUGIN_NAME QObject::tr("Stationary camera removal")
 // widget
-#define SELECTOR_DROPDOWN QObject::tr("Mode")
+#define SELECTOR_LABEL_TEXT QObject::tr("Stationary threshold")
+#define SELECTOR_DESCRIPTION QObject::tr("Removes all frames where the camera is stationary. A frame is declared stationary if its camera movement is lower than given percentage of the median of all camera movements.")
 #define DOWNSAMPLE_LABEL_TEXT QObject::tr("Sampling resolution")
 #define DOWNSAMPLE_CHECKBOX_TEXT QObject::tr("Activate down sampling")
 #define DESCRIPTION_DOWNSAMPLE QObject::tr("If enabled a resolution of 720p will be used for the algorithm to speed up computation. This however will hurt the accuracy of the result slightly. It however won't change the export resolution. This parameter will be disabled if the input resolution is lower or equal than 720p.")
@@ -56,8 +57,7 @@
 #define DELIMITER_ENTITY ","
 // settings
 #define SETTINGS_SAMPLE_RESOLUTION "Sample resolution"
-#define SETTINGS_SELECTOR_NAME "Selector name"
-#define SETTINGS_SELECTOR_SETTINGS "Selector settings"
+#define SETTINGS_SELECTOR_THRESHOLD "Selector threshold"
 // log file
 #define LF_OPT_FLOW_TOTAL "Flow calculation"
 #define LF_SELECT_FRAMES "Selection of keyframes"
@@ -131,10 +131,7 @@ public:
      * settings structure:
      *  <QMap> settings (all settings)
      *      <QVariant> samplingResolution (enable/disable diffrent resolution for sampling)
-     *      <QString> selectorName
-     *      <QList> KeyframeSelector::Setings as QList<QVariant>
-     *          <QVariant> parameter (KeyframeSelector::Parameter as QVariant)
-     *      </QList>
+     *      <QVariant> selector_threshold
      *  </QMap>
      * @param QMap with the settings
      */
@@ -157,23 +154,20 @@ public:
 
 private:
     // member variables
-    QMap<QString, KeyframeSelector::Settings> m_selectorSettingsMap;
+    double m_selectorThreshold = 0.3;
     double m_downSampleFactor = 1.0;
     Reader *m_reader = nullptr;
     QPoint m_inputResolution = QPoint(0, 0);
     cv::SparseMat m_bufferMat;
     signalObject *m_sigObj = nullptr;
-    QString m_activeSelector = "";
     //      widget elements
-    QMap<QString, QWidget*> m_selectorWidgetMap;
     QWidget *m_settingsWidget = nullptr;
-    QWidget *m_currentSelectorWidget = {};
+    QDoubleSpinBox *m_selectorThresholdSpinBox = nullptr;
 
     static constexpr double m_downSampleFactorArray[] = { 1.0, 1.5, 2.0, 2.5, 3.0, 4.0 };
     QCheckBox *m_downSampleCheck = nullptr;
     QPushButton *m_resetBufferBt = nullptr;
     QLabel *m_resetBufferLabel = nullptr;
-    QComboBox *m_selectorDropDown = nullptr;
     // timing variables
     long m_durationFarnebackMs = 0;
     long m_durationComputationFlowMs = 0;
@@ -207,12 +201,8 @@ private:
      */
     void stringToBufferMat(QString string);
     QVariant bufferMatToVariant(cv::SparseMat bufferMat);
-    //      KeyframeSelector::Settings ---> QWidget
-    QWidget *selectorSettingsToWidget(QWidget *parent, QString selectorName);
 private slots:
     void sampleCheckChanged(bool isChecked);
-    void selectorChanged(QString selectorName);
-    void updateSettingsMap(QVariant nValue, KeyframeSelector::Parameter param, QString selectorName);
 signals:
     void changeUIParameter(QVariant nValue, QString paramName, QString selectorName);
 };

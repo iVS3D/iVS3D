@@ -34,18 +34,16 @@ SOURCES += imagegatherercuda.cpp
 QT += concurrent
 
 SOURCES += \
-    distributionselector.cpp \
     factory.cpp \
     flowcalculator.cpp \
     flowcalculatorcpu.cpp \
     imagegatherer.cpp \
     imagegatherercpu.cpp \
     #movementfactor.cpp \
-    optflowcontroller.cpp \
-    staticselector.cpp
+    keyframeselector.cpp \
+    optflowcontroller.cpp
 
 HEADERS += \
-    distributionselector.h \
     factory.h \
     flowcalculator.h \
     flowcalculatorcpu.h \
@@ -53,8 +51,7 @@ HEADERS += \
     imagegatherercpu.h \
     keyframeselector.h \
     #movementfactor.h \
-    optflowcontroller.h \
-    staticselector.h
+    optflowcontroller.h
 
 TEMPLATE = lib
 CONFIG += plugin
