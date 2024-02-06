@@ -21,35 +21,14 @@ class KeyframeSelector : public QObject
 {
     Q_OBJECT
 public:
-    struct Parameter {
-        QString name;
-        QString info;
-        QVariant value;
+    KeyframeSelector(double threshold);
+    std::vector<uint> select(std::vector<uint> frameVector, std::vector<double> flowValues, volatile bool *stopped);
 
-        Parameter(QString name, QString info, QVariant value) {
-            this->name = name;
-            this->info = info;
-            this->value = value;
-        }
-
-        Parameter(QVariant variantParam) {
-            QMap<QString, QVariant> map = variantParam.toMap();
-            name = map.value("name").toString();
-            info = map.value("info").toString();
-            value = map.value("value");
-        }
-
-        QVariant toQVariant() {
-            QMap<QString, QVariant> map;
-            map.insert("name", name);
-            map.insert("info", info);
-            map.insert("value", value);
-            return map;
-        }
-    };
-    typedef QList<Parameter> Settings;
-
-    virtual std::vector<uint> select(std::vector<uint> frameVector, std::vector<double> flowValues, volatile bool *stopped) = 0;
+private:
+    // functions
+    double median(std::vector<double> &vec);
+    // member variables
+    double m_threshold = 0.3;
 };
 
 #endif // KEYFRAMESELECTOR_H

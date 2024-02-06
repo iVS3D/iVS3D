@@ -25,8 +25,6 @@ std::vector<uint> OptFlowController::sampleImages(const std::vector<uint> &image
     if (imageList.size() == 1) {
         return imageList;
     }
-    // ----------- setup and creating hardware specific elements ----------------
-    KeyframeSelector::Settings selectorSettings = m_selectorSettingsMap.value(m_activeSelector);
 
     // ---------- create all neccessary components ------------
     reportProgress(tr("Excluding buffered values from computation list"), 0, receiver);
@@ -49,8 +47,7 @@ std::vector<uint> OptFlowController::sampleImages(const std::vector<uint> &image
             m_reader,
             m_downSampleFactor,
             useCuda,
-            m_activeSelector,
-            selectorSettings);
+            m_selectorThreshold);
     ImageGatherer *imageGatherer = std::get<0>(components);
     FlowCalculator *flowCalculator = std::get<1>(components);
     KeyframeSelector *keyframeSelector = std::get<2>(components);
@@ -194,30 +191,14 @@ void OptFlowController::initialize(Reader *reader, QMap<QString, QVariant> buffe
 void OptFlowController::setSettings(QMap<QString, QVariant> settings)
 {
     bool sampleResActive = settings.find(SETTINGS_SAMPLE_RESOLUTION).value().toBool();
+    m_selectorThreshold = settings.find(SETTINGS_SELECTOR_THRESHOLD).value().toDouble();
     if (m_downSampleCheck) {
         // UI mode
         m_downSampleCheck->setChecked(sampleResActive);
+        m_selectorThresholdSpinBox->setValue(m_selectorThreshold*100.0);
     } else {
         // Headless modell
         sampleCheckChanged(sampleResActive);
-    }
-
-    // deconstruct QVariant to KeyframeSelector::Settings
-    QString selectorName = settings.find(SETTINGS_SELECTOR_NAME).value().toString();
-    m_activeSelector = selectorName;
-    QList<QVariant> selectorSettingsVar = settings.find(SETTINGS_SELECTOR_SETTINGS).value().toList();
-        // recreate settings as KeyframeSelector::Settings
-        KeyframeSelector::Settings selectorSetting;
-        // iterate over parameters in this setting (settings for one selector)
-        for (const QVariant &varParam : qAsConst(selectorSettingsVar)) {
-            KeyframeSelector::Parameter param = KeyframeSelector::Parameter(varParam);
-            selectorSetting.append(varParam);
-            emit changeUIParameter(param.value, param.name, selectorName);
-        }
-        m_selectorSettingsMap.insert(selectorName, selectorSetting);
-
-    if (m_selectorDropDown) {
-        m_selectorDropDown->setCurrentText(selectorName);
     }
 }
 
@@ -235,21 +216,7 @@ QMap<QString, QVariant> OptFlowController::getSettings()
     QMap<QString, QVariant> settings;
     bool samplingResActive = downFactorToCheck(m_downSampleFactor);
     settings.insert(SETTINGS_SAMPLE_RESOLUTION, samplingResActive);
-
-    if (m_selectorDropDown) {
-        m_activeSelector = m_selectorDropDown->currentText();
-    }
-
-    // construct QVariant from KeyfraneSelector::Settings
-    settings.insert(SETTINGS_SELECTOR_NAME, m_activeSelector);
-
-    KeyframeSelector::Settings selectorSettings = m_selectorSettingsMap.find(m_activeSelector).value();
-    // convert settings to QVariant
-    QList<QVariant> selectorSettingsVar;
-    for (KeyframeSelector::Parameter param : selectorSettings) {
-        selectorSettingsVar.append(param.toQVariant());
-    }
-    settings.insert(SETTINGS_SELECTOR_SETTINGS, QVariant(selectorSettingsVar));
+    settings.insert(SETTINGS_SELECTOR_THRESHOLD, m_selectorThreshold);
     return settings;
 }
 
@@ -302,26 +269,29 @@ void OptFlowController::displayMessage(QString txt, Progressable *receiver)
 
 void OptFlowController::createSettingsWidget(QWidget *parent)
 {
-    // keyframeSelector layout
-    //      setup drop down for KeyframeSelectors
-    m_selectorDropDown = new QComboBox(parent);
-    QWidget *selectorDropDownLayout = new QWidget(parent);
-    selectorDropDownLayout->setLayout(new QHBoxLayout(parent));
-    selectorDropDownLayout->layout()->addWidget(new QLabel(SELECTOR_DROPDOWN));
-    selectorDropDownLayout->layout()->addWidget(m_selectorDropDown);
-    m_selectorSettingsMap = Factory::instance().getAllSelectors();
-    //      additems and create QWidgets
-    QStringList selectorNames = m_selectorSettingsMap.keys();
-    for (QString selectorName : qAsConst(selectorNames)) {
-        m_selectorDropDown->addItem(selectorName);
-        QWidget *settingsWidget = selectorSettingsToWidget(parent, selectorName);
-        m_selectorWidgetMap.insert(selectorName, settingsWidget);
-    }
-    //      set first QWidget
-    if (m_selectorWidgetMap.size() > 0) {
-        m_currentSelectorWidget = m_selectorWidgetMap.values().first();
-    }
-    QObject::connect(m_selectorDropDown, &QComboBox::currentTextChanged, this, &OptFlowController::selectorChanged);
+
+    // selector layout
+    QWidget *selectorLayout = new QWidget(parent);
+    selectorLayout->setLayout(new QHBoxLayout(parent));
+    selectorLayout->layout()->addWidget(new QLabel(SELECTOR_LABEL_TEXT));
+    selectorLayout->layout()->setMargin(0);
+    selectorLayout->layout()->setSpacing(0);
+    // selector spinBox
+    m_selectorThresholdSpinBox = new QDoubleSpinBox(parent);
+    m_selectorThresholdSpinBox->setValue(m_selectorThreshold*100.0);
+    m_selectorThresholdSpinBox->setDecimals(2);
+    m_selectorThresholdSpinBox->setMinimum(0.0);
+    m_selectorThresholdSpinBox->setMaximum(200.0);
+    m_selectorThresholdSpinBox->setSuffix("%");
+    m_selectorThresholdSpinBox->setSingleStep(1.0);
+    m_selectorThresholdSpinBox->setAlignment(Qt::AlignRight);
+    QObject::connect(m_selectorThresholdSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this,
+                     [this](double v){ m_selectorThreshold = v/100.0; });
+    selectorLayout->layout()->addWidget(m_selectorThresholdSpinBox);
+    // selector description
+    QLabel* selectorLabel = new QLabel(SELECTOR_DESCRIPTION);
+    selectorLabel->setStyleSheet(DESCRIPTION_STYLE);
+    selectorLabel->setWordWrap(true);
 
     // downSample layout
     QWidget *downSampleLayout = new QWidget(parent);
@@ -359,8 +329,8 @@ void OptFlowController::createSettingsWidget(QWidget *parent)
     m_settingsWidget->layout()->setSpacing(0);
     m_settingsWidget->layout()->setMargin(0);
     // add elements
-    m_settingsWidget->layout()->addWidget(selectorDropDownLayout);
-    m_settingsWidget->layout()->addWidget(m_currentSelectorWidget);
+    m_settingsWidget->layout()->addWidget(selectorLayout);
+    m_settingsWidget->layout()->addWidget(selectorLabel);
     m_settingsWidget->layout()->addWidget(downSampleLayout);
     m_settingsWidget->layout()->addWidget(downSampleLable);
     m_settingsWidget->layout()->addWidget(m_resetBufferBt);
@@ -382,36 +352,6 @@ void OptFlowController::resetBuffer()
 void OptFlowController::sampleCheckChanged(bool isChecked)
 {
     m_downSampleFactor = downCheckToFactor(isChecked, m_inputResolution);
-}
-
-void OptFlowController::selectorChanged(QString selectorName)
-{
-    QWidget *nSelectorWidget = m_selectorWidgetMap.value(selectorName);
-    m_settingsWidget->layout()->replaceWidget(m_currentSelectorWidget, nSelectorWidget, Qt::FindChildrenRecursively);
-    m_currentSelectorWidget->setVisible(false);
-    nSelectorWidget->setVisible(true);
-    m_currentSelectorWidget = nSelectorWidget;
-    m_activeSelector = selectorName;
-}
-
-void OptFlowController::updateSettingsMap(QVariant nValue, KeyframeSelector::Parameter param, QString selectorName)
-{
-    KeyframeSelector::Settings oldSettings = m_selectorSettingsMap.value(selectorName);
-    // Search for parameter
-    QList<KeyframeSelector::Parameter>::iterator it;
-    for (it = oldSettings.begin(); it != oldSettings.end(); ++it) {
-        KeyframeSelector::Parameter oldParam = *it;
-        if (oldParam.name == param.name && oldParam.value.type() == param.value.type()) {
-            // modifie old param entry with new value
-            oldSettings.erase(it);
-            KeyframeSelector::Parameter nParam = oldParam;
-            nParam.value = nValue;
-            oldSettings.append(nParam);
-            // repalce modified param in old settings wiht new param and add modified settings to settings map
-            m_selectorSettingsMap.insert(selectorName, oldSettings);
-            break;
-        }
-    }
 }
 
 QString OptFlowController::updateBufferInfo(long bufferedValueCount)
@@ -483,143 +423,4 @@ QVariant OptFlowController::bufferMatToVariant(cv::SparseMat bufferMat)
 
     std::string matString = matStream.str();
     return QVariant(QString::fromStdString(matString));
-}
-
-QWidget *OptFlowController::selectorSettingsToWidget(QWidget *parent, QString selectorName)
-{
-    KeyframeSelector::Settings settings = m_selectorSettingsMap.value(selectorName);
-    QWidget *selectorWidget = new QWidget(parent);
-    selectorWidget->setLayout(new QVBoxLayout(parent));
-    selectorWidget->layout()->setMargin(0);
-    // add elements to widgets based on data type of the parameter
-    for (KeyframeSelector::Parameter param : qAsConst(settings)) {
-        QWidget *paramLayout = new QWidget(parent);
-        paramLayout->setLayout(new QHBoxLayout(parent));
-        // name
-        QLabel *label = new QLabel(param.name);
-        label->setWordWrap(true);
-        paramLayout->layout()->addWidget(label);
-        // input
-        if (param.value.isNull()) {
-            // skip parameter if it has no value
-            delete paramLayout;
-            continue;
-        }
-        //      create fitting input widget based on the data type of the value
-        switch (param.value.type()) {
-        case QVariant::Int: {
-            QSpinBox *input = new QSpinBox(parent);
-            input->setValue(param.value.toInt());
-            input->setMinimum(INT_MIN);
-            input->setMaximum(INT_MAX);
-            input->setAlignment(Qt::AlignRight);
-            paramLayout->layout()->addItem(new QSpacerItem(0, 0));
-            paramLayout->layout()->addWidget(input);
-            // updates member settings map using the ui signal
-            QObject::connect(input, QOverload<int>::of(&QSpinBox::valueChanged), this, [param, this, selectorName](int nValue){
-                updateSettingsMap(nValue, param, selectorName);
-            });
-            // updates ui using the changeUIParameter signal
-            QObject::connect(this, &OptFlowController::changeUIParameter, this, [input, param, selectorName] (QVariant nValue, QString sigParamName, QString sigSelectorName) {
-                // guards to only change specified ui element (neede because every ui element will receive that signal)
-                if (QString::compare(selectorName, sigSelectorName, Qt::CaseSensitive) != 0)
-                    return;
-                if (param.name != sigParamName)
-                    return;
-                if (param.value.type() != nValue.type())
-                    return;
-                // update value
-                input->setValue(nValue.toInt());
-            });
-            break;
-        }
-        case QVariant::Double: {
-            QDoubleSpinBox *input = new QDoubleSpinBox(parent);
-            input->setValue(param.value.toDouble());
-            input->setAlignment(Qt::AlignRight);
-            input->setSingleStep(0.1);
-            input->setMinimum(-1000);
-            input->setMaximum(1000);
-            paramLayout->layout()->addItem(new QSpacerItem(0, 0));
-            paramLayout->layout()->addWidget(input);
-            // updates member settings map using the ui signal
-            QObject::connect(input, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, [param, this, selectorName](double nValue){
-                updateSettingsMap(nValue, param, selectorName);
-            });
-            // updates ui using the changeUIParameter signal
-            QObject::connect(this, &OptFlowController::changeUIParameter, this, [input, param, selectorName] (QVariant nValue, QString sigParamName, QString sigSelectorName) {
-                // guards to only change specified ui element (neede because every ui element will receive that signal)
-                if (QString::compare(selectorName, sigSelectorName, Qt::CaseSensitive) != 0)
-                    return;
-                if (param.name != sigParamName)
-                    return;
-                if (param.value.type() != nValue.type())
-                    return;
-                // update value
-                input->setValue(nValue.toDouble());
-            });
-            break;
-        }
-        case QVariant::String: {
-            QLineEdit *input = new QLineEdit(parent);
-            input->setText(param.value.toString());
-            input->setAlignment(Qt::AlignRight);
-            paramLayout->layout()->addItem(new QSpacerItem(0, 0));
-            paramLayout->layout()->addWidget(input);
-            QObject::connect(input, &QLineEdit::textChanged, this, [param, this, selectorName](QString nValue){
-                updateSettingsMap(nValue, param, selectorName);
-            });
-            // updates ui using the changeUIParameter signal
-            QObject::connect(this, &OptFlowController::changeUIParameter, this, [input, param, selectorName] (QVariant nValue, QString sigParamName, QString sigSelectorName) {
-                // guards to only change specified ui element (neede because every ui element will receive that signal)
-                if (QString::compare(selectorName, sigSelectorName, Qt::CaseSensitive) != 0)
-                    return;
-                if (param.name != sigParamName)
-                    return;
-                if (param.value.type() != nValue.type())
-                    return;
-                // update value
-                input->setText(nValue.toString());
-            });
-            break;
-        }
-        case QVariant::Bool: {
-            QCheckBox *input = new QCheckBox(parent);
-            input->setChecked(param.value.toBool());
-            paramLayout->layout()->addItem(new QSpacerItem(0, 0));
-            paramLayout->layout()->addWidget(input);
-            // updates member settings map using the ui signal
-            QObject::connect(input, &QCheckBox::toggled, this, [param, this, selectorName](bool nValue){
-                updateSettingsMap(nValue, param, selectorName);
-            });
-            // updates ui using the changeUIParameter signal
-            QObject::connect(this, &OptFlowController::changeUIParameter, this, [input, param, selectorName] (QVariant nValue, QString sigParamName, QString sigSelectorName) {
-                // guards to only change specified ui element (neede because every ui element will receive that signal)
-                if (QString::compare(selectorName, sigSelectorName, Qt::CaseSensitive) != 0)
-                    return;
-                if (param.name != sigParamName)
-                    return;
-                if (param.value.type() != nValue.type())
-                    return;
-                // update value
-                input->setChecked(nValue.toBool());
-            });
-            break;
-        }
-
-        default:
-            // skip parameter if it is not parseable
-            delete paramLayout;
-            continue;
-            break;
-        }
-        // add parameterWidget and infoLable to selectorWidget (vertical)
-        selectorWidget->layout()->addWidget(paramLayout);
-        QLabel *paramInfoLable = new QLabel(param.info);
-        paramInfoLable->setStyleSheet(DESCRIPTION_STYLE);
-        paramInfoLable->setWordWrap(true);
-        selectorWidget->layout()->addWidget(paramInfoLable);
-    }
-
-    return selectorWidget;
 }
