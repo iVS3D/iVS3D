@@ -81,7 +81,7 @@
  *
  * @date 2022/3/13
  */
-class OptFlowController : public IAlgorithm
+class SmoothController : public IAlgorithm
 {
     Q_OBJECT
     Q_PLUGIN_METADATA(IID "iVS3D.IAlgorithm")   // implement interface as plugin, use the iid as identifier
@@ -91,8 +91,8 @@ public:
     /**
      * @brief StationaryCamera Constructor sets default values for member variables
      */
-    OptFlowController();
-    ~OptFlowController() {}
+    SmoothController();
+    ~SmoothController() {}
 
     /**
      * @brief getSettingsWidget creates a Widget, which can be used to change the algorithm parameters and returns it

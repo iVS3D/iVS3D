@@ -1,6 +1,6 @@
 #include "optflowcontroller.h"
 
-OptFlowController::OptFlowController()
+SmoothController::SmoothController()
 {
     QLocale locale = qApp->property("translation").toLocale();
     QTranslator* translator = new QTranslator();
@@ -8,7 +8,7 @@ OptFlowController::OptFlowController()
     qApp->installTranslator(translator);
 }
 
-QWidget *OptFlowController::getSettingsWidget(QWidget *parent)
+QWidget *SmoothController::getSettingsWidget(QWidget *parent)
 {
     if (!m_settingsWidget) {
         createSettingsWidget(parent);
@@ -20,7 +20,7 @@ QWidget *OptFlowController::getSettingsWidget(QWidget *parent)
     return m_settingsWidget;
 }
 
-std::vector<uint> OptFlowController::sampleImages(const std::vector<uint> &imageList, Progressable *receiver, volatile bool *stopped, bool useCuda, LogFileParent *logFile)
+std::vector<uint> SmoothController::sampleImages(const std::vector<uint> &imageList, Progressable *receiver, volatile bool *stopped, bool useCuda, LogFileParent *logFile)
 {
     if (imageList.size() == 1) {
         return imageList;
@@ -149,12 +149,12 @@ std::vector<uint> OptFlowController::sampleImages(const std::vector<uint> &image
     return keyframes;
 }
 
-QString OptFlowController::getName() const
+QString SmoothController::getName() const
 {
     return PLUGIN_NAME;
 }
 
-QMap<QString, QVariant> OptFlowController::sendBuffer()
+QMap<QString, QVariant> SmoothController::sendBuffer()
 {
     QVariant bufferVariant = bufferMatToVariant(m_bufferMat);
     QMap<QString, QVariant> bufferMap;
@@ -162,7 +162,7 @@ QMap<QString, QVariant> OptFlowController::sendBuffer()
     return bufferMap;
 }
 
-void OptFlowController::initialize(Reader *reader, QMap<QString, QVariant> buffer, signalObject *sigObj)
+void SmoothController::initialize(Reader *reader, QMap<QString, QVariant> buffer, signalObject *sigObj)
 {
     if (m_settingsWidget) {
         m_settingsWidget->deleteLater();
@@ -188,7 +188,7 @@ void OptFlowController::initialize(Reader *reader, QMap<QString, QVariant> buffe
     sampleCheckChanged(isChecked);
 }
 
-void OptFlowController::setSettings(QMap<QString, QVariant> settings)
+void SmoothController::setSettings(QMap<QString, QVariant> settings)
 {
     bool sampleResActive = settings.find(SETTINGS_SAMPLE_RESOLUTION).value().toBool();
     m_selectorThreshold = settings.find(SETTINGS_SELECTOR_THRESHOLD).value().toDouble();
@@ -202,7 +202,7 @@ void OptFlowController::setSettings(QMap<QString, QVariant> settings)
     }
 }
 
-QMap<QString, QVariant> OptFlowController::generateSettings(Progressable *receiver, bool useCuda, volatile bool *stopped)
+QMap<QString, QVariant> SmoothController::generateSettings(Progressable *receiver, bool useCuda, volatile bool *stopped)
 {
     (void) receiver;
     (void) useCuda;
@@ -211,7 +211,7 @@ QMap<QString, QVariant> OptFlowController::generateSettings(Progressable *receiv
     return getSettings();
 }
 
-QMap<QString, QVariant> OptFlowController::getSettings()
+QMap<QString, QVariant> SmoothController::getSettings()
 {
     QMap<QString, QVariant> settings;
     bool samplingResActive = downFactorToCheck(m_downSampleFactor);
@@ -220,17 +220,17 @@ QMap<QString, QVariant> OptFlowController::getSettings()
     return settings;
 }
 
-bool OptFlowController::downInputResToCheck(QPointF inputRes)
+bool SmoothController::downInputResToCheck(QPointF inputRes)
 {
     return !(inputRes.x() <= 720 || inputRes.y() <= 720);
 }
 
-bool OptFlowController::downFactorToCheck(double downFactor)
+bool SmoothController::downFactorToCheck(double downFactor)
 {
     return downFactor > 1.0;
 }
 
-double OptFlowController::downCheckToFactor(bool boxChecked, QPointF inputRes)
+double SmoothController::downCheckToFactor(bool boxChecked, QPointF inputRes)
 {
     double downFactor = 1.0; // deactivated => default resolution
     if (boxChecked) {
@@ -248,7 +248,7 @@ double OptFlowController::downCheckToFactor(bool boxChecked, QPointF inputRes)
     return downFactor;
 }
 
-void OptFlowController::reportProgress(QString op, int progress, Progressable *receiver)
+void SmoothController::reportProgress(QString op, int progress, Progressable *receiver)
 {
     QMetaObject::invokeMethod(
                 receiver,
@@ -258,7 +258,7 @@ void OptFlowController::reportProgress(QString op, int progress, Progressable *r
                 Q_ARG(QString, op));
 }
 
-void OptFlowController::displayMessage(QString txt, Progressable *receiver)
+void SmoothController::displayMessage(QString txt, Progressable *receiver)
 {
     QMetaObject::invokeMethod(
                 receiver,
@@ -267,7 +267,7 @@ void OptFlowController::displayMessage(QString txt, Progressable *receiver)
                 Q_ARG(QString, txt));
 }
 
-void OptFlowController::createSettingsWidget(QWidget *parent)
+void SmoothController::createSettingsWidget(QWidget *parent)
 {
 
     // selector layout
@@ -303,7 +303,7 @@ void OptFlowController::createSettingsWidget(QWidget *parent)
     // downSample checkBox
     m_downSampleCheck = new QCheckBox(parent);
     m_downSampleCheck->setText(DOWNSAMPLE_CHECKBOX_TEXT);
-    QObject::connect(m_downSampleCheck, &QCheckBox::clicked, this, &OptFlowController::sampleCheckChanged);
+    QObject::connect(m_downSampleCheck, &QCheckBox::clicked, this, &SmoothController::sampleCheckChanged);
     downSampleLayout->layout()->addItem(new QSpacerItem(0, 0,QSizePolicy::Expanding));
     downSampleLayout->layout()->addWidget(m_downSampleCheck);
 
@@ -315,7 +315,7 @@ void OptFlowController::createSettingsWidget(QWidget *parent)
     // buffer reset button
     m_resetBufferBt = new QPushButton();
     m_resetBufferBt->setText(RESET_BT_TEXT);
-    QObject::connect(m_resetBufferBt, &QPushButton::pressed, this, &OptFlowController::resetBuffer);
+    QObject::connect(m_resetBufferBt, &QPushButton::pressed, this, &SmoothController::resetBuffer);
 
     // buffer reset label
     m_resetBufferLabel = new QLabel();
@@ -340,26 +340,26 @@ void OptFlowController::createSettingsWidget(QWidget *parent)
     m_settingsWidget->adjustSize();
 }
 
-void OptFlowController::resetBuffer()
+void SmoothController::resetBuffer()
 {
     m_bufferMat.clear();
     emit updateBuffer(sendBuffer());
-    if (m_resetBufferBt) {
-        updateBufferInfo(m_bufferMat.hdr->nodeCount);
+    if (m_resetBufferLabel) {
+        m_resetBufferLabel->setText(updateBufferInfo(m_bufferMat.hdr->nodeCount));
     }
 }
 
-void OptFlowController::sampleCheckChanged(bool isChecked)
+void SmoothController::sampleCheckChanged(bool isChecked)
 {
     m_downSampleFactor = downCheckToFactor(isChecked, m_inputResolution);
 }
 
-QString OptFlowController::updateBufferInfo(long bufferedValueCount)
+QString SmoothController::updateBufferInfo(long bufferedValueCount)
 {
     return RESET_TEXT_PRE + QString::number(bufferedValueCount) + RESET_TEXT_SUF;
 }
 
-void OptFlowController::recreateBufferMatrix(QMap<QString, QVariant> buffer)
+void SmoothController::recreateBufferMatrix(QMap<QString, QVariant> buffer)
 {
     // recreate bufferMatrix if the matrix is empty
     m_bufferMat.clear();
@@ -377,7 +377,7 @@ void OptFlowController::recreateBufferMatrix(QMap<QString, QVariant> buffer)
     }
 }
 
-void OptFlowController::stringToBufferMat(QString string)
+void SmoothController::stringToBufferMat(QString string)
 {
     QStringList entryStrList = string.split(DELIMITER_ENTITY);
 
@@ -406,7 +406,7 @@ void OptFlowController::stringToBufferMat(QString string)
     }
 }
 
-QVariant OptFlowController::bufferMatToVariant(cv::SparseMat bufferMat)
+QVariant SmoothController::bufferMatToVariant(cv::SparseMat bufferMat)
 {
     std::stringstream matStream;
     const int *size = bufferMat.size();

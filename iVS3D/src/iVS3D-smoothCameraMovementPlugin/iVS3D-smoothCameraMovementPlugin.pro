@@ -39,9 +39,8 @@ SOURCES += \
     flowcalculatorcpu.cpp \
     imagegatherer.cpp \
     imagegatherercpu.cpp \
-    #movementfactor.cpp \
     keyframeselector.cpp \
-    optflowcontroller.cpp
+    smoothcontroller.cpp
 
 HEADERS += \
     factory.h \
@@ -50,15 +49,14 @@ HEADERS += \
     imagegatherer.h \
     imagegatherercpu.h \
     keyframeselector.h \
-    #movementfactor.h \
-    optflowcontroller.h
+    smoothcontroller.h
 
 TEMPLATE = lib
 CONFIG += plugin
 
 TRANSLATIONS += \
-    $$PWD/translations/stationary_en.ts \
-    $$PWD/translations/stationary_de.ts
+    $$PWD/translations/smoothCameraMovement_en.ts \
+    $$PWD/translations/smoothCameraMovement_de.ts
 
 unix:system(lrelease $$PWD/translations/*.ts)
 
