@@ -41,13 +41,13 @@
 
 #define PLUGIN_NAME QObject::tr("Smooth camera movement")
 // widget
-#define SELECTOR_LABEL_TEXT QObject::tr("Threshold")
+#define SELECTOR_LABEL_TEXT QObject::tr("Movement Threshold")
 #define SELECTOR_DESCRIPTION QObject::tr("A resolution dependend threshold, that specifies when there was enough movement to set a new keyframe.")
 #define DOWNSAMPLE_LABEL_TEXT QObject::tr("Sampling resolution")
 #define DOWNSAMPLE_CHECKBOX_TEXT QObject::tr("Activate down sampling")
 #define DESCRIPTION_DOWNSAMPLE QObject::tr("If enabled a resolution of 720p will be used for the algorithm to speed up computation. This however will hurt the accuracy of the result slightly. It however won't change the export resolution. This parameter will be disabled if the input resolution is lower or equal than 720p.")
 #define RESET_BT_TEXT QObject::tr("Reset Buffer")
-#define RESET_TEXT_PRE QObject::tr("Clears all already stored flow values. There are ")
+#define RESET_TEXT_PRE QObject::tr("There are ")
 #define RESET_TEXT_SUF QObject::tr(" flow values currently buffered.")
 #define DESCRIPTION_STYLE "color: rgb(58, 58, 58); border-left: 6px solid  rgb(58, 58, 58); border-top-right-radius: 5px; border-bottom-right-radius: 5px; background-color: lightblue;"
 #define INFO_STYLE "color: rgb(58, 58, 58); border-left: 6px solid  rgb(58, 58, 58); border-top-right-radius: 5px; border-bottom-right-radius: 5px; background-color: lightGreen;"
@@ -81,7 +81,7 @@
  *
  * @date 2022/3/13
  */
-class OptFlowController : public IAlgorithm
+class SmoothController : public IAlgorithm
 {
     Q_OBJECT
     Q_PLUGIN_METADATA(IID "iVS3D.IAlgorithm")   // implement interface as plugin, use the iid as identifier
@@ -91,8 +91,8 @@ public:
     /**
      * @brief StationaryCamera Constructor sets default values for member variables
      */
-    OptFlowController();
-    ~OptFlowController() {}
+    SmoothController();
+    ~SmoothController() {}
 
     /**
      * @brief getSettingsWidget creates a Widget, which can be used to change the algorithm parameters and returns it

@@ -39,7 +39,6 @@ SOURCES += \
     flowcalculatorcpu.cpp \
     imagegatherer.cpp \
     imagegatherercpu.cpp \
-    #movementfactor.cpp \
     keyframeselector.cpp \
     optflowcontroller.cpp
 
@@ -50,7 +49,6 @@ HEADERS += \
     imagegatherer.h \
     imagegatherercpu.h \
     keyframeselector.h \
-    #movementfactor.h \
     optflowcontroller.h
 
 TEMPLATE = lib
