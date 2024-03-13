@@ -6,13 +6,6 @@ then
   export CUDA_BIN=/usr/local/cuda-$CUDA_VERSION/lib64
 fi
 
-if [ -n "$CUDA_VERSION" ]
-then
-  export PACKAGE_NAME=iVS3D-$APP_VERSION-cuda$CUDA_VERSION-gcc$GCC_VERSION-$BUILD_ENVIRONMENT-x64
-else
-  export PACKAGE_NAME=iVS3D-$APP_VERSION-gcc$GCC_VERSION-$BUILD_ENVIRONMENT-x64
-fi
-
 echo "Build configuration:"
 echo "--------------------"
 echo "  Qt libs:          $QT_PATH/lib"
@@ -62,14 +55,12 @@ IFS=" "
 }
 
 deployapp() {
-  cd $PROJECT_ROOT
-  mkdir -p $INSTALL_PATH/$PACKAGE_NAME/plugins
-  cp -R build/${IVS3D_PREFIX}src/iVS3D-core/* $INSTALL_PATH/$PACKAGE_NAME
-  cp build/${IVS3D_PREFIX}src/plugins/* $INSTALL_PATH/$PACKAGE_NAME/plugins
-  rm -f $INSTALL_PATH/$PACKAGE_NAME/Makefile
-  
+  # work from installed package location
   cd $INSTALL_PATH/$PACKAGE_NAME
-  
+  # remove subfolder bin
+  mv -R bin/* .
+  rm -rf bin
+  # create folder for dependencies
   mkdir lib
 
   echo " "
