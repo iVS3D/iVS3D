@@ -144,6 +144,9 @@ Plugins = plugins
 Imports = qml
 Qml2Imports = qml
 EOL
+
+  cd $INSTALL_PATH
+  zip -r ${PACKAGE_NAME}.zip ${PACKAGE_NAME}/
 }
 
 deployapp
