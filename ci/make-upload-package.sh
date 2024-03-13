@@ -58,7 +58,7 @@ deployapp() {
   # work from installed package location
   cd $INSTALL_PATH/$PACKAGE_NAME
   # remove subfolder bin
-  mv -R bin/* .
+  mv bin/* .
   rm -rf bin
   # create folder for dependencies
   mkdir lib
