@@ -34,9 +34,13 @@ ModelInputPictures::ModelInputPictures(QString inputPath)
         //if a video is loaded, search for a srt file with the same name and try to loadMetaData from it
         QFileInfo info = QFileInfo (inputPath);
         QDir dir = info.dir();
-        QString metaName = info.baseName().append(".srt");
-        if (dir.exists(metaName)) {
-            loadMetaData(QStringList(dir.filePath(metaName)));
+        QString gps_files[] = {".srt", ".SRT", ".gpx", ".GPX"};
+        for(auto gps_file: gps_files){
+            QString metaName = info.baseName().append(gps_file);
+            if (dir.exists(metaName)) {
+                loadMetaData(QStringList(dir.filePath(metaName)));
+                break;
+            }
         }
     }
 

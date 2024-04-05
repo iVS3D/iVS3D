@@ -47,8 +47,8 @@ bool GPSReaderDJIMatrice::parseDataVideo(QString path, int picCount, double fps,
         }
 
     }
-    normaliseGPS(fps, picCount);
-    return m_GPSHashs.size() == picCount;
+    return normaliseGPS(picCount);
+
 }
 
 bool GPSReaderDJIMatrice::parseLine(QString line)

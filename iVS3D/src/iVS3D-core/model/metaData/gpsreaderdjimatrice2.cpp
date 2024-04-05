@@ -1,19 +1,19 @@
-#include "gpsreaderdjimavic.h"
+#include "gpsreaderdjimatrice2.h"
 #include "qdebug.h"
 
-GPSReaderDJIMavic::GPSReaderDJIMavic() {}
+GPSReaderDJIMatrice2::GPSReaderDJIMatrice2() {}
 
-GPSReaderDJIMavic::~GPSReaderDJIMavic()
+GPSReaderDJIMatrice2::~GPSReaderDJIMatrice2()
 {
     m_GPSHashs.clear();
 }
 
-QString GPSReaderDJIMavic::getName()
+QString GPSReaderDJIMatrice2::getName()
 {
     return m_name;
 }
 
-bool GPSReaderDJIMavic::parseDataVideo(QString path, int picCount, double fps, bool interpolate)
+bool GPSReaderDJIMatrice2::parseDataVideo(QString path, int picCount, double fps, bool interpolate)
 {
     //fps == -1 -> Input are images
     if (fps == -1) {
@@ -34,6 +34,7 @@ bool GPSReaderDJIMavic::parseDataVideo(QString path, int picCount, double fps, b
             line = metaFile.readLine();
             line = metaFile.readLine();
             line = metaFile.readLine();
+
             if (!parseLine(line)) {
                 return false;
             }
@@ -46,14 +47,18 @@ bool GPSReaderDJIMavic::parseDataVideo(QString path, int picCount, double fps, b
             }
             else return false;
         }
+
     }
+
     return normaliseGPS(picCount);
+
 }
 
-bool GPSReaderDJIMavic::parseLine(QString line)
+bool GPSReaderDJIMatrice2::parseLine(QString line)
 {
+    qDebug() << line;
     QHash<QString, QVariant> newGPSHash;
-    QRegularExpression matchAltitudeGPS("\\[altitude:\\s(-?\\d{1,10}.\\d{1,10})\\]");
+    QRegularExpression matchAltitudeGPS("abs_alt:\\s(-?\\d{1,5}.\\d{1,5})]");
     QRegularExpressionMatch matchAltitude = matchAltitudeGPS.match(line);
     double altitude;
     double latitude;
@@ -63,10 +68,9 @@ bool GPSReaderDJIMavic::parseLine(QString line)
         useAltitude = true;
         altitude = matchAltitude.captured(1).toDouble();
     }
-
-    QRegularExpression matchLatitudeGPS("\\[latitude\\s:\\s(-?\\d{1,10}.\\d{1,10})\\]");
+    QRegularExpression matchLatitudeGPS("\\[latitude:\\s(-?\\d{1,10}.\\d{1,10})\\]");
     QRegularExpressionMatch matchLatitude = matchLatitudeGPS.match(line);
-    QRegularExpression matchLongtitudeGPS("\\[longtitude\\s:\\s(-?\\d{1,10}.\\d{1,10})\\]");
+    QRegularExpression matchLongtitudeGPS("\\[longitude:\\s(-?\\d{1,10}.\\d{1,10})\\]");
     QRegularExpressionMatch matchLongtitude = matchLongtitudeGPS.match(line);
 
     if (matchLatitude.hasMatch() && matchLongtitude.hasMatch()) {
@@ -89,9 +93,11 @@ bool GPSReaderDJIMavic::parseLine(QString line)
     }
 
     return true;
+
+
 }
 
-void GPSReaderDJIMavic::print(QList<QHash<QString, QVariant>> a, QString path)
+void GPSReaderDJIMatrice2::print(QList<QHash<QString, QVariant>> a, QString path)
 {
     QString line;
     for(QHash<QString, QVariant> values : a) {

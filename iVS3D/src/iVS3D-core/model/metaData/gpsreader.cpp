@@ -1,28 +1,28 @@
 #include "gpsreader.h"
 
-void GPSReader::normaliseGPS(double fps, uint imageNumber)
+
+bool GPSReader::normaliseGPS(uint imageNumber)
 {
     int exisitingValues = m_GPSHashs.size();
     bool hasAltitude = hasAltitudeData();
-    //No interpolation is needed
-    if (exisitingValues == imageNumber) {
-        return;
+    //No interpolation is needed --> number of GPS points is equal or slightly higher
+    if (exisitingValues == imageNumber || (exisitingValues > imageNumber && exisitingValues < imageNumber * 1.05)) {
+        return true;
     }
-    double timeIntervall = (imageNumber / (int) fps) / exisitingValues;
+
+    // TODO implement: way more GPS then images
+    if (exisitingValues > imageNumber){
+        return false;
+    }
+
     QList<QHash<QString, QVariant>> GPSHashsOld = m_GPSHashs;
     m_GPSHashs.clear();
-    //Caculate the timestamp of every frame
-    QList<double> indexToTime;
+
     for (int i = 0; i < imageNumber; i++) {
-        indexToTime.append((double)i/fps);
-    }
-    for (double t : indexToTime) {
-        //Get index of gps values between which the new value will be interpolated
-        //If for example timeIntervall = 1 and the timestamp of the frame is 5.78, its gps value needs to interpolated with the gps values 5 and 6
-        int aValue = std::floor(t / 1.0);
-        //Calculate how far the timestamp is away from the first gps value -> for above value we need to interpolate with t=0.78 betwenn value 5 and 6
-        double deltaT = (t / 1.0) - aValue;
-        //do the actuall interpolation
+
+        double step = double(exisitingValues - 1) / imageNumber * i;
+        int aValue = int(step);
+        double deltaT = step - aValue;
         QGeoCoordinate geo = interpolateSingle(GPSHashsOld.at(aValue), GPSHashsOld.at(aValue + 1), deltaT, 1.0);
         if (hasAltitude) {
             addGPSValue(geo.latitude(), geo.longitude(), geo.altitude());
@@ -31,7 +31,7 @@ void GPSReader::normaliseGPS(double fps, uint imageNumber)
             addGPSValue(geo.latitude(), geo.longitude());
         }
     }
-
+    return true;
 }
 
 QVariant GPSReader::getImageMetaData(uint index)
