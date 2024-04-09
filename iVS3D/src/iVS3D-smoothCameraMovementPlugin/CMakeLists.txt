@@ -1,4 +1,4 @@
-set(TARGET_NAME StationaryCameraMovement)
+set(TARGET_NAME SmoothCameraMovement)
 
 # set include directories
 include_directories(SYSTEM
@@ -17,11 +17,16 @@ include_directories(
     "${CMAKE_CURRENT_LIST_DIR}/../iVS3D-core/plugin"
 )
 
+find_package(OpenCV 4.7 REQUIRED COMPONENTS
+    video
+    dnn
+)
+
 # CUDA (if applicable)
 if(With_CUDA)
 
     # cudaoptflow from opencv is required
-    find_package(OpenCV 4.5 REQUIRED COMPONENTS
+    find_package(OpenCV 4.7 REQUIRED COMPONENTS
         cudaoptflow
     )
 
@@ -43,29 +48,26 @@ endif()
 
 # set header files
 set(HEADER_FILES
-    "${CMAKE_CURRENT_LIST_DIR}/distributionselector.h"
     "${CMAKE_CURRENT_LIST_DIR}/factory.h"
     "${CMAKE_CURRENT_LIST_DIR}/flowcalculator.h"
     "${CMAKE_CURRENT_LIST_DIR}/flowcalculatorcpu.h"
     "${CMAKE_CURRENT_LIST_DIR}/imagegatherer.h"
     "${CMAKE_CURRENT_LIST_DIR}/imagegatherercpu.h"
     "${CMAKE_CURRENT_LIST_DIR}/keyframeselector.h"
-    "${CMAKE_CURRENT_LIST_DIR}/optflowcontroller.h"
-    "${CMAKE_CURRENT_LIST_DIR}/staticselector.h"
+    "${CMAKE_CURRENT_LIST_DIR}/smoothcontroller.h"
     "${CMAKE_CURRENT_LIST_DIR}/../iVS3D-core/cvmat_qmetadata.h"
     ${CUDA_HEADER_FILES}
 )
 
 # set source files
 set(SRC_FILES
-    "${CMAKE_CURRENT_LIST_DIR}/distributionselector.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/factory.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/flowcalculator.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/flowcalculatorcpu.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/imagegatherer.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/imagegatherercpu.cpp"
-    "${CMAKE_CURRENT_LIST_DIR}/optflowcontroller.cpp"
-    "${CMAKE_CURRENT_LIST_DIR}/staticselector.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/keyframeselector.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/smoothcontroller.cpp"
     ${CUDA_SRC_FILES}
 )
 
