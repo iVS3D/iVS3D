@@ -34,6 +34,7 @@ ui_*.h
 *.jsc
 Makefile*
 *build-*
+*install*
 *.qm
 *.prl
 *.obj
