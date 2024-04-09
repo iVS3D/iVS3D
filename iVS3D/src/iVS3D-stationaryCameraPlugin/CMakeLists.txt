@@ -17,6 +17,7 @@ include_directories(
     "${CMAKE_CURRENT_LIST_DIR}/../iVS3D-core/plugin"
 )
 
+# video and dnn from opencv is required for farneback
 find_package(OpenCV 4.7 REQUIRED COMPONENTS
     video
     dnn
