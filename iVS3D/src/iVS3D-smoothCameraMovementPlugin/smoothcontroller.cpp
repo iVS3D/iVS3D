@@ -350,6 +350,11 @@ void SmoothController::sampleCheckChanged(bool isChecked)
     m_downSampleFactor = downCheckToFactor(isChecked, m_inputResolution);
 }
 
+void SmoothController::updateSettingsMap(QVariant nValue, double threshold, QString selectorName)
+{
+
+}
+
 QString SmoothController::updateBufferInfo(long bufferedValueCount)
 {
     return RESET_TEXT_PRE + QString::number(bufferedValueCount) + RESET_TEXT_SUF;

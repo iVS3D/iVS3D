@@ -102,8 +102,14 @@ void tst_exportcontroller::cleanup()
 
 void tst_exportcontroller::test_export()
 {
-    // add some keayframes and set boundaries of mip
+
     auto *mip(m_testDM->getModelInputPictures());
+
+    // remove all keyframes first
+    std::vector<uint> empty;
+    mip->updateMIP(empty);
+
+    // add some keyframes and set boundaries of mip
     mip->setBoundaries(QPoint(0, mip->getPicCount()));
     mip->addKeyframe(1);
     mip->addKeyframe(20);

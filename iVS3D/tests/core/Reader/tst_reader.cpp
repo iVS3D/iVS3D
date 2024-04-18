@@ -123,8 +123,7 @@ void tst_reader::test_DeleteImages()
 void tst_reader::test_EmptyFile()
 {
     Reader* r = ReaderFactory::instance().createReader(m_resources + "/emptyFolder");
-    uint images = 0;
-    QCOMPARE(r->getPicCount(), images);
+    QCOMPARE(r, nullptr);
 }
 
 void tst_reader::test_ReadOneToMany()

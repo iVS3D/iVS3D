@@ -4,6 +4,7 @@
 #include "itransform.h"
 
 #include <QMap>
+#include <QVariant>
 #include <opencv2/video.hpp>
 
 class ITransform_stub : public ITransform
