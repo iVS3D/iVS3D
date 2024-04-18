@@ -79,7 +79,8 @@ void tst_exportcontroller::init()
     m_testOW = new OutputWidget(nullptr, "output", TransformManager::instance().getTransformList());
     QVERIFY(m_testOW != nullptr);
 #if defined(Q_OS_LINUX)
-    m_testEC = new ExportController(m_testOW, m_testDM, nullptr);
+    m_testCW = new lib3d::ots::ColmapWrapper;
+    m_testEC = new ExportController(m_testOW, m_testDM, m_testCW);
 #elif defined(Q_OS_WIN)
     m_testEC = new ExportController(m_testOW, m_testDM);
 #endif
@@ -98,6 +99,9 @@ void tst_exportcontroller::cleanup()
     m_testOW = nullptr;
     delete m_testDM;
     m_testDM = nullptr;
+#if defined(Q_OS_LINUX)
+    delete m_testCW;
+#endif
 }
 
 void tst_exportcontroller::test_export()

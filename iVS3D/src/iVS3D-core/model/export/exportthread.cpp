@@ -395,7 +395,7 @@ bool ExportThread::exportImages(cv::Mat image, int iTransformCopiesSize, const Q
                     iTransformOutPath.append(splitedName.back());
                 }
                 else {
-                    iTransformOutPath.append(QString::number(currentKeyframe, 10).rightJustified(8, '0').append(".jpeg"));
+                    iTransformOutPath.append(QString::number(currentKeyframe, 10).rightJustified(8, '0').append(".png"));
                 }
 
                 //write image on disk

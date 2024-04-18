@@ -7,6 +7,7 @@
 #include "logfile.h"
 #include "itransform_stub.h"
 #include "resourceloader.h"
+#include "progressable.h"
 
 
 class tst_exportThread : public QObject
@@ -128,8 +129,8 @@ void tst_exportThread::cleanupTestCase()
 
 void tst_exportThread::test_exportVideo()
 {
-    for(uint i = 0; i<m_mip->getPicCount() && i<50; i+=5){
-        m_mip->addKeyframe(i);
+    for(uint i = 0; i<m_mip->getPicCount() && i<=50; i+=5){
+        m_mip->removeKeyframe(i);
     }
     qDebug() << QString::number(m_mip->getKeyframeCount(false));
     m_mip->setBoundaries(QPoint(0,50));
@@ -137,7 +138,8 @@ void tst_exportThread::test_exportVideo()
 
     volatile bool stopped = false;
     std::vector<ITransform*> transforms;
-    ExportThread t(nullptr, m_mip, QPoint(200,400), m_exportPath, "MyTestExport", &stopped, QRect(0,0,0,0), transforms, new LogFile("test", false));
+    auto prog = new Progressable();
+    ExportThread t(prog, m_mip, QPoint(200,400), m_exportPath, "MyTestExport", &stopped, QRect(0,0,0,0), transforms, new LogFile("test", false));
     t.start();
     while(!t.isFinished()){
         QTest::qWait(250);
@@ -145,10 +147,9 @@ void tst_exportThread::test_exportVideo()
 
     QVERIFY(t.getResult() == 0);
     QVERIFY(t.isFinished());
-
     QStringList imgs = QDir(m_exportWimages).entryList(QStringList("*.png"));
-    QCOMPARE(imgs.length(), 10);
-
+    QCOMPARE(imgs.length(), 40);
+    delete prog;
 
 }
 
@@ -161,7 +162,8 @@ void tst_exportThread::test_abortExportImmediately()
 
     volatile bool stopped = false;
     std::vector<ITransform*> transforms;
-    ExportThread exportThread(nullptr, m_mip, QPoint(200,400), m_exportPath, "MyTestExport", &stopped, QRect(0,0,0,0),transforms, new LogFile("test", false));
+    auto prog = new Progressable();
+    ExportThread exportThread(prog, m_mip, QPoint(200,400), m_exportPath, "MyTestExport", &stopped, QRect(0,0,0,0),transforms, new LogFile("test", false));
     exportThread.start();
     stopped = true;
     while (!exportThread.isFinished()) {
@@ -170,6 +172,7 @@ void tst_exportThread::test_abortExportImmediately()
 
     QVERIFY(exportThread.getResult() == 1);
     QVERIFY(exportThread.isFinished());
+    delete prog;
 }
 
 void tst_exportThread::test_exportCorrectImages()
@@ -199,8 +202,8 @@ void tst_exportThread::test_exportCorrectImages()
         }
         iTransformSubDirs.push_back(iTransformSubDir);
     }
-
-    ExportThread exportThread(nullptr, m_mip, m_mip->getInputResolution(), m_exportPath, "MyTestExport", &stopped, QRect(0,0,0,0),transforms, new LogFile("test", false));
+    auto prog = new Progressable();
+    ExportThread exportThread(prog, m_mip, m_mip->getInputResolution(), m_exportPath, "MyTestExport", &stopped, QRect(0,0,0,0),transforms, new LogFile("test", false));
     exportThread.start();
     qDebug () << "started exportthread, this needs some time.";
     while (!exportThread.isFinished()) {
@@ -251,6 +254,7 @@ void tst_exportThread::test_exportCorrectImages()
     for (int i = 0; i < iTransformSubDirs.length(); ++i) {
         deleteImages(iTransformSubDirs[i]);
     }
+    delete prog;
 }
 void tst_exportThread::test_exportResolutionAndCrop()
 {
@@ -268,7 +272,8 @@ void tst_exportThread::test_exportResolutionAndCrop()
     if(in_withTransfrom){
         transforms.push_back(new ITransform_stub);
     }
-    ExportThread t(nullptr, m_mip, in_resolution, m_exportPath, "MyTestExport", &stopped, in_roi, transforms, new LogFile("test", false));
+    auto prog = new Progressable();
+    ExportThread t(prog, m_mip, in_resolution, m_exportPath, "MyTestExport", &stopped, in_roi, transforms, new LogFile("test", false));
 
     t.start();
     while(!t.isFinished()){
@@ -295,6 +300,7 @@ void tst_exportThread::test_exportResolutionAndCrop()
             compareOutput(exportP);
         }
     }
+    delete prog;
 }
 
 void tst_exportThread::test_exportResolutionAndCrop_data()
