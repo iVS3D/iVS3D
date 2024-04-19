@@ -13,6 +13,7 @@
 #include <QMutexLocker>
 #include <fstream>
 #include <QFutureSynchronizer>
+#include <QFile>
 
 #include "logfile.h"
 #include "stringcontainer.h"
@@ -20,6 +21,8 @@
 #include "itransform.h"
 #include "progressable.h"
 #include "exportexif.h"
+
+#define JPEG_COMPRESSION_PARAMS {cv::IMWRITE_JPEG_QUALITY, 100}
 
 /**
  * @class ExportThread
@@ -78,6 +81,7 @@ private:
     void reportProgress();
     cv::Mat resizeCrop(cv::Mat image, cv::Size resize, bool useResize, cv::Rect crop, bool useCrop);
     bool exportImages(cv::Mat image, int iTransformCopiesSize, const QString &fileName, bool isDirImages, int currentKeyframe, std::vector<std::string> imageFiles);
+    bool exportITransformImage(QString fileName, int idxTransform, cv::Mat image, bool isDirImages, std::vector<std::string> imageFiles, int currentKeyframe);
 
     volatile int m_exportProgress = 0;
     QMutex m_mutex;

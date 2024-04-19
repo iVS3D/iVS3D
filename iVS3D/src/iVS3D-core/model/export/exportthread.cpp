@@ -246,13 +246,28 @@ void ExportThread::run(){
                 continue;
             }
 
-            // resize and crop
-            cv::Mat imgToExport = resizeCrop(mat, cv::Size(m_resolution.x(), m_resolution.y()), useResize, roi, useRoi);
-            stats->addStepEntry(timer.restart(), ExportStats::S_RESIZE);
+            bool success = false;
+            if (useResize || useRoi || !m_reader->isDir()) {
+                // resize and crop
+                cv::Mat imgToExport = resizeCrop(mat, cv::Size(m_resolution.x(), m_resolution.y()), useResize, roi, useRoi);
+                stats->addStepEntry(timer.restart(), ExportStats::S_RESIZE);
 
-            // write images and masks
-            bool success = exportImages(imgToExport, iTransformCopiesSize, fileName, isDirImages, idx, imageFiles);
-            stats->addStepEntry(timer.restart(), ExportStats::S_WRITE);
+                // write images and masks
+                success = exportImages(imgToExport, iTransformCopiesSize, fileName, isDirImages, idx, imageFiles);
+                stats->addStepEntry(timer.restart(), ExportStats::S_WRITE);
+            } else {
+                QString oImageFile = QString::fromStdString(imageFiles[idx]);
+                QString nImageFile = fileName;
+                nImageFile.append("/images/");
+                nImageFile.append(QString::fromStdString(imageFiles[idx]).split("/").last());
+                if (QFile::exists(nImageFile)) {
+                    QFile::remove(nImageFile);
+                }
+                QFile::copy(oImageFile, nImageFile);
+                for (int idxTransform = 0; idxTransform < 0; idxTransform++) {
+                    exportITransformImage(fileName, idxTransform, mat, isDirImages, imageFiles, idx);
+                }
+            }
             if (!success) {
                 m_result = -1;
             }
@@ -339,69 +354,34 @@ cv::Mat ExportThread::resizeCrop(cv::Mat image, cv::Size resize, bool useResize,
 bool ExportThread::exportImages(cv::Mat image, int iTransformCopiesSize, const QString &fileName, bool isDirImages, int currentKeyframe, std::vector<std::string> imageFiles) {
 
     QString imgPath = fileName;
-    for (int i = -1; i < iTransformCopiesSize; ++i) {
-        //directory of export (without /images)
-        if (i < 0) {
+    //directory of export (without /images)
+    //normal picture export
+    imgPath.append("/images/");
+    //append image specific name (for normal)
 
-
-            //normal picture export
-            imgPath.append("/images/");
-            //append image specific name (for normal)
-
-            if (isDirImages) {
-                //Get name of the current keyframe
-                QString keyframeName = QString::fromStdString(imageFiles[currentKeyframe]);
-                QStringList splitedName = keyframeName.split("/");
-                imgPath.append(splitedName.back());
-                //QFileInfo file(keyframeName);
-                //QString newFileName = file.baseName().append(".png");
-                //imgPath.append(newFileName);
-            }
-            else {
-                //If input is a video images are numbered based on their index
-                imgPath.append(QString::number(currentKeyframe, 10).rightJustified(8, '0').append(".png"));
-            }
-            //write image on disk
-            bool exportedImage = cv::imwrite(imgPath.toStdString(), image);
-            if (!exportedImage) {
-                qDebug() << "failed to export " + imgPath;
-                return false;
-            }
-        }
-        else {
-            //iTransform export
-            QString iTPath = fileName;
-            iTPath.append("/").append(m_iTransformCopies[i]->getName()).append("/");
-            QStringList iTOutputNames = m_iTransformCopies[i]->getOutputNames();
-
-            //calculate outputImgs
-            ImageList segmanticImgs = m_iTransformCopies[i]->transform(0, image);
-
-            if (segmanticImgs.length() != iTOutputNames.length()) {
-                return false;
-            }
-
-            for (int t = 0; t < iTOutputNames.length(); ++t) {
-                QString iTransformOutPath = iTPath;
-                iTransformOutPath.append(iTOutputNames[t]).append("/");
-                //directory was created earlier so we can just use it
-
-                //append image specific name (iTransforms)
-
-                if (isDirImages) {
-                    //Get name of the current keyframe
-                    QString keyframeName = QString::fromStdString(imageFiles[currentKeyframe]);
-                    QStringList splitedName = keyframeName.split("/");
-                    iTransformOutPath.append(splitedName.back());
-                }
-                else {
-                    iTransformOutPath.append(QString::number(currentKeyframe, 10).rightJustified(8, '0').append(".png"));
-                }
-
-                //write image on disk
-                cv::imwrite(iTransformOutPath.toStdString(), segmanticImgs[i]);
-            }
-
+    if (isDirImages) {
+        //Get name of the current keyframe
+        QString keyframeName = QString::fromStdString(imageFiles[currentKeyframe]);
+        QStringList splitedName = keyframeName.split("/");
+        imgPath.append(splitedName.back());
+        //QFileInfo file(keyframeName);
+        //QString newFileName = file.baseName().append(".png");
+        //imgPath.append(newFileName);
+    }
+    else {
+        //If input is a video images are numbered based on their index
+        imgPath.append(QString::number(currentKeyframe, 10).rightJustified(8, '0').append(".png"));
+    }
+    //write image on disk
+    bool exportedImage = cv::imwrite(imgPath.toStdString(), image, JPEG_COMPRESSION_PARAMS);
+    if (!exportedImage) {
+        qDebug() << "failed to export " + imgPath;
+        return false;
+    }
+    for (int idxTransform = 0; idxTransform < iTransformCopiesSize; ++idxTransform) {
+        //iTransform export
+        if (!exportITransformImage(fileName, idxTransform, image, isDirImages, imageFiles, currentKeyframe)) {
+            return false;
         }
     }
 
@@ -473,5 +453,43 @@ bool ExportThread::exportImages(cv::Mat image, int iTransformCopiesSize, const Q
     std::ofstream f(imgPath.toStdString().c_str(), std::ofstream::binary);
     f.write((char *)&newData[0], fileSize + size);
     //qDebug() << "Time needed: " << timer.elapsed();
+    return true;
+}
+
+bool ExportThread::exportITransformImage(QString fileName, int idxTransform, cv::Mat image, bool isDirImages, std::vector<std::string> imageFiles, int currentKeyframe)
+{
+    QString iTPath = fileName;
+    iTPath.append("/").append(m_iTransformCopies[idxTransform]->getName()).append("/");
+    QStringList iTOutputNames = m_iTransformCopies[idxTransform]->getOutputNames();
+
+    //calculate outputImgs
+    ImageList segmanticImgs = m_iTransformCopies[idxTransform]->transform(0, image);
+
+    if (segmanticImgs.length() != iTOutputNames.length()) {
+        return false;
+    }
+
+    for (int t = 0; t < iTOutputNames.length(); ++t) {
+        QString iTransformOutPath = iTPath;
+        iTransformOutPath.append(iTOutputNames[t]).append("/");
+        //directory was created earlier so we can just use it
+
+        //append image specific name (iTransforms)
+
+        if (isDirImages) {
+            //Get name of the current keyframe
+            QString keyframeName = QString::fromStdString(imageFiles[currentKeyframe]);
+            QStringList splitedName = keyframeName.split("/");
+            iTransformOutPath.append(splitedName.back());
+        }
+        else {
+            iTransformOutPath.append(QString::number(currentKeyframe, 10).rightJustified(8, '0').append(".jpeg"));
+        }
+
+        //write image on disk
+        if (!cv::imwrite(iTransformOutPath.toStdString(), segmanticImgs[idxTransform], JPEG_COMPRESSION_PARAMS)) {
+            return false;
+        }
+    }
     return true;
 }
