@@ -187,6 +187,7 @@ private:
     void setInputWidgetInfo();
     void displayPluginSettings();
     void onFailedOpen();
+    uint loadMetaDataFromPath(QString path);
 
     // plugin runtime
     QElapsedTimer m_timer;

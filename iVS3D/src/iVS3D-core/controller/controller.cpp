@@ -175,17 +175,20 @@ void Controller::slot_openInputVideo()
 
 void Controller::slot_openVideoDragAndDrop(QString filePath)
 {
+    // prevent multiple imports at once
     if(m_isImporting) {
         return;
     }
 
-
+    // prevent imports while exporting
     if(m_exporting){
         QMessageBox msgBox;
         msgBox.setText(tr("Wait for export to finish before importing new files."));
         msgBox.exec();
         return;
     }
+
+    // handle video formats or folders
     if (filePath.endsWith(".mp4", Qt::CaseInsensitive) ||
             filePath.endsWith(".mov", Qt::CaseInsensitive) ||
             filePath.endsWith(".avi", Qt::CaseInsensitive) ||
@@ -201,7 +204,22 @@ void Controller::slot_openVideoDragAndDrop(QString filePath)
         m_timer = QElapsedTimer();
         m_timer.start();
         m_openExec->open();
+        return;
     }
+
+    // handle meta data
+    bool fileHasSupportedExtension = false;
+    for(auto extension : MetaDataManager::supportedFileExtensions()) {
+        if (filePath.endsWith(extension)) {
+            fileHasSupportedExtension = true;
+            break;
+        }
+    }
+    if(fileHasSupportedExtension) {
+        loadMetaDataFromPath(filePath);
+        return;
+    }
+    emit sig_hasStatusMessage(tr("Unable to import file: ") + filePath);
 }
 
 void Controller::slot_openProject()
@@ -336,17 +354,7 @@ void Controller::slot_openMetaData()
         emit sig_hasStatusMessage(tr("Input canceled"));
         return;
     }
-    int n = m_dataManager->getModelInputPictures()->loadMetaData(QStringList(filePath));
-    if (n > 0) {
-        AlgorithmManager::instance().notifyNewMetaData();
-        //Show altitude in the export widget, if existing
-        m_exportController->setAltitudeInWidget();
-        //Update the info widget
-        setInputWidgetInfo();
-    }
-    QString msg = tr("Loaded ") + QString::number(n) + tr(" meta data feature") + QString(n > 1 ? tr("s") : "");
-    emit sig_hasStatusMessage(msg);
-
+    loadMetaDataFromPath(filePath);
 }
 
 void Controller::slot_openFinished(int result)
@@ -509,6 +517,25 @@ void Controller::onFailedOpen()
     }
     m_automaticController->disableAutoWidget();
 
+}
+
+uint Controller::loadMetaDataFromPath(QString path)
+{
+    int n = m_dataManager->getModelInputPictures()->loadMetaData(QStringList(path));
+    if (n > 0) {
+        AlgorithmManager::instance().notifyNewMetaData();
+        //Show altitude in the export widget, if existing
+        m_exportController->setAltitudeInWidget();
+        //Update the info widget
+        setInputWidgetInfo();
+        QString msg = tr("Loaded ") + QString::number(n) + tr(" meta data feature") + QString(n > 1 ? tr("s") : "");
+        emit sig_hasStatusMessage(msg);
+        return n;
+    } else {
+        QString msg = tr("No meta data features were detected");
+        emit sig_hasStatusMessage(msg);
+        return 0;
+    }
 }
 
 void Controller::onSuccessfulOpen()
