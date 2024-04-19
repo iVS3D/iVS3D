@@ -202,7 +202,6 @@ private:
     QVariant bufferMatToVariant(cv::SparseMat bufferMat);
 private slots:
     void sampleCheckChanged(bool isChecked);
-    void updateSettingsMap(QVariant nValue, double threshold, QString selectorName);
 signals:
     void changeUIParameter(QVariant nValue, QString paramName, QString selectorName);
 };
