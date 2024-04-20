@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file>translations/visualSimilarity_de.qm</file>
+        <file>translations/visualSimilarity_en.qm</file>
+    </qresource>
+</RCC>
