@@ -1129,9 +1129,20 @@ def popFirstJobFromQueue(yamlFilePath: str) -> Job:
         print("No job in list.")
         return False, Job("",-1,-1,-1,"")
 
+    yamlJobEntry = None
     # read and delete job
-    yamlJobEntry = yamlObj["queue"][0]
-    del yamlObj["queue"][0]
+    for i in range(len(yamlObj["queue"])):
+        tmp = yamlObj["queue"][i]
+
+        # JOB_FAILED
+        if int(tmp["jobState"]) == 3: 
+            continue
+
+        yamlJobEntry = tmp
+        del yamlObj["queue"][i]
+
+    if yamlJobEntry is None:
+        return False, Job("",-1,-1,-1,"")
 
     # write current job to state file
     writeCurrentJobToStateFile(WORKER_STATE_YAML_PATH, yamlJobEntry)
@@ -1205,7 +1216,20 @@ def setFailedStateToJob():
     yamlJobEntry = yamlObj["runningJob"][0]
     yamlJobEntry["jobState"] = "3"
 
+
+    yamlObj_queue = loadYaml(WORK_QUEUE_YAML_PATH)
+
+    yamlObj_queue["queue"] = [yamlJobEntry] + yamlObj_queue["queue"]
+     
+    writeYaml(WORK_QUEUE_YAML_PATH , yamlObj_queue)
+
+    del yamlObj["runningJob"][0]
     writeYaml(WORKER_STATE_YAML_PATH, yamlObj)
+
+
+
+
+
 
 ###############################################################################
 # Updates COLMAP_RUNNING_PATH file to indicate running process
@@ -1334,7 +1358,8 @@ if __name__ == "__main__":
         # process current job
         try:
             success = processJob(workspacePath, currentJob)
-            if(not success):
+            if(not success):               
+
                 if CLEAN_FAILED_JOBS:
                     cleanAfterFailedJob(workspacePath, currentJob)
                 raise Exception("ERROR: Something went wrong when trying to process job {}".format(currentJob))
@@ -1360,7 +1385,6 @@ if __name__ == "__main__":
 
         # get next job in queue
         isJobInList, currentJob = popFirstJobFromQueue(WORK_QUEUE_YAML_PATH)
-    # end while(isJobInList)
 
     # clear state file
     yamlObj = loadYaml(WORKER_STATE_YAML_PATH)
