@@ -1,4 +1,4 @@
-set(TARGET_NAME VISUAL_SIMULARITY)
+set(TARGET_NAME VisualSimularity)
 
 # set include directories
 include_directories(SYSTEM

@@ -3,16 +3,13 @@
 VisualSimilarity::VisualSimilarity()
 {
     QTranslator* translator = new QTranslator();
-    translator->load(QLocale::system(), "cosplace", "_", ":/translations", ".qm");
+    translator->load(QLocale::system(), "visualSimilarity", "_", ":/translations", ".qm");
     qApp->installTranslator(translator);
 
     m_settingsWidget = nullptr;
 }
 
-VisualSimilarity::~VisualSimilarity()
-{
-
-}
+VisualSimilarity::~VisualSimilarity() {}
 
 QWidget* VisualSimilarity::getSettingsWidget(QWidget *parent)
 {
@@ -31,7 +28,7 @@ std::vector<uint> VisualSimilarity::sampleImages(const std::vector<unsigned int>
     logFile->startTimer(LF_TIMER_NN);
 
     // Read nn
-    auto nn = cv::dnn::readNet(m_nnPath.toStdString());
+    auto nn = cv::dnn::readNet(RESSOURCE_PATH+m_nnFileName.toStdString());
     // activate cuda
     if (useCuda) {
         nn.setPreferableBackend(cv::dnn::DNN_BACKEND_CUDA);
@@ -44,7 +41,6 @@ std::vector<uint> VisualSimilarity::sampleImages(const std::vector<unsigned int>
     // calculate feature vectors
     QElapsedTimer timer;
     int frameCount = imageList.size();
-    int k = frameCount*(1.0-m_frameReduction/100.0);
     timer.start();
     for (uint idx : imageList) {
         if (*stopped) {
@@ -62,7 +58,7 @@ std::vector<uint> VisualSimilarity::sampleImages(const std::vector<unsigned int>
             // value not found in buffer
             cv::Mat img, inblob;
             img = m_reader->getPic(idx);
-            prepareImage(&img, &inblob);
+            prepareImage(&img, &inblob, m_nnInputSize);
             feedImage(&inblob, &out, &nn);
             inblob.release();
             img.release();
@@ -78,12 +74,15 @@ std::vector<uint> VisualSimilarity::sampleImages(const std::vector<unsigned int>
         // display update
         long duration = timer.elapsed();
         timer.restart();
-        std::stringstream ss;
-        ss << std::setw(7) << idx << " | "
-           << std::setw(7)  << frameCount << " => "
-           << std::setw(5) << round(1000.0/duration*100)/100 << "fps";
+//        std::stringstream ss;
+//        ss << std::setw(7) << idx << " | "
+//           << std::setw(7)  << *(imageList.end()-1) << " => "
+//           << std::setw(5) << round(1000.0/duration*100)/100 << "fps";
+//        QString progressDesc = QString::fromStdString(ss.str());
         int progress = 100.0*(idx-*imageList.begin()) / *(imageList.end()-1);
-        displayProgress(receiver, progress, QString::fromStdString(ss.str()));
+        QString progressDesc = tr("Calculting feature vectors with ")+
+                QString::number(round(1000.0/duration*100)/100).rightJustified(7,' ')+" fps";
+        displayProgress(receiver, progress, progressDesc);
     }
     timer.invalidate();
 
@@ -91,9 +90,10 @@ std::vector<uint> VisualSimilarity::sampleImages(const std::vector<unsigned int>
     logFile->startTimer(LF_TIMER_KMEANS);
 
     // k-means
+    int targetFrames = imageList.size() / m_frameReduction;
     cv::Mat centers, labels;
     cv::kmeans(totalFeatureVector,
-               k,
+               targetFrames,
                labels,
                cv::TermCriteria(cv::TermCriteria::EPS+cv::TermCriteria::COUNT,10,1.0),
                1,
@@ -106,11 +106,11 @@ std::vector<uint> VisualSimilarity::sampleImages(const std::vector<unsigned int>
      * iterate through all images
      */
     // position in vector is the lable
-    std::vector<double> distToCenter(k);
-    distToCenter.assign(k, std::numeric_limits<float>::max());
-    std::vector<cv::Mat> featureVector(k);
-    std::vector<uint> keyframe(k);
-    keyframe.assign(k, -1);
+    std::vector<double> distToCenter(targetFrames);
+    distToCenter.assign(targetFrames, std::numeric_limits<float>::max());
+    std::vector<cv::Mat> featureVector(targetFrames);
+    std::vector<uint> keyframe(targetFrames);
+    keyframe.assign(targetFrames, -1);
 
     for (int i = 0; i < frameCount; i++) {
         if (*stopped) {
@@ -167,11 +167,7 @@ void VisualSimilarity::initialize(Reader *reader, QMap<QString, QVariant> buffer
     // this routine runs if new images have been loaded, it should be performant
     // as it is executed on image load for every plugin
 
-    m_frameReduction = 100.0 - 100.0/(double)reader->getFPS();
-    m_frameReduction = std::round(m_frameReduction*100)/100;
-    if (m_frameReductionInput) {
-        m_frameReductionInput->setValue(m_frameReduction);
-    }
+    m_frameReduction = (int)reader->getFPS();
 
     m_signalObject = so; // this is a link to the core which provides updates
     m_reader = reader; // this is our reader for the images
@@ -190,22 +186,10 @@ void VisualSimilarity::setSettings(QMap<QString, QVariant> settings)
         }
     }
 
-    // nn path
-    QMap<QString, QVariant>::iterator itNNPath = settings.find(NNPATH_JSON_NAME);
-    if (itNNPath != settings.end()) {
-        m_nnPath = itNNPath.value().toString();
-        if (m_nnPathInput) {
-            m_nnPathInput->setText(m_nnPath);
-        }
-    }
-
-    // feature vector dimension
-    QMap<QString, QVariant>::iterator itFeatureDims = settings.find(FEATUREDIMS_JSON_NAME);
-    if (itFeatureDims != settings.end()) {
-        m_featureDims = itFeatureDims.value().toInt();
-        if (m_featureDimsInput) {
-            m_featureDimsInput->setValue(m_featureDims);
-        }
+    // nn name
+    QMap<QString, QVariant>::iterator itNNname = settings.find(NNNAME_JSON_NAME);
+    if (itNNname != settings.end()) {
+        m_nnFileName = itNNname.value().toString();
     }
 }
 
@@ -224,33 +208,25 @@ QMap<QString, QVariant> VisualSimilarity::getSettings()
 {
     QMap<QString, QVariant> settings;
     settings.insert(FRAMEREDUCTION_JSON_NAME, m_frameReduction);
-    settings.insert(NNPATH_JSON_NAME, m_nnPath);
-    settings.insert(FEATUREDIMS_JSON_NAME, m_featureDims);
     return settings;
 }
 
-void VisualSimilarity::slot_frameReductionChanged(double v)
+void VisualSimilarity::slot_selectedNNChanged(QString nnName)
 {
-    if (v < 0.0) {
-        m_frameReductionInput->setValue(0.0);
+    QStringList s = nnName.split("_");
+    if (s.size() < 3)
         return;
-    }
-    if  (v > 100.0) {
-        m_frameReductionInput->setValue(1.0);
-        return;
-    }
-
-    m_frameReduction = v;
+    m_featureDims = s[1].toInt();
+    QStringList resList = s[2].split(".")[0].split("x");
+    m_nnInputSize = cv::Size(resList[0].toInt(), resList[1].toInt());
+    m_nnFileName = nnName;
 }
 
-void VisualSimilarity::slot_nnPathChanged(QString txt)
+void VisualSimilarity::slot_reloadNN()
 {
-    m_nnPath = txt;
-}
-
-void VisualSimilarity::slot_frameDimsChanged(int v)
-{
-    m_featureDims = v;
+    QStringList nnNameList = collect_nns(RESSOURCE_PATH);
+    m_nnNameInput->clear();
+    m_nnNameInput->addItems(nnNameList);
 }
 
 void VisualSimilarity::displayProgress(Progressable *p, int progress, QString msg)
@@ -272,15 +248,16 @@ void VisualSimilarity::displayMessage(Progressable *p, QString msg)
 
 void VisualSimilarity::prepareImage(cv::Mat *img,
                             cv::Mat *outblob,
+                            cv::Size inputSize,
                             const cv::Scalar &std,
                             const cv::Scalar &mean)
 {
     cv::Mat img_resized;
-    cv::resize(*img, img_resized, cv::Size(INPUT_W,INPUT_H));
+    cv::resize(*img, img_resized, inputSize);
     cv::divide(255.0, img_resized, img_resized);
     cv::subtract(img_resized, mean, img_resized);
 //    *outblob = cv::dnn::blobFromImage(img_resized, 1.0, cv::Size(INPUT_W,INPUT_H), false, true, CV_8U);
-    *outblob = cv::dnn::blobFromImage(img_resized, 1.0, cv::Size(INPUT_W,INPUT_H), false, true, CV_32F);
+    *outblob = cv::dnn::blobFromImage(img_resized, 1.0, inputSize, false, true, CV_32F);
     cv::divide(*outblob, std, *outblob);
 }
 
@@ -347,7 +324,7 @@ void VisualSimilarity::readBuffer(QMap<QString, QVariant> buffer)
             } else if (mapIt.key().compare(BUFFER_NAME_IDX) == 0) {
                 // ------------- idx of calculated feature vecotors ----------
                 QVariantList varListUsedIdx = mapIt.value().toList();
-                for (QVariant varUsedIdx : varListUsedIdx) {
+                for (const QVariant &varUsedIdx : varListUsedIdx) {
                     m_bufferUsedIdx.push_back(varUsedIdx.toUInt());
                 }
                 // -----------------------------------------------------------
@@ -360,7 +337,7 @@ cv::Mat VisualSimilarity::stringToBufferMat(QString string)
 {
     QStringList xStrList = string.split(BUFFER_FEATURE_DELIMITER_Y);
     QList<QStringList> strMat;
-    for (QString xStr : xStrList) {
+    for (const QString &xStr : xStrList) {
         strMat.append(xStr.split(BUFFER_FEATURE_DELIMITER_X));
     }
 
@@ -375,6 +352,12 @@ cv::Mat VisualSimilarity::stringToBufferMat(QString string)
     return mat;
 }
 
+QStringList VisualSimilarity::collect_nns(QString path)
+{
+    QStringList entries = QDir(path).entryList(QDir::Files);
+    return entries.filter(nnNameFormat);
+}
+
 void VisualSimilarity::createSettingsWidget(QWidget *parent)
 {
     m_settingsWidget = new QWidget(parent);
@@ -385,47 +368,35 @@ void VisualSimilarity::createSettingsWidget(QWidget *parent)
     QWidget *frameReductionWidget = new QWidget(parent);
     frameReductionWidget->setLayout(new QHBoxLayout(parent));
     frameReductionWidget->layout()->addWidget(new QLabel(UI_FRAMEREDUCTION_NAME));
-    m_frameReductionInput = new QDoubleSpinBox(frameReductionWidget);
-    m_frameReductionInput->setDecimals(2);
-    m_frameReductionInput->setMinimum(0.0);
-    m_frameReductionInput->setMaximum(100.0);
-    m_frameReductionInput->setSingleStep(10.0);
+    m_frameReductionInput = new QSpinBox(frameReductionWidget);
+    frameReductionWidget->setToolTip(UI_FRAMEREDUCTION_DESC);
+    m_frameReductionInput->setMinimum(2);
+    m_frameReductionInput->setMaximum(m_reader->getPicCount());
+    m_frameReductionInput->setSingleStep(1);
     m_frameReductionInput->setAlignment(Qt::AlignRight);
-    m_frameReductionInput->setSuffix("%");
     m_frameReductionInput->setValue(m_frameReduction);
     frameReductionWidget->layout()->addWidget(m_frameReductionInput);
     m_settingsWidget->layout()->addWidget(frameReductionWidget);
-    connect(m_frameReductionInput, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &VisualSimilarity::slot_frameReductionChanged);
+    connect(m_frameReductionInput, QOverload<int>::of(&QSpinBox::valueChanged), this, [=](int v){m_frameReduction=v;});
     QLabel *frameReductionWidget_txt = new QLabel(frameReductionWidget);
-    frameReductionWidget_txt->setText(UI_FRAMEREDUCTION_DESC);
-    frameReductionWidget_txt->setStyleSheet(DESCRIPTION_STYLE);
-    m_settingsWidget->layout()->addWidget(frameReductionWidget_txt);
-    // path to neural network
-    QWidget *nnPathWidget = new QWidget(parent);
-    nnPathWidget->setLayout(new QVBoxLayout(parent));
-    nnPathWidget->layout()->addWidget(new QLabel(UI_NNPATH_NAME));
-    m_nnPathInput = new QLineEdit(nnPathWidget);
-    m_nnPathInput->setText(m_nnPath);
-    m_settingsWidget->layout()->addWidget(m_nnPathInput);
-    connect(m_nnPathInput, &QLineEdit::textChanged, this, &VisualSimilarity::slot_nnPathChanged);
-    QLabel *nnPathWidget_txt = new QLabel(nnPathWidget);
-    nnPathWidget_txt->setText(UI_NNPATH_DESC);
-    nnPathWidget_txt->setStyleSheet(DESCRIPTION_STYLE);
-    m_settingsWidget->layout()->addWidget(nnPathWidget_txt);
-    // feature dimensions
-    QWidget *featureDimWidget = new QWidget(parent);
-    featureDimWidget->setLayout(new QVBoxLayout(parent));
-    featureDimWidget->layout()->addWidget(new QLabel(UI_FEATURE_DIM_NAME));
-    m_featureDimsInput = new QSpinBox(featureDimWidget);
-    m_featureDimsInput->setValue(m_featureDims);
-    m_featureDimsInput->setMaximum(2048);
-    m_featureDimsInput->setAlignment(Qt::AlignRight);
-    m_settingsWidget->layout()->addWidget(m_featureDimsInput);
-    connect(m_featureDimsInput, QOverload<int>::of(&QSpinBox::valueChanged), this, &VisualSimilarity::slot_frameDimsChanged);
-    QLabel *featureDimWidget_txt = new QLabel(featureDimWidget);
-    featureDimWidget_txt->setText(UI_FEATURE_DIM_DESC);
-    featureDimWidget_txt->setStyleSheet(DESCRIPTION_STYLE);
-    m_settingsWidget->layout()->addWidget(featureDimWidget_txt);
+    // nn_name input
+    QWidget *nnNameWidget = new QWidget(parent);
+    nnNameWidget->setLayout(new QHBoxLayout(parent));
+    nnNameWidget->layout()->addWidget(new QLabel(UI_NNNAME_NAME));
+    nnNameWidget->setToolTip(UI_NNNAME_DESC);
+    m_nnNameInput = new QComboBox(parent);
+    // nn_name button
+    m_nnNameReloadBt = new QPushButton(parent);
+    m_nnNameReloadBt->setToolTip(UI_NNNAME_BT_DESC);
+//    m_nnNameReloadBt->setIcon();
+    m_nnNameReloadBt->setText("R");
+    m_nnNameReloadBt->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    connect(m_nnNameReloadBt, &QPushButton::clicked, this, &VisualSimilarity::slot_reloadNN);
+    connect(m_nnNameInput, &QComboBox::currentTextChanged, this, &VisualSimilarity::slot_selectedNNChanged);
+    m_nnNameInput->addItems(collect_nns(RESSOURCE_PATH));
+    nnNameWidget->layout()->addWidget(m_nnNameInput);
+    nnNameWidget->layout()->addWidget(m_nnNameReloadBt);
+    m_settingsWidget->layout()->addWidget(nnNameWidget);
 
     m_settingsWidget->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
     m_settingsWidget->adjustSize();

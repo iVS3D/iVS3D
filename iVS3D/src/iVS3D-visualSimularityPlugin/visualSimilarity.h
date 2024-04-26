@@ -14,14 +14,16 @@
 #include <QMap>
 #include <QLayout>
 #include <QLabel>
-#include <QLineEdit>
+#include <QComboBox>
+#include <QSpinBox>
+#include <QPushButton>
 #include <QSpacerItem>
 #include <QSizePolicy>
 #include <QTranslator>
 #include <QCoreApplication>
-#include <QDoubleSpinBox>
 #include <QElapsedTimer>
 #include <QDebug>
+#include <QDir>
 
 #include <opencv2/core.hpp>
 #include <opencv2/opencv.hpp>
@@ -35,19 +37,19 @@
 #include "progressable.h"
 #include "signalobject.h"
 
+#define RESSOURCE_PATH "plugins/ressources/VisualSimularity/"
+
 // visuals
 #define DESCRIPTION_STYLE "color: rgb(58, 58, 58); border-left: 6px solid  rgb(58, 58, 58); border-top-right-radius: 5px; border-bottom-right-radius: 5px; background-color: lightblue;"
-#define UI_FRAMEREDUCTION_NAME tr("Frame Reduction")
-#define UI_FRAMEREDUCTION_DESC tr("Defines how many frames will be removed (0% = none, 100.0% = all")
-#define UI_NNPATH_NAME tr("Path to Neural Network")
-#define UI_NNPATH_DESC tr("Sets the path were the 'onnx' neural network is located.")
-#define UI_FEATURE_DIM_NAME tr("Feature Dimensions")
-#define UI_FEATURE_DIM_DESC tr("Specifies the output dimension of the given neural network.")
+#define UI_FRAMEREDUCTION_NAME tr("K")
+#define UI_FRAMEREDUCTION_DESC tr("Reduces the amount of selected frames by the factor K.")
+#define UI_NNNAME_NAME tr("Selected Neural Network")
+#define UI_NNNAME_DESC tr("The drop-down shows all files in the folder plugins/ressources/VisualSimularity/ that follow the format NAME_DIMENSION_WIDHTxHEIGHT.onnx")
+#define UI_NNNAME_BT_DESC tr("Resets the drop-Down and reloads available neural networks.")
 
 // json settings
-#define FRAMEREDUCTION_JSON_NAME "frameReduction"
-#define NNPATH_JSON_NAME "nnPath"
-#define FEATUREDIMS_JSON_NAME "featureDims"
+#define FRAMEREDUCTION_JSON_NAME "K"
+#define NNNAME_JSON_NAME "NN-Name"
 
 // log file
 #define LF_TIMER_KEYFRAMES "keyframeSelection"
@@ -60,14 +62,10 @@
 #define LF_TIMER_BUFFER "safe buffer timer"
 
 // buffer
-#define BUFFER_NAME_FEATURES "CosPlaceFeatureVector"
+#define BUFFER_NAME_FEATURES "VisSimularityFeatureVector"
 #define BUFFER_FEATURE_DELIMITER_X ","
 #define BUFFER_FEATURE_DELIMITER_Y ";"
-#define BUFFER_NAME_IDX "CosPlaceIdx"
-
-// cosplace
-#define INPUT_W 512
-#define INPUT_H 512
+#define BUFFER_NAME_IDX "VisSimularityIdx"
 
 /**
  * @class orbslam
@@ -141,9 +139,8 @@ public:
 
 
 private slots:
-    void slot_frameReductionChanged(double v);
-    void slot_nnPathChanged(QString txt);
-    void slot_frameDimsChanged(int v);
+    void slot_selectedNNChanged(QString nnName);
+    void slot_reloadNN();
 
 private:
     // functions
@@ -151,6 +148,7 @@ private:
     static void displayMessage(Progressable *p, QString msg);
     static void prepareImage(cv::Mat *img,
                              cv::Mat *outblob,
+                             cv::Size inputSize,
                              const cv::Scalar &std={0.229, 0.224, 0.225},
                              const cv::Scalar &mean={0.485, 0.456, 0.406});
     static void feedImage(cv::Mat *inblob, cv::Mat *out, cv::dnn::Net *nn);
@@ -158,6 +156,7 @@ private:
     void sendBuffer(cv::Mat bufferMat, std::vector<uint> calculatedIdx);
     void readBuffer(QMap<QString,QVariant> buffer);
     cv::Mat stringToBufferMat(QString string);
+    QStringList collect_nns(QString path);
     //
 
     cv::Mat m_bufferMat = cv::Mat();
@@ -165,14 +164,16 @@ private:
     Reader *m_reader = nullptr;
     signalObject *m_signalObject = nullptr;
     // parameters
-    double m_frameReduction = 96.67;
-    QString m_nnPath = "/path/to/ExampleNN.onnx";
-    int m_featureDims = 256;
+    int m_frameReduction = -1;
+    int m_featureDims = -1;
+    cv::Size m_nnInputSize = cv::Size(-1,-1);
+    const QRegularExpression nnNameFormat = QRegularExpression("\\w+_\\d+x\\d+.onnx$");
+    QString m_nnFileName = "NAME_DIMENSION_WIDTHxHEIGHT.onnx";
     // widgets
     QWidget *m_settingsWidget = nullptr;
-    QDoubleSpinBox *m_frameReductionInput = nullptr;
-    QLineEdit *m_nnPathInput = nullptr;
-    QSpinBox *m_featureDimsInput = nullptr;
+    QSpinBox *m_frameReductionInput = nullptr;
+    QComboBox *m_nnNameInput = nullptr;
+    QPushButton *m_nnNameReloadBt = nullptr;
 
     void createSettingsWidget(QWidget *parent);
 };
