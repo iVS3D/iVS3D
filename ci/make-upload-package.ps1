@@ -15,7 +15,7 @@ Push-Location ${PACKAGE_NAME}
 
 # move the files from the bin directory one level up
 Write-Host "`nCreating strucktured package with dependencies"
-Move-Item -Path .\bin\* -Destination "." -Recurse
+Copy-Item -Path .\bin\* -Destination "." -Recurse
 Remove-Item ".\bin" -Recurse
 
 Write-Host "`nRunning windeployqt.exe"
