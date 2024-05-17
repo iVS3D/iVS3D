@@ -30,15 +30,17 @@ std::vector<uint> VisualSimilarity::sampleImages(const std::vector<unsigned int>
     // Read nn
     auto nn = cv::dnn::readNet(RESSOURCE_PATH+m_nnFileName.toStdString());
     // activate cuda
+    int batchSize = 200;
     if (useCuda) {
         nn.setPreferableBackend(cv::dnn::DNN_BACKEND_CUDA);
 //        nn.setPreferableTarget(cv::dnn::DNN_TARGET_CUDA_FP16);
         nn.setPreferableTarget(cv::dnn::DNN_TARGET_CUDA);
+        // calculate batch size
+        const long availableMemory = cv::cuda::DeviceInfo(0).freeMemory();
+        batchSize = round(availableMemory/m_nnInputSize.width/m_nnInputSize.height/3/32*MEM_THRESEHOLD); // RAM/(W*H*C*32)*thresehold <- CV_32F
+        std::cout << "Detected " << std::round(double(availableMemory*100)/100000000000.0) << "GB free memory." << std::endl;
+        std::cout << "Resulting Batch Size: " << batchSize << std::endl;
     }
-    size_t weightSize, blobSize;
-    nn.getMemoryConsumption(cv::dnn::MatShape({BATCH_SIZE, 3, 512, 512}), weightSize, blobSize);
-    qDebug() << "weight:" << weightSize << "blob:" << blobSize;
-    qDebug() << "FLOPS:" << nn.getFLOPS(cv::dnn::MatShape({BATCH_SIZE, 3, 512, 512}));
 
     // calculate feature vectors
     QElapsedTimer timer;
@@ -46,14 +48,14 @@ std::vector<uint> VisualSimilarity::sampleImages(const std::vector<unsigned int>
     int frameCount = imageList.size();
     timer.start();
     cv::Mat outblob, inblob, totalFeatureVector;
-    for (uint i = 0; i < frameCount; i+=BATCH_SIZE) {
+    for (uint i = 0; i < frameCount; i+=batchSize) {
         if (*stopped) {
             return imageList;
         }
 
         // value not found in buffer
         std::vector<cv::Mat> imgVec;
-        for (uint j = 0; j < BATCH_SIZE; j++) {
+        for (uint j = 0; j < batchSize; j++) {
             cv::Mat img = m_reader->getPic(imageList[i+j]);
             imgVec.push_back(img);
         }
@@ -80,7 +82,7 @@ std::vector<uint> VisualSimilarity::sampleImages(const std::vector<unsigned int>
 //        QString progressDesc = QString::fromStdString(ss.str());
         int progress = 100.0*(imageList[i]-*imageList.begin()) / *(imageList.end()-1);
         QString progressDesc = tr("Calculting feature vectors with ")+
-                QString::number(round(BATCH_SIZE*1000.0/duration*100)/100).rightJustified(7,' ')+" fps";
+                QString::number(round(batchSize*1000.0/duration*100)/100).rightJustified(7,' ')+" fps";
         displayProgress(receiver, progress, progressDesc);
     }
     timer.invalidate();

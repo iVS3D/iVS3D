@@ -41,7 +41,7 @@
 #include "signalobject.h"
 
 #define RESSOURCE_PATH "plugins/ressources/VisualSimularity/"
-#define BATCH_SIZE 200
+#define MEM_THRESEHOLD 0.8f
 #define NN_STD cv::Scalar({0.229, 0.224, 0.225})
 #define NN_MEAN cv::Scalar({0.485, 0.456, 0.406})
 
