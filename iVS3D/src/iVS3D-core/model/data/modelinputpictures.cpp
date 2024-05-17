@@ -276,6 +276,7 @@ ModelInputPictures::Memento *ModelInputPictures::save()
 void ModelInputPictures::restore(ModelInputPictures::Memento *m)
 {
     m_keyframes = m->getState();
+    AlgorithmManager::instance().notifyKeyframesChanged(m_keyframes);
     emit sig_mipChanged();
 }
 
