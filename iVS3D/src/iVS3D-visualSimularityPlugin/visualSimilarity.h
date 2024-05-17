@@ -1,11 +1,13 @@
-#ifndef COSPLACE_H
-#define COSPLACE_H
+#ifndef VISUALSIMILARITY_H
+#define VISUALSIMILARITY_H
 
-/** @defgroup orbslamPlugin orbslamPlugin
+/** @defgroup visualSimilarityPlugin visualSimilarityPlugin
  *
  * @ingroup Plugin
  *
- * @brief Insert your description.
+ * @brief This plugin computes a feature vector for each frame using a given neural network.
+ *        These identiviers are clustered with k-Means under the cosine similarity metric.
+ *        It therefore selects k keyframes based on there visual similarity.
  */
 
 #include <QObject>
@@ -24,6 +26,7 @@
 #include <QElapsedTimer>
 #include <QDebug>
 #include <QDir>
+#include <QtConcurrent>
 
 #include <opencv2/core.hpp>
 #include <opencv2/opencv.hpp>
@@ -38,10 +41,13 @@
 #include "signalobject.h"
 
 #define RESSOURCE_PATH "plugins/ressources/VisualSimularity/"
+#define BATCH_SIZE 200
+#define NN_STD cv::Scalar({0.229, 0.224, 0.225})
+#define NN_MEAN cv::Scalar({0.485, 0.456, 0.406})
 
 // visuals
 #define DESCRIPTION_STYLE "color: rgb(58, 58, 58); border-left: 6px solid  rgb(58, 58, 58); border-top-right-radius: 5px; border-bottom-right-radius: 5px; background-color: lightblue;"
-#define UI_FRAMEREDUCTION_NAME tr("K")
+#define UI_FRAMEREDUCTION_NAME tr("Select one frame every K framese")
 #define UI_FRAMEREDUCTION_DESC tr("Reduces the amount of selected frames by the factor K.")
 #define UI_NNNAME_NAME tr("Selected Neural Network")
 #define UI_NNNAME_DESC tr("The drop-down shows all files in the folder plugins/ressources/VisualSimularity/ that follow the format NAME_DIMENSION_WIDHTxHEIGHT.onnx")
@@ -68,13 +74,15 @@
 #define BUFFER_NAME_IDX "VisSimularityIdx"
 
 /**
- * @class orbslam
+ * @class visualSimilarity
  *
- * @ingroup orbslamPlugin
+ * @ingroup visualSimilarityPlugin
  *
- * @brief Short description.
+ * @brief This plugin computes a feature vector for each frame using a given neural network.
+ *        These identiviers are clustered with k-Means under the cosine similarity metric.
+ *        It therefore selects k keyframes based on there visual similarity.
  *
- * @author Author
+ * @author Dominic Zahn
  */
 class VisualSimilarity : public IAlgorithm
 {
@@ -134,6 +142,7 @@ public:
     /**
      * @brief getter for plugin's settings
      * @return QMap with the settings
+     *
      */
     QMap<QString, QVariant> getSettings() override;
 
@@ -146,12 +155,9 @@ private:
     // functions
     static void displayProgress(Progressable *p, int progress, QString msg);
     static void displayMessage(Progressable *p, QString msg);
-    static void prepareImage(cv::Mat *img,
-                             cv::Mat *outblob,
-                             cv::Size inputSize,
-                             const cv::Scalar &std={0.229, 0.224, 0.225},
-                             const cv::Scalar &mean={0.485, 0.456, 0.406});
-    static void feedImage(cv::Mat *inblob, cv::Mat *out, cv::dnn::Net *nn);
+    static double cosineSimilarity(cv::Mat *a, cv::Mat *b);
+    void feedImage(cv::Mat *inblob, cv::Mat *totalFeatureVector, cv::dnn::Net *nn);
+    bool bufferLookup(uint idx, cv::Mat *out);
     cv::Mat getFeatureVector(cv::Mat totalVector, int position);
     void sendBuffer(cv::Mat bufferMat, std::vector<uint> calculatedIdx);
     void readBuffer(QMap<QString,QVariant> buffer);
@@ -178,4 +184,4 @@ private:
     void createSettingsWidget(QWidget *parent);
 };
 
-#endif // COSPLACE_H
+#endif // VISUALSIMILARITY_H

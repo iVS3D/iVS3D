@@ -35,41 +35,40 @@ std::vector<uint> VisualSimilarity::sampleImages(const std::vector<unsigned int>
 //        nn.setPreferableTarget(cv::dnn::DNN_TARGET_CUDA_FP16);
         nn.setPreferableTarget(cv::dnn::DNN_TARGET_CUDA);
     }
-
-    cv::Mat totalFeatureVector;
+    size_t weightSize, blobSize;
+    nn.getMemoryConsumption(cv::dnn::MatShape({BATCH_SIZE, 3, 512, 512}), weightSize, blobSize);
+    qDebug() << "weight:" << weightSize << "blob:" << blobSize;
+    qDebug() << "FLOPS:" << nn.getFLOPS(cv::dnn::MatShape({BATCH_SIZE, 3, 512, 512}));
 
     // calculate feature vectors
     QElapsedTimer timer;
+    QFuture<void> futureFeedNN;
     int frameCount = imageList.size();
     timer.start();
-    for (uint idx : imageList) {
+    cv::Mat outblob, inblob, totalFeatureVector;
+    for (uint i = 0; i < frameCount; i+=BATCH_SIZE) {
         if (*stopped) {
             return imageList;
         }
 
-        // buffer lookup
-        auto iter = std::find(m_bufferUsedIdx.begin(), m_bufferUsedIdx.end(), idx);
-        cv::Mat out;
-        if (iter != m_bufferUsedIdx.end()) {
-            // buffered value found
-            int vectorPos = iter - m_bufferUsedIdx.begin();
-            out = getFeatureVector(m_bufferMat, vectorPos);
-        } else {
-            // value not found in buffer
-            cv::Mat img, inblob;
-            img = m_reader->getPic(idx);
-            prepareImage(&img, &inblob, m_nnInputSize);
-            feedImage(&inblob, &out, &nn);
-            inblob.release();
-            img.release();
+        // value not found in buffer
+        std::vector<cv::Mat> imgVec;
+        for (uint j = 0; j < BATCH_SIZE; j++) {
+            cv::Mat img = m_reader->getPic(imageList[i+j]);
+            imgVec.push_back(img);
         }
-        //
 
-        if (totalFeatureVector.empty()) {
-            totalFeatureVector = out;
-        }
-        cv::vconcat(totalFeatureVector,out,totalFeatureVector);
-        out.release();
+        inblob = cv::dnn::blobFromImages(imgVec, 1.0/255.0, m_nnInputSize, NN_MEAN, false, true, CV_32F);
+        cv::divide(inblob, NN_STD, inblob);
+
+        futureFeedNN.waitForFinished();
+        futureFeedNN = QtConcurrent::run(this, &VisualSimilarity::feedImage, &inblob, &totalFeatureVector, &nn);
+//        nn.setInput(inblob);
+//        nn.forward(outblob);
+//        if (totalFeatureVector.empty()) {
+//            totalFeatureVector = outblob;
+//        }
+//        cv::vconcat(totalFeatureVector,outblob,totalFeatureVector);
 
         // display update
         long duration = timer.elapsed();
@@ -79,12 +78,13 @@ std::vector<uint> VisualSimilarity::sampleImages(const std::vector<unsigned int>
 //           << std::setw(7)  << *(imageList.end()-1) << " => "
 //           << std::setw(5) << round(1000.0/duration*100)/100 << "fps";
 //        QString progressDesc = QString::fromStdString(ss.str());
-        int progress = 100.0*(idx-*imageList.begin()) / *(imageList.end()-1);
+        int progress = 100.0*(imageList[i]-*imageList.begin()) / *(imageList.end()-1);
         QString progressDesc = tr("Calculting feature vectors with ")+
-                QString::number(round(1000.0/duration*100)/100).rightJustified(7,' ')+" fps";
+                QString::number(round(BATCH_SIZE*1000.0/duration*100)/100).rightJustified(7,' ')+" fps";
         displayProgress(receiver, progress, progressDesc);
     }
     timer.invalidate();
+    futureFeedNN.waitForFinished();
 
     logFile->stopTimer();
     logFile->startTimer(LF_TIMER_KMEANS);
@@ -246,25 +246,31 @@ void VisualSimilarity::displayMessage(Progressable *p, QString msg)
                               Q_ARG(QString, msg));
 }
 
-void VisualSimilarity::prepareImage(cv::Mat *img,
-                            cv::Mat *outblob,
-                            cv::Size inputSize,
-                            const cv::Scalar &std,
-                            const cv::Scalar &mean)
+double VisualSimilarity::cosineSimilarity(cv::Mat *a, cv::Mat *b)
 {
-    cv::Mat img_resized;
-    cv::resize(*img, img_resized, inputSize);
-    cv::divide(255.0, img_resized, img_resized);
-    cv::subtract(img_resized, mean, img_resized);
-//    *outblob = cv::dnn::blobFromImage(img_resized, 1.0, cv::Size(INPUT_W,INPUT_H), false, true, CV_8U);
-    *outblob = cv::dnn::blobFromImage(img_resized, 1.0, inputSize, false, true, CV_32F);
-    cv::divide(*outblob, std, *outblob);
+    return a->dot(*b) / 1;
 }
 
-void VisualSimilarity::feedImage(cv::Mat *inblob, cv::Mat *out, cv::dnn::dnn4_v20221220::Net *nn)
+void VisualSimilarity::feedImage(cv::Mat *inblob, cv::Mat *totalFeatureVector, cv::dnn::Net *nn)
 {
+    cv::Mat outblob;
     nn->setInput(*inblob);
-    *out = nn->forward();
+    nn->forward(outblob);
+    if (totalFeatureVector->empty())
+        *totalFeatureVector = outblob;
+    cv::vconcat(*totalFeatureVector, outblob, *totalFeatureVector);
+}
+
+bool VisualSimilarity::bufferLookup(uint idx, cv::Mat *out)
+{
+    auto iter = std::find(m_bufferUsedIdx.begin(), m_bufferUsedIdx.end(), idx);
+    if (iter != m_bufferUsedIdx.end()) {
+        // buffered value found
+        int vectorPos = iter - m_bufferUsedIdx.begin();
+        *out = getFeatureVector(m_bufferMat, vectorPos);
+        return true;
+    }
+    return false;
 }
 
 cv::Mat VisualSimilarity::getFeatureVector(cv::Mat totalVector, int position)
