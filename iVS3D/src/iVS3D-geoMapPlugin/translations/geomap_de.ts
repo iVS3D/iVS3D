@@ -2,49 +2,29 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="de_DE">
 <context>
-    <name>gps</name>
+    <name>QObject</name>
     <message>
-        <location filename="../gps.cpp" line="157"/>
-        <source>Show on map</source>
-        <translation>Auf Karte anzeigen</translation>
+        <location filename="../geomap.cpp" line="221"/>
+        <source>Reset selection</source>
+        <translation>Auswahl zurücksetzen</translation>
     </message>
     <message>
-        <location filename="../gps.cpp" line="169"/>
-        <source>Select distance in meter</source>
-        <translation>Abstand in Metern auswählen</translation>
+        <location filename="../geomap.cpp" line="227"/>
+        <source>Help</source>
+        <translation>Hilfe</translation>
     </message>
     <message>
-        <location filename="../gps.cpp" line="182"/>
-        <source>Minimum distance there has to be between two keyframes</source>
-        <translation>Minimale Distanz zwischen zwei Keyframes</translation>
-    </message>
-</context>
-<context>
-    <name>map</name>
-    <message>
-        <location filename="../map.qml" line="106"/>
-        <source>Right click on map to select keyframes</source>
-        <translation>Rechtsklick auf die Karte, um Keyframes auszuwählen</translation>
-    </message>
-    <message>
-        <location filename="../map.qml" line="119"/>
-        <source>Delete Selection</source>
-        <translation>Auswahl löschen</translation>
-    </message>
-    <message>
-        <location filename="../map.qml" line="128"/>
-        <source>Back</source>
-        <translation>Zurück</translation>
-    </message>
-    <message>
-        <location filename="../map.qml" line="137"/>
-        <source>Forward</source>
-        <translation>Wiederherstellen</translation>
-    </message>
-    <message>
-        <location filename="../map.qml" line="151"/>
-        <source>Close</source>
-        <translation>Schließen</translation>
+        <location filename="../geomap.cpp" line="241"/>
+        <source>Select a group of keyframes by using right mouse button to draw an encapsulating polygon.
+
+Select or deselect individual keyframes by clicking with the left mouse button on the location markings.
+
+A combination of both is also allowed.</source>
+        <translation>Zeichne durch drücken der rechten Maustaste ein umschließendes Polygon, um eine Gruppe von Bildern auszuwählen.
+
+Wähle einzelne Bilder durch auswahl der roten Positionsmarkierung mit der linken Maustaste.
+
+Eine Kombination von beidem ist möglich.</translation>
     </message>
 </context>
 </TS>

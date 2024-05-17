@@ -2,48 +2,24 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="en_US">
 <context>
-    <name>gps</name>
+    <name>QObject</name>
     <message>
-        <location filename="../gps.cpp" line="157"/>
-        <source>Show on map</source>
+        <location filename="../geomap.cpp" line="221"/>
+        <source>Reset selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gps.cpp" line="169"/>
-        <source>Select distance in meter</source>
+        <location filename="../geomap.cpp" line="227"/>
+        <source>Help</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../gps.cpp" line="182"/>
-        <source>Minimum distance there has to be between two keyframes</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
-    <name>map</name>
-    <message>
-        <location filename="../map.qml" line="106"/>
-        <source>Right click on map to select keyframes</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../map.qml" line="119"/>
-        <source>Delete Selection</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../map.qml" line="128"/>
-        <source>Back</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../map.qml" line="137"/>
-        <source>Forward</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../map.qml" line="151"/>
-        <source>Close</source>
+        <location filename="../geomap.cpp" line="241"/>
+        <source>Select a group of keyframes by using right mouse button to draw an encapsulating polygon.
+
+Select or deselect individual keyframes by clicking with the left mouse button on the location markings.
+
+A combination of both is also allowed.</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
