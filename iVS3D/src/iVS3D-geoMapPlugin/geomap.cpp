@@ -27,8 +27,9 @@ GeoMap::GeoMap()
     , mIsGpsAvailable(false)
 {
     //--- load and install translations
+    QLocale locale = qApp->property("translation").toLocale();
     QTranslator* translator = new QTranslator();
-    translator->load(QLocale::system(), "geomap", "_", ":/translations", ".qm");
+    translator->load(locale, "geomap", "_", ":/translations", ".qm");
     qApp->installTranslator(translator);
 }
 
@@ -85,6 +86,7 @@ std::vector<uint> GeoMap::sampleImages(const std::vector<uint>& imageList,
     ret.resize(size);
 
     mPolygon = QPolygonF();
+    mpMapHandler->setPolygon(mPolygon);
 
     return ret;
 }
@@ -122,7 +124,8 @@ void GeoMap::initialize(Reader* reader, QMap<QString, QVariant> buffer, signalOb
 //==================================================================================================
 void GeoMap::setSettings(QMap<QString, QVariant> settings)
 {
-
+    //mPolygon = settings.find(NAME_Polygon).value().value<QPolygonF>();
+    //mpMapHandler->setPolygon(mPolygon);
 }
 
 //==================================================================================================
@@ -184,6 +187,8 @@ void GeoMap::onKeyframesChanged(std::vector<uint> keyframes)
     if(keyframes == getKeyframesFromGps()) {
         return;
     }
+    // create a copy of the old list
+    QList<QPair<QPointF, bool>> oldGpsData = mGpsData;
 
     // reset all frames to unselected
     for (int gpsIndex = 0; gpsIndex < mGpsData.length(); gpsIndex++)
@@ -197,11 +202,35 @@ void GeoMap::onKeyframesChanged(std::vector<uint> keyframes)
         mGpsData[index].second = true;
     }
 
+    // find all keyframes that changed
+    QList<QPair<QPointF, bool>> changedGpsData;
+    for (int gpsIndex = 0; gpsIndex < mGpsData.length(); gpsIndex++) {
+        if(mGpsData[gpsIndex].second != oldGpsData[gpsIndex].second) {
+            changedGpsData.append(mGpsData[gpsIndex]);
+        }
+    }
+
+
+
+    // only if the map exists and is currently visible, update it!
+    if (mpQuickViewContainerWidget && mpMapWidget && mpMapWidget->isVisible())
+    {
+        // updating individual qml items is expensive, so only do it if there are few items to update!
+        if (changedGpsData.length() < 10) {
+            mpMapHandler->updatePoints(changedGpsData);
+            mpMapHandler->setPolygon(mPolygon);
+        } else {
+            reinitializeQmlMap(); // oterwise just draw the map from scratch!
+        }
+    }
+
+
+/*
     // only if the map exists and is currently visible, redraw it!
     if (mpQuickViewContainerWidget && mpMapWidget && mpMapWidget->isVisible())
     {
         reinitializeQmlMap();
-    }
+    }*/
 }
 
 //==================================================================================================

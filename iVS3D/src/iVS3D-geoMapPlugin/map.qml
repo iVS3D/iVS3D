@@ -62,6 +62,8 @@ Item {
             }
 
             onSetPoint : {
+                // mapItems is a list, so access by index is in O(N)!
+                // finding the item is very expensive if there are many items!
                 var item = mapToken.mapItems[index]
                 item.opacity = (used) ? 1.0 : 0.1
             }

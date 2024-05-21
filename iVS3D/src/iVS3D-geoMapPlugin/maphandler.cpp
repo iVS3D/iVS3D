@@ -35,6 +35,27 @@ void MapHandler::addPoints(const QList<QPair<QPointF, bool>>& gpsData)
     drawGpsDataOnMap();
 }
 
+void MapHandler::updatePoints(const QList<QPair<QPointF, bool> > &m_changedPoints)
+{
+    // update all points that changed
+    for (auto gpsPoint : m_changedPoints) {
+        if (mGpsMap.contains(gpsPoint.first)) {
+            // update whether the point is selected or not
+            mGpsMap[gpsPoint.first] = gpsPoint.second;
+            // get the index of the point in the qml map
+            int idx = mMapItems[gpsPoint.first];
+            // emit signal to update the corresponding circle
+            // IMPORTANT: This signal is handled in QML and is
+            // very expensive to compute! see map.qml
+            emitSetPoint(idx, gpsPoint.second);
+        }
+    }
+
+    QGeoPath path = QGeoPath(mPolygon.path());
+    emitSetMapSelect(path);
+    newMapItems();
+}
+
 void MapHandler::setPolygon(const QPolygonF &poly)
 {
     mPolygon = QGeoPolygon();

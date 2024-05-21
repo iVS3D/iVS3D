@@ -39,6 +39,8 @@ class MapHandler : public QObject
      */
     void addPoints(const QList<QPair<QPointF, bool>>& m_gpsData);
 
+    void updatePoints(const QList<QPair<QPointF, bool>>& m_changedPoints);
+
     void setPolygon(const QPolygonF& poly);
 
     /**
