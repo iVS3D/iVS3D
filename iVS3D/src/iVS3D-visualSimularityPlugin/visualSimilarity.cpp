@@ -30,62 +30,69 @@ std::vector<uint> VisualSimilarity::sampleImages(const std::vector<unsigned int>
     // Read nn
     auto nn = cv::dnn::readNet(RESSOURCE_PATH+m_nnFileName.toStdString());
     // activate cuda
-    int batchSize = 200;
+    int batchSize = 1;
     if (useCuda) {
         nn.setPreferableBackend(cv::dnn::DNN_BACKEND_CUDA);
-//        nn.setPreferableTarget(cv::dnn::DNN_TARGET_CUDA_FP16);
         nn.setPreferableTarget(cv::dnn::DNN_TARGET_CUDA);
         // calculate batch size
         const long availableMemory = cv::cuda::DeviceInfo(0).freeMemory();
         batchSize = round(availableMemory/m_nnInputSize.width/m_nnInputSize.height/3/32*MEM_THRESEHOLD); // RAM/(W*H*C*32)*thresehold <- CV_32F
-        std::cout << "Detected " << std::round(double(availableMemory*100)/100000000000.0) << "GB free memory." << std::endl;
+        std::cout << "Detected " << std::round(availableMemory/10000000.0)/100.0 << "GB free memory." << std::endl;
         std::cout << "Resulting Batch Size: " << batchSize << std::endl;
     }
 
     // calculate feature vectors
-    QElapsedTimer timer;
     QFuture<void> futureFeedNN;
     int frameCount = imageList.size();
-    timer.start();
-    cv::Mat outblob, inblob, totalFeatureVector;
+    cv::Mat inblob, totalFeatureVector;
     for (uint i = 0; i < frameCount; i+=batchSize) {
         if (*stopped) {
+            futureFeedNN.cancel();
             return imageList;
         }
 
-        // value not found in buffer
-        std::vector<cv::Mat> imgVec;
-        for (uint j = 0; j < batchSize; j++) {
-            cv::Mat img = m_reader->getPic(imageList[i+j]);
-            imgVec.push_back(img);
+        // --------------- use buffered values if posible -------------
+        bool fullBatchAvailableInBuffer = true;
+        cv::Mat bufferedBatch;
+        for (uint j = i ; j < i+batchSize && j < frameCount; j++) {
+            cv::Mat out;
+            if (bufferLookup(imageList[j], &out)) {
+                if (bufferedBatch.empty())
+                    bufferedBatch = out;
+                else
+                    cv::vconcat(bufferedBatch, out, bufferedBatch);
+            } else {
+                fullBatchAvailableInBuffer = false;
+                break;
+            }
+        }
+        if (fullBatchAvailableInBuffer) {
+            futureFeedNN.waitForFinished();
+            if (totalFeatureVector.empty())
+                totalFeatureVector = bufferedBatch;
+            else
+                cv::vconcat(totalFeatureVector, bufferedBatch, totalFeatureVector);
         }
 
-        inblob = cv::dnn::blobFromImages(imgVec, 1.0/255.0, m_nnInputSize, NN_MEAN, false, true, CV_32F);
-        cv::divide(inblob, NN_STD, inblob);
+        // ----------------------- compute batch ------------------------
+        if (!fullBatchAvailableInBuffer) {
+            std::vector<cv::Mat> imgVec;
+            for (uint j = i ; j < i+batchSize && j < frameCount; j++) {
+                int progress = 100.0*(imageList[j]-*imageList.begin()) / *(imageList.end()-1);
+                QString progressDesc = tr("Calculting feature vector for frame ") + QString::number(imageList[j]);
+                displayProgress(receiver, progress, progressDesc);
 
-        futureFeedNN.waitForFinished();
-        futureFeedNN = QtConcurrent::run(this, &VisualSimilarity::feedImage, &inblob, &totalFeatureVector, &nn);
-//        nn.setInput(inblob);
-//        nn.forward(outblob);
-//        if (totalFeatureVector.empty()) {
-//            totalFeatureVector = outblob;
-//        }
-//        cv::vconcat(totalFeatureVector,outblob,totalFeatureVector);
+                cv::Mat img = m_reader->getPic(imageList[j]);
+                imgVec.push_back(img);
+            }
 
-        // display update
-        long duration = timer.elapsed();
-        timer.restart();
-//        std::stringstream ss;
-//        ss << std::setw(7) << idx << " | "
-//           << std::setw(7)  << *(imageList.end()-1) << " => "
-//           << std::setw(5) << round(1000.0/duration*100)/100 << "fps";
-//        QString progressDesc = QString::fromStdString(ss.str());
-        int progress = 100.0*(imageList[i]-*imageList.begin()) / *(imageList.end()-1);
-        QString progressDesc = tr("Calculting feature vectors with ")+
-                QString::number(round(batchSize*1000.0/duration*100)/100).rightJustified(7,' ')+" fps";
-        displayProgress(receiver, progress, progressDesc);
+            inblob = cv::dnn::blobFromImages(imgVec, 1.0/255.0, m_nnInputSize, NN_MEAN, false, true, CV_32F);
+            cv::divide(inblob, NN_STD, inblob);
+            futureFeedNN.waitForFinished();
+            futureFeedNN = QtConcurrent::run(this, &VisualSimilarity::feedImage, inblob, &totalFeatureVector, &nn);
+        }
+        // --------------------------------------------------------------
     }
-    timer.invalidate();
     futureFeedNN.waitForFinished();
 
     logFile->stopTimer();
@@ -93,6 +100,8 @@ std::vector<uint> VisualSimilarity::sampleImages(const std::vector<unsigned int>
 
     // k-means
     int targetFrames = imageList.size() / m_frameReduction;
+    if (targetFrames < 1)
+        targetFrames = 1;
     cv::Mat centers, labels;
     cv::kmeans(totalFeatureVector,
                targetFrames,
@@ -161,7 +170,7 @@ std::vector<uint> VisualSimilarity::sampleImages(const std::vector<unsigned int>
 
 QString VisualSimilarity::getName() const
 {
-    return tr("Visual Similarity");
+    return tr("Deep Visual Similarity");
 }
 
 void VisualSimilarity::initialize(Reader *reader, QMap<QString, QVariant> buffer, signalObject *so)
@@ -253,10 +262,10 @@ double VisualSimilarity::cosineSimilarity(cv::Mat *a, cv::Mat *b)
     return a->dot(*b) / 1;
 }
 
-void VisualSimilarity::feedImage(cv::Mat *inblob, cv::Mat *totalFeatureVector, cv::dnn::Net *nn)
+void VisualSimilarity::feedImage(cv::Mat inblob, cv::Mat *totalFeatureVector, cv::dnn::Net *nn)
 {
     cv::Mat outblob;
-    nn->setInput(*inblob);
+    nn->setInput(inblob);
     nn->forward(outblob);
     if (totalFeatureVector->empty())
         *totalFeatureVector = outblob;
@@ -386,7 +395,6 @@ void VisualSimilarity::createSettingsWidget(QWidget *parent)
     frameReductionWidget->layout()->addWidget(m_frameReductionInput);
     m_settingsWidget->layout()->addWidget(frameReductionWidget);
     connect(m_frameReductionInput, QOverload<int>::of(&QSpinBox::valueChanged), this, [=](int v){m_frameReduction=v;});
-    QLabel *frameReductionWidget_txt = new QLabel(frameReductionWidget);
     // nn_name input
     QWidget *nnNameWidget = new QWidget(parent);
     nnNameWidget->setLayout(new QHBoxLayout(parent));

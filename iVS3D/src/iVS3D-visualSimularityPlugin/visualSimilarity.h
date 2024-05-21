@@ -1,7 +1,7 @@
 #ifndef VISUALSIMILARITY_H
 #define VISUALSIMILARITY_H
 
-/** @defgroup visualSimilarityPlugin visualSimilarityPlugin
+/** @defgroup deepVisualSimilarityPlugin deepVisualSimilarityPlugin
  *
  * @ingroup Plugin
  *
@@ -40,8 +40,8 @@
 #include "progressable.h"
 #include "signalobject.h"
 
-#define RESSOURCE_PATH "plugins/ressources/VisualSimularity/"
-#define MEM_THRESEHOLD 0.8f
+#define RESSOURCE_PATH "plugins/ressources/DeepVisualSimularity/"
+#define MEM_THRESEHOLD 0.7f
 #define NN_STD cv::Scalar({0.229, 0.224, 0.225})
 #define NN_MEAN cv::Scalar({0.485, 0.456, 0.406})
 
@@ -68,15 +68,15 @@
 #define LF_TIMER_BUFFER "safe buffer timer"
 
 // buffer
-#define BUFFER_NAME_FEATURES "VisSimularityFeatureVector"
+#define BUFFER_NAME_FEATURES "DeepVisSimularityFeatureVector"
 #define BUFFER_FEATURE_DELIMITER_X ","
 #define BUFFER_FEATURE_DELIMITER_Y ";"
-#define BUFFER_NAME_IDX "VisSimularityIdx"
+#define BUFFER_NAME_IDX "DeepVisSimularityIdx"
 
 /**
- * @class visualSimilarity
+ * @class deepVisualSimilarity
  *
- * @ingroup visualSimilarityPlugin
+ * @ingroup deepVisualSimilarityPlugin
  *
  * @brief This plugin computes a feature vector for each frame using a given neural network.
  *        These identiviers are clustered with k-Means under the cosine similarity metric.
@@ -156,7 +156,7 @@ private:
     static void displayProgress(Progressable *p, int progress, QString msg);
     static void displayMessage(Progressable *p, QString msg);
     static double cosineSimilarity(cv::Mat *a, cv::Mat *b);
-    void feedImage(cv::Mat *inblob, cv::Mat *totalFeatureVector, cv::dnn::Net *nn);
+    void feedImage(cv::Mat inblob, cv::Mat *totalFeatureVector, cv::dnn::Net *nn);
     bool bufferLookup(uint idx, cv::Mat *out);
     cv::Mat getFeatureVector(cv::Mat totalVector, int position);
     void sendBuffer(cv::Mat bufferMat, std::vector<uint> calculatedIdx);
