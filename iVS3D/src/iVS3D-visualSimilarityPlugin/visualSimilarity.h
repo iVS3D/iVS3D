@@ -41,7 +41,7 @@
 #include "progressable.h"
 #include "signalobject.h"
 
-#define RESSOURCE_PATH "plugins/ressources/DeepVisualSimilarity/"
+#define RESSOURCE_PATH "plugins/ressources/neural_network_models/"
 #define MEM_THRESEHOLD 0.7f
 #define NN_STD cv::Scalar({0.229, 0.224, 0.225})
 #define NN_MEAN cv::Scalar({0.485, 0.456, 0.406})
@@ -51,7 +51,7 @@
 #define UI_FRAMEREDUCTION_NAME tr("Select one frame every K framese")
 #define UI_FRAMEREDUCTION_DESC tr("Reduces the amount of selected frames by the factor K.")
 #define UI_NNNAME_NAME tr("Selected Neural Network")
-#define UI_NNNAME_DESC tr("The drop-down shows all files in the folder plugins/ressources/VisualSimilarity/ that follow the format NAME_DIMENSION_WIDHTxHEIGHT.onnx")
+#define UI_NNNAME_DESC tr("The drop-down shows all files in the folder plugins/ressources/neural_network_models/ that follow the format ImageEmbedding_NAME_DIMENSION_WIDHTxHEIGHT.onnx")
 #define UI_NNNAME_BT_DESC tr("Resets the drop-Down and reloads available neural networks.")
 
 // json settings
@@ -175,7 +175,7 @@ private:
     int m_frameReduction = -1;
     int m_featureDims = -1;
     cv::Size m_nnInputSize = cv::Size(-1,-1);
-    const QRegularExpression nnNameFormat = QRegularExpression("\\w+_\\d+x\\d+.onnx$");
+    const QRegularExpression m_nnNameFormat = QRegularExpression("^(ImageEmbedding)\\w+_(?<featureDims>\\d+)_(?<width>\\d+)x(?<height>\\d+).onnx$");
     QString m_nnFileName = "NAME_DIMENSION_WIDTHxHEIGHT.onnx";
     // widgets
     QWidget *m_settingsWidget = nullptr;

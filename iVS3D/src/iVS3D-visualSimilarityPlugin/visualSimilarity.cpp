@@ -29,6 +29,10 @@ std::vector<uint> VisualSimilarity::sampleImages(const std::vector<unsigned int>
     logFile->startTimer(LF_TIMER_NN);
 
     // Read nn
+    if (!QFile::exists(QString::fromStdString(RESSOURCE_PATH+m_nnFileName.toStdString()))) {
+        displayErrorMessage(tr("No valid neural network was selected."));
+        return imageList;
+    }
     displayMessage(receiver, tr("Loading Neural Network"));
     displayProgress(receiver,0 , tr("Loading Neural Network"));
     auto nn = cv::dnn::readNet(RESSOURCE_PATH+m_nnFileName.toStdString());
@@ -120,7 +124,6 @@ std::vector<uint> VisualSimilarity::sampleImages(const std::vector<unsigned int>
     int targetFrames = imageList.size() / m_frameReduction;
     if (targetFrames < 1)
         targetFrames = 1;
-    std::cout << "T: " << targetFrames << std::endl;
     displayProgress(receiver, 99, tr("Selecting Images"));
     cv::Mat centers, labels;
     cv::kmeans(normalizedTotalFeatureVector,
@@ -248,12 +251,17 @@ QMap<QString, QVariant> VisualSimilarity::getSettings()
 
 void VisualSimilarity::slot_selectedNNChanged(QString nnName)
 {
-    QStringList s = nnName.split("_");
-    if (s.size() < 3)
-        return;
-    m_featureDims = s[1].toInt();
-    QStringList resList = s[2].split(".")[0].split("x");
-    m_nnInputSize = cv::Size(resList[0].toInt(), resList[1].toInt());
+//    QStringList s = nnName.split("_");
+//    if (s.size() < 3)
+//        return;
+//    m_featureDims = s[1].toInt();
+//    QStringList resList = s[2].split(".")[0].split("x");
+//    m_nnInputSize = cv::Size(resList[0].toInt(), resList[1].toInt());
+    QRegularExpressionMatch match = m_nnNameFormat.match(nnName);
+    m_featureDims = match.captured("featureDims").toInt();
+    int w = match.captured("width").toInt();
+    int h = match.captured("height").toInt();
+    m_nnInputSize = cv::Size(w, h);
     m_nnFileName = nnName;
 }
 
@@ -402,7 +410,7 @@ cv::Mat VisualSimilarity::stringToBufferMat(QString string)
 QStringList VisualSimilarity::collect_nns(QString path)
 {
     QStringList entries = QDir(path).entryList(QDir::Files);
-    return entries.filter(nnNameFormat);
+    return entries.filter(m_nnNameFormat);
 }
 
 void VisualSimilarity::displayErrorMessage(QString message)
