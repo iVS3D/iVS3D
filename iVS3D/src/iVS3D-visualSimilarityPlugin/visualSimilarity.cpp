@@ -22,12 +22,15 @@ QWidget* VisualSimilarity::getSettingsWidget(QWidget *parent)
 
 std::vector<uint> VisualSimilarity::sampleImages(const std::vector<unsigned int> &imageList, Progressable *receiver, volatile bool *stopped, bool useCuda, LogFileParent* logFile)
 {
-    displayMessage(receiver, tr("Loading Neural Network"));
-    displayProgress(receiver,0 , tr("Loading Neural Network"));
+    if (imageList.size() < 2) {
+        return imageList;
+    }
 
     logFile->startTimer(LF_TIMER_NN);
 
     // Read nn
+    displayMessage(receiver, tr("Loading Neural Network"));
+    displayProgress(receiver,0 , tr("Loading Neural Network"));
     auto nn = cv::dnn::readNet(RESSOURCE_PATH+m_nnFileName.toStdString());
     // activate cuda
     int batchSize = 1;
@@ -78,7 +81,7 @@ std::vector<uint> VisualSimilarity::sampleImages(const std::vector<unsigned int>
         if (!fullBatchAvailableInBuffer) {
             std::vector<cv::Mat> imgVec;
             for (uint j = i ; j < i+batchSize && j < frameCount; j++) {
-                int progress = 100.0*(imageList[j]-*imageList.begin()) / *(imageList.end()-1);
+                int progress = 100.0*(imageList[j]-*imageList.begin()) / (*(imageList.end()-1)-*imageList.begin());
                 QString progressDesc = tr("Calculating feature vector for frame ") + QString::number(imageList[j]);
                 displayProgress(receiver, progress, progressDesc);
 
@@ -93,17 +96,34 @@ std::vector<uint> VisualSimilarity::sampleImages(const std::vector<unsigned int>
         }
         // --------------------------------------------------------------
     }
+    displayProgress(receiver, 99, tr("Waiting for last batch to finish"));
     futureFeedNN.waitForFinished();
 
     logFile->stopTimer();
     logFile->startTimer(LF_TIMER_KMEANS);
 
+    // normalizing each dimension
+    cv::Mat normalizedTotalFeatureVector;
+    cv::Mat out;
+    cv::normalize(getFeatureVector(totalFeatureVector, 0), normalizedTotalFeatureVector, 1.0, 0.0, cv::NORM_MINMAX);
+    for (int i = 1; i < totalFeatureVector.rows; i++) {
+        cv::normalize(getFeatureVector(totalFeatureVector, i), out, 1.0, 0.0, cv::NORM_MINMAX);
+        if (out.empty()) {
+            displayErrorMessage(tr("One of the resulting feature vectors is empty. This maybe caused by a not suitable neural network."));
+            return imageList;
+        }
+        cv::vconcat(normalizedTotalFeatureVector, out, normalizedTotalFeatureVector);
+    }
+    totalFeatureVector.release();
+
     // k-means
     int targetFrames = imageList.size() / m_frameReduction;
     if (targetFrames < 1)
         targetFrames = 1;
+    std::cout << "T: " << targetFrames << std::endl;
+    displayProgress(receiver, 99, tr("Selecting Images"));
     cv::Mat centers, labels;
-    cv::kmeans(totalFeatureVector,
+    cv::kmeans(normalizedTotalFeatureVector,
                targetFrames,
                labels,
                cv::TermCriteria(cv::TermCriteria::EPS+cv::TermCriteria::COUNT,10,1.0),
@@ -129,9 +149,13 @@ std::vector<uint> VisualSimilarity::sampleImages(const std::vector<unsigned int>
         }
 
         int currLabel = labels.at<int>(i);
-        cv::Mat currCenter = getFeatureVector(centers,currLabel);
-        cv::Mat currFeatureVector = getFeatureVector(totalFeatureVector, i);
+        cv::Mat currCenter = getFeatureVector(centers, currLabel);
+        cv::Mat currFeatureVector = getFeatureVector(normalizedTotalFeatureVector, i);
 
+        if (currCenter.empty() || currFeatureVector.empty()) {
+            displayErrorMessage(tr("Wrong feature vector dimension for selected neural network. (this dimension was specified in the name of the file, which contains the neural network)"));
+            return imageList;
+        }
         float d = cv::norm(currCenter,currFeatureVector);
 
         // safe feature vector as nearest
@@ -158,9 +182,9 @@ std::vector<uint> VisualSimilarity::sampleImages(const std::vector<unsigned int>
     //
 
     // safe to buffer
-    sendBuffer(totalFeatureVector, imageList);
+    sendBuffer(normalizedTotalFeatureVector, imageList);
     m_bufferMat.release();
-    m_bufferMat = totalFeatureVector;
+    m_bufferMat = normalizedTotalFeatureVector;
     m_bufferUsedIdx = imageList;
 
     logFile->stopTimer();
@@ -191,7 +215,7 @@ void VisualSimilarity::setSettings(QMap<QString, QVariant> settings)
     // frame reduction
     QMap<QString, QVariant>::iterator itFrameReduction = settings.find(FRAMEREDUCTION_JSON_NAME);
     if (itFrameReduction != settings.end()) {
-        m_frameReduction = itFrameReduction.value().toDouble();
+        m_frameReduction = itFrameReduction.value().toInt();
         if (m_frameReductionInput) {
             m_frameReductionInput->setValue(m_frameReduction);
         }
@@ -279,6 +303,9 @@ bool VisualSimilarity::bufferLookup(uint idx, cv::Mat *out)
         // buffered value found
         int vectorPos = iter - m_bufferUsedIdx.begin();
         *out = getFeatureVector(m_bufferMat, vectorPos);
+        if (out->empty()) {
+            return false;
+        }
         return true;
     }
     return false;
@@ -286,6 +313,9 @@ bool VisualSimilarity::bufferLookup(uint idx, cv::Mat *out)
 
 cv::Mat VisualSimilarity::getFeatureVector(cv::Mat totalVector, int position)
 {
+    if (totalVector.cols != m_featureDims) {
+        return cv::Mat();
+    }
     return totalVector(cv::Rect(0,position,m_featureDims,1));
 }
 
@@ -373,6 +403,17 @@ QStringList VisualSimilarity::collect_nns(QString path)
 {
     QStringList entries = QDir(path).entryList(QDir::Files);
     return entries.filter(nnNameFormat);
+}
+
+void VisualSimilarity::displayErrorMessage(QString message)
+{
+    QDialog *errorDialog = new QDialog();
+    errorDialog->setWindowTitle(tr("Error"));
+    QLabel *txtLabel = new QLabel(message);
+    QHBoxLayout *mainLayout = new QHBoxLayout();
+    mainLayout->addWidget(txtLabel);
+    errorDialog->setLayout(mainLayout);
+    errorDialog->exec();
 }
 
 void VisualSimilarity::createSettingsWidget(QWidget *parent)

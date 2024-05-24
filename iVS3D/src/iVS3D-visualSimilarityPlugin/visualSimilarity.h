@@ -23,6 +23,7 @@
 #include <QSizePolicy>
 #include <QTranslator>
 #include <QCoreApplication>
+#include <QDialog>
 #include <QElapsedTimer>
 #include <QDebug>
 #include <QDir>
@@ -163,6 +164,7 @@ private:
     void readBuffer(QMap<QString,QVariant> buffer);
     cv::Mat stringToBufferMat(QString string);
     QStringList collect_nns(QString path);
+    void displayErrorMessage(QString message);
     //
 
     cv::Mat m_bufferMat = cv::Mat();
