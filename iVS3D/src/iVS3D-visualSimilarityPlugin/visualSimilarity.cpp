@@ -79,7 +79,7 @@ std::vector<uint> VisualSimilarity::sampleImages(const std::vector<unsigned int>
             std::vector<cv::Mat> imgVec;
             for (uint j = i ; j < i+batchSize && j < frameCount; j++) {
                 int progress = 100.0*(imageList[j]-*imageList.begin()) / *(imageList.end()-1);
-                QString progressDesc = tr("Calculting feature vector for frame ") + QString::number(imageList[j]);
+                QString progressDesc = tr("Calculating feature vector for frame ") + QString::number(imageList[j]);
                 displayProgress(receiver, progress, progressDesc);
 
                 cv::Mat img = m_reader->getPic(imageList[j]);
@@ -404,7 +404,7 @@ void VisualSimilarity::createSettingsWidget(QWidget *parent)
     // nn_name button
     m_nnNameReloadBt = new QPushButton(parent);
     m_nnNameReloadBt->setToolTip(UI_NNNAME_BT_DESC);
-//    m_nnNameReloadBt->setIcon();
+//    m_nnNameReloadBt->setIcon(QIcon(":/icons/resetIconW"));
     m_nnNameReloadBt->setText("R");
     m_nnNameReloadBt->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     connect(m_nnNameReloadBt, &QPushButton::clicked, this, &VisualSimilarity::slot_reloadNN);

@@ -10,7 +10,7 @@ if(Build_Plugins)
     add_subdirectory(iVS3D-smoothCameraMovementPlugin)
     add_subdirectory(iVS3D-geoDistancePlugin)
     add_subdirectory(iVS3D-geoMapPlugin)
-    add_subdirectory(iVS3D-visualSimularityPlugin)
+    add_subdirectory(iVS3D-visualSimilarityPlugin)
 endif()
 
 if(Install_Models)

@@ -40,7 +40,7 @@
 #include "progressable.h"
 #include "signalobject.h"
 
-#define RESSOURCE_PATH "plugins/ressources/DeepVisualSimularity/"
+#define RESSOURCE_PATH "plugins/ressources/DeepVisualSimilarity/"
 #define MEM_THRESEHOLD 0.7f
 #define NN_STD cv::Scalar({0.229, 0.224, 0.225})
 #define NN_MEAN cv::Scalar({0.485, 0.456, 0.406})
@@ -50,7 +50,7 @@
 #define UI_FRAMEREDUCTION_NAME tr("Select one frame every K framese")
 #define UI_FRAMEREDUCTION_DESC tr("Reduces the amount of selected frames by the factor K.")
 #define UI_NNNAME_NAME tr("Selected Neural Network")
-#define UI_NNNAME_DESC tr("The drop-down shows all files in the folder plugins/ressources/VisualSimularity/ that follow the format NAME_DIMENSION_WIDHTxHEIGHT.onnx")
+#define UI_NNNAME_DESC tr("The drop-down shows all files in the folder plugins/ressources/VisualSimilarity/ that follow the format NAME_DIMENSION_WIDHTxHEIGHT.onnx")
 #define UI_NNNAME_BT_DESC tr("Resets the drop-Down and reloads available neural networks.")
 
 // json settings
@@ -68,10 +68,10 @@
 #define LF_TIMER_BUFFER "safe buffer timer"
 
 // buffer
-#define BUFFER_NAME_FEATURES "DeepVisSimularityFeatureVector"
+#define BUFFER_NAME_FEATURES "DeepVisSimilarityFeatureVector"
 #define BUFFER_FEATURE_DELIMITER_X ","
 #define BUFFER_FEATURE_DELIMITER_Y ";"
-#define BUFFER_NAME_IDX "DeepVisSimularityIdx"
+#define BUFFER_NAME_IDX "DeepVisSimilarityIdx"
 
 /**
  * @class deepVisualSimilarity
