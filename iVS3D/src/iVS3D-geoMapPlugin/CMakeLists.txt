@@ -31,12 +31,23 @@ set(SRC_FILES
     "${CMAKE_CURRENT_LIST_DIR}/maphandler.cpp"
 )
 
-# define target to build translation files
-file(GLOB_RECURSE TRANSLATION_FILES
-    "${CMAKE_CURRENT_LIST_DIR}/translations/*.ts"
+# set compiled translation files (.qm)
+set(QM_FILES
+    "${CMAKE_CURRENT_LIST_DIR}/translations/geomap_de.qm"
+    "${CMAKE_CURRENT_LIST_DIR}/translations/geomap_en.qm"
 )
-add_custom_target(BuildTranslations-${TARGET_NAME}
-    COMMAND lrelease ${TRANSLATION_FILES}
+
+# set compiled translation files (.ts)
+set(TS_FILES
+    "${CMAKE_CURRENT_LIST_DIR}/translations/geomap_de.ts"
+    "${CMAKE_CURRENT_LIST_DIR}/translations/geomap_en.ts"
+)
+
+# custom command to create translations (.qm) files using lrelease
+add_custom_command(
+    OUTPUT ${QM_FILES}
+    COMMAND lrelease ${TS_FILES}
+    DEPENDS ${TS_FILES}
 )
 
 # add ressources
@@ -49,6 +60,8 @@ add_library(${TARGET_NAME} SHARED
     ${HEADER_FILES}
     ${SRC_FILES}
     ${QRC_SRC_FILES}
+    ${QM_FILES}
+    ${TS_FILES}
 )
 target_link_libraries(${TARGET_NAME}
     iVS3D-pluginInterface
@@ -75,7 +88,6 @@ set_target_properties(${TARGET_NAME} PROPERTIES
 add_dependencies(${TARGET_NAME}
     iVS3D-pluginInterface
     iVS3D-core
-    BuildTranslations-${TARGET_NAME}
 )
 
 # install
@@ -84,19 +96,14 @@ install(TARGETS ${TARGET_NAME}
 )
 
 if(Update_Translations)
-    add_custom_target(UpdateTranslations-${TARGET_NAME}
-        COMMAND lupdate ${CMAKE_CURRENT_LIST_DIR} -ts ${TRANSLATION_FILES} -no-obsolete
-    )
-
-    add_dependencies(${TARGET_NAME}
-        UpdateTranslations-${TARGET_NAME}
-    )
-
-    add_dependencies(BuildTranslations-${TARGET_NAME}
-        UpdateTranslations-${TARGET_NAME}
+    # if Update_Translations flag is set to ON, we want to override existing .ts files with new Strings from the src files.
+    # this is done using Qt's tool "lupdate", which searches all src files (.cpp and .h) in the given folder (in this case
+    # ${CMAKE_CURRENT_LIST_DIR}) and outputs the updated .ts files
+    # IMPORTANT: We want this command to execute, even if the ts files already exist, to make sure they are updated! This is
+    # achieved by adding an OUTPUT (placeholder.out) which is never created and thus forces the command to run on every build.
+    add_custom_command(
+        OUTPUT ${TS_FILES} placeholder.out
+        COMMAND lupdate ${CMAKE_CURRENT_LIST_DIR} -ts ${TS_FILES} -no-obsolete
+        DEPENDS ${HEADER_FILES} ${SRC_FILES}
     )
 endif()
-
-# TODO: Windows Build
-#   - Deploy DLLs
-#   - Check if lrelease-pro is needed
