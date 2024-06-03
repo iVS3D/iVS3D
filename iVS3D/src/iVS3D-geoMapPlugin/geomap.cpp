@@ -216,7 +216,10 @@ void GeoMap::onKeyframesChanged(std::vector<uint> keyframes)
     if (mpQuickViewContainerWidget && mpMapWidget && mpMapWidget->isVisible())
     {
         // updating individual qml items is expensive, so only do it if there are few items to update!
-        if (changedGpsData.length() < 10) {
+        // The boundary is heavily dependent on hardware, i.e.
+        // - on low-end laptop, for 100+ points, it is faster to redraw from scratch
+        // - on high-end desktop, 100k points to update is still similar speed to redrawing
+        if (changedGpsData.length() < 100000) {
             mpMapHandler->updatePoints(changedGpsData);
             mpMapHandler->setPolygon(mPolygon);
         } else {
