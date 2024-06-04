@@ -1131,7 +1131,7 @@ def popFirstJobFromQueue(yamlFilePath: str) -> Job:
 
     yamlJobEntry = None
     # read and delete job
-    for i in range(len(yamlObj["queue"])):
+    for i in range(len(yamlObj["queue"])): 
         tmp = yamlObj["queue"][i]
 
         # JOB_FAILED
@@ -1140,6 +1140,7 @@ def popFirstJobFromQueue(yamlFilePath: str) -> Job:
 
         yamlJobEntry = tmp
         del yamlObj["queue"][i]
+        break
 
     if yamlJobEntry is None:
         return False, Job("",-1,-1,-1,"")

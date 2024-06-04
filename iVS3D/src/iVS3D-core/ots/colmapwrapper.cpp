@@ -383,7 +383,7 @@ void ColmapWrapper::loadDefaultSettings()
     mConnectionType=LOCAL;
     mRemoteAddr="";
     mRemoteUsr="";
-    mSyncInterval=10;
+    mSyncInterval=5;
 }
 
 //==================================================================================================
