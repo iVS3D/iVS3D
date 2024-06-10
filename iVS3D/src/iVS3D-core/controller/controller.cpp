@@ -349,7 +349,13 @@ void Controller::slot_changeInterpolateMetaData(bool interpolate)
 void Controller::slot_openMetaData()
 {
     QString selectedFilter = "";
-    QString filePath = QFileDialog::getOpenFileName(m_mainWindow, tr("Choose Meta Data"), ApplicationSettings::instance().getStandardInputPath(), "*.srt *.SRT *.gpx *.jpeg *.jpg", &selectedFilter, QFileDialog::DontUseNativeDialog);
+    QString filePath
+        = QFileDialog::getOpenFileName(m_mainWindow,
+                                       tr("Choose Meta Data"),
+                                       ApplicationSettings::instance().getStandardInputPath(),
+                                       "*.srt *.SRT *.gpx *.GPX *.jpeg *.jpg *.txt",
+                                       &selectedFilter,
+                                       QFileDialog::DontUseNativeDialog);
     if (filePath == nullptr) {
         emit sig_hasStatusMessage(tr("Input canceled"));
         return;

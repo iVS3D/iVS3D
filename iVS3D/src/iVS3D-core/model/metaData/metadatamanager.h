@@ -31,7 +31,7 @@ public:
     }
 
     static const QStringList supportedFileExtensions(){
-        return {".srt", ".SRT", ".gpx", ".GPX"};
+        return {".srt", ".SRT", ".gpx", ".GPX", ".txt"};
     }
 
     /**

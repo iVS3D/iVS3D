@@ -1,5 +1,5 @@
-#ifndef GPSREADERGPX_H
-#define GPSREADERGPX_H
+#ifndef GPSREADERTXT_H
+#define GPSREADERTXT_H
 
 #include "gpsreader.h"
 #include "metadatamanager.h"
@@ -10,22 +10,22 @@
 #include <QPointF>
 
 /**
- * @interface GPSReaderGPX
+ * @interface GPSReaderTXT
  *
  * @ingroup Model
  *
- * @brief Class to parse meta data from gpx files
+ * @brief Class to parse meta data from txt files
  *
  * @author Max Hermann
  *
  * @date 2024/12/07
  */
 
-class GPSReaderGPX : public GPSReader
+class GPSReaderTXT : public GPSReader
 {
 public:
-    GPSReaderGPX();
-    ~GPSReaderGPX();
+    GPSReaderTXT();
+    ~GPSReaderTXT();
 
     /**
      * @brief getName Returns name of meta data
@@ -44,11 +44,11 @@ public:
 
 
 private:
-    bool parseLine(QString line, QString nextLine);
-    QString m_name = "GPSReaderGPX";
+    bool parseLine(QString line);
+    QString m_name = "GPSReaderTXT";
     void print(QList<QHash<QString, QVariant>> a, QString path);
 };
 
-REGISTER_METAREADER("GPSReaderGPX", GPSReaderGPX)
+REGISTER_METAREADER("GPSReaderTXT", GPSReaderTXT)
 
-#endif // GPSREADERGPX_H
+#endif // GPSREADERTXT_H
