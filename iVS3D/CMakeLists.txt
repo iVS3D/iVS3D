@@ -58,7 +58,7 @@ find_package(OpenCV 4.7 REQUIRED COMPONENTS
 # CUDA (if applicable)
 if(With_CUDA)
 
-    find_package(CUDA 12 REQUIRED)
+    find_package(CUDA 12.0 REQUIRED)
 
     # set CUDNN variables
     set(CUDNN_INCLUDE_DIR "${CUDA_TOOLKIT_ROOT_DIR}/include" PATH FORCE)
