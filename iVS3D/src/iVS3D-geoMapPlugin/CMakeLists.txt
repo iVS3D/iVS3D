@@ -1,5 +1,15 @@
 set(TARGET_NAME GeoMap)
 
+# Qt
+find_package(QT NAMES Qt5 REQUIRED COMPONENTS Core Gui Widgets Concurrent Positioning Quick Qml Network Location)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Gui Widgets Concurrent Positioning Quick Qml Network Location)
+set(CMAKE_AUTOUIC ON) # The AUTOGEN_BUILD_DIR is automatically added to the target's INCLUDE_DIRECTORIES.
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
+
+# Add paths to linker search and installed rpath.
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+
 # set include directories
 include_directories(SYSTEM
     ${Qt${QT_VERSION_MAJOR}Core_INCLUDE_DIRS}
@@ -71,6 +81,8 @@ target_link_libraries(${TARGET_NAME}
     Qt${QT_VERSION_MAJOR}::Concurrent
     Qt${QT_VERSION_MAJOR}::Positioning
     Qt${QT_VERSION_MAJOR}::Quick
+    Qt${QT_VERSION_MAJOR}::Qml
+    Qt${QT_VERSION_MAJOR}::Network
     ${OpenCV_LIBRARIES} 
 )
 
