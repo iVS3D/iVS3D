@@ -176,7 +176,7 @@ private:
     int m_featureDims = -1;
     cv::Size m_nnInputSize = cv::Size(-1,-1);
     const QRegularExpression m_nnNameFormat = QRegularExpression("^(ImageEmbedding)\\w+_(?<featureDims>\\d+)_(?<width>\\d+)x(?<height>\\d+).onnx$");
-    QString m_nnFileName = "NAME_DIMENSION_WIDTHxHEIGHT.onnx";
+    QString m_nnFileName = "ImageEmbedding_NAME_DIMENSION_WIDTHxHEIGHT.onnx";
     // widgets
     QWidget *m_settingsWidget = nullptr;
     QSpinBox *m_frameReductionInput = nullptr;

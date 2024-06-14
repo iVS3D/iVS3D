@@ -251,12 +251,6 @@ QMap<QString, QVariant> VisualSimilarity::getSettings()
 
 void VisualSimilarity::slot_selectedNNChanged(QString nnName)
 {
-//    QStringList s = nnName.split("_");
-//    if (s.size() < 3)
-//        return;
-//    m_featureDims = s[1].toInt();
-//    QStringList resList = s[2].split(".")[0].split("x");
-//    m_nnInputSize = cv::Size(resList[0].toInt(), resList[1].toInt());
     QRegularExpressionMatch match = m_nnNameFormat.match(nnName);
     m_featureDims = match.captured("featureDims").toInt();
     int w = match.captured("width").toInt();
