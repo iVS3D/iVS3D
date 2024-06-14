@@ -205,7 +205,9 @@ void VisualSimilarity::initialize(Reader *reader, QMap<QString, QVariant> buffer
     // this routine runs if new images have been loaded, it should be performant
     // as it is executed on image load for every plugin
 
-    m_frameReduction = (int)reader->getFPS();
+    double fps = reader->getFPS();
+    m_frameReduction = fps > 0.0 ? (int)fps : 30;
+    m_frameReduction = m_frameReduction < reader->getPicCount() ? m_frameReduction : 2;
 
     m_signalObject = so; // this is a link to the core which provides updates
     m_reader = reader; // this is our reader for the images
@@ -281,11 +283,6 @@ void VisualSimilarity::displayMessage(Progressable *p, QString msg)
                               "slot_displayMessage",
                               Qt::DirectConnection,
                               Q_ARG(QString, msg));
-}
-
-double VisualSimilarity::cosineSimilarity(cv::Mat *a, cv::Mat *b)
-{
-    return a->dot(*b) / 1;
 }
 
 void VisualSimilarity::feedImage(cv::Mat inblob, cv::Mat *totalFeatureVector, cv::dnn::Net *nn)

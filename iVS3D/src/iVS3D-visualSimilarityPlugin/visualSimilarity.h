@@ -156,7 +156,6 @@ private:
     // functions
     static void displayProgress(Progressable *p, int progress, QString msg);
     static void displayMessage(Progressable *p, QString msg);
-    static double cosineSimilarity(cv::Mat *a, cv::Mat *b);
     void feedImage(cv::Mat inblob, cv::Mat *totalFeatureVector, cv::dnn::Net *nn);
     bool bufferLookup(uint idx, cv::Mat *out);
     cv::Mat getFeatureVector(cv::Mat totalVector, int position);
