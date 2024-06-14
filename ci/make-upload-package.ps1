@@ -34,7 +34,7 @@ foreach ($entry in $QML_PLUGINS.GetEnumerator()) {
   }
   
   Write-Output "Deploying: $key.dll with qml files from: $value directory"
-  Invoke-Expression -Command "${QT_PATH}\bin\windeployqt.exe --libdir . --plugindir plugins --qmldir ..\$value plugins\$key.dll"
+  Invoke-Expression -Command "${QT_PATH}\bin\windeployqt.exe --libdir . --plugindir plugins --qmldir $PROJECT_ROOT\$value plugins\$key.dll"
   If($LASTEXITCODE -gt 0){ Package-Error }
 }
 
