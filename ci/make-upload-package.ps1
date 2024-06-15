@@ -77,6 +77,12 @@ If($CUDA_VERSION){
   Copy-Item -Path "${CUDNN_BIN_PATH}\*.dll" -Destination "."
 }
 
+Set-Content -Path qt.conf -Value "[Paths]
+Prefix = ./
+Plugins = plugins
+Imports = plugins
+Qml2Imports = plugins"
+
 Pop-Location
 
 # create zip archive
