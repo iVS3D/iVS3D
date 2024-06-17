@@ -483,7 +483,7 @@ bool ExportThread::exportITransformImage(QString fileName, int idxTransform, cv:
             iTransformOutPath.append(splitedName.back());
         }
         else {
-            iTransformOutPath.append(QString::number(currentKeyframe, 10).rightJustified(8, '0').append(".jpeg"));
+            iTransformOutPath.append(QString::number(currentKeyframe, 10).rightJustified(8, '0').append(".png"));
         }
 
         //write image on disk
