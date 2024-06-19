@@ -67,10 +67,21 @@ public:
      *
      * @param parent gui-parent (here it is a nullptr)
      * @param dark @a true if darkmode enabled
-     * @param cuda @a -1 if cuda is not available, @a 0 if disabled, @a 1 if enabled
+     * @param cuda @a -1..-4 if cuda is not available, @a 0 if disabled, @a 1 if enabled
      * @param horizontal @a true if horizontal layout, vertical otherwise
      * @param algorithmList holds identifier(names) of all loaded plugins(algorithms)
 	 * @param transformList holds identifier(names) of all loaded transform plugins
+     *
+     * The following error codes can be supplied vie the cuda parameter:
+     *  -1 No GPU found
+     *  -2 Compute Capability missmatch
+     *  -3 Built without cuda
+     *  -4 Unknown error
+     *
+     * In these cases, the use-cuda setting is disabled for the user. Otherwise, the user
+     * can toggle cuda off and on, the initial state is provided by the cuda parameter as well:
+     *  0 Disabled
+     *  1 enabled
      */
     MainWindow(
         QWidget *parent = nullptr,

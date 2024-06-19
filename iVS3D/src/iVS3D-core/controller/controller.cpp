@@ -12,8 +12,11 @@ Controller::Controller(QString inputPath, QString settingsPath, QString outputPa
     QStringList algorithms = AlgorithmManager::instance().getAlgorithmNames();
     QStringList transforms = TransformManager::instance().getTransformList();
     int useCuda = -1;
-    if(ApplicationSettings::instance().getCudaAvailable()){
+    ApplicationSettings::CUDA_ERR_CODE cuda_err_code;
+    if(ApplicationSettings::instance().getCudaAvailable(&cuda_err_code)){
         useCuda = ApplicationSettings::instance().getUseCuda();
+    } else {
+        useCuda = -cuda_err_code;
     }
 
     QList<QLocale> locales = ApplicationSettings::instance().getAvailableLocales();
