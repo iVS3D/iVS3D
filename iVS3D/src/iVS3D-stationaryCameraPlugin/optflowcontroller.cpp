@@ -181,7 +181,7 @@ void SmoothController::initialize(Reader *reader, QMap<QString, QVariant> buffer
     int size[2] = {picCount, picCount};
     m_bufferMat = cv::SparseMat(2, size, CV_32F);
     recreateBufferMatrix(buffer);
-    if (m_resetBufferBt) {
+    if (m_resetBufferLabel) {
         updateBufferInfo(m_bufferMat.hdr->nodeCount);
     }
     bool isChecked = downInputResToCheck(m_inputResolution);
@@ -312,11 +312,6 @@ void SmoothController::createSettingsWidget(QWidget *parent)
     downSampleLable->setStyleSheet(DESCRIPTION_STYLE);
     downSampleLable->setWordWrap(true);
 
-    // buffer reset button
-    m_resetBufferBt = new QPushButton();
-    m_resetBufferBt->setText(RESET_BT_TEXT);
-    QObject::connect(m_resetBufferBt, &QPushButton::pressed, this, &SmoothController::resetBuffer);
-
     // buffer reset label
     m_resetBufferLabel = new QLabel();
     m_resetBufferLabel->setStyleSheet(INFO_STYLE);
@@ -333,20 +328,10 @@ void SmoothController::createSettingsWidget(QWidget *parent)
     m_settingsWidget->layout()->addWidget(selectorLabel);
     m_settingsWidget->layout()->addWidget(downSampleLayout);
     m_settingsWidget->layout()->addWidget(downSampleLable);
-    m_settingsWidget->layout()->addWidget(m_resetBufferBt);
     m_settingsWidget->layout()->addWidget(m_resetBufferLabel);
 
     m_settingsWidget->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
     m_settingsWidget->adjustSize();
-}
-
-void SmoothController::resetBuffer()
-{
-    m_bufferMat.clear();
-    emit updateBuffer(sendBuffer());
-    if (m_resetBufferLabel) {
-        m_resetBufferLabel->setText(updateBufferInfo(m_bufferMat.hdr->nodeCount));
-    }
 }
 
 void SmoothController::sampleCheckChanged(bool isChecked)
@@ -381,7 +366,7 @@ void SmoothController::stringToBufferMat(QString string)
 {
     QStringList entryStrList = string.split(DELIMITER_ENTITY);
 
-    for (QString nzEntity : entryStrList) {
+    for (const QString nzEntity : entryStrList) {
         QStringList coorStr = nzEntity.split(DELIMITER_COORDINATE);
         // check format "x|y|value"
         if (coorStr.size() != 3) {
