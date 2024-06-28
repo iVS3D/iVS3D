@@ -49,7 +49,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
 # OpenCV
-find_package(OpenCV 4.7 REQUIRED COMPONENTS
+find_package(OpenCV 4.10 REQUIRED COMPONENTS
     core
     imgcodecs
     videoio

@@ -18,7 +18,7 @@ include_directories(
 )
 
 # video and dnn from opencv is required for farneback
-find_package(OpenCV 4.7 REQUIRED COMPONENTS
+find_package(OpenCV 4.10 REQUIRED COMPONENTS
     video
     dnn
 )
@@ -27,7 +27,7 @@ find_package(OpenCV 4.7 REQUIRED COMPONENTS
 if(With_CUDA)
 
     # cudaoptflow from opencv is required
-    find_package(OpenCV 4.7 REQUIRED COMPONENTS
+    find_package(OpenCV 4.10 REQUIRED COMPONENTS
         cudaoptflow
     )
 
