@@ -150,7 +150,7 @@ public:
 
 private slots:
     void slot_selectedNNChanged(QString nnName);
-    void slot_reloadNN();
+    void slot_reloadNN(int index);
 
 private:
     // functions
@@ -180,7 +180,6 @@ private:
     QWidget *m_settingsWidget = nullptr;
     QSpinBox *m_frameReductionInput = nullptr;
     QComboBox *m_nnNameInput = nullptr;
-    QPushButton *m_nnNameReloadBt = nullptr;
 
     void createSettingsWidget(QWidget *parent);
 };

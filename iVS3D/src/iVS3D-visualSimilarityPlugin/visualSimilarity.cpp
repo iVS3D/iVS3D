@@ -261,7 +261,7 @@ void VisualSimilarity::slot_selectedNNChanged(QString nnName)
     m_nnFileName = nnName;
 }
 
-void VisualSimilarity::slot_reloadNN()
+void VisualSimilarity::slot_reloadNN(int index)
 {
     QStringList nnNameList = collect_nns(RESSOURCE_PATH);
     m_nnNameInput->clear();
@@ -441,17 +441,10 @@ void VisualSimilarity::createSettingsWidget(QWidget *parent)
     nnNameWidget->layout()->addWidget(new QLabel(UI_NNNAME_NAME));
     nnNameWidget->setToolTip(UI_NNNAME_DESC);
     m_nnNameInput = new QComboBox(parent);
-    // nn_name button
-    m_nnNameReloadBt = new QPushButton(parent);
-    m_nnNameReloadBt->setToolTip(UI_NNNAME_BT_DESC);
-//    m_nnNameReloadBt->setIcon(QIcon(":/icons/resetIconW"));
-    m_nnNameReloadBt->setText("R");
-    m_nnNameReloadBt->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-    connect(m_nnNameReloadBt, &QPushButton::clicked, this, &VisualSimilarity::slot_reloadNN);
+    connect(m_nnNameInput, QOverload<int>::of(&QComboBox::activated), this, &VisualSimilarity::slot_reloadNN);
     connect(m_nnNameInput, &QComboBox::currentTextChanged, this, &VisualSimilarity::slot_selectedNNChanged);
     m_nnNameInput->addItems(collect_nns(RESSOURCE_PATH));
     nnNameWidget->layout()->addWidget(m_nnNameInput);
-    nnNameWidget->layout()->addWidget(m_nnNameReloadBt);
     m_settingsWidget->layout()->addWidget(nnNameWidget);
 
     m_settingsWidget->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
