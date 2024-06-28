@@ -135,14 +135,6 @@ std::vector<uint> SmoothController::sampleImages(const std::vector<uint> &imageL
 //        logFile->addCustomEntry(LF_CE_NAME_FLOWVALUE, flowValues[flowValuesIdx], LF_CE_TYPE_DEBUG);
     }
 
-    // Display Buffer Info
-    QString txt = updateBufferInfo(m_bufferMat.hdr->nodeCount);
-    if (m_resetBufferLabel) {
-        m_resetBufferLabel->setText(txt);
-    } else {
-        displayMessage(txt, receiver);
-    }
-
     emit updateBuffer(sendBuffer());
     logFile->stopTimer();
 
@@ -181,9 +173,6 @@ void SmoothController::initialize(Reader *reader, QMap<QString, QVariant> buffer
     int size[2] = {picCount, picCount};
     m_bufferMat = cv::SparseMat(2, size, CV_32F);
     recreateBufferMatrix(buffer);
-    if (m_resetBufferLabel) {
-        updateBufferInfo(m_bufferMat.hdr->nodeCount);
-    }
     bool isChecked = downInputResToCheck(m_inputResolution);
     sampleCheckChanged(isChecked);
 }
@@ -308,12 +297,6 @@ void SmoothController::createSettingsWidget(QWidget *parent)
     downSampleLable->setStyleSheet(DESCRIPTION_STYLE);
     downSampleLable->setWordWrap(true);
 
-    // buffer reset label
-    m_resetBufferLabel = new QLabel();
-    m_resetBufferLabel->setStyleSheet(INFO_STYLE);
-    m_resetBufferLabel->setWordWrap(true);
-    updateBufferInfo(m_bufferMat.hdr->nodeCount);
-
     // create main widget
     m_settingsWidget = new QWidget(parent);
     m_settingsWidget->setLayout(new QVBoxLayout(parent));
@@ -324,7 +307,6 @@ void SmoothController::createSettingsWidget(QWidget *parent)
     m_settingsWidget->layout()->addWidget(selectorLabel);
     m_settingsWidget->layout()->addWidget(downSampleLayout);
     m_settingsWidget->layout()->addWidget(downSampleLable);
-    m_settingsWidget->layout()->addWidget(m_resetBufferLabel);
 
     m_settingsWidget->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
     m_settingsWidget->adjustSize();
@@ -333,11 +315,6 @@ void SmoothController::createSettingsWidget(QWidget *parent)
 void SmoothController::sampleCheckChanged(bool isChecked)
 {
     m_downSampleFactor = downCheckToFactor(isChecked, m_inputResolution);
-}
-
-QString SmoothController::updateBufferInfo(long bufferedValueCount)
-{
-    return RESET_TEXT_PRE + QString::number(bufferedValueCount) + RESET_TEXT_SUF;
 }
 
 void SmoothController::recreateBufferMatrix(QMap<QString, QVariant> buffer)

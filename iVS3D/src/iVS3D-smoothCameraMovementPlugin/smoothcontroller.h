@@ -46,8 +46,6 @@
 #define DOWNSAMPLE_LABEL_TEXT QObject::tr("Sampling resolution")
 #define DOWNSAMPLE_CHECKBOX_TEXT QObject::tr("Activate down sampling")
 #define DESCRIPTION_DOWNSAMPLE QObject::tr("If enabled a resolution of 720p will be used for the algorithm to speed up computation. This however will hurt the accuracy of the result slightly. It won't change the export resolution. This parameter will be disabled if the input resolution is lower or equal than 720p.")
-#define RESET_TEXT_PRE QObject::tr("There are ")
-#define RESET_TEXT_SUF QObject::tr(" flow values currently buffered.")
 #define DESCRIPTION_STYLE "color: rgb(58, 58, 58); border-left: 6px solid  rgb(58, 58, 58); border-top-right-radius: 5px; border-bottom-right-radius: 5px; background-color: lightblue;"
 #define INFO_STYLE "color: rgb(58, 58, 58); border-left: 6px solid  rgb(58, 58, 58); border-top-right-radius: 5px; border-bottom-right-radius: 5px; background-color: lightGreen;"
 // buffer
@@ -164,7 +162,6 @@ private:
     QDoubleSpinBox *m_selectorThresholdSpinBox = nullptr;
     static constexpr double m_downSampleFactorArray[] = { 1.0, 1.5, 2.0, 2.5, 3.0, 4.0 };
     QCheckBox *m_downSampleCheck = nullptr;
-    QLabel *m_resetBufferLabel = nullptr;
     // timing variables
     long m_durationFarnebackMs = 0;
     long m_durationComputationFlowMs = 0;
@@ -181,11 +178,6 @@ private:
      * @return the buffer as a QVariant (empty)
      */
     QMap<QString, QVariant> sendBuffer();
-    /**
-     * @brief updateBufferInfo updates the amount of buffered values in the status tip.
-     * @param bufferedValueCount is the new amout of buffered flow values
-     */
-    QString updateBufferInfo(long bufferedValueCount);
     /**
      * @brief recreateBufferMatrix initalizes the buffer matix whith the new values from nBuffer
      * @param buffer holds the new movement values which should be stored in the buffer matrix
