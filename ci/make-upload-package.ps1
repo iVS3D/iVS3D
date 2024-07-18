@@ -48,11 +48,11 @@ foreach ($file in $files) {
 
 # add OpenCV dependencies
 Write-Host "`nCopying OpenCV dlls"
-Copy-Item -Path "${OCV_BIN}\opencv_world470.dll" -Destination "."
-Copy-Item -Path "${OCV_BIN}\opencv_videoio_ffmpeg470_64.dll" -Destination "."
+Copy-Item -Path "${OCV_BIN}\opencv_world${OCV_VERSION}.dll" -Destination "."
+Copy-Item -Path "${OCV_BIN}\opencv_videoio_ffmpeg${OCV_VERSION}_64.dll" -Destination "."
 
 If($CUDA_VERSION){
-  Copy-Item -Path "${OCV_BIN}\opencv_img_hash470.dll" -Destination "."
+  Copy-Item -Path "${OCV_BIN}\opencv_img_hash${OCV_VERSION}.dll" -Destination "."
 }
 
 # add MSVC runtime
