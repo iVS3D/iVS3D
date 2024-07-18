@@ -33,8 +33,9 @@
 
 #include <iostream>
 #include <iomanip>
+#include <regex>
 
-#define MODEL_PATH "/models/SemanticSegmentation"
+#define MODEL_PATH "/plugins/ressources/neural_network_models"
 #define HW_NAME(x) x ? "Using GPU (cuda)" : "Using CPU"
 #define USED_MODEL "Used Model"
 #define SELECTED_CLASSES "Selected classes"
@@ -177,9 +178,7 @@ private:
 
     // --- get Classes and Colors for each model ---
     void getClassesAndColors(QStringList &classes, QList<QColor> &colors);
-    void getAde20KClassesAndColors(std::vector<std::string> &classes, std::vector<cv::Vec3b> &colors);
-    void getCityscapesClassesAndColors(std::vector<std::string> &classes, std::vector<cv::Vec3b> &colors);
-    void getVOCClassesAndColors(std::vector<std::string> &classes, std::vector<cv::Vec3b> &colors);
+    void readClassesAndColorsFile(std::vector<std::string> &classes, std::vector<cv::Vec3b> &colors, const std::string &filepath);
     // --- read size of input layer for each model ---
     void getInputHeightAndWidth(int &inputHeight, int &inputWidth, int modelIdx);
     // --- blend two images using an alpha value ---

@@ -3,7 +3,7 @@
 
 SemanticSegmentation::SemanticSegmentation()
 {
-    QStringList filter("*.onnx");
+    QStringList filter("Segmentation_*.onnx");
     QString path = QCoreApplication::applicationDirPath() + MODEL_PATH;
     QDir dir(path);
     qDebug() << dir.currentPath();
@@ -340,23 +340,69 @@ void SemanticSegmentation::getClassesAndColors(QStringList &cl, QColorList &co)
     std::vector<std::string> classes;
     std::vector<cv::Vec3b> colors;
 
-    std::string modelName = m_ONNXmodelList[m_ONNXmodelIdx].toStdString();
-    if(modelName.find("voc") != std::string::npos) {
-        getVOCClassesAndColors(classes, colors);
+    std::string modelPath = (QCoreApplication::applicationDirPath() + MODEL_PATH + "/" + m_ONNXmodelList[m_ONNXmodelIdx]).toStdString();
+    // Find the position of the last dot in the string
+    std::size_t dot_pos = modelPath.find_last_of('.');
+
+    // If a dot is found, replace the extension
+    if (dot_pos != std::string::npos) {
+        modelPath.replace(dot_pos, std::string::npos, ".txt");
+    } else {
+        // If no dot is found, append .txt (this handles cases with no extension)
+        modelPath += ".txt";
     }
-    else if(modelName.find("cityscapes") != std::string::npos) {
-        getCityscapesClassesAndColors(classes, colors);
+
+    if (!QFile::exists(QString::fromStdString(modelPath))){
+        qDebug() << "Classes and colors file does not exist: " << QString::fromStdString(modelPath);
+        return;
     }
-    else if(modelName.find("ade20k") != std::string::npos) {
-        getAde20KClassesAndColors(classes, colors);
-    }
-    else {
-        qDebug() << "The dataset, the model got trained with, is not supported. Choose another model!";
-    }
+
+    readClassesAndColorsFile(classes, colors, modelPath);
 
     for(int i = 0; i<(int)classes.size(); i++){
         cl.push_back(QString::fromStdString(classes[i]));
         co.push_back(QColor::fromRgb(colors[i][0], colors[i][1],colors[i][2]));
+    }
+}
+
+void SemanticSegmentation::readClassesAndColorsFile(std::vector<std::string> &classes, std::vector<cv::Vec3b> &colors, const std::string &filepath)
+{
+    // open the file
+    std::fstream modelTextFile;
+    modelTextFile.open(filepath, std::ios::in);
+
+    // if the file is open read lines
+    if (modelTextFile.is_open()) {
+        std::string line;
+        //read data from file object and put it into string.
+        while(std::getline(modelTextFile, line)) {
+            // get the classes and colors
+            std::stringstream lineStream(line);
+            std::string segment;
+            std::vector<std::string> classesAndColors;
+            while(std::getline(lineStream, segment, ';'))
+            {
+                classesAndColors.push_back(segment);
+            }
+            std::string classLabel = classesAndColors.at(0);
+            std::string colorString = classesAndColors.at(1);
+
+            // add class label to classes
+            classes.push_back(classLabel);
+
+            // get color as cv::Vec3b
+            std::stringstream colorStream(colorString);
+            std::string rgbSegment;
+            std::vector<std::string> rgb;
+            while(std::getline(colorStream, rgbSegment, ','))
+            {
+                rgb.push_back(rgbSegment);
+            }
+            colors.push_back(cv::Vec3b(std::stoi(rgb.at(0)), std::stoi(rgb.at(1)), std::stoi(rgb.at(2))));
+        }
+
+        //close the file object.
+        modelTextFile.close();
     }
 }
 
@@ -515,165 +561,37 @@ void SemanticSegmentation::colorizeSegmentationBinary(const cv::Mat score, cv::M
     }
 }
 
-void SemanticSegmentation::getVOCClassesAndColors(std::vector<std::string> &classes, std::vector<cv::Vec3b> &colors)
-{
-    QString path = QCoreApplication::applicationDirPath() + MODEL_PATH;
-    std::string filepath = path.toUtf8().constData();
-    filepath.append("/VOC_Dataset.txt");
-
-    // open the file
-    std::fstream modelTextFile;
-    modelTextFile.open(filepath, std::ios::in);
-
-    // if the file is open read lines
-    if (modelTextFile.is_open()) {
-        std::string line;
-        //read data from file object and put it into string.
-        while(std::getline(modelTextFile, line)) {
-            // get the classes and colors
-            std::stringstream lineStream(line);
-            std::string segment;
-            std::vector<std::string> classesAndColors;
-            while(std::getline(lineStream, segment, ';'))
-            {
-                classesAndColors.push_back(segment);
-            }
-            std::string classLabel = classesAndColors.at(0);
-            std::string colorString = classesAndColors.at(1);
-
-            // add class label to classes
-            classes.push_back(classLabel);
-
-            // get color as cv::Vec3b
-            std::stringstream colorStream(colorString);
-            std::string rgbSegment;
-            std::vector<std::string> rgb;
-            while(std::getline(colorStream, rgbSegment, ','))
-            {
-                rgb.push_back(rgbSegment);
-            }
-            colors.push_back(cv::Vec3b(std::stoi(rgb.at(0)), std::stoi(rgb.at(1)), std::stoi(rgb.at(2))));
-        }
-
-        //close the file object.
-        modelTextFile.close();
-    }
-}
-
-// =============================================================================
-
-void SemanticSegmentation::getCityscapesClassesAndColors(std::vector<std::string> &classes, std::vector<cv::Vec3b> &colors)
-{
-    QString path = QCoreApplication::applicationDirPath() + MODEL_PATH;
-    std::string filepath = path.toUtf8().constData();
-    filepath.append("/Cityscapes_Dataset.txt");
-
-    // open the file
-    std::fstream modelTextFile;
-    modelTextFile.open(filepath, std::ios::in);
-
-    // if the file is open read lines
-    if (modelTextFile.is_open()) {
-        std::string line;
-        //read data from file object and put it into string.
-        while(std::getline(modelTextFile, line)) {
-            // get the classes and colors
-            std::stringstream lineStream(line);
-            std::string segment;
-            std::vector<std::string> classesAndColors;
-            while(std::getline(lineStream, segment, ';'))
-            {
-                classesAndColors.push_back(segment);
-            }
-            std::string classLabel = classesAndColors.at(0);
-            std::string colorString = classesAndColors.at(1);
-
-            // add class label to classes
-            classes.push_back(classLabel);
-
-            // get color as cv::Vec3b
-            std::stringstream colorStream(colorString);
-            std::string rgbSegment;
-            std::vector<std::string> rgb;
-            while(std::getline(colorStream, rgbSegment, ','))
-            {
-                rgb.push_back(rgbSegment);
-            }
-            colors.push_back(cv::Vec3b(std::stoi(rgb.at(0)), std::stoi(rgb.at(1)), std::stoi(rgb.at(2))));
-        }
-
-        //close the file object.
-        modelTextFile.close();
-    }
-}
-
-// =============================================================================
-
-void SemanticSegmentation::getAde20KClassesAndColors(std::vector<std::string> &classes, std::vector<cv::Vec3b> &colors)
-{
-    QString path = QCoreApplication::applicationDirPath() + MODEL_PATH;
-    std::string filepath = path.toUtf8().constData();
-    filepath.append("/Ade20K_Dataset.txt");
-
-    // open the file
-    std::fstream modelTextFile;
-    modelTextFile.open(filepath, std::ios::in);
-
-    // if the file is open read lines
-    if (modelTextFile.is_open()) {
-        std::string line;
-        //read data from file object and put it into string.
-        while(std::getline(modelTextFile, line)) {
-            // get the classes and colors
-            std::stringstream lineStream(line);
-            std::string segment;
-            std::vector<std::string> classesAndColors;
-            while(std::getline(lineStream, segment, ';'))
-            {
-                classesAndColors.push_back(segment);
-            }
-            std::string classLabel = classesAndColors.at(0);
-            std::string colorString = classesAndColors.at(1);
-
-            // add class label to classes
-            classes.push_back(classLabel);
-
-            // get color as cv::Vec3b
-            std::stringstream colorStream(colorString);
-            std::string rgbSegment;
-            std::vector<std::string> rgb;
-            while(std::getline(colorStream, rgbSegment, ','))
-            {
-                rgb.push_back(rgbSegment);
-            }
-            colors.push_back(cv::Vec3b(std::stoi(rgb.at(0)), std::stoi(rgb.at(1)), std::stoi(rgb.at(2))));
-        }
-
-        //close the file object.
-        modelTextFile.close();
-    }
-}
-
 void SemanticSegmentation::getInputHeightAndWidth(int &inputHeight, int &inputWidth, int modelIdx)
 {
     // get model name and erase everything except the size part
     std::string modelName = m_ONNXmodelList[modelIdx].toStdString();
-    modelName.erase(0, 40);
-    modelName.erase(modelName.length()-5, 5);
 
-    // get the size
-    std::stringstream inputSizeOfModelString(modelName);
-    std::string segment;
-    std::vector<std::string> sizes;
-    while(std::getline(inputSizeOfModelString, segment, 'x'))
-    {
-        sizes.push_back(segment);
+    // Regular expression to match the naming convention
+    std::regex pattern(R"(Segmentation_([^_]+)_([^_]+)_([0-9]+)_([0-9]+)\.onnx)");
+    std::smatch matches;
+
+    if (std::regex_match(modelName, matches, pattern)) {
+        if (matches.size() == 5) { // matches[0] is the whole match, matches[1]..[4] are the groups
+            std::string architecture = matches[1];
+            std::string dataset = matches[2];
+            int width = std::stoi(matches[3]);
+            int height = std::stoi(matches[4]);
+
+            std::cout << "Architecture: " << architecture << std::endl;
+            std::cout << "Dataset: " << dataset << std::endl;
+            std::cout << "Width: " << width << std::endl;
+            std::cout << "Height: " << height << std::endl;
+
+            inputHeight = height;
+            inputWidth = width;
+
+        } else {
+            std::cerr << "Error: Unexpected match size." << std::endl;
+        }
+    } else {
+        std::cerr << "Error: Filename does not match expected format." << std::endl;
     }
-    std::string heightString = sizes.at(0);
-    std::string widthString = sizes.at(1);
 
-    inputHeight = std::stoi(heightString);
-    inputWidth = std::stoi(widthString);
 }
 
 void SemanticSegmentation::alphaBlend(const cv::Mat &foreground, const cv::Mat &background, cv::Mat &destionation, float alpha)

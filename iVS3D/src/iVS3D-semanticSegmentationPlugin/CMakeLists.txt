@@ -17,6 +17,10 @@ include_directories(
     "${CMAKE_CURRENT_LIST_DIR}/../iVS3D-core/plugin"
 )
 
+find_package(OpenCV 4.7 REQUIRED COMPONENTS
+    video
+    dnn
+)
 
 # set header files
 set(HEADER_FILES
@@ -44,6 +48,8 @@ target_link_libraries(${TARGET_NAME}
     Qt${QT_VERSION_MAJOR}::Concurrent
     Qt${QT_VERSION_MAJOR}::Positioning
     ${OpenCV_LIBRARIES}
+    ${CUDA_LIBRARIES}
+    ${CUDNN_LIBRARIES}
 )
 
 # add defines
@@ -68,10 +74,12 @@ install(TARGETS
     ${TARGET_NAME} 
     DESTINATION bin/plugins
 )
-install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/copy_to_install_dir/models/
-    DESTINATION bin/models
-    FILES_MATCHING PATTERN "*"
-)
+
+install(DIRECTORY DESTINATION bin/plugins/ressources/neural_network_models)
+#install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/copy_to_install_dir/models/
+#    DESTINATION bin/models
+#    FILES_MATCHING PATTERN "*"
+#)
 
 # TODO: Windows Build
 #   - Deploy DLLs
