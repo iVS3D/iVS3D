@@ -35,7 +35,7 @@
 #include <iomanip>
 #include <regex>
 
-#define MODEL_PATH "/plugins/ressources/neural_network_models"
+#define MODEL_PATH "/plugins/resources/neural_network_models"
 #define HW_NAME(x) x ? "Using GPU (cuda)" : "Using CPU"
 #define USED_MODEL "Used Model"
 #define SELECTED_CLASSES "Selected classes"

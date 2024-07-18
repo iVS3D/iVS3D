@@ -75,7 +75,7 @@ install(TARGETS
     DESTINATION bin/plugins
 )
 
-install(DIRECTORY DESTINATION bin/plugins/ressources/neural_network_models)
+install(DIRECTORY DESTINATION bin/plugins/resources/neural_network_models)
 #install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/copy_to_install_dir/models/
 #    DESTINATION bin/models
 #    FILES_MATCHING PATTERN "*"
