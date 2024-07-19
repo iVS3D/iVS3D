@@ -13,6 +13,7 @@
 #include <QCheckBox>
 #include <QSlider>
 #include <QPushButton>
+#include <QCoreApplication>
 
 #include <opencv2/core.hpp>
 
@@ -42,7 +43,7 @@ public:
      * @param ONNXmodelList The model names to display
      * @param blendAlpha The default alpha value for blending
      */
-    explicit SettingsWidget(QWidget *parent = nullptr, QStringList ONNXmodelList = QStringList(""), float blendAlpha = 0.5f);
+    explicit SettingsWidget(QWidget *parent = nullptr, QStringList ONNXmodelList = QStringList(""), float blendAlpha = 0.5f, const QString &modelPath="");
     ~SettingsWidget();
 
     void setClasses(QBoolList boolList);

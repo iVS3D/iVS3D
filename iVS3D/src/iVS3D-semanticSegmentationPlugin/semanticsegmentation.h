@@ -18,6 +18,7 @@
 #include <QThread>
 #include <QMutex>
 #include <QMutexLocker>
+#include <QTranslator>
 
 #include <QDebug>
 

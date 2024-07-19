@@ -3,6 +3,13 @@
 
 SemanticSegmentation::SemanticSegmentation()
 {
+    // install translator
+    QLocale locale = qApp->property("translation").toLocale();
+    QTranslator* translator = new QTranslator();
+    translator->load(locale, "semanticsegmentation", "_", ":/translations", ".qm");
+    qApp->installTranslator(translator);
+
+    // filter for semnatic segmentation models
     QStringList filter("Segmentation_*.onnx");
     QString path = QCoreApplication::applicationDirPath() + MODEL_PATH;
     QDir dir(path);
@@ -34,8 +41,8 @@ SemanticSegmentation::~SemanticSegmentation()
     if (m_settingsWidget != nullptr) {
         delete m_settingsWidget;
     }
-    if (m_ONNXmodel != nullptr) {
-        delete m_ONNXmodel;
+    if (m_ONNXmodelLoaded && (m_ONNXmodel != nullptr)) {
+            delete m_ONNXmodel;
     }
 }
 
@@ -46,7 +53,7 @@ QWidget* SemanticSegmentation::getSettingsWidget(QWidget *parent)
     }
 
     // create settings widget and connect to it
-    m_settingsWidget = new SettingsWidget(parent, m_ONNXmodelList);
+    m_settingsWidget = new SettingsWidget(parent, m_ONNXmodelList, 0.5, QCoreApplication::applicationDirPath() + MODEL_PATH);
     m_ONNXmodelIdx = 0;
     if(m_ONNXmodelList.size()){
         QStringList classes;
@@ -139,12 +146,12 @@ void SemanticSegmentation::enableCuda(bool enabled)
             qDebug() << "loaded. activating cuda...";
             m_ONNXmodel->setPreferableBackend(cv::dnn::DNN_BACKEND_CUDA);
             m_ONNXmodel->setPreferableTarget(cv::dnn::DNN_TARGET_CUDA);
-            emit sig_message(HW_NAME(m_useCuda), "Loaded model (cuda)");
+            emit sig_message(HW_NAME(m_useCuda), tr("Loaded model (cuda)"));
             qDebug() << "cuda alive :)";
         } else {
             m_ONNXmodel->setPreferableBackend(cv::dnn::DNN_BACKEND_OPENCV);
             m_ONNXmodel->setPreferableTarget(cv::dnn::DNN_TARGET_CPU);
-            emit sig_message(HW_NAME(m_useCuda), "Loaded model");
+            emit sig_message(HW_NAME(m_useCuda), tr("Loaded model"));
         }
     }
 }
@@ -275,7 +282,7 @@ void SemanticSegmentation::slot_computeScore()
         QString im = QString("[") + QString::number(m_imageIdx) + QString("]");
         std::cout << std::right << std::setw(30) << im.toStdString() << std::left << " free mem: " << cv::cuda::DeviceInfo().freeMemory() << "\n";
     }
-    emit sig_message(HW_NAME(m_useCuda) ,"Computing preview...");
+    emit sig_message(HW_NAME(m_useCuda) , tr("Computing preview..."));
     auto start = std::chrono::high_resolution_clock::now(); // start clock
 
     m_ONNXmodel->setInput(blob);                             // set model input ...
@@ -285,7 +292,7 @@ void SemanticSegmentation::slot_computeScore()
     auto durationMs = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
 
     qDebug() << "Predicted the image in " << QString::number(durationMs) << "ms";
-    emit sig_message(HW_NAME(m_useCuda), "Finished preview in " + QString::number(durationMs) + "ms");
+    emit sig_message(HW_NAME(m_useCuda), tr("Finished preview in ") + QString::number(durationMs) + tr("ms"));
 }
 
 void SemanticSegmentation::slot_computeSegmentation()
@@ -475,7 +482,7 @@ void SemanticSegmentation::loadModel()
     std::cout << std::left << std::setw(30) << "Model path:" << modelPath.toStdString() << "\n";
 
     qDebug() << "Try to load model from " << modelPath;
-    emit sig_message(HW_NAME(m_useCuda), "Loading model...");
+    emit sig_message(HW_NAME(m_useCuda), tr("Loading model..."));
     auto start = std::chrono::high_resolution_clock::now();
 
 
@@ -488,11 +495,11 @@ void SemanticSegmentation::loadModel()
         if(m_useCuda){
             m_ONNXmodel->setPreferableBackend(cv::dnn::DNN_BACKEND_CUDA);
             m_ONNXmodel->setPreferableTarget(cv::dnn::DNN_TARGET_CUDA);
-            emit sig_message(HW_NAME(m_useCuda), "Loaded model (cuda)");
+            emit sig_message(HW_NAME(m_useCuda), tr("Loaded model (cuda)"));
         } else {
             m_ONNXmodel->setPreferableBackend(cv::dnn::DNN_BACKEND_OPENCV);
             m_ONNXmodel->setPreferableTarget(cv::dnn::DNN_TARGET_CPU);
-            emit sig_message(HW_NAME(m_useCuda), "Loaded model");
+            emit sig_message(HW_NAME(m_useCuda), tr("Loaded model"));
         }
         m_ONNXmodelLoaded = true;
     }  catch (QException &e) {
