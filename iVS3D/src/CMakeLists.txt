@@ -11,3 +11,8 @@ if(Build_Plugins)
     add_subdirectory(iVS3D-geoDistancePlugin)
     add_subdirectory(iVS3D-geoMapPlugin)
 endif()
+
+if(Install_Models)
+    add_subdirectory(iVS3D-models)
+endif()
+

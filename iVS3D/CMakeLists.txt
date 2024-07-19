@@ -21,6 +21,9 @@ endif()
 # Set 'Build_Plugins' option (default true)
 set(Build_Plugins ON CACHE BOOL "Build plugins.")
 
+# Set 'Install_Models' option (default true)
+set(Install_Models ON CACHE BOOL "Copy neural network models to install directory.")
+
 # Set 'Build_Tests' option (default false)
 set(Build_Tests OFF CACHE BOOL "Build test routines.")
 
