@@ -574,15 +574,15 @@ void SemanticSegmentation::getInputHeightAndWidth(int &inputHeight, int &inputWi
     std::string modelName = m_ONNXmodelList[modelIdx].toStdString();
 
     // Regular expression to match the naming convention
-    std::regex pattern(R"(Segmentation_([^_]+)_([^_]+)_([0-9]+)_([0-9]+)\.onnx)");
+    std::regex pattern(R"(Segmentation_([^_]+)_([^_]+)_([0-9]+)x([0-9]+)\.onnx)");
     std::smatch matches;
 
     if (std::regex_match(modelName, matches, pattern)) {
         if (matches.size() == 5) { // matches[0] is the whole match, matches[1]..[4] are the groups
             std::string architecture = matches[1];
             std::string dataset = matches[2];
-            int width = std::stoi(matches[3]);
-            int height = std::stoi(matches[4]);
+            int height = std::stoi(matches[3]);
+            int width = std::stoi(matches[4]);
 
             std::cout << "Architecture: " << architecture << std::endl;
             std::cout << "Dataset: " << dataset << std::endl;
