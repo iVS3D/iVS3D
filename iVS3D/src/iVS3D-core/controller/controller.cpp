@@ -76,7 +76,7 @@ Controller::Controller(QString inputPath, QString settingsPath, QString outputPa
     connect(m_mainWindow, &MainWindow::sig_openProject, this, &Controller::slot_openProject);
     connect(m_mainWindow, &MainWindow::sig_openInputFolder, this, &Controller::slot_openInputFolder);
     connect(m_mainWindow, &MainWindow::sig_openInputVideo, this, &Controller::slot_openInputVideo);
-    connect(m_mainWindow, &MainWindow::sig_openVideoDragAndDrop, this, &Controller::slot_openVideoDragAndDrop);
+    connect(m_mainWindow, &MainWindow::sig_openVideoDragAndDrop, this, &Controller::slot_openDragAndDrop);
     connect(m_mainWindow, &MainWindow::sig_saveProjectAs, this, &Controller::slot_saveProjectAs);
     connect(m_mainWindow, &MainWindow::sig_saveProject, this, &Controller::slot_saveProject);
     connect(m_mainWindow, &MainWindow::sig_changeReconstructPath, this, &Controller::slot_addReconstructPath);
@@ -147,7 +147,7 @@ void Controller::slot_openInputFolder()
     }
     m_timer = QElapsedTimer();
     m_timer.start();
-    createOpenMessage(m_dataManager->open(folderPath));
+    loadInputDataFromPath(folderPath);
 }
 
 void Controller::slot_openInputVideo()
@@ -165,18 +165,10 @@ void Controller::slot_openInputVideo()
         return;
     }
 
-    if(m_openExec){
-        delete m_openExec;
-    }
-    m_openExec = new OpenExecutor(folderPath, m_dataManager);
-    connect(m_openExec, &OpenExecutor::sig_finished, this, &Controller::slot_openFinished);
-
-    m_timer = QElapsedTimer();
-    m_timer.start();
-    m_openExec->open();
+    loadInputDataFromPath(folderPath);
 }
 
-void Controller::slot_openVideoDragAndDrop(QString filePath)
+void Controller::slot_openDragAndDrop(QString filePath)
 {
     // prevent multiple imports at once
     if(m_isImporting) {
@@ -192,27 +184,13 @@ void Controller::slot_openVideoDragAndDrop(QString filePath)
     }
 
     // handle video formats or folders
-    if (filePath.endsWith(".mp4", Qt::CaseInsensitive) ||
-            filePath.endsWith(".mov", Qt::CaseInsensitive) ||
-            filePath.endsWith(".avi", Qt::CaseInsensitive) ||
-            QDir(filePath).exists() ||
-            filePath.endsWith(".json", Qt::CaseInsensitive))
-    {
-        if(m_openExec){
-            delete m_openExec;
-        }
-        m_isImporting = true;
-        m_openExec = new OpenExecutor(filePath, m_dataManager);
-        connect(m_openExec, &OpenExecutor::sig_finished, this, &Controller::slot_openFinished);
-        m_timer = QElapsedTimer();
-        m_timer.start();
-        m_openExec->open();
+    if (loadInputDataFromPath(filePath)) {
         return;
     }
 
     // handle meta data
     bool fileHasSupportedExtension = false;
-    for(auto extension : MetaDataManager::supportedFileExtensions()) {
+    for(const QString &extension : MetaDataManager::supportedFileExtensions()) {
         if (filePath.endsWith(extension)) {
             fileHasSupportedExtension = true;
             break;
@@ -236,21 +214,11 @@ void Controller::slot_openProject()
     QString selectedFilter = "";
     QString folderPath = QFileDialog::getOpenFileName(m_mainWindow, tr("Choose project file"), ApplicationSettings::instance().getStandardInputPath(), "*.json", &selectedFilter, QFileDialog::DontUseNativeDialog);
 
-    if (folderPath != nullptr) {
-
-        if(m_openExec){
-            delete m_openExec;
-        }
-        m_openExec = new OpenExecutor(folderPath, m_dataManager);
-        connect(m_openExec, &OpenExecutor::sig_finished, this, &Controller::slot_openFinished);
-
-        m_timer = QElapsedTimer();
-        m_timer.start();
-        m_openExec->open();
+    if (folderPath == nullptr) {
+        emit sig_hasStatusMessage(tr("Input canceled"));
+        return;
     }
-    else {
-       emit sig_hasStatusMessage(tr("Input canceled"));
-    }
+    loadInputDataFromPath(folderPath);
 }
 
 void Controller::slot_saveProjectAs()
@@ -368,10 +336,20 @@ void Controller::slot_openMetaData()
 
 void Controller::slot_openFinished(int result)
 {
-    disconnect(m_openExec, &OpenExecutor::sig_finished, this, &Controller::slot_openFinished);
+//    disconnect(m_openExec, &OpenExecutor::sig_finished, this, &Controller::slot_openFinished);
+//    disconnect(m_inputProgressDialog, &ProgressDialog::rejected, m_openExec, &OpenExecutor::slot_abort);
 
-    delete m_openExec;
-    m_openExec = nullptr;
+    m_inputProgressDialog->close();
+//    if (m_openExec) {
+//        delete m_openExec;
+//        m_openExec = nullptr;
+//    }
+
+//    if (m_inputProgressDialog) {
+//        m_inputProgressDialog->close();
+//        delete m_inputProgressDialog;
+//        m_inputProgressDialog = nullptr;
+//    }
 
     m_isImporting = false;
 
@@ -427,7 +405,7 @@ void Controller::createOpenMessage(int numPics)
 {
     auto duration_ms = m_timer.elapsed();
     if (numPics <= 0) {
-        emit sig_hasStatusMessage(tr("No images found after ") + QString::number(duration_ms) + tr("ms"));
+        emit sig_hasStatusMessage(tr("No images imported after ") + QString::number(duration_ms) + tr("ms"));
         onFailedOpen();
     }
     else {
@@ -545,6 +523,39 @@ uint Controller::loadMetaDataFromPath(QString path)
         emit sig_hasStatusMessage(msg);
         return 0;
     }
+}
+
+bool Controller::loadInputDataFromPath(QString path)
+{
+    bool validDatasetPath =
+            path.endsWith(".mp4", Qt::CaseInsensitive) ||
+            path.endsWith(".mov", Qt::CaseInsensitive) ||
+            path.endsWith(".avi", Qt::CaseInsensitive) ||
+            QDir(path).exists() ||
+            path.endsWith(".json", Qt::CaseInsensitive);
+    if (!validDatasetPath) {
+        return false;
+    }
+
+    if (m_openExec){
+        delete m_openExec;
+    }
+    m_isImporting = true;
+    m_openExec = new OpenExecutor(path, m_dataManager);
+    if (m_inputProgressDialog) {
+        delete m_inputProgressDialog;
+    }
+    m_inputProgressDialog = new ProgressDialog(m_mainWindow, false);
+    m_inputProgressDialog->setModal(true);
+    m_inputProgressDialog->slot_displayProgress(-1, tr("Importing dataset and metadata."));
+
+    connect(m_inputProgressDialog, &ProgressDialog::rejected, m_openExec, &OpenExecutor::slot_abort);
+    connect(m_openExec, &OpenExecutor::sig_finished, this, &Controller::slot_openFinished);
+    m_timer = QElapsedTimer();
+    m_timer.start();
+    m_openExec->open();
+    m_inputProgressDialog->show();
+    return true;
 }
 
 void Controller::onSuccessfulOpen()

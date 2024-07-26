@@ -1,9 +1,6 @@
 #include "openexecutor.h"
 
-OpenExecutor::OpenExecutor(const QString &pathToOpen, DataManager *dataManager) : m_futurePicsWatcher(nullptr), m_dataManager(dataManager), m_path(pathToOpen)
-{
-
-}
+OpenExecutor::OpenExecutor(const QString &pathToOpen, DataManager *dataManager) : m_futurePicsWatcher(nullptr), m_dataManager(dataManager), m_path(pathToOpen){}
 
 OpenExecutor::~OpenExecutor()
 {
@@ -29,6 +26,12 @@ void OpenExecutor::open()
     m_futurePicsWatcher = new QFutureWatcher<int>(this);
     connect(m_futurePicsWatcher, &QFutureWatcher<int>::finished, this, &OpenExecutor::slot_finished);
     m_futurePicsWatcher->setFuture(m_futurePics);
+}
+
+void OpenExecutor::slot_abort()
+{
+    m_futurePicsWatcher->cancel();
+    emit sig_finished(-1);
 }
 
 void OpenExecutor::slot_finished()
