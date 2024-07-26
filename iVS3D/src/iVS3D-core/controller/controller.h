@@ -79,7 +79,7 @@ public slots:
      * @brief slot_openVideoDragAndDrop Slot is called when a file is drop on the VideoPlayer.
      * It will try to import the drop file with the OpenExecutor.
      */
-    void slot_openVideoDragAndDrop(QString filePath);
+    void slot_openDragAndDrop(QString filePath);
     /**
      * @brief slot_openProject Slot is called when a project should be loaded
      * It will show a file dialog and use the OpenExecutor to import the selected project.
@@ -167,6 +167,7 @@ private:
     MainWindow* m_mainWindow;
     DataManager* m_dataManager;
     OpenExecutor *m_openExec;
+    ProgressDialog *m_inputProgressDialog = nullptr;
     #if defined(Q_OS_LINUX)
         lib3d::ots::ColmapWrapper *m_colmapWrapper;
         QAction *m_colmapWrapperSettingsAction;
@@ -188,6 +189,7 @@ private:
     void displayPluginSettings();
     void onFailedOpen();
     uint loadMetaDataFromPath(QString path);
+    bool loadInputDataFromPath(QString path);
 
     // plugin runtime
     QElapsedTimer m_timer;

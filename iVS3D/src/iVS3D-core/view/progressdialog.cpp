@@ -29,8 +29,10 @@ void ProgressDialog::slot_displayProgress(int progress, QString currentOperation
         ui->progressBar->setMinimum(100);
         ui->progressBar->setMaximum(100);
         ui->progressBar->setValue(100);
+        ui->progressBar->setTextVisible(false);
     } else {
         // algorithm returns a progress
+        ui->progressBar->setTextVisible(true);
         ui->progressBar->setValue(progress);
     }
 

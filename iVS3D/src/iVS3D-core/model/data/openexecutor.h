@@ -40,9 +40,9 @@ public:
 
 public slots:
     /**
-     * @brief [slot] slot_finished emits sig_process to show that it is done
+     * @brief [slot] slot_abort calls destructor and aborts current data retrieval
      */
-    void slot_finished();
+    void slot_abort();
 
 signals:
     /**
@@ -50,6 +50,13 @@ signals:
      * @param result, which shows if the progress was successfull
      */
     void sig_finished(int result);
+
+
+private slots:
+    /**
+     * @brief [slot] slot_finished emits sig_process to show that it is done
+     */
+    void slot_finished();
 
 private:
     QFuture<int> m_futurePics;
