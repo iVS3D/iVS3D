@@ -125,6 +125,22 @@ deployapp() {
     addlibs $qmlfile "$INSTALL_PATH/$PACKAGE_NAME/lib"
   done
 
+  if [ -n "$CUDA_VERSION" ]
+  then
+    echo " "
+    echo "--------------------------------"
+    echo "-- adding cudnn libs  --"
+    echo "--------------------------------"
+
+    CUDNN_FILES="libcudnn_ops_infer.so.8 libcudnn_cnn_infer.so.8"
+
+    for CUDNN_FILE in $CUDNN_FILES
+    do
+      cp $CUDNN_LIBS/$CUDNN_FILE $INSTALL_PATH/$PACKAGE_NAME/lib/$CUDNN_FILE
+      addlibs $INSTALL_PATH/$PACKAGE_NAME/lib/$CUDNN_FILE "$INSTALL_PATH/$PACKAGE_NAME/lib"
+    done
+  fi
+
   echo " "
   echo "--------------------------------"
   echo "--   setting rpath to ORIGIN  --"
