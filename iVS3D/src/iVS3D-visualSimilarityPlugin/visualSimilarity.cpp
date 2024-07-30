@@ -29,13 +29,13 @@ std::vector<uint> VisualSimilarity::sampleImages(const std::vector<unsigned int>
     logFile->startTimer(LF_TIMER_NN);
 
     // Read nn
-    if (!QFile::exists(QString::fromStdString(RESSOURCE_PATH+m_nnFileName.toStdString()))) {
+    if (!QFile::exists(QCoreApplication::applicationDirPath()+RESSOURCE_PATH+m_nnFileName)) {
         displayErrorMessage(tr("No valid neural network was selected."));
         return imageList;
     }
     displayMessage(receiver, tr("Loading Neural Network"));
     displayProgress(receiver,0 , tr("Loading Neural Network"));
-    auto nn = cv::dnn::readNet(RESSOURCE_PATH+m_nnFileName.toStdString());
+    auto nn = cv::dnn::readNet(QString(QCoreApplication::applicationDirPath()+RESSOURCE_PATH+m_nnFileName).toStdString());
     // activate cuda
     int batchSize = 1;
     if (useCuda) {
@@ -263,7 +263,7 @@ void VisualSimilarity::slot_selectedNNChanged(QString nnName)
 
 void VisualSimilarity::slot_reloadNN(int index)
 {
-    QStringList nnNameList = collect_nns(RESSOURCE_PATH);
+    QStringList nnNameList = collect_nns(QCoreApplication::applicationDirPath()+RESSOURCE_PATH);
     m_nnNameInput->clear();
     m_nnNameInput->addItems(nnNameList);
 }
@@ -441,9 +441,9 @@ void VisualSimilarity::createSettingsWidget(QWidget *parent)
     nnNameWidget->layout()->addWidget(new QLabel(UI_NNNAME_NAME));
     nnNameWidget->setToolTip(UI_NNNAME_DESC);
     m_nnNameInput = new QComboBox(parent);
-    connect(m_nnNameInput, QOverload<int>::of(&QComboBox::activated), this, &VisualSimilarity::slot_reloadNN);
+//    connect(m_nnNameInput, QOverload<int>::of(&QComboBox::activated), this, &VisualSimilarity::slot_reloadNN);
     connect(m_nnNameInput, &QComboBox::currentTextChanged, this, &VisualSimilarity::slot_selectedNNChanged);
-    m_nnNameInput->addItems(collect_nns(RESSOURCE_PATH));
+    m_nnNameInput->addItems(collect_nns(QCoreApplication::applicationDirPath()+RESSOURCE_PATH));
     nnNameWidget->layout()->addWidget(m_nnNameInput);
     m_settingsWidget->layout()->addWidget(nnNameWidget);
 
