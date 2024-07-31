@@ -74,12 +74,30 @@ This feature is activated by default but can be disabled if necessary.
 #### GeoMap
 *TBD*
 #### Smooth Camera Movement
+*TBD -> me*
 
 #### Stationary Camera Removal
+*TBD -> me*
 #### Deep Visual Similarity
-To utilize the power of neural networks (NNs)
+*Deep Visual Similarity* utilizes the power of neural networks (NNs) to find images with the largest possible visual disparity.
+The algorithm executes the following steps:
+1. Calculate describing feature vectors for every image
+2. Group images, using feature vectors, to clusters
+3. Choose images closest to centroids as selected frames
+
+Therefore, only two parameters are required to be set by the user.
+`K` indirectly determines the number of selected frames.
+It can be thought of as the `N` parameter in the [NthFrame](#nthframe) Plugin.
+$$\text{\# Selected Frames} = \frac{\text{\# Input Frames}}{K}$$
+As a second parameter, the used NN can be selected.
+This determines how the feature vector is calculated and which dimension is used in clustering.
+The plugin provides robust support for NNs in `.onnx` format with the prefix `ImageEmbedding`, ensuring compatibility and confidence in the system.
+See [iVS3D-models](https://github.com/iVS3D/iVS3D-models) for more detailed information.
+
 ### Mask Generation Plugins
+*TBD*
 #### Semantic Segmentation
+*TBD*
 
 ## 3D Reconstruction
 iVS3D does prepare the data for 3D reconstruction. For now, we do not perform the reconstruction itself. On Windows, iVS3D provides functionality to configure and start [COLMAP] which performs the reconstruction on the prepared data. This saves time and simplifies the reconstruction process. Make sure to install Python 3.9 or later for the reconstruction! 
