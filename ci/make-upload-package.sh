@@ -30,6 +30,9 @@ echo "--------------------"
 echo "  $LD_LIBRARY_PATH"
 echo "--------------------"
 
+# Initialize an array to store missing libraries
+missing_libs=()
+
 addlibs () {
 IFS="
 "
@@ -45,8 +48,13 @@ do
     then
       if ! grep -q "$lib" $EXCLUDED_LIBS; then
         echo "> cp $path $2/$lib"
-        cp "$path" "$2/$lib"
-        addlibs "lib/$lib" "$INSTALL_PATH/$PACKAGE_NAME/lib"
+        cp "$path" "$2/$lib" 2>/dev/null
+        if [ $? -ne 0 ]; then
+          echo "Failed to copy $lib"
+          missing_libs+=("$lib")
+        else
+          addlibs "$2/$lib" "$INSTALL_PATH/$PACKAGE_NAME/lib"
+        fi
       fi
     fi
   fi
@@ -136,8 +144,12 @@ deployapp() {
 
     for CUDNN_FILE in $CUDNN_FILES
     do
-      cp $CUDNN_LIBS/$CUDNN_FILE $INSTALL_PATH/$PACKAGE_NAME/lib/$CUDNN_FILE
-      addlibs $INSTALL_PATH/$PACKAGE_NAME/lib/$CUDNN_FILE "$INSTALL_PATH/$PACKAGE_NAME/lib"
+      if ! cp $CUDNN_LIBS/$CUDNN_FILE $INSTALL_PATH/$PACKAGE_NAME/lib/$CUDNN_FILE 2>/dev/null; then
+        echo "Failed to copy $CUDNN_LIBS/$CUDNN_FILE"
+        missing_libs+=("$CUDNN_FILE")
+      else
+        addlibs $INSTALL_PATH/$PACKAGE_NAME/lib/$CUDNN_FILE "$INSTALL_PATH/$PACKAGE_NAME/lib"
+      fi
     done
   fi
 
@@ -166,3 +178,14 @@ EOL
 }
 
 deployapp
+
+# Print missing libraries
+if [ ${#missing_libs[@]} -ne 0 ]; then
+  echo " "
+  echo "--------------------------------"
+  echo "--   Missing Libraries Report --"
+  echo "--------------------------------"
+  for lib in "${missing_libs[@]}"; do
+    echo "Missing: $lib"
+  done
+fi
