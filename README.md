@@ -147,9 +147,16 @@ The plugin provides robust support for NNs in `.onnx` format with the prefix `Im
 See [iVS3D-models](https://github.com/iVS3D/iVS3D-models) for more detailed information.
 
 ### Mask Generation Plugins
-*TBD*
+Additional data about the scene content can be provided to boost 3D reconstructions. A prominent example is the detection, localization, and segmentation of moving objects, such as vehicles or bystanders in motion. Masks can remove such data.
+
+iVS3D provides a plugin interface to enable users to use existing plugins or create their own.
+Plugins receive frames and can generate masks, which can be displayed live in a preview window or exported along with the selected RGB images.
 #### Semantic Segmentation
-*TBD*
+In Semantic Segmentation, every pixel of an image is assigned a class or label.
+Our plugin uses the power of neural networks (NNs) to label every pixel in a given frame and enables users to create their own custom masks through a checkbox matrix.
+NNs are provided in the `.onnx` format with a text file that describes the available classes and associated colors used for illustration in the preview.
+
+For more information about the model used, see [Link to models].
 
 ## 3D Reconstruction
 iVS3D does prepare the data for 3D reconstruction. For now, we do not perform the reconstruction itself. On Windows, iVS3D provides functionality to configure and start [COLMAP] which performs the reconstruction on the prepared data. This saves time and simplifies the reconstruction process. Make sure to install Python 3.9 or later for the reconstruction! 
