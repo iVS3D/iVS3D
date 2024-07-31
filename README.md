@@ -35,14 +35,51 @@ The graphical user interface is split into five different sections. 1. Input, 2.
 
 There are currently 4 plugins implemented:
 
-| Plugin | Description |
-| ------ | ------ |
-| NthFrame | Selects every N-th frame |
-| Stationary Camera Detection | Selects images based on camera movement |
-| Blur | Avoids blurry images |
-| Geo Distance | Selects images based on the distance between their camera location. This requires GPS poses |
+| Plugin | Description | Supports CUDA |
+| ------ | ----------- | ------------- |
+| [NthFrame](#nthframe) | Selects every N-th frame | |
+| [Blur Detection](#blur-detection) | Avoids blurry images | |
+| [GeoDistance](#geodistance) | (requires GPS) Selects images based on the distance between their GPS camera location | |
+| [GeoMap](#geomap) | (requires GPS) Displays an interactive map for the user to select GPS poses manually | |
+| [Smooth Camera Movement](#smooth-camera-movement) | | :white_check_mark: |
+| [Stationary Camera Removal](#stationary-camera-removal) | Selects images based on camera movement | :white_check_mark: |
+| [Deep Visual Similarity](#deep-visual-similarity) | | :white_check_mark: |
+| | |
+| [Semantic Segmentation](#semantic-segmentation) | | :white_check_mark: |
 
-These plugins show different approaches to selecting images for 3d reconstruction. iVS3D is built with an open plugin interface for adding new plugins. See [here](doc/create_plugin.md) for creating your own plugin.
+These plugins show different approaches to enhance information from an image sequence or video by either selecting images or creating additional masks to improve the 3D reconstruction process.
+iVS3D is built with an open plugin interface for adding new plugins. So feel free to add your own. See [here](doc/create_plugin.md) for creating your own plugin.
+
+### Image Selection Plugins
+All of these plugins follow a subtractive approach.
+They receive a list of selected frames and remove those that contain less information than the others.
+This can manifest in removing frames that are close to each other by camera position, duration or some entirely different metric.
+#### NthFrame
+NthFrame is the easiest way to reduce the number of frames used for a 3D reconstruction.
+It removes all frames except for every Nth frame.
+Consequently, this plugin is the way to go if you want to downsample to a specific FPS count.
+This procedure enables NthFrame to be one of the essential tools for preselecting frames before executing more powerful and long-running algorithms.
+
+In the later stages of an image selection workflow, isolated frames can emerge.
+This happens, for example, when selecting frames based on camera position.
+If the camera is static in some places, only a few frames are selected in a long duration.
+NthFrame, however, could remove those remaining isolated frames because of the nature of the algorithm.
+To prevent this from happening, we added an additional feature that always keeps those isolated frames.
+This feature is activated by default but can be disabled if necessary.
+
+#### Blur Detection
+*TBD*
+#### GeoDistance
+*TBD*
+#### GeoMap
+*TBD*
+#### Smooth Camera Movement
+
+#### Stationary Camera Removal
+#### Deep Visual Similarity
+To utilize the power of neural networks (NNs)
+### Mask Generation Plugins
+#### Semantic Segmentation
 
 ## 3D Reconstruction
 iVS3D does prepare the data for 3D reconstruction. For now, we do not perform the reconstruction itself. On Windows, iVS3D provides functionality to configure and start [COLMAP] which performs the reconstruction on the prepared data. This saves time and simplifies the reconstruction process. Make sure to install Python 3.9 or later for the reconstruction! 
@@ -78,18 +115,21 @@ Now the images have been written to the disk. Open your file explorer and naviga
 ## Ready to use builds for Windows and Linux
 
 We provide builds with and without CUDA for multiple platforms and distributions:
-- Windows 10
-- Debian 11
-- Ubuntu 22.04
+| OS | CPU only | CUDA enabled |
+|----|----------|--------------|
+| Windows 10/11 | :white_check_mark: | :white_check_mark: |
+| Ubuntu 22.04 | :white_check_mark: | :white_check_mark: |
+| Debian 11 | :white_check_mark: | :white_check_mark: |
+| Debian 12 | :white_check_mark: | :white_check_mark: |
 
 Check the latest release to get a build for your platform!
 
 Note that the CUDA builds support GTX 10xx and RTX series GPUS. Older GPUs or Laptop GPUs might require building iVS3D from sources with an OpenCV and CUDA build for that specific GPU.
 
-<!-- To use the included plugin for semantic segmentation you can download the models we used in our paper:
+To use the included plugin for semantic segmentation you can download the models we used in our paper:
 [Link to models]
 
-To use other models, they have to be in the .onnx format. In addition, the plug-in requires a file that maps the classes to specific colors. -->
+To use other models, they have to be in the .onnx format. In addition, the plug-in requires a file that maps the classes to specific colors.
 
 ## Build from source
 ### Dependencies
@@ -128,7 +168,7 @@ see [Licences.txt](Licences.txt)
 
 ## Citations
 
-- Knapitsch et al.: _Tanks and Temples Benachmark_ (2017): [website](https://www.tanksandtemples.org/)
+- Knapitsch et al.: _Tanks and Temples Benchmark_ (2017): [website](https://www.tanksandtemples.org/)
 
 ## Authors
 
@@ -149,5 +189,5 @@ Created as part of PSE at the Karlsruhe Institute of Technology in the winter te
   [NVIDIA CUDA Toolkit API]:    https://developer.nvidia.com/cuda-zone
   [cuDNN]:  https://developer.nvidia.com/cudnn
   [Link to paper]: https://arxiv.org/abs/2110.11810
-  [Link to models]: https://drive.google.com/drive/folders/122EDO4UxhEYRy5MI1OIpePnsibwGGXjA?usp=sharing
+  [Link to models]: https://github.com/iVS3D/iVS3D-models
   [Link to our test data]: https://drive.google.com/drive/folders/1hPFtDqQKF9JzBpNTV016unL7awRCsxNj?usp=sharing
