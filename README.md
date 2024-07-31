@@ -43,7 +43,7 @@ There are currently 4 plugins implemented:
 | [GeoMap](#geomap) | (requires GPS) Displays an interactive map for the user to select GPS poses manually | |
 | [Smooth Camera Movement](#smooth-camera-movement) | | :white_check_mark: |
 | [Stationary Camera Removal](#stationary-camera-removal) | Selects images based on camera movement | :white_check_mark: |
-| [Deep Visual Similarity](#deep-visual-similarity) | | :white_check_mark: |
+| [Deep Visual Similarity](#deep-visual-similarity) | find images with the largest possible visual disparity | :white_check_mark: |
 | | |
 | [Semantic Segmentation](#semantic-segmentation) | | :white_check_mark: |
 
@@ -73,13 +73,63 @@ This feature is activated by default but can be disabled if necessary.
 *TBD*
 #### GeoMap
 *TBD*
-#### Smooth Camera Movement
-*TBD -> me*
 
-#### Stationary Camera Removal
-*TBD -> me*
+#### Optical Flow Plugins
+There are currently two Plugins utilizing the concept of estimating camera movement through optical flow.
+Optical flow describes the apparent movement of an object in the captured scene.
+By calculating the optical flow between two images we obtain how far and in which directions an object has moved.
+In general, there is sparse and dense optical flow.
+Sparse optical flow only returns the estimated movement at some positions in the image, while dense optical flow predicts a globally smoothed movement for every pixel.
+
+The following flowchart illustrates the general algorithm for the implemented plugins.
+```mermaid
+flowchart LR
+    I[Load Image Pair] <--async--> F[Farnebäck 2003] --> FV[Median] --> KS[Frame Selection];
+    subgraph Camera Movement Estimation
+    F -->FV;
+    end
+```
+The general algorithm consists of three major steps.
+First, image pairs are loaded.
+To estimate the camera movement, we use the dense optical flow algorithm from Farnebäck 2003 [[2]](#2) to receive a global prediction for every pixel in the scene.
+Afterward, this global displacement field is reduced to a single value by calculating the median length of all displacements.
+This value now represents the change of camera perspective between the two frames.
+> Note that this value is still dependent on the image's resolution and, therefore, does not have a measurement unit attached to it.
+
+During the last step, frames are selected based on the previously estimated camera movement. The following plugins currently differ in this step while utilizing identical initial steps.
+
+A parameter that both plugins have in common is the `Sampling Resolution` parameter.
+When activated, it resizes images to a lower resolution to speed up the calculation of the Farnebäck algorithm.
+Reducing the resolution, however, can impact the quality of the displacement estimation in special cases, like when cameras are far away from objects or a high amount of detail is necessary.
+Another feature that speeds up the execution is the buffer, which is utilized in every plugin.
+The following plugins buffer the already estimated camera movements and write them into the project file.
+So, if the plugin was already performed once in this project, it will not be recomputed.
+As a result, it's usually advised to run a plugin once on the whole dataset and then experiment with the provided parameters.
+> A partial recomputation is necessary if the input frames change. The estimated camera movement is only viable between the provided two frames.
+
+##### Smooth Camera Movement
+Using the previously estimated camera movement, this plugin distributes frames evenly over the given frames.
+The resulting frames all have roughly the same camera displacement, so the remaining trajectory has uniform camera movement.
+> Note that the camera movement includes rotations, translations, and backtracking.
+
+The user can adjust the parameter `Movement Threshold` to define the camera movement, which is the trigger for selecting the next frame.
+
+##### Stationary Camera Removal
+In contrast to the [Smooth Camera Movement](#smooth-camera-movement) plugin this one looks at each frame pair individually and decides if it should be removed.
+The concept is that only frames which have any camera displacement in relation to the one before are useful.
+Therefore all frames between, which the camera was stationary, are not providing additional information.
+
+To define when a frame is declared stationary the parameter `Stationary Threshold` can be specified.
+$$
+\begin{align}
+m_s &= median(M) * \frac{\text{Stationary Threshold (in\%)}}{100}
+\end{align}
+$$
+$m_s$
+*TBD*
+
 #### Deep Visual Similarity
-*Deep Visual Similarity* utilizes the power of neural networks (NNs) to find images with the largest possible visual disparity.
+Deep Visual Similarity utilizes the power of neural networks (NNs) to find images with the largest possible visual disparity.
 The algorithm executes the following steps:
 1. Calculate describing feature vectors for every image
 2. Group images, using feature vectors, to clusters
@@ -184,6 +234,16 @@ see [Licences.txt](Licences.txt)
 ## Citations
 
 - Knapitsch et al.: _Tanks and Temples Benchmark_ (2017): [website](https://www.tanksandtemples.org/)
+
+<a id="1">[1]</a>
+Knapitsch et al. (2017).
+Tanks and Temples: Benchmarking Large-Scale Scene Reconstruction.
+Proceedings of the ACM Transactions on Graphics. Lecture Notes in Computer Science, vol 36. Issue 4. Article No.:78, Pages 1 - 13. https://doi.org/10.1145/3072959.3073599
+
+<a id="2">[2]</a> 
+Farnebäck (2003).
+Two-Frame Motion Estimation Based on Polynomial Expansion.
+Proceedings of the SCIA 2003. Lecture Notes in Computer Science, vol 2749. Springer, Berlin, Heidelberg. https://doi.org/10.1007/3-540-45103-X_50
 
 ## Authors
 
