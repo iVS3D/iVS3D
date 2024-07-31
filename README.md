@@ -161,13 +161,10 @@ For CUDA support:
 
 For Windows, we use [MSVC] compiler which is shipped with Visual Studio. On Linux, we use [GCC] 10 compiler.
 
-The required dependencies can be imported using the _3rdParty.pri_ file. Further information about including dependencies using _.pri_ files can be found [here](doc/3rdparty.md).
-
-### 2.5 ways to build iVS3D
-- Open and build with [Qt Creator](doc/build_qtcreator.md)
-- Deploy using automated script on [Windows](doc/build_win.md) or [Linux](doc/build_linux.md)
-- Build with [cmake](doc/build_cmake.md) using bash or QtCreator (experimental)
-
+iVS3D uses the cmake build system, which is available in the terminal or in QtCreator. For detailed instructions on building from source see here:
+- Build using [linux terminal](doc/build_linux.md)
+- Build using [windows terminal](doc/build_win.md)
+- Build in [Qt Creator](doc/build_qtcreator.md)
 
 ## Tests
 
