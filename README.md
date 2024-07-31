@@ -120,13 +120,13 @@ The concept is that only frames which have any camera displacement in relation t
 Therefore all frames between, which the camera was stationary, are not providing additional information.
 
 To define when a frame is declared stationary the parameter `Stationary Threshold` can be specified.
-$$
-\begin{align}
+$$ \begin{align}
 m_s &= median(M) * \frac{\text{Stationary Threshold (in\%)}}{100}
-\end{align}
-$$
-$m_s$
-*TBD*
+\end{align} $$
+If the computed camera movement of between the previous and current frame is higher than $m_s$ the frame is selected.
+Otherwise it is removed and the next two frames are compared.
+
+> Note that the parameter is therefore closely tied to the used video and the specific distribution of camera movements. It is advised to tweak this value for different datasets.
 
 #### Deep Visual Similarity
 Deep Visual Similarity utilizes the power of neural networks (NNs) to find images with the largest possible visual disparity.
