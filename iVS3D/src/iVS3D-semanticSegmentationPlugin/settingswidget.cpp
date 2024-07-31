@@ -11,7 +11,7 @@ SettingsWidget::SettingsWidget(QWidget *parent, QStringList ONNXmodelList, float
         // display error instead of controls.
         QString errorMessage = tr(
                                    "<div style='border: 2px solid red; padding: 10px;'>"
-                                   "<p><b>🔴 %1</b></p>"
+                                   "<p><b>%1</b></p>"
                                    "<p>%2</p>"
                                    "</div>"
                                    "<br>"

@@ -26,6 +26,10 @@ std::vector<uint> VisualSimilarity::sampleImages(const std::vector<unsigned int>
         return imageList;
     }
 
+    if (!m_nnNameInput) {
+        return imageList;
+    }
+
     logFile->startTimer(LF_TIMER_NN);
 
     // Read nn
@@ -421,6 +425,43 @@ void VisualSimilarity::createSettingsWidget(QWidget *parent)
     m_settingsWidget->setLayout(new QVBoxLayout());
     m_settingsWidget->layout()->setSpacing(0);
     m_settingsWidget->layout()->setMargin(0);
+
+    // find all nns available for deep visual similarity in resources/neural_network_models
+    auto availableNNs = collect_nns(QCoreApplication::applicationDirPath()+RESSOURCE_PATH);
+
+    if(availableNNs.isEmpty()){
+        // can't do anything without neural network models
+        // display error instead of controls.
+        QString errorMessage = tr(
+                                       "<div style='border: 2px solid red; padding: 10px;'>"
+                                       "<p><b>%1</b></p>"
+                                       "<p>%2</p>"
+                                       "</div>"
+                                       "<br>"
+                                       "<p>%3</p>"
+                                       "<code>%4</code><br><br>"
+                                       "<p>%5 <a href='https://github.com/iVS3D/iVS3D-models'>%6</a>.</p>"
+                                       ).arg(
+                                           tr("ERROR:"),
+                                           tr("No neural network models for deep visual similarity were found!"),
+                                           tr("Please add your models to the plugin resources directory and restart iVS3D:"),
+                                           QCoreApplication::applicationDirPath()+RESSOURCE_PATH,
+                                           tr("You can find our neural network models"),
+                                           tr("here")
+                                           );
+
+        QLabel* errorLabel = new QLabel(errorMessage);
+
+        // Enable text interaction flags
+        errorLabel->setTextInteractionFlags(Qt::TextSelectableByMouse | Qt::LinksAccessibleByMouse);
+        errorLabel->setOpenExternalLinks(true);
+        this->m_settingsWidget->layout()->addWidget(errorLabel);
+        this->m_settingsWidget->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+        this->m_settingsWidget->adjustSize();
+        return;
+    }
+
+
     // frame reduction
     QWidget *frameReductionWidget = new QWidget(parent);
     frameReductionWidget->setLayout(new QHBoxLayout(parent));
@@ -443,7 +484,7 @@ void VisualSimilarity::createSettingsWidget(QWidget *parent)
     m_nnNameInput = new QComboBox(parent);
 //    connect(m_nnNameInput, QOverload<int>::of(&QComboBox::activated), this, &VisualSimilarity::slot_reloadNN);
     connect(m_nnNameInput, &QComboBox::currentTextChanged, this, &VisualSimilarity::slot_selectedNNChanged);
-    m_nnNameInput->addItems(collect_nns(QCoreApplication::applicationDirPath()+RESSOURCE_PATH));
+    m_nnNameInput->addItems(availableNNs);
     nnNameWidget->layout()->addWidget(m_nnNameInput);
     m_settingsWidget->layout()->addWidget(nnNameWidget);
 
