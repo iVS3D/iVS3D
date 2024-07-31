@@ -115,18 +115,18 @@ The resulting frames all have roughly the same camera displacement, so the remai
 The user can adjust the parameter `Movement Threshold` to define the camera movement, which is the trigger for selecting the next frame.
 
 ##### Stationary Camera Removal
-In contrast to the [Smooth Camera Movement](#smooth-camera-movement) plugin this one looks at each frame pair individually and decides if it should be removed.
-The concept is that only frames which have any camera displacement in relation to the one before are useful.
-Therefore all frames between, which the camera was stationary, are not providing additional information.
+In contrast to the [Smooth Camera Movement](#smooth-camera-movement) plugin, this one looks at each frame pair individually and decides if it should be removed.
+The concept is that only frames that have any camera displacement in relation to the one before are useful.
+Therefore, all frames between which the camera was stationary do not provide additional information.
 
-To define when a frame is declared stationary the parameter `Stationary Threshold` can be specified.
-$$ \begin{align}
-m_s &= median(M) * \frac{\text{Stationary Threshold (in\%)}}{100}
-\end{align} $$
-If the computed camera movement of between the previous and current frame is higher than $m_s$ the frame is selected.
-Otherwise it is removed and the next two frames are compared.
+To define when a frame is declared stationary, the parameter `Stationary Threshold` can be specified.
 
-> Note that the parameter is therefore closely tied to the used video and the specific distribution of camera movements. It is advised to tweak this value for different datasets.
+$$m_s = median(M) * \frac{\text{Stationary Threshold (in percent)}}{100}$$
+
+If the computed camera movement between the previous and current frame is higher than $m_s$, the frame is selected.
+Otherwise, it is removed, and the next two frames are compared.
+
+> Note that the parameter is therefore closely tied to the used video and the specific distribution of camera movements. Tweaking this value for different datasets is advised.
 
 #### Deep Visual Similarity
 Deep Visual Similarity utilizes the power of neural networks (NNs) to find images with the largest possible visual disparity.
@@ -138,7 +138,9 @@ The algorithm executes the following steps:
 Therefore, only two parameters are required to be set by the user.
 `K` indirectly determines the number of selected frames.
 It can be thought of as the `N` parameter in the [NthFrame](#nthframe) Plugin.
-$$\text{\# Selected Frames} = \frac{\text{\# Input Frames}}{K}$$
+
+$$\text{Num. Selected Frames} = \frac{\text{Num. Input Frames}}{K}$$
+
 As a second parameter, the used NN can be selected.
 This determines how the feature vector is calculated and which dimension is used in clustering.
 The plugin provides robust support for NNs in `.onnx` format with the prefix `ImageEmbedding`, ensuring compatibility and confidence in the system.
