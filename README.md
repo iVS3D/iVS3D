@@ -11,13 +11,13 @@
 
 - Import of images and videos (.jpg, .jpeg, .png, ..., .mp4, .mov, ...)
 - Drag and drop to import images, videos, and open projects
-- Baseline plugins for selecting images:
-    - _Nth Frame_ Algorithm (selects every N-th frame)
-    - _Stationary Camera Detection_ Algorithm (selects images based on camera movement)
-    - _Blur_ Algorithm (avoid blurry images)
-    - _Geo Distance_ Algorithm (selects images based on the distance between their camera location. This requires GPS poses.)
+- Plugins for selecting images based on:
+    - Meta information such as framerate or gps locations (_Nth Frame_, _Geo Distance_, _Geo Map_)
+    - Image features such as camera blur and optical flow (_Blur Detection_, _Smooth Camera Movement_, _Stationary Camera Removal_)
+    - Visual embedding using deep neural networks (_Deep Visual Similarity_)
     - More _Sampling_-Algorithms can be added using the plugin interface
-- Semantic segmentation to mask challenging areas in the input images to prevent these from being processed
+- Plugins to mask challenging areas in the input images to prevent these from being processed
+    - Semantic Segmentation using convolutional neural networks to mask vehicles and people
     - More _Transformation_-Algorithms can be added using the plugin interface
 - Export with user-selected resolution and ROI (_Region of Interest_)
 - Optimised [COLMAP] Interface
@@ -31,132 +31,50 @@
 ![GUI](doc/images/GUI_overview.png)
 The graphical user interface is split into five different sections. 1. Input, 2. Sampling, 3. Export, 4. Executed steps and 5. Video player with the timeline for selected images.
 
+## Getting started
+This tutorial will guide you through a basic workflow with iVS3D. To follow along, download one of our latest [Ready-To-Use Builds](#ready-to-use-builds-for-windows-and-linux) for Debian, Ubuntu or Windows, or [compile from source](#build-from-source) for your platform. Download a video from the [Tanks and Temples Benchmark](https://www.tanksandtemples.org/), we use the Lighthouse video.
+
+**Step 1: Import and preview**
+
+Run `iVS3D-core` and import the video. This can be done using the `Open Input Video` action in the `File`-menu at the top. Alternatively, you can drag and drop the video into the application. Now you can preview the video:
+
+![GUI-tutorial](doc/images/GUI_tutorial.png)
+
+**Step 2: Select important images**
+
+In the timeline underneath the preview, all 8321 images are marked as selected, which is indicated by the red line. We want to reduce the number of images to speed up the reconstruction, so we use the `Nth image selection`-Plugin to sample down to one image per second. In the `Image selection` tab, select the `Nth image selection` plugin and hit `Start selection`. Now we are down to 277 selected images. To improve the quality of the images, we also run the `Blur detection` plugin. This will replace blurred images with better ones in the neighborhood. This might take a few minutes since we are processing 4K images.
+
+You can see all the steps that were performed in the `Executed steps` tab. There can revert to an older selection of images if you wish. More plugins for automated image selection are available, see [here](#plugins) for a detailed overwiew.
+
+**Step 3: Export selected images**
+
+Once the algorithm is finished, we can export the selected images. In the `Export`-tab select a fitting location and name for this set of images. We choose `export` in the example. You can also change the resolution of the images. To speed things up, we reduced the image resolution to HD and hit export:
+
+![Output-tutorial](doc/images/export_tutorial.png)
+
+**Step 4: Reconstruct 3D scene**
+Now the images have been written to the disk. Open your file explorer and navigate to the export location you chose to see the result. We can use the images to create a 3D point cloud with Colmap. For this follow the instructions [here](#3d-reconstruction).
+
 ## Plugins
 
-There are currently 4 plugins implemented:
+There are currently 8 plugins implemented:
 
 | Plugin | Description | Supports CUDA |
 | ------ | ----------- | ------------- |
-| [NthFrame](#nthframe) | Selects every N-th frame | |
-| [Blur Detection](#blur-detection) | Avoids blurry images | |
-| [GeoDistance](#geodistance) | (requires GPS) Selects images based on the distance between their GPS camera location | |
-| [GeoMap](#geomap) | (requires GPS) Displays an interactive map for the user to select GPS poses manually | |
-| [Smooth Camera Movement](#smooth-camera-movement) | | :white_check_mark: |
-| [Stationary Camera Removal](#stationary-camera-removal) | Selects images based on camera movement | :white_check_mark: |
-| [Deep Visual Similarity](#deep-visual-similarity) | find images with the largest possible visual disparity | :white_check_mark: |
+| [NthFrame](doc/plugins.md#nthframe) | Selects every N-th frame | |
+| [Blur Detection](doc/plugins.md#blur-detection) | Avoids blurry images | |
+| [GeoDistance](doc/plugins.md#geodistance) | (requires GPS) Selects images based on the distance between their GPS locations | |
+| [GeoMap](doc/plugins.md#geomap) | (requires GPS) Displays an interactive map for the user to select GPS poses manually | |
+| [Smooth Camera Movement](doc/plugins.md#smooth-camera-movement) | | :white_check_mark: |
+| [Stationary Camera Removal](doc/plugins.md#stationary-camera-removal) | Selects images based on camera movement | :white_check_mark: |
+| [Deep Visual Similarity](doc/plugins.md#deep-visual-similarity) | find images with the largest possible visual disparity | :white_check_mark: |
 | | |
-| [Semantic Segmentation](#semantic-segmentation) | | :white_check_mark: |
+| [Semantic Segmentation](doc/plugins.md#semantic-segmentation) | Creates binary masks to exclude objects such as vehicles from the reconstruction by using convolutional neural networks for semantic image segmentation | :white_check_mark: |
 
-These plugins show different approaches to enhance information from an image sequence or video by either selecting images or creating additional masks to improve the 3D reconstruction process.
+These plugins show different approaches to enhance information from an image sequence or video by either selecting images or creating additional masks to improve the 3D reconstruction process. See [here](doc/plugins.md) for a detailed description of the above mentioned plugins.
+
 iVS3D is built with an open plugin interface for adding new plugins. So feel free to add your own. See [here](doc/create_plugin.md) for creating your own plugin.
 
-### Image Selection Plugins
-All of these plugins follow a subtractive approach.
-They receive a list of selected frames and remove those that contain less information than the others.
-This can manifest in removing frames that are close to each other by camera position, duration or some entirely different metric.
-#### NthFrame
-NthFrame is the easiest way to reduce the number of frames used for a 3D reconstruction.
-It removes all frames except for every Nth frame.
-Consequently, this plugin is the way to go if you want to downsample to a specific FPS count.
-This procedure enables NthFrame to be one of the essential tools for preselecting frames before executing more powerful and long-running algorithms.
-
-In the later stages of an image selection workflow, isolated frames can emerge.
-This happens, for example, when selecting frames based on camera position.
-If the camera is static in some places, only a few frames are selected in a long duration.
-NthFrame, however, could remove those remaining isolated frames because of the nature of the algorithm.
-To prevent this from happening, we added an additional feature that always keeps those isolated frames.
-This feature is activated by default but can be disabled if necessary.
-
-#### Blur Detection
-*TBD*
-#### GeoDistance
-*TBD*
-#### GeoMap
-*TBD*
-
-#### Optical Flow Plugins
-There are currently two Plugins utilizing the concept of estimating camera movement through optical flow.
-Optical flow describes the apparent movement of an object in the captured scene.
-By calculating the optical flow between two images we obtain how far and in which directions an object has moved.
-In general, there is sparse and dense optical flow.
-Sparse optical flow only returns the estimated movement at some positions in the image, while dense optical flow predicts a globally smoothed movement for every pixel.
-
-The following flowchart illustrates the general algorithm for the implemented plugins.
-```mermaid
-flowchart LR
-    I[Load Image Pair] <--async--> F[Farnebäck 2003] --> FV[Median] --> KS[Frame Selection];
-    subgraph Camera Movement Estimation
-    F -->FV;
-    end
-```
-The general algorithm consists of three major steps.
-First, image pairs are loaded.
-To estimate the camera movement, we use the dense optical flow algorithm from Farnebäck 2003 [[2]](#2) to receive a global prediction for every pixel in the scene.
-Afterward, this global displacement field is reduced to a single value by calculating the median length of all displacements.
-This value now represents the change of camera perspective between the two frames.
-> Note that this value is still dependent on the image's resolution and, therefore, does not have a measurement unit attached to it.
-
-During the last step, frames are selected based on the previously estimated camera movement. The following plugins currently differ in this step while utilizing identical initial steps.
-
-A parameter that both plugins have in common is the `Sampling Resolution` parameter.
-When activated, it resizes images to a lower resolution to speed up the calculation of the Farnebäck algorithm.
-Reducing the resolution, however, can impact the quality of the displacement estimation in special cases, like when cameras are far away from objects or a high amount of detail is necessary.
-Another feature that speeds up the execution is the buffer, which is utilized in every plugin.
-The following plugins buffer the already estimated camera movements and write them into the project file.
-So, if the plugin was already performed once in this project, it will not be recomputed.
-As a result, it's usually advised to run a plugin once on the whole dataset and then experiment with the provided parameters.
-> A partial recomputation is necessary if the input frames change. The estimated camera movement is only viable between the provided two frames.
-
-##### Smooth Camera Movement
-Using the previously estimated camera movement, this plugin distributes frames evenly over the given frames.
-The resulting frames all have roughly the same camera displacement, so the remaining trajectory has uniform camera movement.
-> Note that the camera movement includes rotations, translations, and backtracking.
-
-The user can adjust the parameter `Movement Threshold` to define the camera movement, which is the trigger for selecting the next frame.
-
-##### Stationary Camera Removal
-In contrast to the [Smooth Camera Movement](#smooth-camera-movement) plugin, this one looks at each frame pair individually and decides if it should be removed.
-The concept is that only frames that have any camera displacement in relation to the one before are useful.
-Therefore, all frames between which the camera was stationary do not provide additional information.
-
-To define when a frame is declared stationary, the parameter `Stationary Threshold` can be specified.
-
-$$m_s = median(M) * \frac{\text{Stationary Threshold (in percent)}}{100}$$
-
-If the computed camera movement between the previous and current frame is higher than $m_s$, the frame is selected.
-Otherwise, it is removed, and the next two frames are compared.
-
-> Note that the parameter is therefore closely tied to the used video and the specific distribution of camera movements. Tweaking this value for different datasets is advised.
-
-#### Deep Visual Similarity
-Deep Visual Similarity utilizes the power of neural networks (NNs) to find images with the largest possible visual disparity.
-The algorithm executes the following steps:
-1. Calculate describing feature vectors for every image
-2. Group images, using feature vectors, to clusters
-3. Choose images closest to centroids as selected frames
-
-Therefore, only two parameters are required to be set by the user.
-`K` indirectly determines the number of selected frames.
-It can be thought of as the `N` parameter in the [NthFrame](#nthframe) Plugin.
-
-$$\text{Num. Selected Frames} = \frac{\text{Num. Input Frames}}{K}$$
-
-As a second parameter, the used NN can be selected.
-This determines how the feature vector is calculated and which dimension is used in clustering.
-The plugin provides robust support for NNs in `.onnx` format with the prefix `ImageEmbedding`, ensuring compatibility and confidence in the system.
-See [iVS3D-models](https://github.com/iVS3D/iVS3D-models) for more detailed information.
-
-### Mask Generation Plugins
-Additional data about the scene content can be provided to boost 3D reconstructions. A prominent example is the detection, localization, and segmentation of moving objects, such as vehicles or bystanders in motion. Masks can remove such data.
-
-iVS3D provides a plugin interface to enable users to use existing plugins or create their own.
-Plugins receive frames and can generate masks, which can be displayed live in a preview window or exported along with the selected RGB images.
-#### Semantic Segmentation
-In Semantic Segmentation, every pixel of an image is assigned a class or label.
-Our plugin uses the power of neural networks (NNs) to label every pixel in a given frame and enables users to create their own custom masks through a checkbox matrix.
-NNs are provided in the `.onnx` format with a text file that describes the available classes and associated colors used for illustration in the preview.
-
-For more information about the model used, see [Link to models].
 
 ## 3D Reconstruction
 iVS3D does prepare the data for 3D reconstruction. For now, we do not perform the reconstruction itself. On Windows, iVS3D provides functionality to configure and start [COLMAP] which performs the reconstruction on the prepared data. This saves time and simplifies the reconstruction process. Make sure to install Python 3.9 or later for the reconstruction! 
@@ -169,24 +87,7 @@ Reconstruction can be configured to be executed on the local machine or a remote
 - [local colmap execution](doc/local_colmap_execution.md)
 - [remote colmap execution](doc/remote_colmap_execution.md)
 
-## Getting started
-To guide you through a basic workflow with iVS3D, we provide a tutorial that relies on the Linux version. To follow along, download one of our latest [Ready-To-Use Builds](#ready-to-use-builds-for-windows-and-linux) for Debian 11 or Ubuntu 22.04, or [compile from source](#build-from-source) for your platform.
 
-Download a video from the [Tanks and Temples Benchmark](https://www.tanksandtemples.org/), we use the Lighthouse video.
-
-Run `iVS3D-core` and import the video. This can be done using the `Open Input Video` action in the `File`-menu at the top. Alternatively, you can drag and drop the video into the application. Now you can preview the video:
-
-![GUI-tutorial](doc/images/GUI_tutorial.png)
-
-In the timeline underneath the preview, all 8321 images are marked as selected, which is indicated by the red line. We want to reduce the number of images to speed up the reconstruction, so we use the `Nth image selection`-Plugin to sample down to one image per second. In the `Image selection` tab, select the `Nth image selection` plugin and hit `Start selection`. Now we are down to 277 selected images. To improve the quality of the images, we also run the `Blur detection` plugin. This will replace blurred images with better ones in the neighborhood. This might take a few minutes since we are processing 4K images.
-
-You can see all the steps that were performed in the `Executed steps` tab. There can revert to an older selection of images if you wish.
-
-Once the algorithm is finished, we can export the selected images. In the `Export`-tab select a fitting location and name for this set of images. We choose `export` in the example. You can also change the resolution of the images. To speed things up, we reduced the image resolution to HD and hit export:
-
-![Output-tutorial](doc/images/export_tutorial.png)
-
-Now the images have been written to the disk. Open your file explorer and navigate to the export location you chose to see the result. We can use the images to create a 3D point cloud with Colmap. For this follow the instructions [here](doc/remote_colmap_execution.md).
 
 
 ## Ready to use builds for Windows and Linux
@@ -212,7 +113,7 @@ To use other models, they have to be in the .onnx format. In addition, the plug-
 ### Dependencies
 
 iVS3D and the baseline plugins use:
-- [OpenCV] 4.7.0
+- [OpenCV] 4.7.0 with contrib modules
 - [Qt] Framework 5.15.2
 
 For CUDA support:
@@ -227,8 +128,8 @@ iVS3D uses the cmake build system, which is available in the terminal or in QtCr
 
 ## Tests
 
-To create the test build add ```"CONFIG+=test"``` as an qmake argument to your build configuration. 
-Now you can run the tests within the Test Result tab in Qt Creator.
+To create the test build add ```Build_Tests=ON``` when configuring your build with cmake. 
+Now you can run the tests within the Test Result tab in Qt Creator or use `ctest` to run the test suite in your terminal.
 
 [Link to our test data]
 
