@@ -23,9 +23,10 @@ This feature is activated by default but can be disabled if necessary.
 Effects such as motion blur can reduce the number of features extracted from an image. Thus such images are not ideal for 3D reconstruction. The Blur Detection Plugin quantifies image sharpness and blurrieness. With this information, blurred images are detected and the plugin selects a sharper image in the neighbourhood to boost reconstruction quality. 
 
 ### GeoDistance
-*TBD*
+This plugin selects images based on their GPS location. For this to work, the GPS data needs to be available as meta data, either included in the EXIF tag of the images or as a separate metadata file. The plugin uses this data to calculate the distance between image pairs and selects images that are further apart than a specified threshold.
+
 ### GeoMap
-*TBD*
+This plugin selects images based on their GPS location. For this to work, the GPS data needs to be available as meta data, either included in the EXIF tag of the images or as a separate metadata file. The images are displayed in an interactive map and the user can select individual images by clicking on the corresponding point on the map. It is possible to draw a polygon on the map to select many images at once. This allows to reconstruct only a certain area, e.g. only use images on one side of a building.
 
 ### Optical Flow Plugins
 There are currently two Plugins utilizing the concept of estimating camera movement through optical flow.
