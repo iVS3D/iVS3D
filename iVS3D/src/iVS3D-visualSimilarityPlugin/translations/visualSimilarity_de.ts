@@ -2,6 +2,29 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="de_DE">
 <context>
+    <name>QObject</name>
+    <message>
+        <source>Select one frame every K framese</source>
+        <translation>Wähle ein Bild alle K Bilder</translation>
+    </message>
+    <message>
+        <source>Reduces the amount of selected frames by the factor K.</source>
+        <translation>Reduziert die Anzahl der ausgewählten Bilder um den Faktor K.</translation>
+    </message>
+    <message>
+        <source>Selected Neural Network</source>
+        <translation>Ausgewählters Neuronales Netz</translation>
+    </message>
+    <message>
+        <source>The drop-down shows all files in the folder plugins/ressources/neural_network_models/ that follow the format ImageEmbedding_NAME_DIMENSION_WIDHTxHEIGHT.onnx</source>
+        <translation>Hier werden alle Dateien aus dem plugins/resources/neural_network_models/-Ordner angezeigt, die dem Format ImageEmbedding_NAME_DIMENSION_WIDTHxHEIGHT.onnx entsprechen.</translation>
+    </message>
+    <message>
+        <source>Resets the drop-Down and reloads available neural networks.</source>
+        <translation>Setzt das Dropdown zurück und lädt die verfügbaren Neuronalen Netze erneut.</translation>
+    </message>
+</context>
+<context>
     <name>VisualSimilarity</name>
     <message>
         <source>No valid neural network was selected.</source>

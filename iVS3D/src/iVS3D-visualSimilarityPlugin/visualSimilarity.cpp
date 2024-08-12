@@ -2,8 +2,9 @@
 
 VisualSimilarity::VisualSimilarity()
 {
+    QLocale locale = qApp->property("translation").toLocale();
     QTranslator* translator = new QTranslator();
-    translator->load(QLocale::system(), "visualSimilarity", "_", ":/translations", ".qm");
+    translator->load(locale, "visualSimilarity", "_", ":/translations", ".qm");
     qApp->installTranslator(translator);
 
     m_settingsWidget = nullptr;

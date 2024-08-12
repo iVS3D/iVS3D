@@ -48,11 +48,11 @@
 
 // visuals
 #define DESCRIPTION_STYLE "color: rgb(58, 58, 58); border-left: 6px solid  rgb(58, 58, 58); border-top-right-radius: 5px; border-bottom-right-radius: 5px; background-color: lightblue;"
-#define UI_FRAMEREDUCTION_NAME tr("Select one frame every K framese")
-#define UI_FRAMEREDUCTION_DESC tr("Reduces the amount of selected frames by the factor K.")
-#define UI_NNNAME_NAME tr("Selected Neural Network")
-#define UI_NNNAME_DESC tr("The drop-down shows all files in the folder plugins/ressources/neural_network_models/ that follow the format ImageEmbedding_NAME_DIMENSION_WIDHTxHEIGHT.onnx")
-#define UI_NNNAME_BT_DESC tr("Resets the drop-Down and reloads available neural networks.")
+#define UI_FRAMEREDUCTION_NAME QObject::tr("Select one frame every K framese")
+#define UI_FRAMEREDUCTION_DESC QObject::tr("Reduces the amount of selected frames by the factor K.")
+#define UI_NNNAME_NAME QObject::tr("Selected Neural Network")
+#define UI_NNNAME_DESC QObject::tr("The drop-down shows all files in the folder plugins/ressources/neural_network_models/ that follow the format ImageEmbedding_NAME_DIMENSION_WIDHTxHEIGHT.onnx")
+#define UI_NNNAME_BT_DESC QObject::tr("Resets the drop-Down and reloads available neural networks.")
 
 // json settings
 #define FRAMEREDUCTION_JSON_NAME "K"

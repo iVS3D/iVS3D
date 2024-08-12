@@ -4,7 +4,7 @@ SmoothController::SmoothController()
 {
     QLocale locale = qApp->property("translation").toLocale();
     QTranslator* translator = new QTranslator();
-    translator->load(locale, "stationary", "_", ":/translations", ".qm");
+    translator->load(locale, "smoothCameraMovement", "_", ":/translations", ".qm");
     qApp->installTranslator(translator);
 }
 
