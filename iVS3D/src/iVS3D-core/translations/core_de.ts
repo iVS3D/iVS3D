@@ -343,7 +343,7 @@
     <message>
         <location filename="../controller/controller.cpp" line="466"/>
         <source>Number of images  </source>
-        <translation>Anzahl der Bilder</translation>
+        <translation>Anzahl der Bilder  </translation>
     </message>
     <message>
         <location filename="../controller/controller.cpp" line="470"/>
@@ -1399,7 +1399,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
         <location filename="../view/videoplayer.ui" line="276"/>
         <location filename="../view/videoplayer.cpp" line="70"/>
         <source> Select current image </source>
-        <translation>Aktuelles Bild auswählen</translation>
+        <translation>Aktuelles Bild auswählen </translation>
     </message>
     <message>
         <location filename="../view/videoplayer.ui" line="296"/>
