@@ -40,7 +40,7 @@ std::vector<uint> VisualSimilarity::sampleImages(const std::vector<unsigned int>
     }
     displayMessage(receiver, tr("Loading Neural Network"));
     displayProgress(receiver,0 , tr("Loading Neural Network"));
-    auto nn = cv::dnn::readNet(QString(QCoreApplication::applicationDirPath()+RESSOURCE_PATH+m_nnFileName).toStdString());
+    cv::dnn::Net nn = cv::dnn::readNet(QString(QCoreApplication::applicationDirPath()+RESSOURCE_PATH+m_nnFileName).toStdString());
     // activate cuda
     int batchSize = 1;
     if (useCuda) {
@@ -52,13 +52,13 @@ std::vector<uint> VisualSimilarity::sampleImages(const std::vector<unsigned int>
         std::cout << "Detected " << std::round(availableMemory/10000000.0)/100.0 << "GB free memory." << std::endl;
         std::cout << "Resulting Batch Size: " << batchSize << std::endl;
     }
-
     // calculate feature vectors
     QFuture<void> futureFeedNN;
     int frameCount = imageList.size();
     cv::Mat inblob, totalFeatureVector;
     for (uint i = 0; i < frameCount; i+=batchSize) {
         if (*stopped) {
+            futureFeedNN.waitForFinished();
             futureFeedNN.cancel();
             return imageList;
         }
@@ -75,6 +75,7 @@ std::vector<uint> VisualSimilarity::sampleImages(const std::vector<unsigned int>
                     cv::vconcat(bufferedBatch, out, bufferedBatch);
             } else {
                 fullBatchAvailableInBuffer = false;
+                bufferedBatch.release();
                 break;
             }
         }
@@ -95,6 +96,7 @@ std::vector<uint> VisualSimilarity::sampleImages(const std::vector<unsigned int>
                 displayProgress(receiver, progress, progressDesc);
 
                 cv::Mat img = m_reader->getPic(imageList[j]);
+                cv::resize(img, img, m_nnInputSize); // compress image before storing in RAM
                 imgVec.push_back(img);
             }
 
