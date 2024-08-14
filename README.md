@@ -10,6 +10,11 @@
 ## Features
 
 - Import of images and videos (.jpg, .jpeg, .png, ..., .mp4, .mov, ...)
+- Import GPS-Metadata for images and video. We support:
+    - EXIF-Tags in JPEG and PNG
+    - SRT-files for DJI-Drones (Matrice, Matrice2, Mavic and Mavic3T)
+    - Raw text files with the syntax "# framenumber utcUnixTimestampMicrosec lat lon alt"
+    - GPX files
 - Drag and drop to import images, videos, and open projects
 - Plugins for selecting images based on:
     - Meta information such as framerate or gps locations (_Nth Frame_, _Geo Distance_, _Geo Map_)
@@ -67,7 +72,7 @@ There are currently 8 plugins implemented:
 | [GeoMap](doc/plugins.md#geomap) | (requires GPS) Displays an interactive map for the user to select GPS poses manually | |
 | [Smooth Camera Movement](doc/plugins.md#smooth-camera-movement) | | :white_check_mark: |
 | [Stationary Camera Removal](doc/plugins.md#stationary-camera-removal) | Selects images based on camera movement | :white_check_mark: |
-| [Deep Visual Similarity](doc/plugins.md#deep-visual-similarity) | find images with the largest possible visual disparity | :white_check_mark: |
+| [Deep Visual Similarity](doc/plugins.md#deep-visual-similarity) | Find images with the lowest similarity based on their visual embeddings | :white_check_mark: |
 | | |
 | [Semantic Segmentation](doc/plugins.md#semantic-segmentation) | Creates binary masks to exclude objects such as vehicles from the reconstruction by using convolutional neural networks for semantic image segmentation | :white_check_mark: |
 
@@ -139,7 +144,7 @@ Now you can run the tests within the Test Result tab in Qt Creator or use `ctest
 
 ## Licence
 
-see [Licences.txt](Licences.txt)
+MIT see [LICENSE](LICENSE)
 
 ## Citations
 
