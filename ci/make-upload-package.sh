@@ -40,20 +40,28 @@ for dep in $(ldd $1)
 do
   IFS="=>"
   read -ra STR <<< "$dep"
-  lib=$(echo ${STR[0]} | cut -d' ' -f1 | xargs)
-  path=$(echo ${STR[2]} | cut -d' ' -f2)
-  if [ ! -z "$path" ]
-  then
-    if [ ! -f "$2/$lib" ]
+
+  # Check if the dependency is marked as "not found"
+  if [[ "${STR[1]}" == "not found" ]]; then
+    lib=$(echo ${STR[0]} | cut -d' ' -f1 | xargs)
+    echo "Dependency not found: $lib"
+    missing_libs+=("$lib")
+  else
+    lib=$(echo ${STR[0]} | cut -d' ' -f1 | xargs)
+    path=$(echo ${STR[2]} | cut -d' ' -f2)
+    if [ ! -z "$path" ]
     then
-      if ! grep -q "$lib" $EXCLUDED_LIBS; then
-        echo "> cp $path $2/$lib"
-        cp "$path" "$2/$lib" 2>/dev/null
-        if [ $? -ne 0 ]; then
-          echo "Failed to copy $lib"
-          missing_libs+=("$lib")
-        else
-          addlibs "$2/$lib" "$INSTALL_PATH/$PACKAGE_NAME/lib"
+      if [ ! -f "$2/$lib" ]
+      then
+        if ! grep -q "$lib" $EXCLUDED_LIBS; then
+          echo "> cp $path $2/$lib"
+          cp "$path" "$2/$lib" 2>/dev/null
+          if [ $? -ne 0 ]; then
+            echo "Failed to copy $lib"
+            missing_libs+=("$lib")
+          else
+            addlibs "$2/$lib" "$INSTALL_PATH/$PACKAGE_NAME/lib"
+          fi
         fi
       fi
     fi
