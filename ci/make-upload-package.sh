@@ -42,7 +42,7 @@ do
   read -ra STR <<< "$dep"
 
   # Check if the dependency is marked as "not found"
-  if [[ "${STR[1]}" == "not found" ]]; then
+  if [[ "$dep" == *"not found"* ]]; then
     lib=$(echo ${STR[0]} | cut -d' ' -f1 | xargs)
     echo "Dependency not found: $lib"
     missing_libs+=("$lib")
