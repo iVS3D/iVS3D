@@ -263,9 +263,9 @@ void ExportThread::run(){
                 if (QFile::exists(nImageFile)) {
                     QFile::remove(nImageFile);
                 }
-                QFile::copy(oImageFile, nImageFile);
+                success = QFile::copy(oImageFile, nImageFile);
                 for (int idxTransform = 0; idxTransform < 0; idxTransform++) {
-                    exportITransformImage(fileName, idxTransform, mat, isDirImages, imageFiles, idx);
+                    success &= exportITransformImage(fileName, idxTransform, mat, isDirImages, imageFiles, idx);
                 }
             }
             if (!success) {
