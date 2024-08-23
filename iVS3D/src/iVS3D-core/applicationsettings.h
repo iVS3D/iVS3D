@@ -113,11 +113,24 @@ public:
      * @return @a true if cuda is enabled
      */
     bool getUseCuda();
+
+    /**
+     * @brief The CUDA_ERR_CODE enum has an error code if CUDA is not available.
+     */
+    enum CUDA_ERR_CODE {
+        NO_ERR = 0,             /// indicates that cuda is available
+        NO_GPU_FOUND = 1,       /// no GPU was detected
+        CC_MISSMATCH = 2,       /// Compute Capability of the GPU is not supported by the build
+        BUILT_WITHOUT_CUDA = 3, /// iVS3D was compiled without CUDA
+        UNKNOWN_ERR = 4         /// any other error occured with CUDA
+    };
+
     /**
      * @brief Returns if the opencv backend supports CUDA
+     * @param err_code (optional) pointer, if not null, the error code is stored there if cuda is not available
      * @return @a true if cuda is supported
      */
-    bool getCudaAvailable() const;
+    bool getCudaAvailable(CUDA_ERR_CODE *err_code = nullptr) const;
     /**
      * @brief Returns if create Logs is enabled
      * @return @a true if logging is enabled and log files will be created

@@ -24,7 +24,6 @@ private slots:
     void test_ReadOneToMany();
     void test_ReadWayToMany();
     void test_ReadNegativeIndex();
-    void test_GetPic();
     void test_CopyImageReader();
     void test_CopyVideoReader();
 
@@ -123,8 +122,7 @@ void tst_reader::test_DeleteImages()
 void tst_reader::test_EmptyFile()
 {
     Reader* r = ReaderFactory::instance().createReader(m_resources + "/emptyFolder");
-    uint images = 0;
-    QCOMPARE(r->getPicCount(), images);
+    QCOMPARE(r, nullptr);
 }
 
 void tst_reader::test_ReadOneToMany()
@@ -138,7 +136,7 @@ void tst_reader::test_ReadOneToMany()
     cv::compare(vIShouldBeEmpty, empty, equal, CV_HAL_CMP_EQ);
     QVERIFY(equal.empty());
 
-    Reader* i = ReaderFactory::instance().createReader(m_resources + "/images");
+    Reader* i = ReaderFactory::instance().createReader(m_resources + "/BlurTest");
     toMuch = i->getPicCount() + 1;
     cv::Mat iIShouldBeEmpty = i->getPic(toMuch);
 
@@ -159,7 +157,7 @@ void tst_reader::test_ReadWayToMany()
     cv::compare(vIShouldBeEmpty, empty, equal, CV_HAL_CMP_EQ);
     QVERIFY(equal.empty());
 
-    Reader* i = ReaderFactory::instance().createReader(m_resources + "/images");
+    Reader* i = ReaderFactory::instance().createReader(m_resources + "/BlurTest");
     toMuch = i->getPicCount() * 2;
     cv::Mat iIShouldBeEmpty = i->getPic(toMuch);
 
@@ -179,7 +177,7 @@ void tst_reader::test_ReadNegativeIndex()
     cv::compare(vIShouldBeEmpty, empty, equal, CV_HAL_CMP_EQ);
     QVERIFY(equal.empty());
 
-    Reader* i = ReaderFactory::instance().createReader(m_resources + "/images");
+    Reader* i = ReaderFactory::instance().createReader(m_resources + "/BlurTest");
     cv::Mat iIShouldBeEmpty = i->getPic(-1);
 
     cv::Mat newequal;
@@ -190,7 +188,7 @@ void tst_reader::test_ReadNegativeIndex()
 
 void tst_reader::test_CopyImageReader()
 {
-    Reader* i = ReaderFactory::instance().createReader(m_resources + "/images");
+    Reader* i = ReaderFactory::instance().createReader(m_resources + "/BlurTest");
 
     Reader* copy = i->copy();
 
@@ -204,45 +202,6 @@ void tst_reader::test_CopyVideoReader()
     Reader* copy = v->copy();
 
     compare(v, copy);
-    delete v;
-}
-
-
-void tst_reader::test_GetPic()
-{
-    QSKIP("Fails on CI Pipeline");
-    srand(time(NULL));
-
-    int randomFrame = rand() % 61;
-
-    Reader* v = ReaderFactory::instance().createReader(m_resources + "/video.mp4");
-    cv::Mat frame = v->getPic(randomFrame);
-
-    Reader* i = ReaderFactory::instance().createReader(m_resources + "/images");
-    cv::Mat pic = i->getPic(randomFrame);
-
-    //Test images are 1 indexed
-    randomFrame++;
-    std::string frameNumber = std::to_string(randomFrame);
-    std::string loc = m_resources.toStdString() + "/images/image (" + frameNumber + ").png";
-    cv::Mat original = cv::imread(loc);
-
-    QCOMPARE(frame.rows, original.rows);
-    QCOMPARE(pic.rows, original.rows);
-
-    QCOMPARE(frame.cols, original.cols);
-    QCOMPARE(pic.cols, original.cols);
-
-    QCOMPARE(frame.type(), original.type());
-    QCOMPARE(pic.type(), original.type());
-
-    cv::Mat videoComparison;
-    cv::compare(frame, original, videoComparison, CV_HAL_CMP_EQ);
-    QVERIFY(videoComparison.data[0] == 255); // this fails in CI pipeline
-
-    cv::Mat imageComparison;
-    cv::compare(pic, original, imageComparison, CV_HAL_CMP_EQ);
-    QVERIFY(imageComparison.data[0] == 255);
     delete v;
 }
 

@@ -25,6 +25,13 @@ set(UI_FILES
     ${CORE_UI_FILES}
 )
 
+# remove ots files on windows
+if(WIN32)
+    list(FILTER HEADER_FILES EXCLUDE REGEX "ots(.)*h")
+    list(FILTER SRC_FILES EXCLUDE REGEX "ots(.)*cpp")
+    list(FILTER UI_FILES EXCLUDE REGEX "ots(.)*ui")
+endif()
+
 # set include directories
 include_directories(SYSTEM
     ${Qt${QT_VERSION_MAJOR}test_INCLUDE_DIRS}

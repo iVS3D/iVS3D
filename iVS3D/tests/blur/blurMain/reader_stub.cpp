@@ -1,4 +1,5 @@
 #include "reader_stub.h"
+#include "sequentialreaderimpl.h"
 
 #include <QDebug>
 
@@ -17,4 +18,8 @@ cv::Mat Reader_stub::getPic(uint idx) {
 
 uint Reader_stub::getPicCount() {
     return m_picCount;
+}
+
+SequentialReader * Reader_stub::createSequentialReader(std::vector<uint> indices) {
+    return new SequentialReaderImpl(this, indices, false);
 }

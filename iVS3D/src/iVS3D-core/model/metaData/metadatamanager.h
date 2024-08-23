@@ -30,6 +30,10 @@ public:
         return INSTANCE;
     }
 
+    static const QStringList supportedFileExtensions(){
+        return {".srt", ".SRT", ".gpx", ".GPX", ".txt"};
+    }
+
     /**
      * @brief initMetaData tries to load all known MetaDataReader for videos with the meta data given
      * @param paths Paths to the selected meta data files

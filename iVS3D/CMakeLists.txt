@@ -21,6 +21,9 @@ endif()
 # Set 'Build_Plugins' option (default true)
 set(Build_Plugins ON CACHE BOOL "Build plugins.")
 
+# Set 'Install_Models' option (default true)
+set(Install_Models ON CACHE BOOL "Copy neural network models to install directory.")
+
 # Set 'Build_Tests' option (default false)
 set(Build_Tests OFF CACHE BOOL "Build test routines.")
 
@@ -42,8 +45,8 @@ set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 # 3rd_party
 
 # Qt
-find_package(QT NAMES Qt5 REQUIRED COMPONENTS Core Gui Widgets Concurrent Positioning LinguistTools)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Gui Widgets Concurrent Positioning LinguistTools)
+find_package(QT NAMES Qt5 REQUIRED COMPONENTS Core Gui Widgets Concurrent Positioning Quick Qml Network Location LinguistTools)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Gui Widgets Concurrent Positioning Quick Qml Network Location LinguistTools)
 set(CMAKE_AUTOUIC ON) # The AUTOGEN_BUILD_DIR is automatically added to the target's INCLUDE_DIRECTORIES.
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)

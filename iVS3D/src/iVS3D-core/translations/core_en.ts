@@ -163,215 +163,225 @@
 <context>
     <name>Controller</name>
     <message>
-        <location filename="../controller/controller.cpp" line="136"/>
+        <location filename="../controller/controller.cpp" line="139"/>
         <source>Wait for export to finish before importing new images.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="140"/>
+        <location filename="../controller/controller.cpp" line="143"/>
         <source>Choose Folder</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="142"/>
-        <location filename="../controller/controller.cpp" line="161"/>
-        <location filename="../controller/controller.cpp" line="231"/>
-        <location filename="../controller/controller.cpp" line="240"/>
-        <location filename="../controller/controller.cpp" line="273"/>
-        <location filename="../controller/controller.cpp" line="336"/>
+        <location filename="../controller/controller.cpp" line="145"/>
+        <location filename="../controller/controller.cpp" line="164"/>
+        <location filename="../controller/controller.cpp" line="252"/>
+        <location filename="../controller/controller.cpp" line="261"/>
+        <location filename="../controller/controller.cpp" line="294"/>
+        <location filename="../controller/controller.cpp" line="363"/>
         <source>Input canceled</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="154"/>
+        <location filename="../controller/controller.cpp" line="157"/>
         <source>Wait for export to finish before importing a new video.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="159"/>
+        <location filename="../controller/controller.cpp" line="162"/>
         <source>Choose Video</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="185"/>
+        <location filename="../controller/controller.cpp" line="189"/>
         <source>Wait for export to finish before importing new files.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="211"/>
+        <location filename="../controller/controller.cpp" line="225"/>
+        <source>Unable to import file: </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../controller/controller.cpp" line="232"/>
         <source>Wait for export to finish before importing new project.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="216"/>
+        <location filename="../controller/controller.cpp" line="237"/>
         <source>Choose project file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="238"/>
+        <location filename="../controller/controller.cpp" line="259"/>
         <source>Save project</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="249"/>
-        <location filename="../controller/controller.cpp" line="256"/>
+        <location filename="../controller/controller.cpp" line="270"/>
+        <location filename="../controller/controller.cpp" line="277"/>
         <source>Project saved</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="271"/>
+        <location filename="../controller/controller.cpp" line="292"/>
         <source>Choose standard input path</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="278"/>
+        <location filename="../controller/controller.cpp" line="299"/>
         <source>Standard input path changed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="303"/>
+        <location filename="../controller/controller.cpp" line="324"/>
         <source>dark</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="303"/>
+        <location filename="../controller/controller.cpp" line="324"/>
         <source>light</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="303"/>
+        <location filename="../controller/controller.cpp" line="324"/>
         <source>GUI color theme changed to </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="303"/>
+        <location filename="../controller/controller.cpp" line="324"/>
         <source> style</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="312"/>
+        <location filename="../controller/controller.cpp" line="333"/>
         <source>CUDA enabled</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="312"/>
+        <location filename="../controller/controller.cpp" line="333"/>
         <source>CUDA disabled</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="318"/>
+        <location filename="../controller/controller.cpp" line="339"/>
         <source>Create log files</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="318"/>
-        <location filename="../controller/controller.cpp" line="326"/>
+        <location filename="../controller/controller.cpp" line="339"/>
+        <location filename="../controller/controller.cpp" line="347"/>
         <source> enabled</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="318"/>
-        <location filename="../controller/controller.cpp" line="326"/>
+        <location filename="../controller/controller.cpp" line="339"/>
+        <location filename="../controller/controller.cpp" line="347"/>
         <source> disabled</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="326"/>
+        <location filename="../controller/controller.cpp" line="347"/>
         <source>Interpolating missing meta data</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="334"/>
+        <location filename="../controller/controller.cpp" line="357"/>
         <source>Choose Meta Data</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="347"/>
+        <location filename="../controller/controller.cpp" line="540"/>
         <source>Loaded </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="347"/>
-        <location filename="../controller/controller.cpp" line="426"/>
+        <location filename="../controller/controller.cpp" line="443"/>
+        <location filename="../controller/controller.cpp" line="540"/>
         <source> meta data feature</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="347"/>
-        <location filename="../controller/controller.cpp" line="426"/>
+        <location filename="../controller/controller.cpp" line="443"/>
+        <location filename="../controller/controller.cpp" line="540"/>
         <source>s</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="413"/>
+        <location filename="../controller/controller.cpp" line="430"/>
         <source>No images found after </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="413"/>
-        <location filename="../controller/controller.cpp" line="427"/>
         <location filename="../controller/controller.cpp" line="430"/>
+        <location filename="../controller/controller.cpp" line="444"/>
+        <location filename="../controller/controller.cpp" line="447"/>
         <source>ms</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="425"/>
-        <location filename="../controller/controller.cpp" line="430"/>
+        <location filename="../controller/controller.cpp" line="442"/>
+        <location filename="../controller/controller.cpp" line="447"/>
         <source>Import of </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="425"/>
+        <location filename="../controller/controller.cpp" line="442"/>
         <source> images and </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="427"/>
+        <location filename="../controller/controller.cpp" line="444"/>
         <source> finished after </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="430"/>
+        <location filename="../controller/controller.cpp" line="447"/>
         <source> images finished after </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="449"/>
+        <location filename="../controller/controller.cpp" line="466"/>
         <source>Number of images  </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="453"/>
+        <location filename="../controller/controller.cpp" line="470"/>
         <source>Resolution  </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="457"/>
+        <location filename="../controller/controller.cpp" line="474"/>
         <source>FPS </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="458"/>
+        <location filename="../controller/controller.cpp" line="475"/>
         <source>Video duration </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="463"/>
+        <location filename="../controller/controller.cpp" line="480"/>
         <source>Loaded Meta Data</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="523"/>
+        <location filename="../controller/controller.cpp" line="544"/>
+        <source>No meta data features were detected</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../controller/controller.cpp" line="559"/>
         <source>Project </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="523"/>
+        <location filename="../controller/controller.cpp" line="559"/>
         <source> with </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="524"/>
+        <location filename="../controller/controller.cpp" line="560"/>
         <source> images loaded</source>
         <translation type="unfinished"></translation>
     </message>
@@ -485,17 +495,17 @@
     <name>ExportThread</name>
     <message>
         <location filename="../model/export/exportthread.cpp" line="39"/>
-        <location filename="../model/export/exportthread.cpp" line="323"/>
+        <location filename="../model/export/exportthread.cpp" line="338"/>
         <source>Exporting images</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../model/export/exportthread.cpp" line="264"/>
+        <location filename="../model/export/exportthread.cpp" line="279"/>
         <source> images where skipped.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../model/export/exportthread.cpp" line="266"/>
+        <location filename="../model/export/exportthread.cpp" line="281"/>
         <source>All images exported successfully.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -945,7 +955,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.cpp" line="311"/>
+        <location filename="../view/mainwindow.cpp" line="324"/>
         <source>3D-Reconstruction</source>
         <translation type="unfinished"></translation>
     </message>
@@ -955,42 +965,67 @@ li.checked::marker { content: &quot;\2612&quot;; }
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.cpp" line="172"/>
+        <location filename="../view/mainwindow.cpp" line="155"/>
+        <source>No GPU found</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../view/mainwindow.cpp" line="156"/>
+        <source>Compute Capability not supported</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../view/mainwindow.cpp" line="157"/>
+        <source>Built without CUDA</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../view/mainwindow.cpp" line="159"/>
+        <source>Unknown error</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../view/mainwindow.cpp" line="161"/>
+        <source>CUDA not available: </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../view/mainwindow.cpp" line="181"/>
         <source>Language</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.cpp" line="333"/>
+        <location filename="../view/mainwindow.cpp" line="346"/>
         <source>input has been passed as a start argument. Thus it can not be changed!</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.cpp" line="544"/>
+        <location filename="../view/mainwindow.cpp" line="557"/>
         <source>Language Change</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.cpp" line="545"/>
+        <location filename="../view/mainwindow.cpp" line="558"/>
         <source>The application needs to be restarted for the language change to take effect. Make sure to save your project before restarting!</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.cpp" line="548"/>
+        <location filename="../view/mainwindow.cpp" line="561"/>
         <source>Restart Now</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.cpp" line="550"/>
+        <location filename="../view/mainwindow.cpp" line="563"/>
         <source>Restart Later</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.h" line="82"/>
+        <location filename="../view/mainwindow.h" line="93"/>
         <source>no algorithm</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.h" line="95"/>
+        <location filename="../view/mainwindow.h" line="106"/>
         <source>not saved</source>
         <translation type="unfinished"></translation>
     </message>

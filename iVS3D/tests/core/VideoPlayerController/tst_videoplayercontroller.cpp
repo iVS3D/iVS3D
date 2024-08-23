@@ -188,6 +188,10 @@ void tst_videoplayercontroller::test_iterateKeyFrames()
 void tst_videoplayercontroller::test_SetRemoveKeyframes()
 {
     ModelInputPictures *mip = m_testDM->getModelInputPictures();
+    // remove all keyframes first
+    std::vector<uint> empty;
+    mip->updateMIP(empty);
+
     std::vector<uint> randomIdx = {uint(0)};
     int maxNum = (mip->getPicCount() - 1) / 10;
     for (int i = 0; i < 50; ++i) {

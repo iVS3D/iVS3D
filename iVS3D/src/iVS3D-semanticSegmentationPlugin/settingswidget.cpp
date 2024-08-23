@@ -1,23 +1,55 @@
 #include "settingswidget.h"
 
-SettingsWidget::SettingsWidget(QWidget *parent, QStringList ONNXmodelList, float blendAlpha) : QWidget(parent)
+SettingsWidget::SettingsWidget(QWidget *parent, QStringList ONNXmodelList, float blendAlpha, const QString &modelPath) : QWidget(parent)
 {
     this->setLayout(new QVBoxLayout());
     this->layout()->setSpacing(0);
     this->layout()->setMargin(0);
 
+    if(ONNXmodelList.empty()){
+        // can't do anything without neural network models
+        // display error instead of controls.
+        QString errorMessage = tr(
+                                   "<div style='border: 2px solid red; padding: 10px;'>"
+                                   "<p><b>%1</b></p>"
+                                   "<p>%2</p>"
+                                   "</div>"
+                                   "<br>"
+                                   "<p>%3</p>"
+                                   "<code>%4</code><br><br>"
+                                   "<p>%5 <a href='https://github.com/iVS3D/iVS3D-models'>%6</a>.</p>"
+                                   ).arg(
+                                       tr("ERROR:"),
+                                       tr("No neural network models for semantic segmentation were found!"),
+                                       tr("Please add your models to the plugin resources directory and restart iVS3D:"),
+                                       modelPath,
+                                       tr("You can find our neural network models"),
+                                       tr("here")
+                                       );
+
+        QLabel* errorLabel = new QLabel(errorMessage);
+
+        // Enable text interaction flags
+        errorLabel->setTextInteractionFlags(Qt::TextSelectableByMouse | Qt::LinksAccessibleByMouse);
+        errorLabel->setOpenExternalLinks(true);
+        this->layout()->addWidget(errorLabel);
+        this->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+        this->adjustSize();
+        return;
+    }
+
     QFormLayout *w = new QFormLayout(parent);
     w->setSpacing(0);
     w->setMargin(0);
 
-    QLabel *txtModel = new QLabel("Select neural net model to create semantic segmentation");
+    QLabel *txtModel = new QLabel(tr("Select neural net model to create semantic segmentation"));
     txtModel->setStyleSheet(DESCRIPTION_STYLE);
     txtModel->setWordWrap(true);
     this->layout()->addWidget(txtModel);
 
     m_comboBox = new QComboBox(parent);
     m_comboBox->addItems(ONNXmodelList);
-    w->addRow("ONNX model ", m_comboBox);
+    w->addRow(tr("ONNX model "), m_comboBox);
     connect(m_comboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &SettingsWidget::slot_comboBoxIdxChanged);
 
     m_alphaSlider = new QSlider(Qt::Horizontal, parent);
@@ -26,7 +58,7 @@ SettingsWidget::SettingsWidget(QWidget *parent, QStringList ONNXmodelList, float
     m_alphaSlider->setTickInterval(10);
     m_alphaSlider->setValue((int)(blendAlpha * 100));
     connect(m_alphaSlider, &QSlider::valueChanged, this, &SettingsWidget::slot_overlayAlphaChanged);
-    w->addRow("Overlay alpha ", m_alphaSlider);
+    w->addRow(tr("Overlay alpha "), m_alphaSlider);
 
     m_processLabel = new QLabel("");
     m_processLabel->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
@@ -42,7 +74,7 @@ SettingsWidget::SettingsWidget(QWidget *parent, QStringList ONNXmodelList, float
 
 
 
-    QLabel *txt = new QLabel("Select classes to include in reconstruction mask");
+    QLabel *txt = new QLabel(tr("Select classes to include in reconstruction mask"));
     txt->setStyleSheet(DESCRIPTION_STYLE);
     txt->setWordWrap(true);
     this->layout()->addWidget(txt);
@@ -53,7 +85,7 @@ SettingsWidget::SettingsWidget(QWidget *parent, QStringList ONNXmodelList, float
     formWidget->setLayout(m_gridLayout);
     this->layout()->addWidget(formWidget);
 
-    m_invertButton = new QPushButton("Invert class selection");
+    m_invertButton = new QPushButton(tr("Invert class selection"));
     this->layout()->addWidget(m_invertButton);
     connect(m_invertButton, &QPushButton::pressed, this, &SettingsWidget::slot_invertSelectionPressed);
 

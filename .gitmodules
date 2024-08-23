@@ -1,0 +1,3 @@
+[submodule "iVS3D/src/iVS3D-models"]
+	path = iVS3D/src/iVS3D-models
+	url = ../iVS3D-models

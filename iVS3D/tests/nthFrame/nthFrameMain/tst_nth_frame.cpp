@@ -1,7 +1,7 @@
 #include <QtTest>
+#include <QCoreApplication>
 
 // add necessary includes here
-#include <QObject>
 #include "reader_stub.h"
 #include "nthframe.h"
 #include "logfile_stub.h"
@@ -76,8 +76,10 @@ void tst_nth_frame::test_nthframeAllImgs()
     }
     NthFrame algo;
     algo.initialize(&r, QMap<QString,QVariant>(), nullptr);
-    // TODO: void NthFrame::slot_nChanged(int)’ is private within this context?
-    // algo.slot_nChanged(N); 
+    auto settings = algo.getSettings();
+    settings["N"] = QVariant(N);
+    algo.setSettings(settings);
+
     auto res = algo.sampleImages(vec,nullptr, &stopped, false, m_logFile);
     QCOMPARE((uint)res.size(),KFcount);
     QCOMPARE(res.front(),firstKF);
@@ -90,8 +92,11 @@ void tst_nth_frame::test_nthframeLimits()
     bool stopped = false;
     NthFrame algo;
     algo.initialize(&r, QMap<QString,QVariant>(), nullptr);
-    // TODO: void NthFrame::slot_nChanged(int)’ is private within this context?
-    // algo.slot_nChanged(1);
+
+    auto settings = algo.getSettings();
+    settings["N"] = QVariant(1);
+    algo.setSettings(settings);
+
     auto res = algo.sampleImages(std::vector<uint>({2,3,4,7,8}),nullptr, &stopped, false, m_logFile);
     QCOMPARE((int)res.size(),5);
     QCOMPARE(res[0], (uint)2);
@@ -105,6 +110,6 @@ void tst_nth_frame::initTestCase()
 }
 
 
-QTEST_APPLESS_MAIN(tst_nth_frame)
+QTEST_MAIN(tst_nth_frame)
 
 #include "tst_nth_frame.moc"

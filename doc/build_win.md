@@ -1,66 +1,68 @@
 [Documentation](../README.md) / Deploy from source for windows
 
 # Deploy from source for windows
-To build the project from source on a windows machine you can use the terminal or download Qt Creator from the official Qt website. If you want to use the Qt Creator follow our instructions [here](build_qtcreator.md). To use the terminal follow the instructions in this document.
 
-[Qt] 5.15.2 and [Visual Studio] 2019 or 2022 have to be installed. Make sure to select [MSVC] 2019 or later on both installations. Clone the iVS3D repository from our GitHub and download [OpenCV] 4.7.0. To build with CUDA you need an OpenCV build which supports CUDA. In this case download [NVIDIA CUDA Toolkit API] as well.
-
-Copy the _3rdparty.txt_ file, rename to 3rdparty.pri and set the paths to your OpenCV build there. The file should look something like this:
-
-```sh
-with_cuda{
-    message(USING OPENCV WITH CUDA)
-
-    # path to OpenCV 4.7.0 with CUDA
-    include(C:\OpenCV\opencv-4.7.0-msvc2019-cuda12\opencv-4.7.0-msvc2019-cuda12.pri)
-} else {
-    message(USING OPENCV WITHOUT CUDA)
-
-    #path to OpenCV 4.7.0 without CUDA
-    include(C:\OpenCV\opencv-4.7.0-msvc2019\opencv-4.7.0-msvc2019.pri)
-}
-```
-## Setup the deploy.bat script
-Open the deploy.bat file we provide in the tools folder and set your paths in the variables-section.
-
-### Configure [Visual Studio] as follows:
-| variable     | supported values          | default   |
-|--------------|---------------------------|-----------|
-| VS_VERSION   | 2019, 2022                | 2022      |
-| VS_EDITION   | Community, Enterprise     | Community |
-
-In case you did not use the default install location you might need to change the `VSVARS_PATH`. The default value is 
-```sh
-C:\Program Files\Microsoft Visual Studio\%VS_VERSION%\%VS_EDITION%\VC\Auxiliary\Build
-```
-This location needs to contain the `vcvarsall.bat` script for initializing the [MSVC] environment.
-
-### Configure [Qt] as follows:
-| variable     | default value                 | Files                                                    |
-|--------------|-------------------------------|----------------------------------------------------------|
-| QT_PATH      | C:\Qt\5.15.2\msvc2019_64      | bin\lrelease-pro.exe, bin\qmake.exe, bin\windeployqt.exe |
-| JOM_PATH     | C:\Qt\Tools\QtCreator\bin\jom | jom.exe                                                  |
-
-### Configure [OpenCV] as follows:
-| variable     | default value                                             | Files                |
-|--------------|-----------------------------------------------------------|----------------------|
-| OCV_BIN      | C:\OpenCV\opencv_4.7.0_msvc2019_win_x64\x64\vc16\bin      | opencv_world470.dll  |
-
-### Configure [NVIDIA CUDA Toolkit API] as follows:
-CUDA support is optional. If you dont want to use it, make sure `CUDA_VERSION` is not defined. Otherwise you can select a CUDA version which matches your OpenCV build like this:
-```sh
-set CUDA_VERSION=12.0
-```
-In case you did not use the default install location you might need to change `CUDA_BIN`. The default path is 
-```sh
-C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v%CUDA_VERSION%\bin
+## Prerequisites
+[Qt] 5.15.2 and [Visual Studio] 2019 or 2022 have to be installed. Make sure to select [MSVC] 2019 or later on both installations. Please add the Qt binary folder to your PATH variable, this is necessary for compiling translations and ui files using tools provided in the Qt installation, e.g.:
+```powershell
+$env:PATH += ";C:\Qt\MSVC2019\bin"
 ```
 
-### Configure install location as follows:
-Select the install directory for the finished build by changing `INSTALL_PATH`. The default path is inside the `Releases` directory in your iVS3D repository.
+Download [OpenCV] 4.7.0 or build it from source. Your OpenCV build should contain a file `OpenCVConfig.cmake`. To build with CUDA you need an OpenCV build which supports CUDA. In this case download [NVIDIA CUDA Toolkit API] as well.
 
-## Run the deploy.bat script
-Save the changes and run it to deploy the application.
+Finally, install cmake 3.14 or newer, git and git-lfs.
+
+## Clone iVS3D
+
+Clone iVS3D recursively to include the neural network models for our plugins.
+```powershell
+git clone --recursive https://github.com/iVS3D/iVS3D.git
+Set-Location -Path iVS3D
+```
+
+## Configure, build and install with cmake
+
+```powershell
+New-Item -Path "build" --ItemType Directory
+Set-Location -Path build
+cmake \
+  -DOpenCV_DIR="<path to opencv folder containing OpenCVConfig.cmake>" \
+  -DWith_CUDA="ON" \
+  ..
+```
+You can disable CUDA by using `-DWith_CUDA="OFF"`. Note that by default, iVS3D will be installed to `C:\Program Files`, which requires admin privileges to access. You can change the install location by running:
+```powershell
+cmake -DCMAKE_INSTALL_PREFIX="<path to your prefered install location>" ..
+``` 
+
+Use `cmake -L ..` to see [all available configurations](#cmake-configuration-options):
+
+Once you are happy with your configuration you can build and install your project by running:
+
+```powershell
+cmake --build . --config Release
+cmake --install .
+```
+
+The install step will setup the folder structure and copy the plugin binaries to their appropriate location. Once both steps finished you can run iVS3D: 
+```powershell
+iVS3D-core.exe
+```
+
+## Cmake configuration options
+Cmake configuration options are added using the `-D` flag. Following options are available when configuring your iVS3D build:
+
+| Option         | Type | Default value | Description
+| -------------- | ---- | ------------- | -------------
+| Build_Plugins  | BOOL | ON            | Enable compilation of plugins
+| Build_Tests    | BOOL | OFF           | Compile test suite
+| CMAKE_BUILD_TYPE | STRING | `Release`   | Use `Debug` to include debug symbols
+| CMAKE_INSTALL_PREFIX | STRING | `C:\Program Files` | install location
+| Install_Models | BOOL | ON | Copy onnx models for plugins to install location
+| OpenCV_DIR | PATH |  | Path to OpenCVConfig.cmake
+| Update_Translations | BOOL | OFF | Regenerate translation files from source code (runs `lupdate.exe`)
+| With_CUDA | BOOL | ON | Use CUDA to accelerate computations on the GPU. This requires CUDA, CUDNN and an OpenCV build with CUDA support to be installed!
+
 
   [OpenCV]: <https://github.com/opencv>
   [Qt]:     <https://www.qt.io>

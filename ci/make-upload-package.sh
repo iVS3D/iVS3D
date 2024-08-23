@@ -6,13 +6,6 @@ then
   export CUDA_BIN=/usr/local/cuda-$CUDA_VERSION/lib64
 fi
 
-if [ -n "$CUDA_VERSION" ]
-then
-  export PACKAGE_NAME=iVS3D-$APP_VERSION-cuda$CUDA_VERSION-gcc$GCC_VERSION-$BUILD_ENVIRONMENT-x64
-else
-  export PACKAGE_NAME=iVS3D-$APP_VERSION-gcc$GCC_VERSION-$BUILD_ENVIRONMENT-x64
-fi
-
 echo "Build configuration:"
 echo "--------------------"
 echo "  Qt libs:          $QT_PATH/lib"
@@ -37,6 +30,9 @@ echo "--------------------"
 echo "  $LD_LIBRARY_PATH"
 echo "--------------------"
 
+# Initialize an array to store missing libraries
+missing_libs=()
+
 addlibs () {
 IFS="
 "
@@ -44,16 +40,29 @@ for dep in $(ldd $1)
 do
   IFS="=>"
   read -ra STR <<< "$dep"
-  lib=$(echo ${STR[0]} | cut -d' ' -f1 | xargs)
-  path=$(echo ${STR[2]} | cut -d' ' -f2)
-  if [ ! -z "$path" ]
-  then
-    if [ ! -f "$2/$lib" ]
+
+  # Check if the dependency is marked as "not found"
+  if [[ "$dep" == *"not found"* ]]; then
+    lib=$(echo ${STR[0]} | cut -d' ' -f1 | xargs)
+    echo "Dependency not found: $lib"
+    missing_libs+=("$lib")
+  else
+    lib=$(echo ${STR[0]} | cut -d' ' -f1 | xargs)
+    path=$(echo ${STR[2]} | cut -d' ' -f2)
+    if [ ! -z "$path" ]
     then
-      if ! grep -q "$lib" $EXCLUDED_LIBS; then
-        echo "> cp $path $2/$lib"
-        cp "$path" "$2/$lib"
-        addlibs "lib/$lib" "$INSTALL_PATH/$PACKAGE_NAME/lib"
+      if [ ! -f "$2/$lib" ]
+      then
+        if ! grep -q "$lib" $EXCLUDED_LIBS; then
+          echo "> cp $path $2/$lib"
+          cp "$path" "$2/$lib" 2>/dev/null
+          if [ $? -ne 0 ]; then
+            echo "Failed to copy $lib"
+            missing_libs+=("$lib")
+          else
+            addlibs "$2/$lib" "$INSTALL_PATH/$PACKAGE_NAME/lib"
+          fi
+        fi
       fi
     fi
   fi
@@ -62,14 +71,12 @@ IFS=" "
 }
 
 deployapp() {
-  cd $PROJECT_ROOT
-  mkdir -p $INSTALL_PATH/$PACKAGE_NAME/plugins
-  cp -R build/${IVS3D_PREFIX}src/iVS3D-core/* $INSTALL_PATH/$PACKAGE_NAME
-  cp build/${IVS3D_PREFIX}src/plugins/* $INSTALL_PATH/$PACKAGE_NAME/plugins
-  rm -f $INSTALL_PATH/$PACKAGE_NAME/Makefile
-  
+  # work from installed package location
   cd $INSTALL_PATH/$PACKAGE_NAME
-  
+  # remove subfolder bin
+  mv bin/* .
+  rm -rf bin
+  # create folder for dependencies
   mkdir lib
 
   echo " "
@@ -134,6 +141,26 @@ deployapp() {
     addlibs $qmlfile "$INSTALL_PATH/$PACKAGE_NAME/lib"
   done
 
+  if [ -n "$CUDA_VERSION" ]
+  then
+    echo " "
+    echo "--------------------------------"
+    echo "-- adding cudnn libs  --"
+    echo "--------------------------------"
+
+    CUDNN_FILES="libcudnn_ops_infer.so.8 libcudnn_cnn_infer.so.8"
+
+    for CUDNN_FILE in $CUDNN_FILES
+    do
+      if ! cp $CUDNN_LIBS/$CUDNN_FILE $INSTALL_PATH/$PACKAGE_NAME/lib/$CUDNN_FILE 2>/dev/null; then
+        echo "Failed to copy $CUDNN_LIBS/$CUDNN_FILE"
+        missing_libs+=("$CUDNN_FILE")
+      else
+        addlibs $INSTALL_PATH/$PACKAGE_NAME/lib/$CUDNN_FILE "$INSTALL_PATH/$PACKAGE_NAME/lib"
+      fi
+    done
+  fi
+
   echo " "
   echo "--------------------------------"
   echo "--   setting rpath to ORIGIN  --"
@@ -153,6 +180,20 @@ Plugins = plugins
 Imports = qml
 Qml2Imports = qml
 EOL
+
+  cd $INSTALL_PATH
+  zip -r ${PACKAGE_NAME}.zip ${PACKAGE_NAME}/
 }
 
 deployapp
+
+# Print missing libraries
+if [ ${#missing_libs[@]} -ne 0 ]; then
+  echo " "
+  echo "--------------------------------"
+  echo "--   Missing Libraries Report --"
+  echo "--------------------------------"
+  for lib in "${missing_libs[@]}"; do
+    echo "Missing: $lib"
+  done
+fi

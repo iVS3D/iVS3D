@@ -47,8 +47,7 @@ bool GPSReaderDJIMavic::parseDataVideo(QString path, int picCount, double fps, b
             else return false;
         }
     }
-    //normaliseGPS(0.033, fps, picCount);
-    return m_GPSHashs.size() == picCount;
+    return normaliseGPS(picCount);
 }
 
 bool GPSReaderDJIMavic::parseLine(QString line)

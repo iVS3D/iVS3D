@@ -1,17 +1,8 @@
 # cleanup if an error occurs and exit
-function Compile-Error {
-  $RETVAL = $LASTEXITCODE
-  Pop-Location
-  If (Test-Path ".\${buildfolder}" -PathType Container) { Remove-Item ".\${buildfolder}" -Recurse }
-  Write-Host "`nERROR $RETVAL! Failed to compile iVS3D!" -ForegroundColor Red
-  exit $RETVAL
-}
-
 function Package-Error {
   $RETVAL = $LASTEXITCODE
   Pop-Location
-  If (Test-Path ".\${buildfolder}" -PathType Container) { Remove-Item ".\${buildfolder}" -Recurse }
-  If (Test-Path ".\${releasefolder}" -PathType Container) { Remove-Item ".\${releasefolder}" -Recurse }
+  If (Test-Path ".\${PACKAGE_NAME}" -PathType Container) { Remove-Item ".\${PACKAGE_NAME}" -Recurse }
   Write-Host "`nERROR $RETVAL! Failed to deploy iVS3D!" -ForegroundColor Red
   exit $RETVAL
 }
@@ -19,111 +10,80 @@ function Package-Error {
 # exit whenever something fails
 $ErrorActionPreference = "Stop"
 
-# Setup Visual Studio 14.0 Command Prompt for powershell
-# see https://stackoverflow.com/questions/2124753/how-can-i-use-powershell-with-the-visual-studio-command-prompt 
-Push-Location "${VCVARS_PATH}"
-cmd /c "vcvarsall.bat x64&set" |
-ForEach-Object {
-  if ($_ -match "=") {
-    $v = $_.split("="); set-item -force -path "ENV:\$($v[0])"  -value "$($v[1])"
-  }
-}
-Pop-Location
-Write-Host "`nVisual Studio ${MSVC_VERSION} Command Prompt variables set." -ForegroundColor Yellow
+# assumtion: The folder to package is located here and named $PACKAGE_NAME
+Push-Location ${PACKAGE_NAME}
 
-Write-Host "`nRunning lrelease-pro.exe" -ForegroundColor Yellow
-Invoke-Expression -Command "${QT_PATH}\bin\lrelease-pro.exe .\iVS3D\iVS3D.pro"
-If($LASTEXITCODE -gt 0){
-  Write-Host "`nERROR $LASTEXITCODE! Failed to create translations!" -ForegroundColor Red
-  exit $LASTEXITCODE
-}
+# move the files from the bin directory one level up
+Write-Host "`nCreating strucktured package with dependencies"
+Copy-Item -Path .\bin\* -Destination "." -Recurse
+Remove-Item ".\bin" -Recurse
 
-$buildfolder = "build"
-If($CUDA_VERSION){
-  $releasefolder = "iVS3D-${APP_VERSION}-cuda${CUDA_VERSION}-msvc${MSVC_VERSION}-x64"
-} Else {
-  $releasefolder = "iVS3D-${APP_VERSION}-msvc${MSVC_VERSION}-x64"
-}
-
-New-Item -ItemType Directory -Path ".\$buildfolder"
-Push-Location ".\$buildfolder"
-
-If($CUDA_VERSION){
-  Write-Host "`nRunning qmake.exe WITH CUDA" -ForegroundColor Yellow
-  Invoke-Expression -Command "${QT_PATH}\bin\qmake.exe ..\iVS3D\iVS3D.pro -spec win32-msvc `"CONFIG+=qtquickcompiler`" `"CONFIG+=with_cuda`" `"DEFINES+=IVS3D_DAT=$APP_DATE IVS3D_VER=$APP_VERSION`""
-} Else {
-  Write-Host "`nRunning qmake.exe" -ForegroundColor Yellow
-  Invoke-Expression -Command "${QT_PATH}\bin\qmake.exe ..\iVS3D\iVS3D.pro -spec win32-msvc `"CONFIG+=qtquickcompiler`" `"DEFINES+=IVS3D_DAT=$APP_DATE IVS3D_VER=$APP_VERSION`""
-}
-If($LASTEXITCODE -gt 0){ Compile-Error }
-
-Write-Host "`nRunning jom.exe qmake_all" -ForegroundColor Yellow
-Invoke-Expression -Command "${JOM_PATH}\jom.exe qmake_all"
-If($LASTEXITCODE -gt 0){ Compile-Error }
-
-Write-Host "`nRunning jom.exe" -ForegroundColor Yellow
-Invoke-Expression -Command "${JOM_PATH}\jom.exe"
-If($LASTEXITCODE -gt 0){ Compile-Error }
-
-Write-Host "`nRunning jom.exe install" -ForegroundColor Yellow
-Invoke-Expression -Command "${JOM_PATH}\jom.exe install"
-If($LASTEXITCODE -gt 0){ Compile-Error }
-
-Write-Host "`nRunning jom.exe clean" -ForegroundColor Yellow
-Invoke-Expression -Command "${JOM_PATH}\jom.exe clean"
-If($LASTEXITCODE -gt 0){ Compile-Error }
-
-Pop-Location
-
-Write-Host "`nCreating strucktured package"
-New-Item -ItemType Directory -Path ".\$releasefolder"
-Copy-Item -Path .\$buildfolder\src\iVS3D-core\release\* -Destination ".\$releasefolder" -Recurse
-New-Item -ItemType Directory -Path ".\$releasefolder\plugins"
-Copy-Item -Path .\$buildfolder\src\plugins\* -Destination ".\$releasefolder\plugins"
-
-Push-Location ".\$releasefolder"
-
+# add Qt dependencies for iVS3D-core
 Write-Host "`nRunning windeployqt.exe"
 Invoke-Expression -Command "${QT_PATH}\bin\windeployqt.exe --libdir . --plugindir plugins -concurrent iVS3D-core.exe"
 If($LASTEXITCODE -gt 0){ Package-Error }
 
+# add Qt dependencies and qml files for plugins which use qml (this requires mapping of dll name to source directory)
+foreach ($entry in $QML_PLUGINS.GetEnumerator()) {
+  $key = $entry.Key
+  $value = $entry.Value
+  
+  if ([string]::IsNullOrEmpty($value)) {
+      Write-Output "Skipping plugin: $key.dll because no qml source is provided"
+      continue
+  }
+  
+  Write-Output "Deploying: $key.dll with qml files from: $value directory"
+  Invoke-Expression -Command "${QT_PATH}\bin\windeployqt.exe --libdir . --plugindir plugins --qmldir $PROJECT_ROOT\$value plugins\$key.dll"
+  If($LASTEXITCODE -gt 0){ Package-Error }
+}
+
+# add Qt dependencies for all plugins found in plugins folder
 $files = Get-ChildItem .\plugins\*.dll
 foreach ($file in $files) {
+  Write-Output "Deploying: $file.dll without qml files"
   Invoke-Expression -Command "${QT_PATH}\bin\windeployqt.exe --libdir . --plugindir plugins $file"
   If($LASTEXITCODE -gt 0){ Package-Error }
 }
 
-Pop-Location
-
+# add OpenCV dependencies
 Write-Host "`nCopying OpenCV dlls"
-Copy-Item -Path "${OCV_BIN}\opencv_world470.dll" -Destination ".\$releasefolder"
-Copy-Item -Path "${OCV_BIN}\opencv_videoio_ffmpeg470_64.dll" -Destination ".\$releasefolder"
+Copy-Item -Path "${OCV_BIN}\opencv_world${OCV_VERSION}.dll" -Destination "."
+Copy-Item -Path "${OCV_BIN}\opencv_videoio_ffmpeg${OCV_VERSION}_64.dll" -Destination "."
 
 If($CUDA_VERSION){
-  Copy-Item -Path "${OCV_BIN}\opencv_img_hash470.dll" -Destination ".\$releasefolder"
+  Copy-Item -Path "${OCV_BIN}\opencv_img_hash${OCV_VERSION}.dll" -Destination "."
 }
 
+# add MSVC runtime
 Write-Host "`nCopying MSVC ${MSVC_VERSION} runtime dlls"
-Copy-Item -Path C:\Windows\System32\msvcp_win.dll -Destination ".\$releasefolder"
-Copy-Item -Path C:\Windows\System32\msvcp140.dll -Destination ".\$releasefolder"
-Copy-Item -Path C:\Windows\System32\vcruntime140.dll -Destination ".\$releasefolder"
-Copy-Item -Path C:\Windows\System32\vcruntime140_1.dll -Destination ".\$releasefolder"
+Copy-Item -Path C:\Windows\System32\msvcp_win.dll -Destination "."
+Copy-Item -Path C:\Windows\System32\msvcp140.dll -Destination "."
+Copy-Item -Path C:\Windows\System32\vcruntime140.dll -Destination "."
+Copy-Item -Path C:\Windows\System32\vcruntime140_1.dll -Destination "."
 
+# add cuda dependencies
 If($CUDA_VERSION){
   Write-Host "`nCopying CUDA ${CUDA_VERSION} runtime dlls"
   If(!($CUDA_BIN)){
     $CUDA_BIN = "C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v${CUDA_VERSION}\bin"
   }
-  Copy-Item -Path "${CUDA_BIN}\*.dll" -Destination ".\$releasefolder"
+  Copy-Item -Path "${CUDA_BIN}\*.dll" -Destination "."
+
+  Write-Host "`nCopying CUDNN runtime dlls"
+  If(!($CUDNN_BIN_PATH)){
+    $CUDNN_BIN_PATH = "C:\Program Files\NVIDIA\CUDNN\8.8.0\bin"
+  }
+  Copy-Item -Path "${CUDNN_BIN_PATH}\*.dll" -Destination "."
 }
 
-If($INSTALL_PATH){
-  Write-Host "`nInstalling to ${INSTALL_PATH}"
-  If (!(Test-Path "${INSTALL_PATH}" -PathType Container)) {
-    Write-Host "`nCreating install location"
-    New-Item -ItemType Directory -Force -Path "${INSTALL_PATH}"
-  }
-  Move-Item -Path ".\${releasefolder}" -Destination "${INSTALL_PATH}"
-}
-Write-Host "`nCleaning temporary build folders"
-Remove-Item ".\${buildfolder}" -Recurse
+Set-Content -Path qt.conf -Value "[Paths]
+Prefix = ./
+Plugins = plugins
+Imports = plugins
+Qml2Imports = plugins"
+
+Pop-Location
+
+# create zip archive
+Compress-Archive -Path .\${PACKAGE_NAME}\* -DestinationPath "${PACKAGE_NAME}.zip"

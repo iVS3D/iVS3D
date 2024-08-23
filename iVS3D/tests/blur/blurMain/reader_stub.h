@@ -31,7 +31,7 @@ public:
     virtual std::vector<std::string> getFileVector() { throw "not implemented"; };
     virtual void addMetaData(MetaData*) { throw "not implemented"; };
     virtual MetaData* getMetaData() { throw "not implemented"; };
-    virtual SequentialReader *createSequentialReader(std::vector<uint> indices) { throw "not implemented"; };
+    SequentialReader *createSequentialReader(std::vector<uint> indices);
 
 private:
     std::vector<uint> m_picOrder;

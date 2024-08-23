@@ -17,11 +17,17 @@ include_directories(
     "${CMAKE_CURRENT_LIST_DIR}/../iVS3D-core/plugin"
 )
 
+# video and dnn from opencv is required for farneback
+find_package(OpenCV 4.7 REQUIRED COMPONENTS
+    video
+    dnn
+)
+
 # CUDA (if applicable)
 if(With_CUDA)
 
     # cudaoptflow from opencv is required
-    find_package(OpenCV 4.5 REQUIRED COMPONENTS
+    find_package(OpenCV 4.7 REQUIRED COMPONENTS
         cudaoptflow
     )
 
@@ -43,7 +49,6 @@ endif()
 
 # set header files
 set(HEADER_FILES
-    "${CMAKE_CURRENT_LIST_DIR}/distributionselector.h"
     "${CMAKE_CURRENT_LIST_DIR}/factory.h"
     "${CMAKE_CURRENT_LIST_DIR}/flowcalculator.h"
     "${CMAKE_CURRENT_LIST_DIR}/flowcalculatorcpu.h"
@@ -51,30 +56,39 @@ set(HEADER_FILES
     "${CMAKE_CURRENT_LIST_DIR}/imagegatherercpu.h"
     "${CMAKE_CURRENT_LIST_DIR}/keyframeselector.h"
     "${CMAKE_CURRENT_LIST_DIR}/optflowcontroller.h"
-    "${CMAKE_CURRENT_LIST_DIR}/staticselector.h"
     "${CMAKE_CURRENT_LIST_DIR}/../iVS3D-core/cvmat_qmetadata.h"
     ${CUDA_HEADER_FILES}
 )
 
 # set source files
 set(SRC_FILES
-    "${CMAKE_CURRENT_LIST_DIR}/distributionselector.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/factory.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/flowcalculator.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/flowcalculatorcpu.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/imagegatherer.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/imagegatherercpu.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/keyframeselector.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/optflowcontroller.cpp"
-    "${CMAKE_CURRENT_LIST_DIR}/staticselector.cpp"
     ${CUDA_SRC_FILES}
 )
 
-# define target to build translation files
-file(GLOB_RECURSE TRANSLATION_FILES
-    "${CMAKE_CURRENT_LIST_DIR}/translations/*.ts"
+# set compiled translation files (.qm)
+set(QM_FILES
+    "${CMAKE_CURRENT_LIST_DIR}/translations/stationary_de.qm"
+    "${CMAKE_CURRENT_LIST_DIR}/translations/stationary_en.qm"
 )
-add_custom_target(BuildTranslations-${TARGET_NAME}
-    COMMAND lrelease ${TRANSLATION_FILES}
+
+# set compiled translation files (.ts)
+set(TS_FILES
+    "${CMAKE_CURRENT_LIST_DIR}/translations/stationary_de.ts"
+    "${CMAKE_CURRENT_LIST_DIR}/translations/stationary_en.ts"
+)
+
+# custom command to create translations (.qm) files using lrelease
+add_custom_command(
+    OUTPUT ${QM_FILES}
+    COMMAND lrelease ${TS_FILES}
+    DEPENDS ${TS_FILES}
 )
 
 # add ressources
@@ -87,6 +101,8 @@ add_library(${TARGET_NAME} SHARED
     ${HEADER_FILES}
     ${SRC_FILES}
     ${QRC_SRC_FILES}
+    ${QM_FILES}
+    ${TS_FILES}
 )
 target_link_libraries(${TARGET_NAME}
     iVS3D-pluginInterface
@@ -114,7 +130,6 @@ set_target_properties(${TARGET_NAME} PROPERTIES
 add_dependencies(${TARGET_NAME}
     iVS3D-pluginInterface
     iVS3D-core
-    BuildTranslations-${TARGET_NAME}
 )
 
 # install
@@ -124,19 +139,14 @@ install(TARGETS
 )
 
 if(Update_Translations)
-    add_custom_target(UpdateTranslations-${TARGET_NAME}
-        COMMAND lupdate ${CMAKE_CURRENT_LIST_DIR} -ts ${TRANSLATION_FILES} -no-obsolete
-    )
-
-    add_dependencies(${TARGET_NAME}
-        UpdateTranslations-${TARGET_NAME}
-    )
-
-    add_dependencies(BuildTranslations-${TARGET_NAME}
-        UpdateTranslations-${TARGET_NAME}
+    # if Update_Translations flag is set to ON, we want to override existing .ts files with new Strings from the src files.
+    # this is done using Qt's tool "lupdate", which searches all src files (.cpp and .h) in the given folder (in this case
+    # ${CMAKE_CURRENT_LIST_DIR}) and outputs the updated .ts files
+    # IMPORTANT: We want this command to execute, even if the ts files already exist, to make sure they are updated! This is
+    # achieved by adding an OUTPUT (placeholder.out) which is never created and thus forces the command to run on every build.
+    add_custom_command(
+        OUTPUT ${TS_FILES} placeholder.out
+        COMMAND lupdate ${CMAKE_CURRENT_LIST_DIR} -ts ${TS_FILES} -no-obsolete
+        DEPENDS ${HEADER_FILES} ${SRC_FILES}
     )
 endif()
-
-# TODO: Windows Build
-#   - Deploy DLLs
-#   - Check if lrelease-pro is needed

@@ -25,7 +25,7 @@
     </message>
     <message>
         <source>When selecting strictly every Nth frame, isolated images or small batches are unlikely to get selected for larger N.</source>
-        <translation>Wenn stritk jedes N-te Bild gewählt wird, können Bereiche mit nur sehr wenigen Bildern verloren gehen.</translation>
+        <translation>Wenn strikt jedes N-te Bild gewählt wird, können Bereiche mit nur sehr wenigen Bildern verloren gehen.</translation>
     </message>
 </context>
 </TS>

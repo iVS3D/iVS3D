@@ -162,10 +162,11 @@ bool ApplicationSettings::getUseCuda()
     return m_useCuda && getCudaAvailable();
 }
 
-bool ApplicationSettings::getCudaAvailable() const
+bool ApplicationSettings::getCudaAvailable(CUDA_ERR_CODE *err_code) const
 {
 #ifdef WITH_CUDA
     bool _cudaSupported  = false;
+    if(err_code) *err_code = NO_ERR;
 
         // Obtain information from the OpenCV compilation
         // Here is a lot of information.
@@ -199,6 +200,7 @@ bool ApplicationSettings::getCudaAvailable() const
         try {
             if (_cudaSupported) {
                 if (cv::cuda::getCudaEnabledDeviceCount() < 1) {
+                    if(err_code) *err_code = NO_GPU_FOUND;
                     _cudaSupported = false;
                 }
             }
@@ -207,13 +209,16 @@ bool ApplicationSettings::getCudaAvailable() const
             if (_cudaSupported) {
                 cv::cuda::DeviceInfo di;
                 _cudaSupported = di.isCompatible();
+                if(err_code && !_cudaSupported) *err_code = CC_MISSMATCH;
             }
         } catch (cv::Exception e) {
+            if(err_code) *err_code = UNKNOWN_ERR;
             _cudaSupported = false;
         }
 
         return _cudaSupported;
 #else
+    if(err_code) *err_code = BUILT_WITHOUT_CUDA;
     return false;
 #endif // WITH_CUDA
 }

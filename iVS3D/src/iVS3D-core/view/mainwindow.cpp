@@ -150,6 +150,15 @@ MainWindow::MainWindow(QWidget *parent, ColorTheme theme, int cuda, bool createL
 
     if(cuda < 0){
         ui->actionUse_CUDA->setEnabled(false);
+        QString err_msg;
+        switch (cuda) {
+        case -1: err_msg = tr("No GPU found"); break;
+        case -2: err_msg = tr("Compute Capability not supported"); break;
+        case -3: err_msg = tr("Built without CUDA"); break;
+        default:
+            err_msg = tr("Unknown error"); break;
+        }
+        ui->actionUse_CUDA->setText(tr("CUDA not available: ") + err_msg);
     } else {
         ui->actionUse_CUDA->setEnabled(true);
         ui->actionUse_CUDA->setChecked(cuda);

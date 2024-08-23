@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file>translations/smoothCameraMovement_de.qm</file>
+        <file>translations/smoothCameraMovement_en.qm</file>
+    </qresource>
+</RCC>

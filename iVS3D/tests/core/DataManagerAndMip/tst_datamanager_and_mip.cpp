@@ -14,7 +14,7 @@ public:
 
 private slots:
     void initTestCase();
-    void testForZeroKeyframes();
+    void testForAllKeyframes();
     void testResolution();
     void testEmptyFolder();
     void testFolderWithoutImages();
@@ -42,10 +42,10 @@ tst_datamanager_and_mip::~tst_datamanager_and_mip()
 
 }
 
-void tst_datamanager_and_mip::testForZeroKeyframes()
+void tst_datamanager_and_mip::testForAllKeyframes()
 {
     for (uint i = 0; i < mip->getPicCount(); i++) {
-        QVERIFY(!(mip->isKeyframe(i)));
+        QVERIFY(mip->isKeyframe(i));
     }
 }
 
@@ -124,6 +124,10 @@ void tst_datamanager_and_mip::testWrongDataType()
 void tst_datamanager_and_mip::testSortedKeyframes()
 {
     int numPics = mip->getPicCount();
+    // remove all keyframes first
+    std::vector<uint> empty;
+    mip->updateMIP(empty);
+    // add random keyframes to mip and keep track of them in vector keyframes for evaluation.
     std::vector<uint> keyframes;
     for (int i = 0; i < numPics / 4; i++) { //Generate random Keyframes and insert them to mip
        int random = rand() % numPics;
@@ -154,11 +158,12 @@ void tst_datamanager_and_mip::testKeyframesOutOfRange()
 
 void tst_datamanager_and_mip::testRemoveInvalidKeyframe()
 {
+    auto n_frames = mip->getAllKeyframes(false).size();
     mip->removeKeyframe(-1);
-    QVERIFY(mip->getAllKeyframes(false).size() == 0); //Check if keyframe vector is still empty
+    QVERIFY(mip->getAllKeyframes(false).size() == n_frames); //Check if keyframe vector is unchanged
     int numPics = mip->getPicCount();
     mip->removeKeyframe(numPics + 100);
-    QVERIFY(mip->getAllKeyframes(false).size() == 0); //Check if keyframe vector is still empty
+    QVERIFY(mip->getAllKeyframes(false).size() == n_frames); //Check if keyframe vector is unchanged
 }
 
 void tst_datamanager_and_mip::cleanupTestCase()
