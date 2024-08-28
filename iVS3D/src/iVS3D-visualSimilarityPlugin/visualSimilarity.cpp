@@ -49,6 +49,8 @@ std::vector<uint> VisualSimilarity::sampleImages(const std::vector<unsigned int>
         // calculate batch size
         const long availableMemory = cv::cuda::DeviceInfo(0).freeMemory();
         batchSize = round(availableMemory/m_nnInputSize.width/m_nnInputSize.height/3/32*MEM_THRESEHOLD); // RAM/(W*H*C*32)*thresehold <- CV_32F
+        if (batchSize > MAX_BATCH)
+            batchSize = MAX_BATCH;
         std::cout << "Detected " << std::round(availableMemory/10000000.0)/100.0 << "GB free memory." << std::endl;
         std::cout << "Resulting Batch Size: " << batchSize << std::endl;
     }
