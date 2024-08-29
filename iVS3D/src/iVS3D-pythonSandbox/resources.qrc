@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file>translations/sandbox_de.qm</file>
+        <file>translations/sandbox_en.qm</file>
+    </qresource>
+</RCC>
