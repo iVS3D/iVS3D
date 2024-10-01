@@ -109,7 +109,7 @@ private:
     std::vector<ITransformRequestDequeue*> m_transformList;
     void loadPlugins();
     bool m_transformationEnabled;
-    QThread m_transformThread;
+    QThread *m_transformThread;
 };
 
 #endif // TRANSFORMMANAGER_H
