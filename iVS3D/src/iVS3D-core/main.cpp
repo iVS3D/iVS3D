@@ -46,7 +46,6 @@ void ignoreMessages(QtMsgType type, const QMessageLogContext &context, const QSt
 
 int main(int argc, char *argv[])
 {
-
     qRegisterMetaType<cv::Mat>("cvMat");
     qRegisterMetaType<ImageList>("ImageList");
     qRegisterMetaType<QStringList>("QStringList");
@@ -89,6 +88,7 @@ int main(int argc, char *argv[])
         a.setApplicationName("iVS3D");
         a.setApplicationVersion(QString(QUOTE(IVS3D_VER)));
         parser.process(a);
+        qApp->setProperty(stringContainer::UIIdentifier, true);
         qApp->setProperty("translation", ApplicationSettings::instance().getLocale());
         qDebug() << "Locale: " << qApp->property("translation").toLocale();
         QTranslator* translator = new QTranslator();
@@ -108,9 +108,6 @@ int main(int argc, char *argv[])
         qDebug() << "Library search paths: " << QApplication::libraryPaths();
 #endif
         Controller *mainController = new Controller(parser.value(inputPath), parser.value(autoPath), parser.value(outputPath), parser.value(logPath));
-        qApp->setProperty(stringContainer::UIIdentifier, true);
-
-
 
         auto res = a.exec();
         delete mainController;
@@ -123,6 +120,7 @@ int main(int argc, char *argv[])
         a.setApplicationName("iVS3D");
         a.setApplicationVersion(QString(QUOTE(IVS3D_VER)));
         parser.process(a);
+        qApp->setProperty(stringContainer::UIIdentifier, false);
         qApp->setProperty("translation", ApplicationSettings::instance().getLocale());
         qDebug() << "Locale: " << qApp->property("translation").toLocale();
         QTranslator* translator = new QTranslator();
@@ -142,7 +140,6 @@ int main(int argc, char *argv[])
         qDebug() << "Library search paths: " << QCoreApplication::libraryPaths();
 #endif
 
-        qApp->setProperty(stringContainer::UIIdentifier, false);
         noUIController* noUI = new noUIController(parser.value(inputPath), parser.value(autoPath), parser.value(outputPath), parser.value(logPath));
         QTimer::singleShot(0, noUI, SLOT(exec()));
         return a.exec();

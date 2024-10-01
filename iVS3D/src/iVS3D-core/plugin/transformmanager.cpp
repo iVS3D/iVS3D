@@ -9,6 +9,7 @@ TransformManager &TransformManager::instance()
 TransformManager::TransformManager()
 {
     loadPlugins();
+    m_transformThread = new QThread;
     //Don't create widget in noUI mode
     if (!qApp->property(stringContainer::UIIdentifier).toBool()) {
         return;
@@ -16,9 +17,9 @@ TransformManager::TransformManager()
     for(auto *p : m_transformList){
         QWidget *w = p->getSettingsWidget(nullptr);
         w->setVisible(false);
-        p->moveToThread(&m_transformThread);
+        p->moveToThread(m_transformThread);
     }
-    m_transformThread.start();
+    m_transformThread->start();
 }
 
 QWidget *TransformManager::getSettingsWidget(QWidget *parent, uint idx)
@@ -53,6 +54,7 @@ void TransformManager::selectTransform(uint id)
     if(id == UINT_MAX){
         return;
     }
+    m_transformList[id]->moveToThread(m_transformThread);
     emit sig_selectedTransformChanged(id);
 }
 
@@ -69,8 +71,8 @@ bool TransformManager::isTransformEnabled()
 
 void TransformManager::exit()
 {
-    m_transformThread.quit();
-    m_transformThread.wait();
+    m_transformThread->quit();
+    m_transformThread->wait();
 }
 
 void TransformManager::enableCuda(bool enabled)
