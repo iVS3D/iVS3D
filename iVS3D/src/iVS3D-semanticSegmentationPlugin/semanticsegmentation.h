@@ -140,8 +140,9 @@ signals:
      * @brief [signal] sig_message is emmitted if the algorithm has a message for the user to display.
      * @param processor The processor currently used (cpu or gpu)
      * @param message The information to display as text
+     * @param active If the process is still active (true) or now idle (false)
      */
-    void sig_message(QString processor, QString message = "");
+    void sig_message(QString processor, QString message = "", bool active = true);
 
 private slots:
     // --- slots for signals from SettingsWidget ---

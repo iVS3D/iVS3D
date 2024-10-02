@@ -27,12 +27,14 @@ set(HEADER_FILES
     "${CMAKE_CURRENT_LIST_DIR}/semanticsegmentation.h"
     "${CMAKE_CURRENT_LIST_DIR}/semanticsegmentation_global.h"
     "${CMAKE_CURRENT_LIST_DIR}/settingswidget.h"
+    "${CMAKE_CURRENT_LIST_DIR}/spinnericon.h"
 )
 
 # set source files
 set(SRC_FILES
     "${CMAKE_CURRENT_LIST_DIR}/settingswidget.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/semanticsegmentation.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/spinnericon.cpp"
 )
 
 # set compiled translation files (.qm)
@@ -74,6 +76,7 @@ target_link_libraries(${TARGET_NAME}
     Qt${QT_VERSION_MAJOR}::Gui
     Qt${QT_VERSION_MAJOR}::Concurrent
     Qt${QT_VERSION_MAJOR}::Positioning
+    Qt${QT_VERSION_MAJOR}::Svg
     ${OpenCV_LIBRARIES}
     ${CUDA_LIBRARIES}
     ${CUDNN_LIBRARIES}

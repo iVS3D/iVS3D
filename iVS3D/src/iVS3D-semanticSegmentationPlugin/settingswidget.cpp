@@ -60,13 +60,14 @@ SettingsWidget::SettingsWidget(QWidget *parent, QStringList ONNXmodelList, float
     connect(m_alphaSlider, &QSlider::valueChanged, this, &SettingsWidget::slot_overlayAlphaChanged);
     w->addRow(tr("Overlay alpha "), m_alphaSlider);
 
-    m_processLabel = new QLabel("");
-    m_processLabel->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
-    m_processLabel->setStyleSheet("color: green");
+    m_spinnerIcon = new SpinnerIcon(parent);
+    m_spinnerIcon->setStyleSheet("background: transparent; color: green"); // Set color
+    //m_spinnerIcon->resize(150, 150);
 
     m_processorLabel = new QLabel("");
-    m_processorLabel->setStyleSheet("color: green");
-    w->addRow(m_processorLabel, m_processLabel);
+    m_processorLabel->setStyleSheet("color: green; height: 2em");
+    m_processorLabel->setAlignment(Qt::AlignVCenter);
+    w->addRow(m_processorLabel, m_spinnerIcon);
 
     QWidget *widget = new QWidget(parent);
     widget->setLayout(w);
@@ -133,10 +134,11 @@ void SettingsWidget::slot_classesAndColorsChanged(QStringList classes, QColorLis
     this->adjustSize();
 }
 
-void SettingsWidget::slot_showTask(QString processor, QString task)
+void SettingsWidget::slot_showTask(QString processor, QString task, bool active)
 {
     m_processorLabel->setText(processor);
-    m_processLabel->setText(task);
+    m_spinnerIcon->setText(task);
+    m_spinnerIcon->setSpinning(active);
 }
 
 

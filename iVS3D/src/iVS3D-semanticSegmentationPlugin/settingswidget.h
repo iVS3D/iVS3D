@@ -18,6 +18,7 @@
 #include <opencv2/core.hpp>
 
 #include "cvmat_qmetadata.h"
+#include "spinnericon.h"
 
 /**
  * @class SettingsWidget
@@ -82,7 +83,7 @@ public slots:
      * @param processor The processor used (cpu or gpu)
      * @param task The task currently performed by the processor
      */
-    void slot_showTask(QString processor, QString task);
+    void slot_showTask(QString processor, QString task, bool active);
 
 private slots:
     // --- slots for gui elements to process events and emit signals ---
@@ -97,8 +98,8 @@ private:
     QComboBox *m_comboBox;
     QSlider *m_alphaSlider;
     QPushButton *m_invertButton;
-    QLabel *m_processLabel;
     QLabel *m_processorLabel;
+    SpinnerIcon *m_spinnerIcon;
 };
 
 #endif // SETTINGSWIDGET_H
