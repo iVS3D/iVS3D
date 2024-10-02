@@ -13,8 +13,8 @@ VideoPlayerController::VideoPlayerController(QObject *parent, VideoPlayer *playe
     m_imageIndexOnScreen = 1;
     m_stepsize = 1;
     m_playing = false;
-    m_keyframesOnly = false;
-    m_iterator = ModelInputIteratorFactory::createIterator(ModelInputIteratorFactory::Images);
+    m_keyframesOnly = true;
+    m_iterator = ModelInputIteratorFactory::createIterator(ModelInputIteratorFactory::Keyframes);
     m_algoController = algoController;
 
     m_boundaryMoveTimer = new QTimer(this);
