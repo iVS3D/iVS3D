@@ -2,5 +2,6 @@
     <qresource prefix="/">
         <file>translations/semanticsegmentation_de.qm</file>
         <file>translations/semanticsegmentation_en.qm</file>
+        <file>icons/spinner.svg</file>
     </qresource>
 </RCC>

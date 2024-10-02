@@ -146,12 +146,12 @@ void SemanticSegmentation::enableCuda(bool enabled)
             qDebug() << "loaded. activating cuda...";
             m_ONNXmodel->setPreferableBackend(cv::dnn::DNN_BACKEND_CUDA);
             m_ONNXmodel->setPreferableTarget(cv::dnn::DNN_TARGET_CUDA);
-            emit sig_message(HW_NAME(m_useCuda), tr("Loaded model (cuda)"));
+            emit sig_message(HW_NAME(m_useCuda), tr("Loaded model (cuda)"), false);
             qDebug() << "cuda alive :)";
         } else {
             m_ONNXmodel->setPreferableBackend(cv::dnn::DNN_BACKEND_OPENCV);
             m_ONNXmodel->setPreferableTarget(cv::dnn::DNN_TARGET_CPU);
-            emit sig_message(HW_NAME(m_useCuda), tr("Loaded model"));
+            emit sig_message(HW_NAME(m_useCuda), tr("Loaded model"), false);
         }
     }
 }
@@ -282,7 +282,7 @@ void SemanticSegmentation::slot_computeScore()
         QString im = QString("[") + QString::number(m_imageIdx) + QString("]");
         std::cout << std::right << std::setw(30) << im.toStdString() << std::left << " free mem: " << cv::cuda::DeviceInfo().freeMemory() << "\n";
     }
-    emit sig_message(HW_NAME(m_useCuda) , tr("Computing preview..."));
+    emit sig_message(HW_NAME(m_useCuda) , tr("Computing preview..."), true);
     auto start = std::chrono::high_resolution_clock::now(); // start clock
 
     m_ONNXmodel->setInput(blob);                             // set model input ...
@@ -292,7 +292,7 @@ void SemanticSegmentation::slot_computeScore()
     auto durationMs = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
 
     qDebug() << "Predicted the image in " << QString::number(durationMs) << "ms";
-    emit sig_message(HW_NAME(m_useCuda), tr("Finished preview in ") + QString::number(durationMs) + tr("ms"));
+    emit sig_message(HW_NAME(m_useCuda), tr("Finished preview in ") + QString::number(durationMs) + tr("ms"), false);
 }
 
 void SemanticSegmentation::slot_computeSegmentation()
@@ -482,7 +482,7 @@ void SemanticSegmentation::loadModel()
     std::cout << std::left << std::setw(30) << "Model path:" << modelPath.toStdString() << "\n";
 
     qDebug() << "Try to load model from " << modelPath;
-    emit sig_message(HW_NAME(m_useCuda), tr("Loading model..."));
+    emit sig_message(HW_NAME(m_useCuda), tr("Loading model..."), true);
     auto start = std::chrono::high_resolution_clock::now();
 
 
@@ -495,11 +495,11 @@ void SemanticSegmentation::loadModel()
         if(m_useCuda){
             m_ONNXmodel->setPreferableBackend(cv::dnn::DNN_BACKEND_CUDA);
             m_ONNXmodel->setPreferableTarget(cv::dnn::DNN_TARGET_CUDA);
-            emit sig_message(HW_NAME(m_useCuda), tr("Loaded model (cuda)"));
+            emit sig_message(HW_NAME(m_useCuda), tr("Loaded model (cuda)"), false);
         } else {
             m_ONNXmodel->setPreferableBackend(cv::dnn::DNN_BACKEND_OPENCV);
             m_ONNXmodel->setPreferableTarget(cv::dnn::DNN_TARGET_CPU);
-            emit sig_message(HW_NAME(m_useCuda), tr("Loaded model"));
+            emit sig_message(HW_NAME(m_useCuda), tr("Loaded model"), false);
         }
         m_ONNXmodelLoaded = true;
     }  catch (QException &e) {
