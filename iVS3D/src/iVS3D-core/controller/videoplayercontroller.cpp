@@ -157,10 +157,20 @@ void VideoPlayerController::slot_toggleKeyframe()
         emit sig_toggleKeyframe(m_imageIndex, true);
     }
     m_dataManager->getHistory()->slot_save();
-    m_videoPlayer->setKeyframe(m_dataManager->getModelInputPictures()->isKeyframe(m_imageIndex));
+    bool isKeyframe = m_dataManager->getModelInputPictures()->isKeyframe(m_imageIndex);
+    m_videoPlayer->setKeyframe(isKeyframe);
     m_videoPlayer->setKeyframeCount(m_dataManager->getModelInputPictures()->getKeyframeCount(true));
     m_timeline->updateKeyframes(m_dataManager->getModelInputPictures()->getAllKeyframes(false));
     m_timeline->selectFrame(m_imageIndex);
+
+    // if we just added a new keyframe, stay there
+    if (isKeyframe){
+        return;
+    }
+    // otherwise we just removed a keyframe, move to the next image or keyframe if there is one
+    if(!m_iterator->isLast(m_dataManager->getModelInputPictures(), m_imageIndex)){
+        slot_showNextImage();
+    }
 }
 
 void VideoPlayerController::slot_toggleKeyframesOnly(bool checked)
