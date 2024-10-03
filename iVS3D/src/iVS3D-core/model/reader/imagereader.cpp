@@ -9,7 +9,7 @@ ImageReader::ImageReader(QString path)
     }
     QDir dir(path);
     QStringList filters;
-    filters << "*.png" << "*.bmp" << "*.jpeg" << "*.jpg";
+    filters << "*.png" << "*.bmp" << "*.jpeg" << "*.jpg" << "*.tiff" << "*.tif";
     dir.setNameFilters(filters);
     QFileInfoList files = dir.entryInfoList();
     QCollator collator;
