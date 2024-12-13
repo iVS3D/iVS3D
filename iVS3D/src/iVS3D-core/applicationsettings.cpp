@@ -7,7 +7,7 @@ ApplicationSettings::ApplicationSettings()
     m_disableChecks = false;
     m_createLogs = true;
     m_useCuda = true;
-    m_colorTheme = LIGHT;
+    m_colorTheme = DARK;
     m_locale = QLocale::system();
     if(!getAvailableLocales().contains(m_locale)){
         m_locale = getAvailableLocales()[0];
