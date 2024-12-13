@@ -452,6 +452,9 @@ bool ExportThread::exportImages(cv::Mat image, int iTransformCopiesSize, const Q
 
     std::ofstream f(imgPath.toStdString().c_str(), std::ofstream::binary);
     f.write((char *)&newData[0], fileSize + size);
+    delete[] newData;
+    delete[] exifData;
+    delete[] fileData;
     //qDebug() << "Time needed: " << timer.elapsed();
     return true;
 }
