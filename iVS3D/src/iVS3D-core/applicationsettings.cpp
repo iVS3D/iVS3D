@@ -52,9 +52,9 @@ void ApplicationSettings::loadSettings()
 {
     QSettings settings(stringContainer::settingsCompany, stringContainer::settingsProgramm);
     qDebug() << "Loading configuration from " << settings.fileName();
-    m_standardInputPath = settings.value(stringContainer::standardInputPathIdentifier).value<QString>();
-    m_disableChecks = settings.value(stringContainer::disableChecksIdentifier).value<bool>();
-    m_colorTheme = settings.value(stringContainer::colorThemeIdentifier).value<ColorTheme>();
+    m_standardInputPath = settings.value(stringContainer::standardInputPathIdentifier, m_standardInputPath).value<QString>();
+    m_disableChecks = settings.value(stringContainer::disableChecksIdentifier, m_disableChecks).value<bool>();
+    m_colorTheme = settings.value(stringContainer::colorThemeIdentifier, m_colorTheme).value<ColorTheme>();
     if(settings.contains(stringContainer::useCudaIdentifier))
         m_useCuda = settings.value(stringContainer::useCudaIdentifier).value<bool>();
     QVariantMap reconstructMap = settings.value(stringContainer::reconstructSoftwareIdentifier).value<QVariantMap>();
