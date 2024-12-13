@@ -462,6 +462,7 @@ def computeCameraPoses(colmapDatabaseFilePath: str, projectImageDir: str, colmap
             '--output_path', sparse_out_path,
             '--ref_is_gps', '0',
             '--ref_images_path', os.path.join(colmapProjectDirPath, "01_sparse", "geo", "ImgGpsList_enu.txt"),
+            '--transform_path', os.path.join(colmapProjectDirPath, "01_sparse", "geo", "enu_transform.txt"),
             '--robust_alignment', '0'], stdout=subprocess.PIPE)         
             
         poll_process_and_scan_logs(p, None)
