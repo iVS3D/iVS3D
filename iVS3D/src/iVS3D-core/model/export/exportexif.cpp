@@ -1,80 +1,9 @@
 #include "exportexif.h"
 #include "qdebug.h"
 #include <cstdio>
+#include <iostream>
 
-ExportExif::ExportExif()
-{
-//    TIFFHeader = new unsigned char[8];
-//    // II tag
-//    TIFFHeader[0] = 0x49;
-//    TIFFHeader[1] = 0x49;
-//    //Algin bytes 0x2A00
-//    TIFFHeader[2] = 0x2A;
-//    TIFFHeader[3] = 0x00;
-//    //Offset to first ifd (4 Bytes) --> total of 8 bytes offset
-//    TIFFHeader[4] = 0x08;
-//    TIFFHeader[5] = 0x00;
-//    TIFFHeader[6] = 0x00;
-//    TIFFHeader[7] = 0x00;
-
-//    JPEGMarker = new unsigned char[10];
-
-//    //APP1 Marker
-//    JPEGMarker[0] = 0xFF;
-//    JPEGMarker[1] = 0xE1;
-//    //Length of APP1 Field
-//    JPEGMarker[2] = 0x00;
-//    JPEGMarker[3] = 0xAA;
-//    //Exif
-//    JPEGMarker[4] = 0x45;
-//    JPEGMarker[5] = 0x78;
-//    JPEGMarker[6] = 0x69;
-//    JPEGMarker[7] = 0x66;
-//    //Offset
-//    JPEGMarker[8] = 0x00;
-//    JPEGMarker[9] = 0x00;
-//    JPEGMarker[10] = 0x00;
-
-//    PNGChunkHeader = new unsigned char[8];
-//    //4Bytes length of Data Only 172-12 = 160///////////(without PNGChunkHeader and crc) --> total length - 8B PNGChunkHeader - 4B CRC
-//    //TODO Size does change
-//    PNGChunkHeader[0] = 0x00;
-//    PNGChunkHeader[1] = 0x00;
-//    PNGChunkHeader[2] = 0x00;
-//    PNGChunkHeader[3] = 0x00;
-//    //eXIf Tag PNG --> eXIf
-//    PNGChunkHeader[4] = 101;
-//    PNGChunkHeader[5] = 88;
-//    PNGChunkHeader[6] = 73;
-//    PNGChunkHeader[7] = 102;
-//    GPSIFD = new unsigned char[18];
-//    //Number of fields in this IFD, 2 bytes --> only gps ifd
-//    GPSIFD[0] = 0x01;
-//    GPSIFD[1] = 0x00;
-//    //GPS IFD Tag, next 12Bytes is the IFD 12-byte field Interoperability array
-//    GPSIFD[2] = 0x25;
-//    GPSIFD[3] = 0x88;
-//    //Type -> long
-//    GPSIFD[4] = 0x04;
-//    GPSIFD[5] = 0x00;
-//    //Count
-//    GPSIFD[6] = 0x01;
-//    GPSIFD[7] = 0x00;
-//    GPSIFD[8] = 0x00;
-//    GPSIFD[9] = 0x00;
-//    //Value -> Pointer to gps tags 0x1A = 26: Offset from TIFF Header to GPSValues --> 8Byte TIFF + 18Bytes GPSIFD = 26Bytes
-//    GPSIFD[10] = 0x1A;
-//    GPSIFD[11] = 0x00;
-//    GPSIFD[12] = 0x00;
-//    GPSIFD[13] = 0x00;
-//    //4 Byte offset to new segment -> GPS only segment
-//    GPSIFD[14] = 0x00;
-//    GPSIFD[15] = 0x00;
-//    GPSIFD[16] = 0x00;
-//    GPSIFD[17] = 0x00;
-}
-
-char* ExportExif::saveExif(QString path, QVariant exif)
+std::vector<char> ExportExif::saveExif(QString path, QVariant exif)
 {
     QFileInfo info(path);
     QString fileExtension = info.completeSuffix().toLower();
@@ -85,7 +14,7 @@ char* ExportExif::saveExif(QString path, QVariant exif)
         usePNG = true;
     }
     else {
-        return new char[0];
+        return std::vector<char>();
     }
 
 
@@ -130,13 +59,13 @@ char* ExportExif::saveExif(QString path, QVariant exif)
 
 
 
-    GPSTagCount = new unsigned char[2];
+    unsigned char GPSTagCount[2];
     //Count of new segment = 4 (Lat, LatRef, Long, LongRef) or 6 (.. + Alt, AltRef)
     GPSTagCount[0] = (useAltitude) ? 0x06 : 0x04;
     GPSTagCount[1] = 0x00;
 
 
-    LatitudeRefTag = new unsigned char[12];
+    unsigned char LatitudeRefTag[12];
     //GPS LatitudeRef -> 12 bytes, tag 01
     LatitudeRefTag[0] = 0x01;
     LatitudeRefTag[1] = 0x00;
@@ -155,7 +84,7 @@ char* ExportExif::saveExif(QString path, QVariant exif)
     LatitudeRefTag[11] = 0x00;
 
 
-    LatitudeTag = new unsigned char[12];
+    unsigned char LatitudeTag[12];
     //GPS Latitude -> 12 bytes, tag 02
     LatitudeTag[0] = 0x02;
     LatitudeTag[1] = 0x00;
@@ -174,7 +103,7 @@ char* ExportExif::saveExif(QString path, QVariant exif)
     LatitudeTag[10] = 0x00;
     LatitudeTag[11] = 0x00;
 
-    LongitudeRefTag = new unsigned char[12];
+    unsigned char LongitudeRefTag[12];
     //GPS LongitudeRef -> 12 bytes, tag 03
     LongitudeRefTag[0] = 0x03;
     LongitudeRefTag[1] = 0x00;
@@ -193,7 +122,7 @@ char* ExportExif::saveExif(QString path, QVariant exif)
     LongitudeRefTag[11] = 0x00;
 
 
-    LongitudeTag = new unsigned char[12];
+    unsigned char LongitudeTag[12];
     //GPS Longitude -> 12 bytes, tag 04
     LongitudeTag[0] = 0x04;
     LongitudeTag[1] = 0x00;
@@ -212,14 +141,14 @@ char* ExportExif::saveExif(QString path, QVariant exif)
     LongitudeTag[10] = 0x00;
     LongitudeTag[11] = 0x00;
 
-    offestToGPSData = new unsigned char[4];
+    unsigned char offestToGPSData[4];
     //4 byte offset to data segment
     offestToGPSData[0] = 0x00;
     offestToGPSData[1] = 0x00;
     offestToGPSData[2] = 0x00;
     offestToGPSData[3] = 0x00;
 
-    LatitudeData= new unsigned char[24];
+    unsigned char LatitudeData[24];
     //Pointer to Latitude Data -> 3 rational with 2x4 bytes each
     //Degree numerator
     LatitudeData[0] = degreeLatitude;
@@ -252,7 +181,7 @@ char* ExportExif::saveExif(QString path, QVariant exif)
     LatitudeData[22] =  (secondsLatitude_fraction.second >> 16) & 0xFF;
     LatitudeData[23] =  (secondsLatitude_fraction.second >> 24) & 0xFF;
 
-    LongitudeData = new unsigned char[24];
+    unsigned char LongitudeData[24];
     //Pointer to Longitude Data -> 3 rational with 2x4 bytes each -> second 4 byte block is always 1
     //Degree numerator
     LongitudeData[0] = degreeLongitude;
@@ -286,8 +215,19 @@ char* ExportExif::saveExif(QString path, QVariant exif)
     LongitudeData[23] = (secondsLongitude_fraction.second >> 24) & 0xFF;
 
 
+    unsigned char PNGChunkHeader[8] = { 0x00,0x00,0x00,0x00,
+                                              //eXIf Tag PNG --> eXIf
+                                              101,88,73,102 };
+    unsigned char JPEGMarker[10] = { 0xFF,0xE1,
+                                          //Length of APP1 Field
+                                          0x00,0xAA,
+                                          //Exif
+                                          0x45,0x78,0x69,0x66,
+                                          //Offset
+                                          0x00,0x00 };
+    unsigned char* exifData;
     if (useAltitude) {
-        AltitudeRefTag = new unsigned char[12];
+        unsigned char AltitudeRefTag[12];
         //GPS AltitudeRefTag -> 12 bytes, tag 05
         AltitudeRefTag[0] = 0x05;
         AltitudeRefTag[1] = 0x00;
@@ -305,7 +245,7 @@ char* ExportExif::saveExif(QString path, QVariant exif)
         AltitudeRefTag[10] = 0x00;
         AltitudeRefTag[11] = 0x00;
 
-        AltitudeTag = new unsigned char[12];
+        unsigned char AltitudeTag[12];
         //GPS AltitudeTag -> 12 bytes, tag 06
         AltitudeTag[0] = 0x06;
         AltitudeTag[1] = 0x00;
@@ -323,7 +263,7 @@ char* ExportExif::saveExif(QString path, QVariant exif)
         AltitudeTag[10] = 0x00;
         AltitudeTag[11] = 0x00;
 
-        AltitudeData = new unsigned char[8];
+        unsigned char AltitudeData[8];
         //altitude numerator
         AltitudeData[0] = altitude.first & 0xFF;
         AltitudeData[1] = (altitude.first >> 8) & 0xFF;
@@ -335,21 +275,6 @@ char* ExportExif::saveExif(QString path, QVariant exif)
         AltitudeData[6] = (altitude.second >> 16) & 0xFF;
         AltitudeData[7] = (altitude.second >> 24) & 0xFF;
 
-    }
-
-
-    unsigned char PNGChunkHeader[8] = { 0x00,0x00,0x00,0x00,
-                                              //eXIf Tag PNG --> eXIf
-                                              101,88,73,102 };
-    unsigned char JPEGMarker[10] = { 0xFF,0xE1,
-                                          //Length of APP1 Field
-                                          0x00,0xAA,
-                                          //Exif
-                                          0x45,0x78,0x69,0x66,
-                                          //Offset
-                                          0x00,0x00 };
-    unsigned char* exifData;
-    if (useAltitude) {
         //18B GPSIFD + 2B GPSTagCount + 6*12 GPSTags + 4B Data Offset + 2*24B + 8B Data = 152B
         exifData = new unsigned char[152];
         std::memcpy(&exifData[0], &GPSIFD[0], 18);
@@ -378,14 +303,14 @@ char* ExportExif::saveExif(QString path, QVariant exif)
         std::memcpy(&exifData[72], &LatitudeData[0], 24);
         std::memcpy(&exifData[96], &LongitudeData[0], 24);
     }
-
-    char* newData = new char[exifSize];
+    std::vector<char> newData;
     unsigned char* PNGCRC = new unsigned char[4];
 
     if (useAltitude && usePNG) {
         //8Byte PNGChunk + 8B TIFFHeader + 18B GPSIFD + 2B GPSTagCount + 6*12 GPSTags + 4B Data Offset + 2*24B + 8B Data + 4B CRC = 172B
         PNGChunkHeader[3] = 0xA0;
         exifSize = 172;
+        newData.resize(exifSize);
         std::memcpy(&newData[0], &PNGChunkHeader[0], 8);
         std::memcpy(&newData[8], &TIFFHeader[0], 8);
         std::memcpy(&newData[16], &exifData[0], 152);
@@ -403,6 +328,7 @@ char* ExportExif::saveExif(QString path, QVariant exif)
         //Set APP1 length
         JPEGMarker[3] = 0xAA;
         exifSize = 170;
+        newData.resize(exifSize);
         std::memcpy(&newData[0], &JPEGMarker[0], 10);
         std::memcpy(&newData[10], &TIFFHeader[0], 8);
         std::memcpy(&newData[18], &exifData[0], 152);
@@ -412,6 +338,7 @@ char* ExportExif::saveExif(QString path, QVariant exif)
         //Set png size
         PNGChunkHeader[3] = 0x80;
         exifSize = 140;
+        newData.resize(exifSize);
         std::memcpy(&newData[0], &PNGChunkHeader[0], 8);
         std::memcpy(&newData[8], &TIFFHeader[0], 8);
         std::memcpy(&newData[16], &exifData[0], 120);
@@ -431,6 +358,7 @@ char* ExportExif::saveExif(QString path, QVariant exif)
         //Set APP1 length
         JPEGMarker[3] = 0x8A;
         exifSize = 138;
+        newData.resize(exifSize);
         std::memcpy(&newData[0], &JPEGMarker[0], 10);
         std::memcpy(&newData[10], &TIFFHeader[0], 8);
         std::memcpy(&newData[18], &exifData[0], 120);
@@ -439,11 +367,6 @@ char* ExportExif::saveExif(QString path, QVariant exif)
     delete[] PNGCRC;
 //    std::vector<char> newData_vec(newData,newData+exifSize);
     return newData;
-}
-
-int ExportExif::getExifSize()
-{
-    return exifSize;
 }
 
 QPair<int, int> ExportExif::getFraction(double d)

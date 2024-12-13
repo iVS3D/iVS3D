@@ -26,6 +26,9 @@ ExportThread::~ExportThread()
         ITransform *iTr = m_iTransformCopies[i];
         delete iTr;
     }
+
+    delete m_exportExif;
+    delete m_reader;
 }
 
 
@@ -408,7 +411,7 @@ bool ExportThread::exportImages(cv::Mat image, int iTransformCopiesSize, const Q
     QElapsedTimer timer;
     timer.start();
 
-    char* exifData = m_exportExif->saveExif(imgPath, gpsData);
+    std::vector<char> exifData = m_exportExif->saveExif(imgPath, gpsData);
 
 
     std::FILE *file = std::fopen(imgPath.toStdString().c_str(), "rb");
@@ -426,7 +429,7 @@ bool ExportThread::exportImages(cv::Mat image, int iTransformCopiesSize, const Q
     std::fclose(file);
 
     char* newData;
-    int size = m_exportExif->getExifSize();
+    int size = exifData.size();
     QFileInfo info(imgPath);
     QString fileExtension = info.completeSuffix().toLower();
     if (fileExtension == "jpeg" || fileExtension == "jpg") {
@@ -453,7 +456,6 @@ bool ExportThread::exportImages(cv::Mat image, int iTransformCopiesSize, const Q
     std::ofstream f(imgPath.toStdString().c_str(), std::ofstream::binary);
     f.write((char *)&newData[0], fileSize + size);
     delete[] newData;
-    delete[] exifData;
     delete[] fileData;
     //qDebug() << "Time needed: " << timer.elapsed();
     return true;

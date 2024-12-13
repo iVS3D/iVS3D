@@ -35,6 +35,8 @@ public:
      * @param path directory/path of input images
      */
     explicit ImageReader(QString path);
+
+    ~ImageReader() override {}
     /**
      * @brief Returns the frame to a given index
      *

@@ -1,4 +1,5 @@
 #include "videoreader.h"
+#include <iostream>
 
 VideoReader::VideoReader(const QString &path) : m_path(path.toUtf8().constData())
 {

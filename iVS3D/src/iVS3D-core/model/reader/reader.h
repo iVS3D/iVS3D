@@ -21,6 +21,7 @@
 class Reader
 {
 public:
+    virtual ~Reader() {};
     /**
      * @brief Returns the frame to a given index
      *
