@@ -81,6 +81,8 @@ public:
      * @brief ModelInputPictures Constructor, which creates an empty class. toText can be used on this instance.
      */
     explicit ModelInputPictures();
+
+    ~ModelInputPictures();
     /**
      * @brief Sets the frame with index as a keyframe
      *

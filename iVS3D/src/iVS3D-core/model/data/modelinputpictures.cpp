@@ -56,6 +56,11 @@ ModelInputPictures::ModelInputPictures()
     m_boundaries = QPoint(0,0);
 }
 
+ModelInputPictures::~ModelInputPictures()
+{
+    delete m_reader;
+}
+
 bool ModelInputPictures::isKeyframe(unsigned int index) {
     return std::binary_search(this->m_keyframes.begin(), this->m_keyframes.end(), index);
 }

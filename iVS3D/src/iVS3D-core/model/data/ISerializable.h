@@ -19,6 +19,7 @@
 class ISerializable
 {
 public:
+    virtual ~ISerializable() {}
     /**
      * @brief toText generates a QVariant which contains the models data
      * @return generated QVariant

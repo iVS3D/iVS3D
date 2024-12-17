@@ -29,6 +29,8 @@ public:
      *
      */
     ModelAlgorithm();
+
+    ~ModelAlgorithm() {}
     /**
      * @brief Saves the buffer given buffer
      *

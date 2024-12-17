@@ -27,11 +27,14 @@ int DataManager::open(QString path)
     LogManager::instance().resetLog();
     delete m_projectManager;
     m_projectManager = new ProjectManager;
+    if(m_history){
+        delete m_history;
+    }
     if(m_mip){
         delete m_mip;
     }
-    if(m_history){
-        delete m_history;
+    if(m_ma) {
+        delete m_ma;
     }
 
     LogFile *lf = LogManager::instance().createLogFile(stringContainer::lfImportProcess, false);
