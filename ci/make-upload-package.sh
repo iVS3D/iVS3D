@@ -77,7 +77,7 @@ deployapp() {
   mv bin/* .
   rm -rf bin
   # create folder for dependencies
-  mkdir lib
+  mkdir -p lib
 
   echo " "
   echo "--------------------------------"
