@@ -73,12 +73,16 @@ IFS=" "
 deployapp() {
   # work from installed package location
   cd $INSTALL_PATH/$PACKAGE_NAME
+  # create folder for dependencies
+  mkdir -p lib
+  if [ -d "bin/lib" ]; then
+    mv bin/lib/* lib
+    rm -rf bin/lib
+  fi
   # remove subfolder bin
   mv bin/* .
   rm -rf bin
-  # create folder for dependencies
-  mkdir -p lib
-
+  
   echo " "
   echo "--------------------------------"
   echo "-- adding libs for iVS3D-core --"
