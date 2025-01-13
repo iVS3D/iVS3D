@@ -1,5 +1,7 @@
 #include "videoplayer.h"
-
+#include <QGraphicsSvgItem>
+#include <iostream>
+#include <QTimer>
 
 VideoPlayer::VideoPlayer(QWidget *parent, ColorTheme theme) :
     QWidget(parent),
@@ -16,6 +18,70 @@ VideoPlayer::VideoPlayer(QWidget *parent, ColorTheme theme) :
 
     connect(m_nextSC, &QShortcut::activated, this, &VideoPlayer::on_pushButton_nextPic_clicked);
     connect(m_prevSC, &QShortcut::activated, this, &VideoPlayer::on_pushButton_prevPic_clicked);
+
+    // Load the SVG icon
+    QGraphicsSvgItem *svgItem = new QGraphicsSvgItem(":/icons/dragndropIconW");
+
+    // Get the bounding rectangle of the SVG item
+    QRectF boundingRect = svgItem->boundingRect();
+
+    double scaleFactor = 0.5;
+    svgItem->setScale(scaleFactor);
+    // Center the item in the scene
+    svgItem->setPos(QPoint(boundingRect.width() / 2,
+                    (boundingRect.height()) / 2));
+
+    // Add the item to the scene
+    ui->graphicsView->scene()->addItem(svgItem);
+
+    // Set the scene's bounding rect (optional)
+    //ui->graphicsView->scene()->setSceneRect(0,0, boundingRect.width(), (1.0 + scaleFactor)*boundingRect.height());
+
+    // Create a text item with your message
+    QGraphicsTextItem *textItem = new QGraphicsTextItem(tr("Drag and drop images, videos, or project files here to open"));
+
+    // Set the text item's position beneath the SVG icon
+    textItem->setPos(boundingRect.center().x() - textItem->boundingRect().width() / 2,
+                     boundingRect.bottom() + 10);  // 10 pixels below the icon
+
+    QFont font("Arial", 16);
+    textItem->setFont(font);
+    textItem->setDefaultTextColor(Qt::white);
+
+
+    // Add the text item to the scene
+    ui->graphicsView->scene()->addItem(textItem);
+
+    // Define the margin (e.g., 50 pixels)
+    qreal margin = 100.0;
+
+    // Get the current bounding rect of the scene
+    QRectF sceneRect = ui->graphicsView->scene()->itemsBoundingRect();
+
+    // Expand the scene rect to include the margin
+    sceneRect.setLeft(sceneRect.left() - margin);
+    sceneRect.setTop(sceneRect.top() - margin);
+    sceneRect.setRight(sceneRect.right() + margin);
+    sceneRect.setBottom(sceneRect.bottom() + margin);
+    // Set the updated scene rect with the margin
+    ui->graphicsView->scene()->setSceneRect(sceneRect);
+
+    // Ensure you're calling fitInView with the entire scene's bounding rect
+    ui->graphicsView->fitInView(ui->graphicsView->scene()->sceneRect(), Qt::KeepAspectRatio);
+
+
+    // Center the item in the view (optional, usually fitInView does this already)
+    QGraphicsView *view = ui->graphicsView;
+    view->setRenderHint(QPainter::Antialiasing, true);
+
+    // Optionally, you can center the view using `setAlignment` or adjust it further if needed
+    view->setAlignment(Qt::AlignCenter);
+
+    ui->graphicsView->show();
+    QTimer::singleShot(0, this, [this]() {
+        ui->graphicsView->fitInView(ui->graphicsView->scene()->sceneRect(), Qt::KeepAspectRatio);
+    });
+
 }
 
 

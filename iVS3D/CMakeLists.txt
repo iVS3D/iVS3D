@@ -45,8 +45,8 @@ set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 # 3rd_party
 
 # Qt
-find_package(QT NAMES Qt5 REQUIRED COMPONENTS Core Gui Widgets Concurrent Positioning Quick Qml Network Location LinguistTools)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Gui Widgets Concurrent Positioning Quick Qml Network Location LinguistTools)
+find_package(QT NAMES Qt5 REQUIRED COMPONENTS Core Gui Widgets Concurrent Positioning Quick Qml Network Location LinguistTools Svg)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Gui Widgets Concurrent Positioning Quick Qml Network Location LinguistTools Svg)
 set(CMAKE_AUTOUIC ON) # The AUTOGEN_BUILD_DIR is automatically added to the target's INCLUDE_DIRECTORIES.
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
