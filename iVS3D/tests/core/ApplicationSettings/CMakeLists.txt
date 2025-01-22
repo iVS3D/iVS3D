@@ -1,5 +1,5 @@
-set(TEST_NAME application-settings)
-set(TARGET_NAME iVS3D-test-core-${TEST_NAME})
+set(TEST_NAME app-settings)
+set(TARGET_NAME iVS3D-test-${TEST_NAME})
 
 # include cmake file in resource loader
 include("${CMAKE_CURRENT_LIST_DIR}/../../resourceloader.cmake")
@@ -29,6 +29,9 @@ endif()
 # set include directories
 include_directories(SYSTEM
     ${Qt${QT_VERSION_MAJOR}test_INCLUDE_DIRS}
+    ${Qt${QT_VERSION_MAJOR}Core_INCLUDE_DIRS}
+    ${Qt${QT_VERSION_MAJOR}Gui_INCLUDE_DIRS}
+    ${Qt${QT_VERSION_MAJOR}Widgets_INCLUDE_DIRS}
     ${OpenCV_INCLUDE_DIRS}
 )
 
@@ -46,6 +49,7 @@ target_link_libraries(${TARGET_NAME}
     Qt${QT_VERSION_MAJOR}::Widgets
     Qt${QT_VERSION_MAJOR}::Concurrent
     Qt${QT_VERSION_MAJOR}::Positioning
+    Qt${QT_VERSION_MAJOR}::Svg
 )
 target_compile_definitions(${TARGET_NAME} PRIVATE 
     ${COMMON_COMPILE_DEFINITIONS}
