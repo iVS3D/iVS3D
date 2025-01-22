@@ -70,11 +70,11 @@ endforeach()
 
 # define costom target to download resource files
 if(WIN32)
-    add_custom_target(DownloadResourceFiles-${TARGET_NAME}
+    add_custom_target(PullResources-${TARGET_NAME}
         COMMAND cmd /c "${CMAKE_CURRENT_LIST_DIR}/drf.bat"
     )
 else()
-    add_custom_target(DownloadResourceFiles-${TARGET_NAME}
+    add_custom_target(PullResources-${TARGET_NAME}
         COMMAND bash "${CMAKE_CURRENT_LIST_DIR}/drf.sh"
     )
 endif()

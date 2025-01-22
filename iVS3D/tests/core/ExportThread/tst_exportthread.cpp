@@ -218,9 +218,11 @@ void tst_exportThread::test_exportCorrectImages()
 
     QStringList allSubDirs = iTransformSubDirs;
     allSubDirs.push_back(m_exportWimages);
+    QCOMPARE(allSubDirs.length(), 3);
     for (int i = 0; i < allSubDirs.length(); ++i) {
         //directories hold right number of files
-        QVERIFY(QDir(allSubDirs[i]).entryList().length() -2 == m_mip->getKeyframeCount(false));
+        qDebug() << "[Export " << i << "] at " << allSubDirs[i];
+        QCOMPARE(QDir(allSubDirs[i]).entryList().length()-2, m_mip->getKeyframeCount(false));
     }
     std::vector<uint> keyframelist = m_mip->getAllKeyframes(false);
     for (uint i = 0; i < m_mip->getKeyframeCount(false); ++i) {

@@ -58,7 +58,7 @@ set_target_properties(${TARGET_NAME} PROPERTIES
 )
 add_dependencies(${TARGET_NAME}
     iVS3D-pluginInterface
-    DownloadResourceFiles-${TARGET_NAME} 
+    PullResources-${TARGET_NAME} 
 )
 install(TARGETS ${TARGET_NAME} 
     DESTINATION tests
