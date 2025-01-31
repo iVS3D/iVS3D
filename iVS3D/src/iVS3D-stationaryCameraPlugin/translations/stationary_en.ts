@@ -30,22 +30,7 @@
     </message>
     <message>
         <location filename="../optflowcontroller.h" line="48"/>
-        <source>If enabled a resolution of 720p will be used for the algorithm to speed up computation. This however will hurt the accuracy of the result slightly. It however won&apos;t change the export resolution. This parameter will be disabled if the input resolution is lower or equal than 720p.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../optflowcontroller.h" line="49"/>
-        <source>Reset Buffer</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../optflowcontroller.h" line="50"/>
-        <source>Clears all already stored flow values. There are </source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../optflowcontroller.h" line="51"/>
-        <source> flow values currently buffered.</source>
+        <source>If enabled a resolution of 720p will be used for the algorithm to speed up computation. This will hurt the accuracy of the result slightly. It however won&apos;t change the export resolution. This parameter will be disabled if the input resolution is lower or equal than 720p.</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

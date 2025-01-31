@@ -1397,7 +1397,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
     </message>
     <message>
         <location filename="../view/videoplayer.ui" line="276"/>
-        <location filename="../view/videoplayer.cpp" line="70"/>
+        <location filename="../view/videoplayer.cpp" line="136"/>
         <source> Select current image </source>
         <translation type="unfinished"></translation>
     </message>
@@ -1407,7 +1407,12 @@ li.checked::marker { content: &quot;\2612&quot;; }
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/videoplayer.cpp" line="69"/>
+        <location filename="../view/videoplayer.cpp" line="41"/>
+        <source>Drag and drop images, videos, or project files here to open</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../view/videoplayer.cpp" line="135"/>
         <source>Deselect current image</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1415,12 +1420,12 @@ li.checked::marker { content: &quot;\2612&quot;; }
 <context>
     <name>VideoPlayerController</name>
     <message>
-        <location filename="../controller/videoplayercontroller.cpp" line="309"/>
+        <location filename="../controller/videoplayercontroller.cpp" line="319"/>
         <source>Frames %1 are corrupted. They won´t be considered when selecting keyframes or exported at the end of the process.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../controller/videoplayercontroller.cpp" line="310"/>
+        <location filename="../controller/videoplayercontroller.cpp" line="320"/>
         <source>Frame %1 is corrupted. It won´t be considered when selecting keyframes or exported at the end of the process.</source>
         <translation type="unfinished"></translation>
     </message>

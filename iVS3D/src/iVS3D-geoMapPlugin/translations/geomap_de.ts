@@ -4,17 +4,17 @@
 <context>
     <name>QObject</name>
     <message>
-        <location filename="../geomap.cpp" line="221"/>
+        <location filename="../geomap.cpp" line="253"/>
         <source>Reset selection</source>
         <translation>Auswahl zurücksetzen</translation>
     </message>
     <message>
-        <location filename="../geomap.cpp" line="227"/>
+        <location filename="../geomap.cpp" line="259"/>
         <source>Help</source>
         <translation>Hilfe</translation>
     </message>
     <message>
-        <location filename="../geomap.cpp" line="241"/>
+        <location filename="../geomap.cpp" line="273"/>
         <source>Select a group of keyframes by using right mouse button to draw an encapsulating polygon.
 
 Select or deselect individual keyframes by clicking with the left mouse button on the location markings.

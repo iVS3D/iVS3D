@@ -64,7 +64,7 @@
     <message>
         <location filename="../blur.cpp" line="433"/>
         <source>Calculate blur value for image </source>
-        <translation type="unfinished"></translation>
+        <translation>Schätze Unschärfe in Bild </translation>
     </message>
     <message>
         <location filename="../blur.cpp" line="427"/>

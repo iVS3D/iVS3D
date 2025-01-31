@@ -17,7 +17,7 @@
     </message>
     <message>
         <source>The drop-down shows all files in the folder plugins/ressources/neural_network_models/ that follow the format ImageEmbedding_NAME_DIMENSION_WIDHTxHEIGHT.onnx</source>
-        <translation>Hier werden alle Dateien aus dem plugins/resources/neural_network_models/-Ordner angezeigt, die dem Format ImageEmbedding_NAME_DIMENSION_WIDTHxHEIGHT.onnx entsprechen.</translation>
+        <translation>Hier werden alle Dateien aus dem plugins/resources/neural_network_models/-Ordner angezeigt, die dem Format ImageEmbedding_NAME_DIMENSION_WIDTHxHEIGHT.onnx entsprechen</translation>
     </message>
     <message>
         <source>Resets the drop-Down and reloads available neural networks.</source>
@@ -52,7 +52,7 @@
     </message>
     <message>
         <source>Wrong feature vector dimension for selected neural network. (this dimension was specified in the name of the file, which contains the neural network)</source>
-        <translation>Die Dimensiondes Merkmalvektors stimmt nicht mit der Dimension im Namen des Neuronalen Netzes überein.</translation>
+        <translation>Die Dimensiondes Merkmalvektors stimmt nicht mit der Dimension im Namen des Neuronalen Netzes überein</translation>
     </message>
     <message>
         <source>Deep Visual Similarity</source>
