@@ -26,26 +26,6 @@ del "%NAME%"
 
 mkdir %MODULE_PATH%
 
-:: Create PRO-file:
-echo Creating pro-file
-set TEMPLATE_FILE_PRO=%~dp0\templates\iVS3D-Plugin.pro.template
-:: Create new empty file
-type nul > "%MODULE_PATH%/iVS3D-%NAME%Plugin.pro"
-
-:: iterate template line by line
-SETLOCAL DisableDelayedExpansion
-FOR /F "usebackq delims=" %%a in (`"findstr /n ^^ %TEMPLATE_FILE_PRO%"`) do (
-    set "var=%%a"
-    SETLOCAL EnableDelayedExpansion
-    :: replace <-NAME->, <-NAME_LOWER-> and format
-    set "var=!var:<-NAME->=%NAME%!"
-    set "var=!var:<-NAME_LOWER->=%NAME_LOWER%!"
-    set "var=!var:*:=!"
-    :: write updated line to pro file
-    if [!var!]==[] (echo: >> "%MODULE_PATH%/iVS3D-%NAME%Plugin.pro") else (echo !var! >> "%MODULE_PATH%/iVS3D-%NAME%Plugin.pro")
-    ENDLOCAL
-)
-
 :: Create CMAKE-file:
 echo Creating cmake-file
 set TEMPLATE_FILE_CMAKE=%~dp0\templates\CMakeLists.txt.template
@@ -172,9 +152,10 @@ FOR /F "usebackq delims=" %%a in (`"findstr /n ^^ %TEMPLATE_FILE_CPP%"`) do (
     ENDLOCAL
 )
 
-:: add as subdir project to iVS3D/src/src.pro
-echo SUBDIRS += iVS3D-%NAME%Plugin >> %~dp0\..\iVS3D\src\src.pro
-echo iVS3D-%NAME%Plugin.depends = iVS3D-pluginInterface >> %~dp0\..\iVS3D\src\src.pro
+:: add as subdir project to iVS3D/src/CMakeLists.txt
+echo if(Build_Plugins) >> %~dp0\..\iVS3D\src\CMakeLists.txt
+echo   add_subdirectory(iVS3D-%NAME%Plugin) >> %~dp0\..\iVS3D\src\CMakeLists.txt
+echo endif() >> %~dp0\..\iVS3D\src\CMakeLists.txt
 
 :end
 pause

@@ -28,14 +28,6 @@ NAME_LOWER=${NAME,,}
 
 mkdir $MODULE_PATH
 
-echo "Creating pro-file"
-TEMPLATE_FILE_PRO=$SCRIPTPATH/templates/iVS3D-Plugin.pro.template
-FILE_PRO=$MODULE_PATH/iVS3D-${NAME}Plugin.pro
-
-cp $TEMPLATE_FILE_PRO $FILE_PRO
-sed -i "s/<-NAME->/${NAME}/g" $FILE_PRO
-sed -i "s/<-NAME_LOWER->/${NAME_LOWER}/g" $FILE_PRO
-
 echo "Creating cmakelists-file"
 TEMPLATE_FILE_CMAKE=$SCRIPTPATH/templates/CMakeLists.txt.template
 FILE_CMAKE=$MODULE_PATH/CMakeLists.txt
@@ -89,7 +81,8 @@ sed -i "s/<-NAME->/${NAME}/g" $FILE_CPP
 sed -i "s/<-NAME_LOWER->/${NAME_LOWER}/g" $FILE_CPP
 sed -i "s/<-NAME_UPPER->/${NAME_UPPER}/g" $FILE_CPP
 
-echo "SUBDIRS += iVS3D-${NAME}Plugin" >> $SCRIPTPATH/../iVS3D/src/src.pro
-echo "iVS3D-${NAME}Plugin.depends = iVS3D-pluginInterface" >> $SCRIPTPATH/../iVS3D/src/src.pro
+echo "if(Build_Plugins)" >> $SCRIPTPATH/../iVS3D/src/CMakeLists.txt
+echo "   add_subdirecory(iVS3D-${NAME}Plugin)" >> $SCRIPTPATH/../iVS3D/src/CMakeLists.txt
+echo "endif()" >> $SCRIPTPATH/../iVS3D/src/CMakeLists.txt
 
 exit 0
