@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file>translations/pythonsandbox_de.qm</file>
+        <file>translations/pythonsandbox_en.qm</file>
+    </qresource>
+</RCC>

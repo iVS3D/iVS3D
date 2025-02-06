@@ -1,3 +1,6 @@
 [submodule "iVS3D/src/iVS3D-models"]
 	path = iVS3D/src/iVS3D-models
 	url = ../iVS3D-models
+[submodule "iVS3D/src/iVS3D-PythonSandboxPlugin/pybind11"]
+	path = iVS3D/src/iVS3D-PythonSandboxPlugin/pybind11
+	url = https://github.com/pybind/pybind11.git

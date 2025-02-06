@@ -17,3 +17,6 @@ if(Install_Models)
     add_subdirectory(iVS3D-models)
 endif()
 
+if(Build_Plugins)
+   add_subdirectory(iVS3D-PythonSandboxPlugin)
+endif()
