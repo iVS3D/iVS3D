@@ -82,7 +82,7 @@ sed -i "s/<-NAME_LOWER->/${NAME_LOWER}/g" $FILE_CPP
 sed -i "s/<-NAME_UPPER->/${NAME_UPPER}/g" $FILE_CPP
 
 echo "if(Build_Plugins)" >> $SCRIPTPATH/../iVS3D/src/CMakeLists.txt
-echo "   add_subdirecory(iVS3D-${NAME}Plugin)" >> $SCRIPTPATH/../iVS3D/src/CMakeLists.txt
+echo "   add_subdirectory(iVS3D-${NAME}Plugin)" >> $SCRIPTPATH/../iVS3D/src/CMakeLists.txt
 echo "endif()" >> $SCRIPTPATH/../iVS3D/src/CMakeLists.txt
 
 exit 0
