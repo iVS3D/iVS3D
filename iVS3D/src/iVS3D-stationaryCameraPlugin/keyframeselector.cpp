@@ -9,7 +9,7 @@ std::vector<uint> KeyframeSelector::select(std::vector<uint> frameVector, std::v
     std::vector<double> copiedFlowValues = flowValues; // median is in place and reorders vector
     double medianFlow = median(copiedFlowValues);
     double allowedDiffFlow = medianFlow * m_threshold;
-    for (uint flowValuesIdx = 0; flowValuesIdx < flowValues.size() - 1; flowValuesIdx++) {
+    for (uint flowValuesIdx = 0; flowValuesIdx < flowValues.size(); flowValuesIdx++) {
         if (flowValues[flowValuesIdx] < 0.0) {
             continue;
         }

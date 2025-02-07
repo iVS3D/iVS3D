@@ -11,7 +11,7 @@ std::vector<uint> KeyframeSelector::select(std::vector<uint> frameVector, std::v
 
     std::vector<uint> keyframes = { frameVector[0] };
     double flowSum = 0.0;
-    for (uint flowValuesIdx = 0; flowValuesIdx < flowValues.size() - 1; flowValuesIdx++) {
+    for (uint flowValuesIdx = 0; flowValuesIdx < flowValues.size(); flowValuesIdx++) {
         if (flowValues[flowValuesIdx] < 0.0) {
             continue;
         }
