@@ -7,6 +7,8 @@ ExportThread::ExportThread(Progressable* receiver, ModelInputPictures* mip, QPoi
     m_keyframes = mip->getAllKeyframes(true);
     m_resolution = resolution;
     m_path = path;
+    if(m_path.endsWith("/images"))
+        m_path = m_path.left(m_path.length() - QString("/images").length());
     m_name = name;
     m_stopped = stopped;
     m_roi = roi;
@@ -94,16 +96,14 @@ void ExportThread::run(){
     if(useResize)           processor.addCommand(std::make_unique<ResizeCommand>(m_resolution));
     if(useRoi)              processor.addCommand(std::make_unique<CropCommand>(m_roi));
     // exporting from cv::Mat or copying input image
-    if(useCopy)             processor.addCommand(std::make_unique<CopyFileCommand>(m_reader->getFileVector(), m_path));
-    else                    processor.addCommand(std::make_unique<WriteToDiskCommand>(m_path));
+    QString imagePath = m_path + QString("/images");
+    if(useCopy)             processor.addCommand(std::make_unique<CopyFileCommand>(m_reader->getFileVector(), imagePath));
+    else                    processor.addCommand(std::make_unique<WriteToDiskCommand>(imagePath));
     // adding an exif tag only if we have gps data available, we don't need to do this if we copied the image before
     if(!useCopy && useExif) processor.addCommand(std::make_unique<ExifTagCommand>(gpsReader));
     // export itransform plugin output
-    QString basepath = m_path;
-    if(m_path.endsWith("/images"))
-        basepath = m_path.left(m_path.length() - QString("/images").length());
     for(auto plugin : m_iTransformCopies)
-        processor.addCommand(std::make_unique<TransformCommand>(plugin, basepath));
+        processor.addCommand(std::make_unique<TransformCommand>(plugin, m_path));
 
     // run the processor to export images
     SequentialReader *seq_reader = m_reader->createSequentialReader(m_keyframes);
@@ -151,6 +151,7 @@ void ExportThread::run(){
         m_result = 0;
         m_receiver->slot_displayMessage(tr("All images exported successfully."));
     }
+    if (*m_stopped) m_result = 1;
     delete seq_reader;
 }
 
