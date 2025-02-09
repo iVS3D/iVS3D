@@ -22,7 +22,7 @@ class CopyFileCommand : public ImageCommand {
     bool initialized;
 
 public:
-    CopyFileCommand(std::vector<std::string> &files_, QString folderpath_);
+    CopyFileCommand(std::vector<std::string> files_, QString folderpath_);
     std::optional<QString> execute(ImageContext &ctx) override;
 };
 

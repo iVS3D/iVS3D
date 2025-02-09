@@ -38,6 +38,8 @@ set(CMAKE_CXX_STANDARD 17)
 if(NOT WIN32)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -std=c++17")
 endif()
+set(CMAKE_CXX_STANDARD_REQUIRED ON)   # Enforce C++17
+set(CMAKE_CXX_EXTENSIONS OFF)         # Use only standard C++ (disable compiler-specific extensions)
 
 # Add paths to linker search and installed rpath.
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)

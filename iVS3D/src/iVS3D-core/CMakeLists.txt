@@ -1,5 +1,13 @@
 set(TARGET_NAME iVS3D-core)
 
+set(CMAKE_CXX_STANDARD 17)            # Use C++17
+if(NOT WIN32)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -std=c++17")
+endif()
+set(CMAKE_CXX_STANDARD_REQUIRED ON)   # Enforce C++17
+set(CMAKE_CXX_EXTENSIONS OFF)         # Use only standard C++ (disable compiler-specific extensions)
+
+
 # if windows build, set icon 
 if(WIN32)
     set(app_icon_resource_windows "${CMAKE_CURRENT_SOURCE_DIR}/resources/ivs3dIcon.ico")
