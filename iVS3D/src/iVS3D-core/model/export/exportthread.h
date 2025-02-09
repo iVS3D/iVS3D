@@ -21,6 +21,13 @@
 #include "itransform.h"
 #include "progressable.h"
 #include "exportexif.h"
+#include "imageprocessor.h"
+#include "copyfilecommand.h"
+#include "cropcommand.h"
+#include "resizecommand.h"
+#include "transformcommand.h"
+#include "writetodiskcommand.h"
+#include "exiftagcommand.h"
 
 #define JPEG_COMPRESSION_PARAMS {cv::IMWRITE_JPEG_QUALITY, 100}
 
