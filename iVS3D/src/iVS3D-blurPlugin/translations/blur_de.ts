@@ -39,7 +39,7 @@
     <message>
         <location filename="../blur.cpp" line="196"/>
         <source>Select filter </source>
-        <translation>Filter auswählen</translation>
+        <translation>Filter auswählen </translation>
     </message>
     <message>
         <location filename="../blur.cpp" line="228"/>

@@ -4,6 +4,11 @@
 <context>
     <name>SemanticSegmentation</name>
     <message>
+        <location filename="../semanticsegmentation.cpp" line="81"/>
+        <source>Semantic Segmentation</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location filename="../semanticsegmentation.cpp" line="149"/>
         <location filename="../semanticsegmentation.cpp" line="498"/>
         <source>Loaded model (cuda)</source>

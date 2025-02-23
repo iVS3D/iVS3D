@@ -78,7 +78,7 @@ QWidget* SemanticSegmentation::getSettingsWidget(QWidget *parent)
 
 QString SemanticSegmentation::getName() const
 {
-    return "SemanticSegmentation";
+    return tr("Semantic Segmentation");
 }
 
 QStringList SemanticSegmentation::getOutputNames()

@@ -2,6 +2,14 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="en_US">
 <context>
+    <name>GeoMap</name>
+    <message>
+        <location filename="../geomap.cpp" line="61"/>
+        <source>GeoMap</source>
+        <translation>Geo Map</translation>
+    </message>
+</context>
+<context>
     <name>QObject</name>
     <message>
         <location filename="../geomap.cpp" line="253"/>

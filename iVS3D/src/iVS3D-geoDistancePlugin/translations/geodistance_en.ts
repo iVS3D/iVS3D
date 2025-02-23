@@ -6,7 +6,7 @@
     <message>
         <location filename="../geodistance.cpp" line="47"/>
         <source>GeoDistance</source>
-        <translation type="unfinished"></translation>
+        <translation>Geo Distance</translation>
     </message>
     <message>
         <location filename="../geodistance.cpp" line="207"/>
