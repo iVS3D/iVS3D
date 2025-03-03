@@ -5,6 +5,7 @@
 #include <QShortcut>
 #include <QKeySequence>
 #include <QGraphicsTextItem>
+#include <QGraphicsOpacityEffect>
 
 #include "opencv2/core.hpp"
 #include "opencv2/imgproc.hpp"
@@ -12,6 +13,8 @@
 #include "ui_videoplayer.h"
 #include "cvmat_qmetadata.h"
 
+#define OVERLAY_PADDING 13
+#define OVERLAY_MIN_WIDTH 50
 
 namespace Ui {
 class VideoPlayer;
@@ -129,6 +132,13 @@ public:
      */
     void setColorTheme(ColorTheme theme);
 
+    struct OverlayEntry {
+        QString text;
+        bool isHeader = false;
+        Qt::TextElideMode elidMode = Qt::ElideRight;
+    };
+
+    void updateOverlayText(const QList<OverlayEntry> &content);
 signals:
 
     /**
@@ -197,9 +207,14 @@ private:
     ColorTheme m_colorTheme;
     QShortcut *m_prevSC;
     QShortcut *m_nextSC;
+    QLabel *m_overlayLabel;
+    QGraphicsOpacityEffect *m_overlayOpacityEffect;
+    QList<OverlayEntry> m_overlayEntries;
 
     QImage qImageFromCvMat(cv::Mat* input, bool bgr = true);
     void alphaBlend(cv::Mat *foreground, cv::Mat *background, float alpha, cv::Mat &output);
+    void updateOverlay();
+    bool checkOverlap();
 };
 
 #endif // VIDEOPLAYER_H

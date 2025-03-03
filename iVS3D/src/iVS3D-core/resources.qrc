@@ -32,6 +32,7 @@
         <file alias="magnifierIconBW">resources/magnifying-glass-solid.svg</file>
         <file alias="dragndropIconB">resources/ic_dragndrop_black.svg</file>
         <file alias="dragndropIconW">resources/ic_dragndrop_white.svg</file>
+        <file alias="infoIconW">resources/ic_info.png</file>
     </qresource>
     <qresource prefix="/">
         <file>translations/core_de.qm</file>

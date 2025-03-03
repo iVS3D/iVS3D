@@ -190,7 +190,7 @@ private:
     void onFailedOpen();
     uint loadMetaDataFromPath(QString path);
     bool loadInputDataFromPath(QString path);
-
+    void setAltitude();
     // plugin runtime
     QElapsedTimer m_timer;
 

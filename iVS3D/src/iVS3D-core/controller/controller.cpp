@@ -439,26 +439,43 @@ QString Controller::getNameFromPath(QString path, QString dataFormat) {
 }
 
 void Controller::setInputWidgetInfo() {
-    QMap<QString, QString> info;
-    QString picCount = QString::number(m_dataManager->getModelInputPictures()->getPicCount());
-    info.insert(tr("Number of images  "), picCount);
+
     QString x = QString::number(m_dataManager->getModelInputPictures()->getInputResolution().x());
     QString y = QString::number(m_dataManager->getModelInputPictures()->getInputResolution().y());
     QString resolution = x + " x " + y;
-    info.insert(tr("Resolution  "), resolution);
-    info.insert(stringContainer::inputPathIdentifier, m_dataManager->getModelInputPictures()->getPath());
+
+    QList<VideoPlayer::OverlayEntry> entries = {
+        {m_dataManager->getModelInputPictures()->getPath(), false, Qt::ElideMiddle},  // Filepath
+        {tr("General"), true},          // section header
+        {resolution + tr(" pixels")},   // resolution
+        {QString::number(m_dataManager->getModelInputPictures()->getPicCount()) + tr(" images")},   // image count
+    };
     Reader* currentReader = m_dataManager->getModelInputPictures()->getReader();
     if(currentReader->getFPS() != -1) {
-        info.insert(tr("FPS "), QString::number(currentReader->getFPS()));
-        info.insert(tr("Video duration "), QString::number(currentReader->getVideoDuration()) + "s");
+        entries.append({
+            {tr("Video"), true},
+            {QString::number(currentReader->getVideoDuration()) + tr(" seconds")},
+            {QString::number(currentReader->getFPS()) + tr(" fps")}
+        });
     }
     QStringList loadedMetaData = MetaDataManager::instance().availableMetaData();
     if (loadedMetaData.size() != 0) {
+        entries.push_back({tr("Metadata"), true});
         for (int i = 0; i < loadedMetaData.size(); i++) {
-            info.insert(tr("Loaded Meta Data") + " #" + QString::number(i + 1), loadedMetaData.at(i));
+            entries.push_back({" #" + QString::number(i + 1) + " " + loadedMetaData.at(i)});
         }
     }
-    m_mainWindow->getInputWidget()->setInfo(info);
+    m_mainWindow->getVideoPlayer()->updateOverlayText(entries);
+
+    // set standard (input) resolution
+    QStringList resList = QString(RESOLUTION_LIST).split("|");
+    resList.push_front(resolution + " (input res)");
+    m_mainWindow->getInputWidget()->setResolutionList(resList, 0);
+
+    // set altitude (if available)
+    setAltitude();
+
+    m_mainWindow->getInputWidget()->enableSettings(true);
 }
 
 void Controller::displayPluginSettings()
@@ -480,8 +497,9 @@ void Controller::onFailedOpen()
     m_mainWindow->enableSaveProject(false);
     m_mainWindow->enableUndo(false);
     m_mainWindow->enableRedo(false);
-    QMap<QString, QString> info;
-    m_mainWindow->getInputWidget()->setInfo(info);
+    m_mainWindow->getInputWidget()->enableSettings(false);
+    m_mainWindow->getInputWidget()->setAltitudeVisible(false);
+    m_mainWindow->getVideoPlayer()->updateOverlayText({});
     m_mainWindow->enableOpenMetaData(false);
     m_mainWindow->enableTools(false);
     // remove old controllers if existing
@@ -556,6 +574,27 @@ bool Controller::loadInputDataFromPath(QString path)
     m_openExec->open();
     m_inputProgressDialog->show();
     return true;
+}
+
+void Controller::setAltitude()
+{
+    QList<MetaDataReader*> readers = MetaDataManager::instance().loadAllMetaData();
+    for (MetaDataReader* reader : readers) {
+        if (reader->getName().startsWith("GPS")) {
+            GPSReader* gpsReader = dynamic_cast<GPSReader*>(reader);
+            if (!gpsReader->hasAltitudeData()) {
+                continue;
+            }
+            m_mainWindow->getInputWidget()->setAltitudeVisible(true);
+            QVariant gpsData = reader->getImageMetaData(0);
+            QHash<QString, QVariant> gpsHash = gpsData.toHash();
+            double altitude_abs = gpsHash.find("GPSAltitude").value().toDouble();
+            double altitude = (gpsHash.find("GPSAltitudeRef").value().toString() == "0") ? altitude_abs : altitude_abs * -1;
+            m_mainWindow->getInputWidget()->setAltitude(altitude);
+            return;
+        }
+    }
+    m_mainWindow->getInputWidget()->setAltitudeVisible(false);
 }
 
 void Controller::onSuccessfulOpen()

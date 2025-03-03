@@ -3,6 +3,7 @@
 #include <iostream>
 #include <QTimer>
 
+
 VideoPlayer::VideoPlayer(QWidget *parent, ColorTheme theme) :
     QWidget(parent),
     ui(new Ui::VideoPlayer)
@@ -82,6 +83,38 @@ VideoPlayer::VideoPlayer(QWidget *parent, ColorTheme theme) :
         ui->graphicsView->fitInView(ui->graphicsView->scene()->sceneRect(), Qt::KeepAspectRatio);
     });
 
+    // label for the overlay text displayed in the left blackbar
+    m_overlayLabel = new QLabel(this);
+    m_overlayLabel->setStyleSheet("color: white; background-color: rgba(100, 100, 100, 0);");
+    m_overlayLabel->setAlignment(Qt::AlignLeft | Qt::AlignTop);
+    //m_overlayLabel->setWordWrap(true);
+    m_overlayLabel->setText("Loading...");
+    m_overlayLabel->raise();
+
+    // set opacity effect on overlay label
+    m_overlayOpacityEffect = new QGraphicsOpacityEffect(this);
+    m_overlayOpacityEffect->setOpacity(1.0);
+    m_overlayLabel->setGraphicsEffect(m_overlayOpacityEffect);
+
+    // Align label at the top-left corner of the QGraphicsView
+    int margin_l, margin_t;
+    this->layout()->getContentsMargins(&margin_l, &margin_t, nullptr,nullptr);
+    m_overlayLabel->move(ui->graphicsView->x() + OVERLAY_PADDING + margin_l, ui->graphicsView->y() + OVERLAY_PADDING + margin_t);
+
+    QList<OverlayEntry> info = {
+        {"C:\\Some\\Long\\Path\\To\\Images\\Filename.png", false, Qt::ElideMiddle},  // Filepath
+        {"General", true},
+        {"1920 x 1080 pixels"},
+        {"204 images"},
+        {"Video", true},
+        {"12.4 seconds"},
+        {"30 fps"},
+        {"Metadata", true},
+        {"ExifGPS"},      // First metadata entry
+        {"CameraModel: Sony A7"}  // Additional metadata
+    };
+
+    updateOverlayText(info);
 }
 
 
@@ -119,6 +152,8 @@ void VideoPlayer::showImages(std::vector<cv::Mat*> images)
     ui->graphicsView->scene()->setSceneRect(pixmap.rect());
     ui->graphicsView->fitInView(pixmap.rect(), Qt::KeepAspectRatio);
     ui->graphicsView->show();
+
+    updateOverlay();
 }
 
 void VideoPlayer::showImage(cv::Mat *image)
@@ -205,6 +240,7 @@ void VideoPlayer::resizeEvent(QResizeEvent *)
 {
     ui->graphicsView->fitInView(ui->graphicsView->scene()->sceneRect(), Qt::KeepAspectRatio);
     ui->graphicsView->show();
+    updateOverlay();
 }
 
 /*
@@ -289,4 +325,86 @@ QImage VideoPlayer::qImageFromCvMat(cv::Mat* input, bool bgr)
 void VideoPlayer::alphaBlend(cv::Mat *foreground, cv::Mat *background, float alpha, cv::Mat &output)
 {
     output = alpha*(*foreground)+(1-alpha)*(*background);
+}
+
+void VideoPlayer::updateOverlay()
+{
+    // Convert image rect to viewport coordinates
+    int imageWidth = ui->graphicsView->mapFromScene(ui->graphicsView->sceneRect()).boundingRect().width();
+    int imageHeight = ui->graphicsView->mapFromScene(ui->graphicsView->sceneRect()).boundingRect().height();
+
+    // get the margins around the graphics view
+    int margin_l, margin_t;
+    this->layout()->getContentsMargins(&margin_l, &margin_t, nullptr,nullptr);
+
+    // Calculate available space on the left and top
+    int availableWidth = (ui->graphicsView->width() - imageWidth) / 2;
+    availableWidth -= OVERLAY_PADDING + margin_l;
+    int availableHeight = (ui->graphicsView->height() - imageHeight) / 2;
+    availableHeight -= OVERLAY_PADDING + margin_t;
+
+
+    // Create formatted text
+    QString text;
+    QString tooltip;
+    QFontMetrics metrics(m_overlayLabel->font());
+
+    for (const auto &entry : m_overlayEntries) {
+        QString truncated = metrics.elidedText(entry.text, entry.elidMode, availableWidth);
+        if (entry.isHeader) {
+            // Bold header (e.g., "Metadata")
+            text += QString("<br><b>%1</b><br>").arg(truncated);
+            tooltip += QString("<br><b>%1</b><br>").arg(entry.text);
+        } else {
+            // Normal text only (e.g., file path)
+            text += truncated + "<br>";
+            tooltip += entry.text + "<br>";
+        }
+    }
+
+
+    if (availableWidth >= OVERLAY_MIN_WIDTH) {  // blackbars on the left is wide enough, display there
+        m_overlayLabel->setText(text);
+        m_overlayOpacityEffect->setOpacity(1.0);
+    } else if(availableHeight >= metrics.height()){ // blackbar on the top is high enough, display there
+        QString horizontal_text;
+        bool insert_separator = false;
+        for (const auto &entry : m_overlayEntries) {
+            if (entry.isHeader) {
+                // Bold header (e.g., "Metadata")
+                horizontal_text += QString(" <b>| %1</b>: ").arg(entry.text);
+                insert_separator = false;
+            } else {
+                // Normal text only (e.g., file path)
+                if(insert_separator) horizontal_text += ",";
+                horizontal_text += " " + entry.text;
+                insert_separator = true;
+            }
+        }
+        m_overlayLabel->setText(horizontal_text);
+        m_overlayOpacityEffect->setOpacity(1.0);
+    } else if(!m_overlayEntries.empty()) { // neither bar is big enough, fall back to info-icon overlay
+        m_overlayLabel->setText("<img src=':/icons/infoIconW' width='24' height='24'>");
+        m_overlayOpacityEffect->setOpacity(0.7);
+    }
+    m_overlayLabel->setToolTip(tooltip);
+    m_overlayLabel->adjustSize();
+    m_overlayLabel->show();
+}
+
+void VideoPlayer::updateOverlayText(const QList<OverlayEntry> &content)
+{
+    m_overlayEntries = content;
+    updateOverlay();
+}
+
+bool VideoPlayer::checkOverlap() {
+    QRectF imageRect = ui->graphicsView->sceneRect();   // Image bounding box in scene coordinates
+    QRect labelRect = m_overlayLabel->geometry();  // Overlay label geometry in widget coordinates
+
+    // Convert image rect to viewport coordinates
+    QRectF imageInView = ui->graphicsView->mapFromScene(imageRect).boundingRect();
+
+    // Check if label overlaps the image area
+    return labelRect.intersects(imageInView.toRect());
 }

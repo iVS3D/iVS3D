@@ -134,13 +134,14 @@ MainWindow::MainWindow(QWidget *parent, ColorTheme theme, int cuda, bool createL
     cv::Mat myMat;
 
     // --- initialize GUI elements with placeholders
-    m_inputWidget->setInfo(QMap<QString,QString>());
+    m_videoplayer->updateOverlayText({});
 
     // --- disable all GUI elements
     // --- until some image data is loaded
     m_timeline->setEnabled(false);
     m_videoplayer->setEnabled(false);
     m_inputWidget->setEnabled(true);
+    m_inputWidget->enableSettings(false);
     m_samplingWidget->setEnabled(false);
     m_outputWidget->setEnabled(false);
     //m_opStack->setEnabled(false);
