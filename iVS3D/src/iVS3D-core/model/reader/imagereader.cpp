@@ -1,6 +1,6 @@
 #include "imagereader.h"
 
-ImageReader::ImageReader(QString path)
+ImageReader::ImageReader(QString path, std::shared_ptr<ReaderParams> readerParams) : m_readerParams(readerParams)
 {
     QFileInfo fileInfo(path);
     if (!fileInfo.isDir()) {
@@ -34,14 +34,21 @@ ImageReader::ImageReader(QString path)
     }
 }
 
-cv::Mat ImageReader::getPic(unsigned int index)
+cv::Mat ImageReader::getPic(unsigned int index, PictureProcessingFlags flags)
 {
     if(index > getPicCount()){
         cv::Mat empty;
         return empty;
     }
 
-    return cv::imread(m_filePaths.at(index));
+    cv::Mat img = cv::imread(m_filePaths.at(index));
+    if(flags & PictureProcessingFlags::APPLY_RESIZING){
+        m_readerParams->getWorkingResolution().resize(img);
+    }
+    if(flags & PictureProcessingFlags::APPLY_CROPPING && m_readerParams->getUseRoi()) {
+        m_readerParams->getRoi().crop(img);
+    }
+    return img;
 }
 
 unsigned int ImageReader::getPicCount()
@@ -81,6 +88,7 @@ ImageReader *ImageReader::copy()
     ir->m_numImages = m_numImages;
     ir->m_filePaths = m_filePaths;
     ir->m_isValid = m_isValid;
+    ir->m_readerParams = m_readerParams;
     ir->addMetaData(m_md);
     return ir;
 }
@@ -100,9 +108,9 @@ bool ImageReader::isValid()
     return m_isValid;
 }
 
-SequentialReader *ImageReader::createSequentialReader(std::vector<uint> indices)
+SequentialReader *ImageReader::createSequentialReader(std::vector<uint> indices, PictureProcessingFlags flags)
 {
-    return new SequentialReaderImpl(this, indices, false);
+    return new SequentialReaderImpl(this, indices, false, flags);
 }
 
 ImageReader::ImageReader()

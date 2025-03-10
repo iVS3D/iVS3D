@@ -9,12 +9,12 @@ ExportExecutor::ExportExecutor(QObject* parent, DataManager* dataManager)
     m_boundaries = m_dataManager->getModelInputPictures()->getBoundaries();
 }
 
-void ExportExecutor::startExport(QPoint resolution, QString path, QString name, QRect roi, std::vector<ITransform*> iTransformCopies, LogFile *logFile){
+void ExportExecutor::startExport(QString path, QString name, std::vector<ITransform*> iTransformCopies, LogFile *logFile){
 
     ModelInputPictures* mip = m_dataManager->getModelInputPictures();
     // cause mip loses its boundary attribute in a magical and unkown way
     mip->setBoundaries(m_boundaries);
-    m_exportThread = new ExportThread(this, mip, resolution, path, name, &m_stopped, roi, iTransformCopies, logFile);
+    m_exportThread = new ExportThread(this, mip, path, name, &m_stopped, iTransformCopies, logFile);
     if (qApp->property(stringContainer::UIIdentifier).toBool()) {
         connect(m_exportThread, &ExportThread::finished, this, &ExportExecutor::slot_finished);
     }

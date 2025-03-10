@@ -83,11 +83,6 @@ public:
      */
     void setOutputSettings(QMap<QString, QVariant> settings);
 
-    /**
-     * @brief setAltitudeInWidget
-     */
-    void setAltitudeInWidget();
-
 
 signals:
     /**
@@ -121,25 +116,10 @@ public slots:
     void slot_export();
 
     /**
-     * @brief slot_cropExport creates a cropExport-Dialog
-     */
-    void slot_cropExport();
-
-    /**
-     * @brief slot_closeCropExport cleans up remaining connection of cropExport-Dialog and saves the cropped value
-     */
-    void slot_closeCropExport(int result);
-
-    /**
      * @brief slot_reconstruct opens reconstruct dialog
      * Gathers various information needed for the dialog before it opens it.
      */
     void slot_reconstruct();
-    /**
-     * @brief slot_resolutionChange gets triggered if user alters the (output) resolution and changes it in the model accordingly
-     * @param res new resolution input by the user
-     */
-    void slot_resolutionChange(const QString &res);
     /**
      * @brief slot_outputPathChanged gets triggered if user changes the outputpath manually (without the browse function)
      * @param path new path input by the user
@@ -173,25 +153,7 @@ public slots:
      */
     void slot_nextImageOnPlayer(uint idx);
 
-    /**
-     * @brief slot_altitudeChanged is triggered when the altitude has been changed by the user
-     * @param altitude set altitude
-     */
-    void slot_altitudeChanged(double altitude);
-
 private:
-    /**
-     * @brief parseResolution parses resolution QString into QPoint (width x heigt)
-     * @param resolutionString resolution to parse
-     * @return returns (width,height) of given String if QString was valid, otherwise returns (-1,-1)
-     */
-    QPoint parseResolution(QString resolutionString);
-    /**
-     * @brief validateResolution compares if resolution is smaller or equal than the input resolution
-     * @param resolution resolution to compare the input resolution to
-     * @return returns true if given resolution is smaller or equal to input resolution
-     */
-    bool validateResolution(QPoint resolution);
     /**
      * @brief startReconstruct handles starting reconstruct software, preparing its start-arguments, creating batch-files and project-file
      * for Colmap:
@@ -213,10 +175,7 @@ private:
     ExportExecutor *m_exportExec;
     OutputWidget *m_outputWidget;
     ReconstructDialog *m_reconstructDialog;
-    QPoint m_resolution;
     QString m_path;
-    QRect m_roi = QRect(0,0,0,0);
-    CropExport* m_cropDialog;
     //Key is name of the project, value is path to export
     QMap<QString, QString> m_currentExports;
     // export runtime

@@ -60,7 +60,7 @@ public:
      * @param roi The region of interest
      * @param iTransformCopies The ITransform instances to run fro creating additional images
      */
-    explicit ExportThread(Progressable* receiver, ModelInputPictures* mip, QPoint resolution, const QString &path, const QString &name, volatile bool* stopped, QRect roi, const std::vector<ITransform*> &iTransformCopies, LogFile *logFile);
+    explicit ExportThread(Progressable* receiver, ModelInputPictures* mip, const QString &path, const QString &name, volatile bool* stopped, const std::vector<ITransform*> &iTransformCopies, LogFile *logFile);
     ~ExportThread();
 
     /**
@@ -73,22 +73,18 @@ public:
 private:
     Progressable* m_receiver;
     Reader* m_reader;
+    std::shared_ptr<ReaderParams> m_readerParams;
     std::vector<uint> m_keyframes;
     volatile bool* m_stopped;
-    QPoint m_resolution;
     QString m_path;
     QString m_name;
     int m_result = 0;
-    QRect m_roi;
     std::vector<ITransform*> m_iTransformCopies;
     LogFile *m_logFile;
     int m_progress = 0;
     ExportExif* m_exportExif;
 
     void reportProgress();
-    cv::Mat resizeCrop(cv::Mat image, cv::Size resize, bool useResize, cv::Rect crop, bool useCrop);
-    bool exportImages(cv::Mat image, int iTransformCopiesSize, const QString &fileName, bool isDirImages, int currentKeyframe, std::vector<std::string> imageFiles);
-    bool exportITransformImage(QString fileName, int idxTransform, cv::Mat image, bool isDirImages, std::vector<std::string> imageFiles, int currentKeyframe);
 
     volatile int m_exportProgress = 0;
     QMutex m_mutex;

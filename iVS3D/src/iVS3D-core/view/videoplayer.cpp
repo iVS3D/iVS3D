@@ -115,6 +115,9 @@ VideoPlayer::VideoPlayer(QWidget *parent, ColorTheme theme) :
     };
 
     updateOverlayText(info);
+
+    m_roi = QRect(0,0,0,0);
+    m_roiRect = nullptr;
 }
 
 
@@ -136,6 +139,7 @@ void VideoPlayer::showImages(std::vector<cv::Mat*> images)
         return;
 
     ui->graphicsView->scene()->clear();
+    m_roiRect = nullptr;
 
     QPixmap pixmap;
     if(images.size()>1){
@@ -154,6 +158,7 @@ void VideoPlayer::showImages(std::vector<cv::Mat*> images)
     ui->graphicsView->show();
 
     updateOverlay();
+    drawRoi();
 }
 
 void VideoPlayer::showImage(cv::Mat *image)
@@ -392,10 +397,45 @@ void VideoPlayer::updateOverlay()
     m_overlayLabel->show();
 }
 
+void VideoPlayer::drawRoi()
+{
+    if(m_roi.size() == QSize(0,0)) {
+        // nothing to draw!
+        if(m_roiRect) {
+            ui->graphicsView->scene()->removeItem(m_roiRect);
+            delete m_roiRect;
+            m_roiRect = nullptr;
+        }
+        return;
+    }
+    if(!m_roiRect) {
+        m_roiRect = new QGraphicsRectItem(m_roi);
+
+        QPen pen;
+        pen.setWidth(5);
+        pen.setBrush(Qt::green);
+        QColor color = QColor(255,255,255,0);
+        QBrush brush = QBrush(color);
+        m_roiRect->setBrush(brush);
+        m_roiRect->setPen(pen);
+
+        ui->graphicsView->scene()->addItem(m_roiRect);
+    } else {
+        m_roiRect->setRect(m_roi);
+    }
+    ui->graphicsView->show();
+}
+
 void VideoPlayer::updateOverlayText(const QList<OverlayEntry> &content)
 {
     m_overlayEntries = content;
     updateOverlay();
+}
+
+void VideoPlayer::updateRoi(const QRect &roi)
+{
+    m_roi = roi;
+    drawRoi();
 }
 
 bool VideoPlayer::checkOverlap() {

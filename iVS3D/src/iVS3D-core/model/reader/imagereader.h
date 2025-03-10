@@ -4,12 +4,15 @@
 #include "readerfactory.h"
 #include "reader.h"
 #include "sequentialreaderimpl.h"
+#include "readerparams.h"
+
 #include <QObject>
 #include <opencv2/core.hpp>
 
 
 #include <opencv2/core/utils/filesystem.hpp>
 #include <opencv2/imgcodecs.hpp>
+#include <opencv2/imgproc.hpp>
 
 #include <QDir>
 #include <QFileInfo>
@@ -34,7 +37,7 @@ public:
      * @brief ImageReader constructor that will set up member variables to provide on demand reading images and read the input metadata
      * @param path directory/path of input images
      */
-    explicit ImageReader(QString path);
+    explicit ImageReader(QString path, std::shared_ptr<ReaderParams> readerParams);
 
     ~ImageReader() override {}
     /**
@@ -44,7 +47,7 @@ public:
      * @param useMultipleAccess optinal paramter, if multipleAccess should be used (set to false by default)
      * @return cv::Mat of the selected frame
      */
-    cv::Mat getPic(unsigned int index) override;
+    cv::Mat getPic(unsigned int index, PictureProcessingFlags flags = APPLY_ALL) override;
     /**
      * @brief getPicCount returns count of images in input
      * @return returns image count
@@ -96,7 +99,7 @@ public:
      */
     bool isValid() override;
 
-    SequentialReader *createSequentialReader(std::vector<uint> indices) override;
+    SequentialReader *createSequentialReader(std::vector<uint> indices, PictureProcessingFlags flags = APPLY_ALL) override;
 
 private:
     ImageReader();
@@ -106,6 +109,7 @@ private:
     bool m_isValid = false;
 
     MetaData* m_md = nullptr;
+    std::shared_ptr<ReaderParams> m_readerParams;
 };
 
 REGISTER_READER("ImageReader", ImageReader)

@@ -2,8 +2,9 @@
 #define READERFACTORY_H
 
 #include "reader.h"
+#include "readerparams.h"
 
-typedef std::function<Reader *(QString path)> AbstractReader;
+typedef std::function<Reader *(QString path, std::shared_ptr<ReaderParams> params)> AbstractReader;
 
 class ReaderFactory
 {
@@ -15,7 +16,7 @@ public:
         return INSTANCE;
     }
 
-    Reader* createReader(QString path);
+    Reader* createReader(QString path, std::shared_ptr<ReaderParams> params);
 
      bool reg(std::string name, AbstractReader builder);
 
@@ -26,8 +27,8 @@ private:
 };
 
 template<typename Implementation>
-Reader *builder(QString path){
-    return new Implementation(path);
+Reader *builder(QString path, std::shared_ptr<ReaderParams> params){
+    return new Implementation(path, params);
 }
 
 #define REGISTER_READER(name, impl) const bool res = ReaderFactory::instance().reg(name, builder<impl>);

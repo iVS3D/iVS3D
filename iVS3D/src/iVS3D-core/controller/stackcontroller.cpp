@@ -138,7 +138,6 @@ void StackController::slot_exportFinished(QMap<QString, QVariant> settings)
     }
     name.chop(2);
 
-
     m_opStack->addEntry(name);
     m_algoSettings.insert(name, {-1, settings});
 }

@@ -1,7 +1,7 @@
 #include "videoreader.h"
 #include <iostream>
 
-VideoReader::VideoReader(const QString &path) : m_path(path.toUtf8().constData())
+VideoReader::VideoReader(const QString &path, std::shared_ptr<ReaderParams> readerParams) : m_path(path.toUtf8().constData()), m_readerParams(readerParams)
 {
     QFileInfo info(path);
     if (!info.isFile()) {
@@ -12,12 +12,7 @@ VideoReader::VideoReader(const QString &path) : m_path(path.toUtf8().constData()
     m_numImages = prev.get(cv::CAP_PROP_FRAME_COUNT)-1;
     m_fps = prev.get(cv::CAP_PROP_FPS);
     m_cap = prev;
-    if (m_numImages > 0) {
-        m_isValid = true;
-    }
-    else {
-        m_isValid = false;
-    }
+    m_isValid = (m_numImages > 0);
 }
 
 VideoReader::~VideoReader()
@@ -41,7 +36,7 @@ bool VideoReader::isValid()
 }
 
 
-cv::Mat VideoReader::getPic(unsigned int index)
+cv::Mat VideoReader::getPic(unsigned int index, PictureProcessingFlags flags)
 {
     QMutexLocker locker(&m_mutex);
 
@@ -76,6 +71,14 @@ cv::Mat VideoReader::getPic(unsigned int index)
         m_cap.read(ret);
         m_currentIndex++;
     }
+
+
+    if(flags & PictureProcessingFlags::APPLY_RESIZING){
+        m_readerParams->getWorkingResolution().resize(ret);
+    }
+    if(flags & PictureProcessingFlags::APPLY_CROPPING && m_readerParams->getUseRoi()) {
+        m_readerParams->getRoi().crop(ret);
+    }
     return ret;
 }
 
@@ -106,8 +109,8 @@ bool VideoReader::isDir()
 
 VideoReader *VideoReader::copy()
 {
-    // copy cv::VideoCapture crashes, so create new instead of copy
-    VideoReader* reader =  new VideoReader(QString::fromStdString(m_path));
+    // copy cv::VideoCapture crashes, so create new instead of copy    
+    VideoReader* reader =  new VideoReader(QString::fromStdString(m_path), m_readerParams);
     reader->addMetaData(m_md);
     return reader;
 }
@@ -117,7 +120,7 @@ std::vector<std::string> VideoReader::getFileVector()
     return std::vector<std::string>();
 }
 
-SequentialReader *VideoReader::createSequentialReader(std::vector<uint> indices)
+SequentialReader *VideoReader::createSequentialReader(std::vector<uint> indices, PictureProcessingFlags flags)
 {
-    return new SequentialReaderImpl(this, indices);
+    return new SequentialReaderImpl(this, indices, true, flags);
 }

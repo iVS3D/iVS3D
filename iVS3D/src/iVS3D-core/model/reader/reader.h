@@ -22,6 +22,14 @@ class Reader
 {
 public:
     virtual ~Reader() {};
+
+    enum PictureProcessingFlags{
+        APPLY_CROPPING = 1<<0,
+        APPLY_RESIZING = 1<<1,
+        APPLY_ALL = APPLY_CROPPING | APPLY_RESIZING,
+        APPLY_NONE = 0
+    };
+
     /**
      * @brief Returns the frame to a given index
      *
@@ -29,7 +37,7 @@ public:
      * @param useMultipleAccess optinal paramter, if multipleAccess should be used (set to false by default)
      * @return cv::Mat of the selected frame
      */
-    virtual cv::Mat getPic(unsigned int index) = 0;
+    virtual cv::Mat getPic(unsigned int index, PictureProcessingFlags flags = APPLY_ALL) = 0;
     /**
      * @brief Returns the number of frame
      *
@@ -73,7 +81,7 @@ public:
      */
     virtual std::vector<std::string> getFileVector() = 0;
 
-    virtual SequentialReader *createSequentialReader(std::vector<uint> indices) = 0;
+    virtual SequentialReader *createSequentialReader(std::vector<uint> indices, PictureProcessingFlags flags = APPLY_ALL) = 0;
 
     /**
      * @brief enableMultithreading This method has to be called once in the plugins to use the reader while multithreading

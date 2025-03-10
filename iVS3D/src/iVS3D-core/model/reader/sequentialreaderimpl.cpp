@@ -1,14 +1,14 @@
 #include "sequentialreaderimpl.h"
 
-SequentialReaderImpl::SequentialReaderImpl(Reader *reader, std::vector<uint> indices, bool lockConcurrentAccess)
-    : m_reader(reader), m_indices(indices), m_idx(0), m_lockConcurrentAccess(lockConcurrentAccess)
+SequentialReaderImpl::SequentialReaderImpl(Reader *reader, std::vector<uint> indices, bool lockConcurrentAccess, Reader::PictureProcessingFlags flags)
+    : m_reader(reader), m_indices(indices), m_idx(0), m_lockConcurrentAccess(lockConcurrentAccess), m_flags(flags)
 {
 
 }
 
 
 SequentialReaderImpl::SequentialReaderImpl(SequentialReaderImpl &other)
-    : m_reader(other.m_reader), m_indices(other.m_indices), m_idx(other.m_idx), m_lockConcurrentAccess(other.m_lockConcurrentAccess)
+    : m_reader(other.m_reader), m_indices(other.m_indices), m_idx(other.m_idx), m_lockConcurrentAccess(other.m_lockConcurrentAccess), m_flags(other.m_flags)
 {
 
 }
@@ -28,13 +28,13 @@ bool SequentialReaderImpl::getNext(cv::Mat &image, uint &idx, int &progress)
 
         if(m_lockConcurrentAccess){
             // the user wants to protect the reader as well
-            image = m_reader->getPic(idx);
+            image = m_reader->getPic(idx, m_flags);
             return true;
         }
     }
 
     // this call to the reader is not protected by the mutex on purpose
-    image = m_reader->getPic(idx);
+    image = m_reader->getPic(idx, m_flags);
     return true;
 }
 

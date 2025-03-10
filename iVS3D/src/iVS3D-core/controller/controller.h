@@ -157,6 +157,10 @@ private slots:
     void slot_historyChanged();
     void slot_selectLanguage(QLocale language);
     void slot_restart();
+    void slot_workingResolutionChanged(QString resolution);
+    void slot_editCrop();
+    void slot_useCropChanged(int checkstate);
+    void slot_altitudeChanged(double altitude);
 
 private:
     VideoPlayerController *m_videoPlayerController;

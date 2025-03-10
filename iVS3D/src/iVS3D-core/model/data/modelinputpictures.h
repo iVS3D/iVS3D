@@ -8,6 +8,7 @@
 #include "concurrentreader.h"
 #include "metadatamanager.h"
 #include "algorithmmanager.h"
+#include "readerparams.h"
 
 #include <QObject>
 #include <QPoint>
@@ -114,7 +115,7 @@ public:
      * @param index Index of the frame
      * @return Mat pointer to the frame
      */
-    const cv::Mat* getPic(unsigned int index);
+    const cv::Mat* getPic(unsigned int index, Reader::PictureProcessingFlags flags = Reader::APPLY_NONE);
     /**
      * @brief Returns the number of keyframes
      *
@@ -137,12 +138,12 @@ public:
      * @return Keyframe vector
      */
     std::vector<unsigned int> getAllKeyframes(bool inBound);
+
     /**
-     * @brief Returns the input resolution
-     *
-     * @return Input resolution
+     * @brief getReaderParams returns the parameters (working resolution, crop, etc.) used by the readers.
+     * @return
      */
-    QPoint getInputResolution();
+    std::shared_ptr<ReaderParams> getReaderParams();
     /**
      * @brief Returns the stepsize-next keyframe to a given index
      *
@@ -216,6 +217,8 @@ public:
     Memento *save();
     void restore(Memento *m);
 
+
+
 signals:
     /**
      * @brief Signal, which is emitted, when the keyframe vector changes
@@ -228,16 +231,12 @@ private:
     Reader* m_reader = nullptr;
     std::vector<unsigned int> m_keyframes;
     QString m_inputPath;
-    QPoint m_inputResolution;
     cv::Mat m_currentMat;
     QPoint m_boundaries;
     MetaDataManager* m_metaDataManager = nullptr;
+    std::shared_ptr<ReaderParams> m_readerParams;
 
-    void setResolution();
     std::vector<unsigned int> splitString(QString string);
-
-
-
 };
 
 #endif // MODELINPUTPICTURES_H

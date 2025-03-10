@@ -139,6 +139,8 @@ public:
     };
 
     void updateOverlayText(const QList<OverlayEntry> &content);
+
+    void updateRoi(const QRect& roi = QRect());
 signals:
 
     /**
@@ -209,11 +211,14 @@ private:
     QShortcut *m_nextSC;
     QLabel *m_overlayLabel;
     QGraphicsOpacityEffect *m_overlayOpacityEffect;
+    QRect m_roi;
+    QGraphicsRectItem *m_roiRect;
     QList<OverlayEntry> m_overlayEntries;
 
     QImage qImageFromCvMat(cv::Mat* input, bool bgr = true);
     void alphaBlend(cv::Mat *foreground, cv::Mat *background, float alpha, cv::Mat &output);
     void updateOverlay();
+    void drawRoi();
     bool checkOverlap();
 };
 

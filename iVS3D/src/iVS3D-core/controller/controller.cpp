@@ -1,4 +1,5 @@
 #include "controller.h"
+#include "roiselect.h"
 
 
 Controller::Controller(QString inputPath, QString settingsPath, QString outputPath, QString logPath)
@@ -89,6 +90,13 @@ Controller::Controller(QString inputPath, QString settingsPath, QString outputPa
     connect(m_mainWindow, &MainWindow::sig_redo, this, &Controller::slot_redo);
     connect(m_mainWindow, &MainWindow::sig_selectLanguage, this, &Controller::slot_selectLanguage);
     connect(m_mainWindow, &MainWindow::sig_restart, this, &Controller::slot_restart);
+
+
+    InfoWidget* infoWidget = m_mainWindow->getInputWidget();
+    connect(infoWidget, &InfoWidget::sig_resChanged, this, &Controller::slot_workingResolutionChanged);
+    connect(infoWidget, &InfoWidget::sig_cropEdit, this, &Controller::slot_editCrop);
+    connect(infoWidget, &InfoWidget::sig_useCropChanged, this, &Controller::slot_useCropChanged);
+    connect(infoWidget, &InfoWidget::sig_altitudeChanged, this, &Controller::slot_altitudeChanged);
 
 #if defined(Q_OS_LINUX)
     connect(m_mainWindow, &MainWindow::sig_quit, m_colmapWrapper->getOrCreateUiControlsFactory(), &lib3d::ots::ui::ColmapWrapperControlsFactory::onQuit);
@@ -401,8 +409,69 @@ void Controller::slot_restart()
     QProcess::startDetached(qApp->arguments()[0], qApp->arguments());
 }
 
+void Controller::slot_workingResolutionChanged(QString resolution)
+{
+    if(m_dataManager->getModelInputPictures()) {
+        std::shared_ptr<ReaderParams> params = m_dataManager->getModelInputPictures()->getReaderParams();
+        Resolution res;
+        if (res.fromString(resolution)){
+            bool valid = params->setWorkingResolution(res);
+            m_mainWindow->getInputWidget()->setResolutionValid(valid);
+            m_videoPlayerController->slot_mipChanged();
+        }
+    }
+}
+
+void Controller::slot_editCrop()
+{
+    if(m_dataManager->getModelInputPictures()) {
+        std::shared_ptr<ReaderParams> params = m_dataManager->getModelInputPictures()->getReaderParams();
+        uint current_idx = m_videoPlayerController->getImageIndexOnScreen();
+        const cv::Mat* img = m_dataManager->getModelInputPictures()->getPic(current_idx);
+        if (img->empty()) {
+            QMessageBox *em = new QMessageBox();
+            em->setText(tr("The selected frame is broken and can´t be cropped. Please select another frame to select a new region of intrest."));
+            em->show();
+            return;
+        }
+
+        QRect roi = params->getRoi().cropAsQRect(params->getOriginalResolution());
+        CropExport dialog = CropExport(m_mainWindow, img, roi);
+
+        if (dialog.exec() == QDialog::Accepted) {
+            roi = dialog.getROI();
+            //Don't update roi, if no roi has been drawn
+            if (roi.size() != QSize(1,1)) {
+                ROI nRoi(roi, params->getOriginalResolution());
+                bool valid = params->setRoi(nRoi);
+                params->setUseRoi(valid);
+                m_mainWindow->getInputWidget()->setCropStatus(valid);
+                m_mainWindow->getVideoPlayer()->updateRoi(valid? roi : QRect());
+                m_videoPlayerController->slot_mipChanged();
+            }
+        }
+    }
+}
+
+void Controller::slot_useCropChanged(int checkstate)
+{
+    if(m_dataManager->getModelInputPictures()) {
+        std::shared_ptr<ReaderParams> params = m_dataManager->getModelInputPictures()->getReaderParams();
+        params->setUseRoi(checkstate != Qt::Unchecked);
+        QRect roi = params->getRoi().cropAsQRect(params->getOriginalResolution());
+        m_mainWindow->getVideoPlayer()->updateRoi(params->getUseRoi()? roi : QRect());
+        m_videoPlayerController->slot_mipChanged();
+    }
+}
+
+void Controller::slot_altitudeChanged(double altitude)
+{
+    // TODO: ste this somewhere in the metadata reader!
+}
+
 void Controller::createOpenMessage(int numPics)
 {
+    m_mainWindow->getVideoPlayer()->updateRoi();
     auto duration_ms = m_timer.elapsed();
     if (numPics <= 0) {
         emit sig_hasStatusMessage(tr("No images imported after ") + QString::number(duration_ms) + tr("ms"));
@@ -440,9 +509,8 @@ QString Controller::getNameFromPath(QString path, QString dataFormat) {
 
 void Controller::setInputWidgetInfo() {
 
-    QString x = QString::number(m_dataManager->getModelInputPictures()->getInputResolution().x());
-    QString y = QString::number(m_dataManager->getModelInputPictures()->getInputResolution().y());
-    QString resolution = x + " x " + y;
+    auto readerParams = m_dataManager->getModelInputPictures()->getReaderParams();
+    QString resolution = readerParams->getOriginalResolution().toString();
 
     QList<VideoPlayer::OverlayEntry> entries = {
         {m_dataManager->getModelInputPictures()->getPath(), false, Qt::ElideMiddle},  // Filepath
@@ -470,7 +538,20 @@ void Controller::setInputWidgetInfo() {
     // set standard (input) resolution
     QStringList resList = QString(RESOLUTION_LIST).split("|");
     resList.push_front(resolution + " (input res)");
-    m_mainWindow->getInputWidget()->setResolutionList(resList, 0);
+    int resolutionIdx = 0;
+    if(!(readerParams->getOriginalResolution() == readerParams->getWorkingResolution())){
+        QString wRes = readerParams->getWorkingResolution().toString();
+        auto it = std::find_if(resList.begin(), resList.end(),
+                               [&wRes](const QString& res) { return res.startsWith(wRes); });
+
+        resolutionIdx = (it != resList.end()) ? std::distance(resList.begin(), it) : -1;
+
+        if(resolutionIdx < 0) {
+            resList.push_back(wRes);
+            resolutionIdx = resList.length()-1;
+        }
+    }
+    m_mainWindow->getInputWidget()->setResolutionList(resList, resolutionIdx);
 
     // set altitude (if available)
     setAltitude();
@@ -529,8 +610,6 @@ uint Controller::loadMetaDataFromPath(QString path)
     int n = m_dataManager->getModelInputPictures()->loadMetaData(QStringList(path));
     if (n > 0) {
         AlgorithmManager::instance().notifyNewMetaData();
-        //Show altitude in the export widget, if existing
-        m_exportController->setAltitudeInWidget();
         //Update the info widget
         setInputWidgetInfo();
         QString msg = tr("Loaded ") + QString::number(n) + tr(" meta data feature") + QString(n > 1 ? tr("s") : "");
@@ -690,4 +769,10 @@ void Controller::onSuccessfulOpen()
     connect(m_algorithmController, &AlgorithmController::sig_algorithmFinished, m_stackController, &StackController::slot_algorithmFinished);
     connect(m_algorithmController, &AlgorithmController::sig_keyframesChangedByPlugin, m_stackController, &StackController::slot_keyframesChangedByPlugin);
     connect(m_exportController, &ExportController::sig_exportFinished, m_stackController, &StackController::slot_exportFinished);
+
+    // update the working resolution, roi, etc
+    std::shared_ptr<ReaderParams> params = m_dataManager->getModelInputPictures()->getReaderParams();
+    m_mainWindow->getInputWidget()->setCropStatus(params->getUseRoi());
+    QRect roi = params->getRoi().cropAsQRect(params->getOriginalResolution());
+    m_mainWindow->getVideoPlayer()->updateRoi(params->getUseRoi()? roi : QRect());
 }

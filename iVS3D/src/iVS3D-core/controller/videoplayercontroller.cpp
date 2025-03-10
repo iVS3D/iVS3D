@@ -336,7 +336,11 @@ void VideoPlayerController::slot_receiveImage(uint idx, const cv::Mat &img)
     }
 
     if(TransformManager::instance().isTransformEnabled()){
-        emit sig_sendToITransform(idx,img);
+        std::shared_ptr<ReaderParams> params = m_dataManager->getModelInputPictures()->getReaderParams();
+        cv::Mat preview;
+        params->getWorkingResolution().resize(img, preview);
+        if(params->getUseRoi()) params->getRoi().crop(preview);
+        emit sig_sendToITransform(idx,preview);
     } else {
         cv::Mat image = img;
         m_videoPlayer->showImage(&image);

@@ -48,13 +48,11 @@ public:
 
     /**
      * @brief startExport starts a new Export with the currently selected keyframes in ModelInputPictures provided by the DataManager.
-     * @param resolution The output resolution
      * @param path The output folder path
      * @param name The output name
-     * @param roi The region of interest to export
      * @param iTransformCopies The ITransform instances to create additional export images
      */
-    void startExport(QPoint resolution, QString path, QString name, QRect roi, std::vector<ITransform*> iTransformCopies, LogFile *logFile);
+    void startExport(QString path, QString name, std::vector<ITransform*> iTransformCopies, LogFile *logFile);
 
 public slots:
     /**

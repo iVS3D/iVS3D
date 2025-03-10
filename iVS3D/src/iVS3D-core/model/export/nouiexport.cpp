@@ -15,15 +15,20 @@ noUIExport::noUIExport(Progressable * receiver, QMap<QString, QVariant> exportSe
 
 
     QString resolution = exportSettings.find(stringContainer::Resolution).value().toString();
-    m_resolution = parseResolution(resolution);
+    Resolution output_res;
+    if(output_res.fromString(resolution)){
+        dm->getModelInputPictures()->getReaderParams()->setWorkingResolution(output_res);
+    }
 
 
     QString roiString = exportSettings.find(stringContainer::ROI).value().toString();
     QStringList roiSplit = roiString.split(stringContainer::ROISpliter);
 
-    m_roi = *new QRect(roiSplit[0].toInt(), roiSplit[1].toInt(), roiSplit[2].toInt(), roiSplit[3].toInt());
-
-    m_useCrop = exportSettings.find(stringContainer::UseROI).value().toBool();
+    if(exportSettings.find(stringContainer::UseROI).value().toBool()){
+        ROI roi(QRect(roiSplit[0].toInt(), roiSplit[1].toInt(), roiSplit[2].toInt(), roiSplit[3].toInt()),dm->getModelInputPictures()->getReaderParams()->getOriginalResolution());
+        dm->getModelInputPictures()->getReaderParams()->setRoi(roi);
+        dm->getModelInputPictures()->getReaderParams()->setUseRoi(true);
+    }
 
     QList<QVariant> useItransformVariant = exportSettings.find(stringContainer::UseITransform).value().toList();
     for (QVariant useItransform : useItransformVariant) {
@@ -39,14 +44,6 @@ noUIExport::noUIExport(Progressable * receiver, QMap<QString, QVariant> exportSe
         idx++;
     }
     m_receiver = receiver;
-}
-
-QPoint noUIExport::parseResolution(QString resolutionString)
-{
-    QStringList resolutionList = resolutionString.split("x");
-    int width = resolutionList[0].toInt();
-    int height = resolutionList[1].toInt();
-    return QPoint(width, height);
 }
 
 void noUIExport::runExport()
@@ -111,15 +108,7 @@ void noUIExport::runExport()
 
     m_dataManager->createProject(outputName, pathWOimages + "/" + outputName + "-project.json");
 
-    //If Use Crop is checked the current roi is used
-    if (m_useCrop) {
-        m_exportExec->startExport(m_resolution, m_path, outputName, m_roi, iTransformCopies, m_logFile);
-    }
-    //Otherwise roi won't be used (-> 0x0 Rect) this wont override m_roi
-    else {
-       m_exportExec->startExport(m_resolution, m_path, outputName, QRect(0,0,0,0), iTransformCopies, m_logFile);
-    }
-
+    m_exportExec->startExport(m_path, outputName, iTransformCopies, m_logFile);
 }
 
 void noUIExport::slot_exportFinished(int result)

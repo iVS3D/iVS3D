@@ -70,24 +70,6 @@
     </widget>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_5">
-     <item>
-      <widget class="QLabel" name="label_2">
-       <property name="text">
-        <string>Output resolution</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QComboBox" name="comboBox">
-       <property name="editable">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </item>
-   <item>
     <widget class="QWidget" name="altitudeWidget" native="true">
      <layout class="QVBoxLayout" name="verticalLayout_2">
       <property name="spacing">
@@ -105,24 +87,6 @@
       <property name="bottomMargin">
        <number>0</number>
       </property>
-      <item>
-       <layout class="QHBoxLayout" name="altitudeLayout">
-        <item>
-         <widget class="QLabel" name="label_4">
-          <property name="text">
-           <string>Altitude of the first image in m</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QDoubleSpinBox" name="spinBox_Altitude">
-          <property name="maximum">
-           <double>999999.989999999990687</double>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
      </layout>
     </widget>
    </item>
@@ -146,8 +110,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>323</width>
-           <height>55</height>
+           <width>350</width>
+           <height>70</height>
           </rect>
          </property>
          <layout class="QHBoxLayout" name="horizontalLayout_6">
@@ -185,36 +149,6 @@
       </size>
      </property>
     </spacer>
-   </item>
-   <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_7"/>
-   </item>
-   <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_3">
-     <item>
-      <widget class="QPushButton" name="pushButton_cropExport">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="toolTip">
-        <string>Define ROI for export</string>
-       </property>
-       <property name="text">
-        <string>Select ROI</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QCheckBox" name="checkBox">
-       <property name="text">
-        <string>Use ROI</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
    </item>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">

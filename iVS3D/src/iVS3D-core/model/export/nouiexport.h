@@ -64,18 +64,12 @@ signals:
 
 
 private:
-    QPoint m_resolution;
     QString m_path;
-    QRect m_roi = QRect(0,0,0,0);
-    bool m_useCrop;
     std::vector<bool> m_ITransfromSelection = std::vector<bool>();
     DataManager* m_dataManager;
     ExportExecutor* m_exportExec = nullptr;
     LogFile *m_logFile;
     Progressable* m_receiver;
-
-
-    QPoint parseResolution(QString resolutionString);
 };
 
 #endif // NOUIEXPORT_H

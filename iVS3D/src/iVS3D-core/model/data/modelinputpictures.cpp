@@ -1,30 +1,21 @@
 #include "modelinputpictures.h"
 
 
-
-void ModelInputPictures::setResolution() {
-    cv::Mat reso = m_reader->getPic(0);
-    int cols = reso.cols;
-    int rows = reso.rows;
-    //inverting rows and collumns results in correct "width x height"
-    QPoint resolution(cols, rows);
-    m_inputResolution = resolution;
-}
-
-
 ModelInputPictures::ModelInputPictures(QString inputPath)
 {
     m_metaDataManager = &MetaDataManager::instance();
     m_metaDataManager->resetData();
-    m_reader = ReaderFactory::instance().createReader(inputPath);
+    m_readerParams = std::make_shared<ReaderParams>();
+    m_reader = ReaderFactory::instance().createReader(inputPath, m_readerParams);
 
     if (m_reader == nullptr) {
         return;
     }
 
     if(m_reader->getPicCount() > 0) {
-		setResolution();
         m_inputPath = inputPath;
+        cv::Mat img = m_reader->getPic(0, Reader::PictureProcessingFlags::APPLY_NONE);
+        m_readerParams->initialize(Resolution(img));
     }
 
     if (m_reader->isDir()) {
@@ -130,8 +121,8 @@ void ModelInputPictures::removeKeyframe(unsigned int index) {
 }
 
 
-const cv::Mat* ModelInputPictures::getPic(unsigned int index){
-    m_currentMat = m_reader->getPic(index);
+const cv::Mat* ModelInputPictures::getPic(unsigned int index, Reader::PictureProcessingFlags flags){
+    m_currentMat = m_reader->getPic(index, flags);
     return &m_currentMat;
 }
 
@@ -214,6 +205,7 @@ QVariant ModelInputPictures::toText()
     jsonObject.insert(stringContainer::keyframesIdentifier, QJsonValue::fromVariant(keyframes));
     jsonObject.insert(stringContainer::inputPathIdentifier, QJsonValue::fromVariant(inputPath));
     jsonObject.insert(stringContainer::boundariesIdentifier, QJsonValue::fromVariant(varBoundaries));
+    jsonObject.insert("readerparams", QJsonValue::fromVariant(m_readerParams->toText()));
     return QVariant(jsonObject);
 
 }
@@ -224,12 +216,19 @@ void ModelInputPictures::fromText(QVariant data)
     //get import part, create new reader and set resolution
     QJsonObject::Iterator inputPath = jsonData.find(stringContainer::inputPathIdentifier);
     m_inputPath = inputPath.value().toString();
-    m_reader = ReaderFactory::instance().createReader(m_inputPath);
-
+    m_readerParams = std::make_shared<ReaderParams>();
+    m_reader = ReaderFactory::instance().createReader(m_inputPath, m_readerParams);
 
     if (m_reader->getPicCount() != 0) {
-        setResolution();
         m_boundaries = QPoint(0,m_reader->getPicCount() -1);
+
+        m_readerParams->initialize(Resolution(m_reader->getPic(0, Reader::PictureProcessingFlags::APPLY_NONE)));
+
+        auto readerParams = jsonData.find("readerparams");
+
+        if(!readerParams->isNull() && !readerParams->isUndefined()){
+           m_readerParams->fromText(readerParams.value().toVariant());
+        }
     }
     //get keyframes
     QString keyframes = jsonData.find(stringContainer::keyframesIdentifier).value().toString();
@@ -316,9 +315,9 @@ std::vector<unsigned int> ModelInputPictures::getAllKeyframes(bool inBound)
     return croppedKeyframes;
 }
 
-QPoint ModelInputPictures::getInputResolution()
+std::shared_ptr<ReaderParams> ModelInputPictures::getReaderParams()
 {
-    return m_inputResolution;
+    return m_readerParams;
 }
 
 std::vector<unsigned int> ModelInputPictures::splitString(QString string) {

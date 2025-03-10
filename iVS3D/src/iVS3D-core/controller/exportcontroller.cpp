@@ -1,12 +1,11 @@
 #include "exportcontroller.h"
 
 #if defined(Q_OS_LINUX)
-    ExportController::ExportController(OutputWidget *outputWidget, DataManager *dataManager, lib3d::ots::ColmapWrapper *colmap) : m_roi(0,0,0,0)
+    ExportController::ExportController(OutputWidget *outputWidget, DataManager *dataManager, lib3d::ots::ColmapWrapper *colmap)
     {
 
         m_exportExec = nullptr;
         m_reconstructDialog = nullptr;
-        m_cropDialog = nullptr;
         m_currentExports.clear();
 
         m_outputWidget = outputWidget;
@@ -15,20 +14,12 @@
 
         connect(m_outputWidget, &OutputWidget::sig_reconstruct, this, &ExportController::slot_reconstruct);
         connect(m_outputWidget, &OutputWidget::sig_export, this, &ExportController::slot_export);
-        connect(m_outputWidget, &OutputWidget::sig_cropExport, this, &ExportController::slot_cropExport);
-        connect(m_outputWidget, &OutputWidget::sig_resChanged, this, &ExportController::slot_resolutionChange);
         connect(m_outputWidget, &OutputWidget::sig_pathChanged, this, &ExportController::slot_outputPathChanged);
-        connect(m_outputWidget, &OutputWidget::sig_altitudeChanged, this, &ExportController::slot_altitudeChanged);
 
         connect(m_dataManager->getModelInputPictures(), &ModelInputPictures::sig_mipChanged, this, &ExportController::slot_onKeyframesChanged);
 
         m_outputWidget->setEnabled(true);
 
-        // set standard (input) resolution
-        m_resolution = m_dataManager->getModelInputPictures()->getInputResolution();
-        QStringList resList = QString(RESOLUTION_LIST).split("|");
-        resList.push_front(QString::number(m_resolution.x()) + " x " + QString::number(m_resolution.y()) + " (input res)");
-        m_outputWidget->setResolutionList(resList, 0);
 
         // set standard (input) path
         m_path = m_dataManager->getModelInputPictures()->getPath();
@@ -39,21 +30,17 @@
         }
         m_path += "/export";
         m_outputWidget->setOutputPath(m_path);
-        m_outputWidget->setCropStatus(false);
 
-        //Set altitude widget
-        setAltitudeInWidget();
         m_outputWidget->enableReconstruct(false);
 
 
     }
 #elif defined(Q_OS_WIN)
-    ExportController::ExportController(OutputWidget *outputWidget, DataManager *dataManager) : m_roi(0,0,0,0)
+    ExportController::ExportController(OutputWidget *outputWidget, DataManager *dataManager)
     {
 
         m_exportExec = nullptr;
         m_reconstructDialog = nullptr;
-        m_cropDialog = nullptr;
         m_currentExports.clear();
 
         m_outputWidget = outputWidget;
@@ -61,20 +48,11 @@
 
         connect(m_outputWidget, &OutputWidget::sig_reconstruct, this, &ExportController::slot_reconstruct);
         connect(m_outputWidget, &OutputWidget::sig_export, this, &ExportController::slot_export);
-        connect(m_outputWidget, &OutputWidget::sig_cropExport, this, &ExportController::slot_cropExport);
-        connect(m_outputWidget, &OutputWidget::sig_resChanged, this, &ExportController::slot_resolutionChange);
         connect(m_outputWidget, &OutputWidget::sig_pathChanged, this, &ExportController::slot_outputPathChanged);
-        connect(m_outputWidget, &OutputWidget::sig_altitudeChanged, this, &ExportController::slot_altitudeChanged);
 
         connect(m_dataManager->getModelInputPictures(), &ModelInputPictures::sig_mipChanged, this, &ExportController::slot_onKeyframesChanged);
 
         m_outputWidget->setEnabled(true);
-
-        // set standard (input) resolution
-        m_resolution = m_dataManager->getModelInputPictures()->getInputResolution();
-        QStringList resList = QString(RESOLUTION_LIST).split("|");
-        resList.push_front(QString::number(m_resolution.x()) + " x " + QString::number(m_resolution.y()) + " (input res)");
-        m_outputWidget->setResolutionList(resList, 0);
 
         // set standard (input) path
         m_path = m_dataManager->getModelInputPictures()->getPath();
@@ -85,10 +63,7 @@
         }
         m_path += "/export";
         m_outputWidget->setOutputPath(m_path);
-        m_outputWidget->setCropStatus(false);
 
-        //Set altitude widget
-        setAltitudeInWidget();
         m_outputWidget->enableReconstruct(false);
 
 
@@ -99,12 +74,10 @@ ExportController::~ExportController()
 {
     disconnect(m_outputWidget, &OutputWidget::sig_reconstruct, this, &ExportController::slot_reconstruct);
     disconnect(m_outputWidget, &OutputWidget::sig_export, this, &ExportController::slot_export);
-    disconnect(m_outputWidget, &OutputWidget::sig_resChanged, this, &ExportController::slot_resolutionChange);
     disconnect(m_outputWidget, &OutputWidget::sig_pathChanged, this, &ExportController::slot_outputPathChanged);
 
     m_outputWidget->setEnabled(false);
 
-    m_outputWidget->setResolutionList(QStringList(""), 0);
     m_outputWidget->setOutputPath("");
     m_currentExports.clear();
 }
@@ -113,13 +86,14 @@ QMap<QString, QVariant> ExportController::getOutputSettings()
 {
     QMap<QString, QVariant> settings;
 
-    QString resolution = QString::number(m_resolution.x()) + stringContainer::ROISpliter + QString::number(m_resolution.y());
+    QString resolution = m_dataManager->getModelInputPictures()->getReaderParams()->getWorkingResolution().toString();
     settings.insert(stringContainer::Resolution, resolution);
 
-    QString roi = QString::number(m_roi.x()) + stringContainer::ROISpliter + QString::number(m_roi.y()) + "x" + QString::number(m_roi.width()) +"x" + QString::number(m_roi.height());
-    settings.insert(stringContainer::ROI, roi);
+    bool use_roi = m_dataManager->getModelInputPictures()->getReaderParams()->getUseRoi();
+    settings.insert(stringContainer::UseROI, use_roi);
 
-    settings.insert(stringContainer::UseROI, m_outputWidget->getCropStatus());
+    if(use_roi)
+        settings.insert(stringContainer::ROI, m_dataManager->getModelInputPictures()->getReaderParams()->getRoi().toQRectF());
 
     std::vector<bool> useItransform = m_outputWidget->getSelectedITransformMasks();
     QList<QVariant> iTransformSettings;
@@ -142,17 +116,6 @@ void ExportController::setOutputSettings(QMap<QString, QVariant> settings)
         m_outputWidget->setOutputPath(m_path);
     }
 
-    QString resolution = settings.find(stringContainer::Resolution).value().toString();
-    m_resolution = parseResolution(resolution);
-    m_outputWidget->setResolution(resolution);
-
-    QString roiString = settings.find(stringContainer::ROI).value().toString();
-    QStringList roiSplit = roiString.split(stringContainer::ROISpliter);
-    m_roi = *new QRect(roiSplit[0].toInt(), roiSplit[1].toInt(), roiSplit[2].toInt(), roiSplit[3].toInt());
-
-    bool useCrop = settings.find(stringContainer::UseROI).value().toBool();
-    m_outputWidget->setCropStatus(useCrop);
-
     QList<QVariant> useItransformVariant = settings.find(stringContainer::UseITransform).value().toList();
     std::vector<bool> selection;
     for (QVariant useItransform : useItransformVariant) {
@@ -166,26 +129,6 @@ void ExportController::setOutputSettings(QMap<QString, QVariant> settings)
         QMap<QString, QVariant> iTransformSettings = var.toMap();
         TransformManager::instance().setSettings(iTransformSettings, idx);
         idx++;
-    }
-}
-
-void ExportController::setAltitudeInWidget()
-{
-    m_outputWidget->enableAltitude(false);
-    QList<MetaDataReader*> readers = MetaDataManager::instance().loadAllMetaData();
-    for (MetaDataReader* reader : readers) {
-        if (reader->getName().startsWith("GPS")) {
-            GPSReader* gpsReader = dynamic_cast<GPSReader*>(reader);
-            if (!gpsReader->hasAltitudeData()) {
-               continue;
-            }
-            m_outputWidget->enableAltitude(true);
-            QVariant gpsData = reader->getImageMetaData(0);
-            QHash<QString, QVariant> gpsHash = gpsData.toHash();
-            double altitude_abs = gpsHash.find("GPSAltitude").value().toDouble();
-            double altitude = (gpsHash.find("GPSAltitudeRef").value().toString() == "0") ? altitude_abs : altitude_abs * -1;
-            m_outputWidget->setAltitude(altitude);
-        }
     }
 }
 
@@ -225,12 +168,6 @@ void ExportController::slot_export()
 
     if (m_path.endsWith("/")) {
         m_path.chop(1);
-    }
-
-    // check export resolution
-    if (!validateResolution(m_resolution)) {
-        m_outputWidget->setResolutionValid(false);
-        return;
     }
 
     emit sig_stopPlay();
@@ -352,16 +289,8 @@ void ExportController::slot_export()
 
     m_dataManager->createProject(outputName, pathWOimages + "/" + outputName + "-project.json");
 
-    //If Use Crop is checked the current roi is used
-    if (m_outputWidget->getCropStatus()) {
-        m_exportExec->startExport(m_resolution, m_path, outputName, m_roi, iTransformCopies, m_lfExport);
-    }
-    //Otherwise roi won't be used (-> 0x0 Rect) this wont override m_roi
-    else {
-       m_exportExec->startExport(m_resolution, m_path, outputName, QRect(0,0,0,0), iTransformCopies, m_lfExport);
-    }
-
-
+    //start export
+    m_exportExec->startExport(m_path, outputName, iTransformCopies, m_lfExport);
     emit sig_exportStarted();
     m_timer = QElapsedTimer();
     m_timer.start();
@@ -371,49 +300,11 @@ void ExportController::slot_export()
 
 }
 
-void ExportController::slot_cropExport()
-{
-    const cv::Mat* img = m_dataManager->getModelInputPictures()->getPic(m_imageOnPlayerId);
-    if (img->empty()) {
-        QMessageBox *em = new QMessageBox();
-        em->setText(tr("The selected frame is broken and can´t be cropped. Please select another frame to select a new region of intrest."));
-        em->show();
-        return;
-    }
-    m_cropDialog = new CropExport(m_outputWidget, img, m_roi);
-    connect(m_cropDialog, &CropExport::finished, this, &ExportController::slot_closeCropExport);
-    m_cropDialog->open();
-    m_cropDialog->triggerResize();
-
-}
-
-void ExportController::slot_closeCropExport(int result)
-{
-    if (result == 1) {
-        m_outputWidget->setCropStatus(true);
-        QRect currentRoi = m_cropDialog->getROI();
-        //Don't update roi, if no roi has been drawn
-        if (currentRoi.size() != QSize(1,1)) {
-            m_roi = currentRoi;
-        }
-
-    }
-
-    disconnect(m_cropDialog, &CropExport::finished, this, &ExportController::slot_closeCropExport);
-    m_cropDialog->deleteLater();
-}
-
 
 void ExportController::slot_outputPathChanged(QString path)
 {
     path.replace("\\", "/");
     m_path = path;
-}
-
-void ExportController::slot_resolutionChange(const QString &res)
-{
-    m_resolution = parseResolution(res);
-    m_outputWidget->setResolutionValid(validateResolution(m_resolution));
 }
 
 void ExportController::slot_exportAborted()
@@ -474,98 +365,6 @@ void ExportController::slot_nextImageOnPlayer(uint idx)
     m_imageOnPlayerId = idx;
 }
 
-void ExportController::slot_altitudeChanged(double altitude)
-{
-    MetaData* meta = m_dataManager->getModelInputPictures()->getReader()->getMetaData();
-    QList<MetaDataReader*> metaReader = meta->loadAllMetaData();
-    for (MetaDataReader* reader : metaReader) {
-        if (reader->getName().startsWith("GPS")) {
-            GPSReader* gps = dynamic_cast<GPSReader*>(reader);
-            gps->setAltitudeDiff(altitude);
-        }
-    }
-}
-
-QPoint ExportController::parseResolution(QString resolutionString)
-{
-    //remove spaces
-    resolutionString = resolutionString.simplified();
-    //split at x
-    QStringList xSplitList = resolutionString.split(stringContainer::ROISpliter);
-
-    int width = -1;
-    int height = -1;
-    if(xSplitList.size() <= 1) {
-        //we dont have a x to split between
-    }
-    else {
-        bool oneInteger = false;
-
-        //DETERMINE Width
-        //create space split list
-        QStringList spaceSplitList = xSplitList[0].split(" ");
-        //iterate over x split Strings which are split by a space
-        for (int n = 0; n < spaceSplitList.size(); n++) {
-            //remove all but numbers in string
-            spaceSplitList[n].replace(QRegExp("[^\\d]"), "");
-            //parse the leftover String
-            int parseTemp = spaceSplitList[n].toInt();
-            if (parseTemp > 0) {
-                if (!oneInteger) {
-                    oneInteger = true;
-                    width = parseTemp;
-                }
-                else {
-                    //more than one number in one x-section
-                    return QPoint(-1, -1);
-                }
-            }
-        }
-        //catch if no number is inside x String
-        if (!oneInteger){
-            return QPoint(-1, -1);
-        }
-        oneInteger = false;
-        //DETERMINE Height
-        //create space split list
-        spaceSplitList = xSplitList[1].split(" ");
-        //iterate over x split Strings which are split by a space
-        for (int n = 0; n < spaceSplitList.size(); n++) {
-            //remove all but numbers in string
-            spaceSplitList[n].replace(QRegExp("[^\\d]"), "");
-            //parse the leftover String
-            int parseTemp = spaceSplitList[n].toInt();
-            if (parseTemp > 0) {
-                if (!oneInteger) {
-                    oneInteger = true;
-                    height = parseTemp;
-                }
-                else {
-                    //more than one number in one y-section
-                    return QPoint(-1, -1);
-                }
-            }
-        }
-        //catch if no number is inside x String
-        if (!oneInteger){
-            return QPoint(-1, -1);
-        }
-    }
-
-    return QPoint(width, height);
-}
-
-bool ExportController::validateResolution(QPoint resolution)
-{
-    ModelInputPictures *mip = m_dataManager->getModelInputPictures();
-    Q_ASSERT(mip != nullptr);
-    QPoint inputRes = mip->getInputResolution();
-    QPoint difRes = inputRes - resolution;
-    if (resolution.x() <= 0 || resolution.y() <= 0 || difRes.x() < 0 || difRes.y() < 0){
-        return false;
-    }
-    return true;
-}
 #if defined(Q_OS_WIN)
 bool ExportController::startReconstruct()
 {

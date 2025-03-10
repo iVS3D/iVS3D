@@ -137,9 +137,11 @@ signals:
     void sig_resChanged(QString res);
 
     /**
-     * @brief [signal] sig_cropExport() is emitted on crop export button pressed.
+     * @brief [signal] sig_cropEdit() is emitted on crop export button pressed.
      */
     void sig_cropEdit();
+
+    void sig_useCropChanged(bool useCrop);
 
     /**
      * @brief [signal] sig_altitudeChanged() is emitted when the altitude is changed by the user.
@@ -154,6 +156,7 @@ private slots:
     void on_pushButton_cropEdit_clicked();
     void on_spinBox_altitude_valueChanged(double d);
     void on_comboBox_resolution_currentTextChanged(const QString &text);
+    void on_checkBox_crop_valueChanged(int state);
 
 protected:
     Ui::InfoWidget *ui;

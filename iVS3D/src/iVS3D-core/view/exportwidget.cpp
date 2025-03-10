@@ -17,7 +17,6 @@ ExportWidget::ExportWidget(QWidget *parent, QStringList transformList) :
     ui->horizontalLayout->addWidget(m_reconstructBtn);
     connect(m_reconstructBtn, &QPushButton::clicked, this, &ExportWidget::on_pushButton_reconstruct_clicked);
 #endif
-    this->ui->altitudeWidget->setVisible(false);
 }
 
 ExportWidget::~ExportWidget()
@@ -26,22 +25,6 @@ ExportWidget::~ExportWidget()
         delete cb;
     }
     delete ui;
-}
-
-void ExportWidget::setResolutionList(QStringList resList, int idx)
-{
-    Q_ASSERT(!resList.empty());
-    Q_ASSERT(idx>=0);
-    Q_ASSERT(idx < resList.size());
-
-    ui->comboBox->clear();
-    ui->comboBox->addItems(resList);
-    ui->comboBox->setCurrentIndex(idx);
-}
-
-void ExportWidget::setResolution(QString resolution)
-{
-    ui->comboBox->setEditText(resolution);
 }
 
 void ExportWidget::setOutputPath(QString path)
@@ -71,45 +54,6 @@ void ExportWidget::enableReconstruct(bool enabled)
 #endif
 }
 
-void ExportWidget::setResolutionValid(bool valid)
-{
-    QPalette colorPalette = this->ui->comboBox->palette();
-    if (valid) {
-        ApplicationSettings as = ApplicationSettings::instance();
-        if (as.getColorTheme() == DARK) {
-            //darkstyle on
-            colorPalette.setColor(QPalette::Text, Qt::white);
-        }
-        else {
-            //darkstyle off
-            colorPalette.setColor(QPalette::Text, Qt::black);
-        }
-    }
-    else {
-        colorPalette.setColor(QPalette::Text, Qt::red);
-    }
-    this->ui->comboBox->setPalette(colorPalette);
-}
-
-bool ExportWidget::getCropStatus()
-{
-    if (this->ui->checkBox->checkState() == 0) {
-        return false;
-    }
-    return true;
-}
-
-void ExportWidget::setCropStatus(bool checked)
-{
-    if (checked) {
-        this->ui->checkBox->setCheckState(Qt::Checked);
-        return;
-    }
-    this->ui->checkBox->setCheckState(Qt::Unchecked);
-    return;
-
-}
-
 std::vector<bool> ExportWidget::getSelectedITransforms()
 {
     std::vector<bool> transforms;
@@ -137,11 +81,6 @@ void ExportWidget::on_pushButton_reconstruct_clicked()
     emit sig_reconstruct();
 }
 
-void ExportWidget::on_pushButton_cropExport_clicked()
-{
-    emit sig_cropExport();
-}
-
 void ExportWidget::on_pushButton_addAuto_clicked()
 {
     emit sig_addAuto();
@@ -150,16 +89,6 @@ void ExportWidget::on_pushButton_addAuto_clicked()
 void ExportWidget::on_lineEdit_textChanged(const QString &text)
 {
     emit sig_pathChanged(text);
-}
-
-void ExportWidget::on_comboBox_currentTextChanged(const QString &text)
-{
-    emit sig_resChanged(text);
-}
-
-void ExportWidget::on_spinBox_Altitude_valueChanged(double i)
-{
-    emit sig_altitudeChanged(i);
 }
 
 bool ExportWidget::setSelectedITransforms(std::vector<bool> selection)
@@ -181,15 +110,5 @@ void ExportWidget::enableCreateFilesWidget(bool enable)
     else {
         ui->createFilesWidget->hide();
     }
-}
-
-void ExportWidget::enableAltitude(bool enable)
-{
-    this->ui->altitudeWidget->setVisible(enable);
-}
-
-void ExportWidget::setAltitude(double altitude)
-{
-    this->ui->spinBox_Altitude->setValue(altitude);
 }
 

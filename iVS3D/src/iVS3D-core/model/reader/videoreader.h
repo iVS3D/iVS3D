@@ -11,6 +11,7 @@
 #include <QMutexLocker>
 #include "algorithmmanager.h"
 #include "sequentialreaderimpl.h"
+#include "readerparams.h"
 
 
 /**
@@ -34,7 +35,7 @@ public:
      *
      * @param path Path to the video. Video can be the types, which cv::VideoCapture can handle
      */
-    explicit VideoReader(const QString &path);
+    explicit VideoReader(const QString &path, std::shared_ptr<ReaderParams> readerParams);
     /**
      * @brief VideoReader destructor
      *
@@ -46,7 +47,7 @@ public:
      * @param index Index of the frame to be returned
      * @return cv::Mat of the selected frame
      */
-    cv::Mat getPic(unsigned int index) override;
+    cv::Mat getPic(unsigned int index, PictureProcessingFlags flags = APPLY_ALL) override;
     /**
      * @brief Returns the number of frame
      *
@@ -97,7 +98,7 @@ public:
      * @param indices The indices of the images that will be accessed
      * @return SequentialReader instance (caller takes ownership!)
      */
-    SequentialReader *createSequentialReader(std::vector<uint> indices) override;
+    SequentialReader *createSequentialReader(std::vector<uint> indices, PictureProcessingFlags flags = APPLY_ALL) override;
 
     /**
      * @brief addMetaData Used to add MetaData to the reader
@@ -125,6 +126,7 @@ private:
     MetaData* m_md = nullptr;
 
     QMutex m_mutex;
+    std::shared_ptr<ReaderParams> m_readerParams;
 };
 
 REGISTER_READER("VideoReader", VideoReader)

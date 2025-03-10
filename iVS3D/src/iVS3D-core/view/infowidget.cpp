@@ -28,7 +28,9 @@ InfoWidget::InfoWidget(QWidget *parent, QString title, ColorTheme theme) :
     m_settingsLayout->setMargin(0);
 
     m_resolutionComboBox = new QComboBox(this);
+    m_resolutionComboBox->setEditable(true);
     m_settingsLayout->addRow(tr("Working resolution"), m_resolutionComboBox);
+    connect(m_resolutionComboBox, &QComboBox::currentTextChanged, this, &InfoWidget::on_comboBox_resolution_currentTextChanged);
 
     m_altitudeSpinBox = nullptr; // only display the altitude box if we have metadata!
 
@@ -41,6 +43,9 @@ InfoWidget::InfoWidget(QWidget *parent, QString title, ColorTheme theme) :
         wrapper->layout()->addWidget(m_cropCheckBox);
         wrapper->layout()->addWidget(m_cropPushButton);
         m_settingsLayout->addRow(tr("Region of interest (ROI)"), wrapper);
+
+        connect(m_cropPushButton, &QPushButton::clicked, this, &InfoWidget::on_pushButton_cropEdit_clicked);
+        connect(m_cropCheckBox, &QCheckBox::stateChanged, this, &InfoWidget::on_checkBox_crop_valueChanged);
     }
 
     this->layout()->addWidget(m_settingsWidget);
@@ -191,4 +196,9 @@ void InfoWidget::on_spinBox_altitude_valueChanged(double d)
 void InfoWidget::on_comboBox_resolution_currentTextChanged(const QString &text)
 {
     emit sig_resChanged(text);
+}
+
+void InfoWidget::on_checkBox_crop_valueChanged(int state)
+{
+    emit sig_useCropChanged(state==Qt::Checked);
 }

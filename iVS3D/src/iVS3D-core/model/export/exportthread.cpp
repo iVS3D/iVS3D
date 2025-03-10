@@ -1,17 +1,16 @@
 #include "exportthread.h"
 
-ExportThread::ExportThread(Progressable* receiver, ModelInputPictures* mip, QPoint resolution, const QString &path, const QString &name, volatile bool* stopped, QRect roi, const std::vector<ITransform*> &iTransformCopies, LogFile *logFile)
+ExportThread::ExportThread(Progressable* receiver, ModelInputPictures* mip, const QString &path, const QString &name, volatile bool* stopped, const std::vector<ITransform*> &iTransformCopies, LogFile *logFile)
 {
     m_receiver = receiver;
     m_reader = mip->getReader()->copy();
+    m_readerParams = mip->getReaderParams();
     m_keyframes = mip->getAllKeyframes(true);
-    m_resolution = resolution;
     m_path = path;
     if(m_path.endsWith("/images"))
         m_path = m_path.left(m_path.length() - QString("/images").length());
     m_name = name;
     m_stopped = stopped;
-    m_roi = roi;
     m_iTransformCopies = iTransformCopies;
     m_logFile = logFile;
     m_progress = 0;
@@ -45,37 +44,15 @@ void ExportThread::run(){
     cv::Mat originalMat = m_reader->getPic(0);
     QPoint imageSize = QPoint(originalMat.cols, originalMat.rows);
 
-    // width or height of zero indicates an invalid roi -> don't use it
-    bool useRoi = (m_roi.width() > 0 && m_roi.height() > 0);
-    if (imageSize.x() < m_roi.width() || imageSize.y() < m_roi.height()) {
-        useRoi = false; // roi is larger than our input image -> don't use it
-    }
+    // ROI is used if it's enabled and it's not the entire image (which would be default)
+    bool usesRoi = m_readerParams->getUseRoi() && !m_readerParams->getRoi().isDefault();
 
-    // Only use resize if the output resolution differs from the input resolution
-    bool useResize = (imageSize.x() != m_resolution.x()) || (imageSize.y() != m_resolution.y());
-
-    // If the resolution changed the roi Rect has to be scaled
-    if (useResize) {
-       //Get scale factor in x & y direction
-       float ratioX = (float) m_resolution.x() / (float) imageSize.x();
-       float ratioY = (float) m_resolution.y() / (float) imageSize.y();
-       //Scale the topLeft point
-       QPoint topLeft = m_roi.topLeft();
-       int topLeftXWithRatio = topLeft.x() * ratioX;
-       int topLeftYWithRatio = topLeft.y() * ratioY;
-       QPoint topLeftWitRatio(topLeftXWithRatio, topLeftYWithRatio);
-       //Scale the bottomRight point
-       QPoint bottomRight = m_roi.bottomRight();
-       int bottomRightXWithRatio = bottomRight.x() * ratioX;
-       int bottomRightYWithRatio = bottomRight.y() * ratioY;
-       QPoint bottomRightWitRatio(bottomRightXWithRatio, bottomRightYWithRatio);
-       //create the scaled roi
-       m_roi = QRect(topLeftWitRatio, bottomRightWitRatio);
-    }
+    // Resize if the working resolution differs from the input resolution
+    bool usesResize = !(m_readerParams->getOriginalResolution() == m_readerParams->getWorkingResolution());
 
     // if input is an image and we do not modify it in any way (i.e. resizing) we do not need to
     // load the image and write it back, instead we copy the input file including all metadata
-    bool useCopy = m_reader->isDir() && !useResize && !useRoi;
+    bool useCopy = m_reader->isDir() && !usesResize && !usesRoi;
 
     // We need to export gps meta data if available
     bool useExif = false;
@@ -92,9 +69,6 @@ void ExportThread::run(){
 
     // Setup the ImageProcessor
     ImageProcessor processor;
-    // resize and roi are optional
-    if(useResize)           processor.addCommand(std::make_unique<ResizeCommand>(m_resolution));
-    if(useRoi)              processor.addCommand(std::make_unique<CropCommand>(m_roi));
     // exporting from cv::Mat or copying input image
     QString imagePath = m_path + QString("/images");
     if(useCopy)             processor.addCommand(std::make_unique<CopyFileCommand>(m_reader->getFileVector(), imagePath));
@@ -106,7 +80,7 @@ void ExportThread::run(){
         processor.addCommand(std::make_unique<TransformCommand>(plugin, m_path));
 
     // run the processor to export images
-    SequentialReader *seq_reader = m_reader->createSequentialReader(m_keyframes);
+    SequentialReader *seq_reader = m_reader->createSequentialReader(m_keyframes, Reader::APPLY_ALL);
 
     std::function<void(int*)> writeToDrive = [seq_reader, &processor, this](int *num_imgs) {
         ImageContext ctx;

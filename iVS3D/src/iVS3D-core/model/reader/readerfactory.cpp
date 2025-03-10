@@ -5,10 +5,10 @@ ReaderFactory::ReaderFactory()
 
 }
 
-Reader *ReaderFactory::createReader(QString path)
+Reader *ReaderFactory::createReader(QString path, std::shared_ptr<ReaderParams> params)
 {
     for (std::pair<std::string, AbstractReader> a : m_availablerReader) {
-        Reader* current = a.second(path);
+        Reader* current = a.second(path, params);
         if (current->isValid()) {
             return current;
         }
