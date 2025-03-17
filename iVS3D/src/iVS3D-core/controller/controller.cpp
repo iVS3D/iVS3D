@@ -466,7 +466,7 @@ void Controller::slot_useCropChanged(int checkstate)
 
 void Controller::slot_altitudeChanged(double altitude)
 {
-    // TODO: ste this somewhere in the metadata reader!
+    m_dataManager->getModelInputPictures()->setAltitude(altitude);
 }
 
 void Controller::createOpenMessage(int numPics)

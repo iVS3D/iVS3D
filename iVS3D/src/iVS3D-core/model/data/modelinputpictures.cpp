@@ -206,12 +206,40 @@ QVariant ModelInputPictures::toText()
     jsonObject.insert(stringContainer::inputPathIdentifier, QJsonValue::fromVariant(inputPath));
     jsonObject.insert(stringContainer::boundariesIdentifier, QJsonValue::fromVariant(varBoundaries));
     jsonObject.insert("readerparams", QJsonValue::fromVariant(m_readerParams->toText()));
-    return QVariant(jsonObject);
 
+    // if we have metadata, store related infos too!
+    {
+        QJsonObject json;
+
+        // we want to store the metadata files (if any)...
+        if (!m_metaDataManager->getPaths().empty()){
+            QJsonArray metaDataPaths;
+            for (auto path : m_metaDataManager->getPaths()) {
+               metaDataPaths.append(path);
+            }
+            json["files"] = metaDataPaths;
+        }
+
+        // ... and the gps altitude offset (if available)
+        for (MetaDataReader* reader : m_metaDataManager->loadAllMetaData()) {
+            if (reader->getName().startsWith("GPS")) {
+               json["gps_altitude"] = m_altitude;
+               break;
+            }
+        }
+
+        // only add this section if any infos to store!
+        if(!json.isEmpty()) jsonObject["metadata"] = json;
+    }
+
+    return QVariant(jsonObject);
 }
 
 void ModelInputPictures::fromText(QVariant data)
 {
+    m_metaDataManager = &MetaDataManager::instance();
+    m_metaDataManager->resetData();
+
     QJsonObject jsonData = data.toJsonObject();
     //get import part, create new reader and set resolution
     QJsonObject::Iterator inputPath = jsonData.find(stringContainer::inputPathIdentifier);
@@ -241,6 +269,27 @@ void ModelInputPictures::fromText(QVariant data)
         boundaries.setX(varBoundaries.at(0).toInt());
         boundaries.setY(varBoundaries.at(1).toInt());
         setBoundaries(boundaries);
+    }
+
+    // get metadata
+    if(jsonData.contains("metadata")) {
+        QJsonObject json = jsonData["metadata"].toObject();
+
+        // metadata files
+        if (m_reader->isDir()) {
+           loadMetaDataImages();
+        } else if(json.contains("files")) {
+           QStringList files;
+           for (auto file : json["files"].toArray()) {
+               files.push_back(file.toString());
+           }
+           loadMetaData(files);
+        }
+
+        // altitude offset
+        if(json.contains("gps_altitude")) {
+           setAltitude(json["gps_altitude"].toDouble());
+        }
     }
 }
 
@@ -282,6 +331,23 @@ void ModelInputPictures::restore(ModelInputPictures::Memento *m)
     m_keyframes = m->getState();
     AlgorithmManager::instance().notifyKeyframesChanged(m_keyframes);
     emit sig_mipChanged();
+}
+
+void ModelInputPictures::setAltitude(double altitude)
+{
+    m_altitude = altitude;
+    QList<MetaDataReader*> metaReader = m_metaDataManager->loadAllMetaData();
+    for (MetaDataReader* reader : metaReader) {
+        if (reader->getName().startsWith("GPS")) {
+           GPSReader* gps = dynamic_cast<GPSReader*>(reader);
+           gps->setAltitudeDiff(altitude);
+        }
+    }
+}
+
+double ModelInputPictures::getAltitude()
+{
+    return m_altitude;
 }
 
 std::vector<unsigned int> ModelInputPictures::getAllKeyframes(bool inBound)

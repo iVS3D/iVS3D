@@ -53,7 +53,7 @@ protected:
    bool addGPSValue(double latitude, double longitude, double altitude);
    QList<QHash<QString, QVariant>> m_GPSHashs;
    double m_altitudeDiff = 0;
-   void addAltitudeDiff(int index);
+   void addAltitudeDiff(QHash<QString, QVariant> &gpsHash);
    void interpolateMissingData(QList<int> missingMetaData);
    const int MAX_GAP_SIZE = 5;
 

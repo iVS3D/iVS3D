@@ -217,6 +217,9 @@ public:
     Memento *save();
     void restore(Memento *m);
 
+    void setAltitude(double altitude);
+    double getAltitude();
+
 
 
 signals:
@@ -235,6 +238,7 @@ private:
     QPoint m_boundaries;
     MetaDataManager* m_metaDataManager = nullptr;
     std::shared_ptr<ReaderParams> m_readerParams;
+    double m_altitude;
 
     std::vector<unsigned int> splitString(QString string);
 };
