@@ -4,7 +4,7 @@ TransformCommand::TransformCommand(ITransform *transformplugin_, QString folder_
 
 std::optional<QString> TransformCommand::execute(ImageContext &ctx)
 {
-    ImageList transformed_imgs = transformplugin->transform(0, ctx.image);
+    ImageList transformed_imgs = transformplugin->transform(0, ctx.image, Resolution(ctx.image), ROI());
     QStringList transformed_names = transformplugin->getOutputNames();
 
     if(transformed_imgs.length() != transformed_names.length()) {

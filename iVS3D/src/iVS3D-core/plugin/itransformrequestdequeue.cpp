@@ -32,9 +32,9 @@ ITransformRequestDequeue *ITransformRequestDequeue::copy()
     return new ITransformRequestDequeue(m_transform->copy());
 }
 
-ImageList ITransformRequestDequeue::transform(uint idx, const cv::Mat &img)
+ImageList ITransformRequestDequeue::transform(uint idx, const cv::Mat &img, const Resolution &resolution, const ROI &roi)
 {
-    return m_transform->transform(idx, img);
+    return m_transform->transform(idx, img, resolution, roi);
 }
 
 void ITransformRequestDequeue::enableCuda(bool enabled)
@@ -58,10 +58,12 @@ QMap<QString, QVariant> ITransformRequestDequeue::getSettings()
     return m_transform->getSettings();
 }
 
-void ITransformRequestDequeue::slot_transform(uint idx, const cv::Mat &img)
+void ITransformRequestDequeue::slot_transform(uint idx, const cv::Mat &img, const Resolution &resolution, const ROI &roi)
 {
     m_imageToTransform = img;
     m_idxToTransform = idx;
+    m_resolutionToTransform = resolution;
+    m_roiToTransform = roi;
     QTimer::singleShot(0, this, &ITransformRequestDequeue::slot_startTransform);
 }
 
@@ -75,7 +77,7 @@ void ITransformRequestDequeue::slot_startTransform()
     if(m_idxToTransform == UINT_MAX){
         return;
     }
-    auto res = transform(m_idxToTransform, m_imageToTransform);
+    auto res = transform(m_idxToTransform, m_imageToTransform, m_resolutionToTransform, m_roiToTransform);
     emit sig_transformFinished(m_idxToTransform,res);
     m_idxToTransform = UINT_MAX;
 }

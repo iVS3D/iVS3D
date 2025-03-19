@@ -19,6 +19,8 @@
 #include "controller/modelinputiteratorfactory.h"
 #include "view/reallydeletedialog.h"
 
+#include "cvmat_qmetadata.h"
+
 #define ERROR_MSG_APPROX_COUNT 5
 #define BOUDNARY_STATIONARY_DURATION 1000 // in ms
 
@@ -212,7 +214,7 @@ signals:
      * @param idx The image index
      * @param img The image to process
      */
-    void sig_sendToITransform(uint idx, const cv::Mat &img);
+    void sig_sendToITransform(uint idx, const cv::Mat &img, const Resolution &resolution, const ROI &roi);
 
     /**
      * @brief [signal] sig_toggleKeyframe notifies about a manual keyframe change by clicking Add keyframe/Remove keyframe

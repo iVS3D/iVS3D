@@ -70,7 +70,7 @@ public:
      * @param img The image to transform
      * @return Pointers to the transformed images
      */
-    ImageList transform(uint idx, const cv::Mat &img) override;
+    ImageList transform(uint idx, const cv::Mat &img, const Resolution &resolution, const ROI &roi) override;
 
     /**
      * @brief enableCuda enables use of the CUDA api to accelerate computations.
@@ -110,7 +110,7 @@ public slots:
      * @param idx The index of the image to transform
      * @param img The image to transform
      */
-    void slot_transform(uint idx, const cv::Mat &img);
+    void slot_transform(uint idx, const cv::Mat &img, const Resolution &resolution, const ROI &roi);
 
     /**
      * @brief [slot] slot_startTransform starts transformation with the most recent image in the waiting queue.
@@ -130,6 +130,8 @@ private:
     ITransform *m_transform;
     cv::Mat m_imageToTransform;
     uint m_idxToTransform;
+    Resolution m_resolutionToTransform;
+    ROI m_roiToTransform;
 };
 
 #endif // ITRANSFORMREQUESTDEQUEUE_H

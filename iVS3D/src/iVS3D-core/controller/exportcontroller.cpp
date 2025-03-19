@@ -86,14 +86,14 @@ QMap<QString, QVariant> ExportController::getOutputSettings()
 {
     QMap<QString, QVariant> settings;
 
-    QString resolution = m_dataManager->getModelInputPictures()->getReaderParams()->getWorkingResolution().toString();
+    QString resolution = m_exportReaderParams.getWorkingResolution().toString();
     settings.insert(stringContainer::Resolution, resolution);
 
-    bool use_roi = m_dataManager->getModelInputPictures()->getReaderParams()->getUseRoi();
+    bool use_roi = m_exportReaderParams.getUseRoi();
     settings.insert(stringContainer::UseROI, use_roi);
 
     if(use_roi)
-        settings.insert(stringContainer::ROI, m_dataManager->getModelInputPictures()->getReaderParams()->getRoi().toQRectF());
+        settings.insert(stringContainer::ROI, m_exportReaderParams.getRoi().toQRectF());
 
     std::vector<bool> useItransform = m_outputWidget->getSelectedITransformMasks();
     QList<QVariant> iTransformSettings;
@@ -163,6 +163,7 @@ void ExportController::slot_reconstruct()
 
 void ExportController::slot_export()
 {
+    m_exportReaderParams = *m_dataManager->getModelInputPictures()->getReaderParams();
     m_lfExport = LogManager::instance().createLogFile("Export", false);
     m_lfExport->setSettings(getOutputSettings());
 

@@ -5,6 +5,8 @@
 #include <QColor>
 #include <QList>
 #include "opencv2/core.hpp"
+#include "resolution.h"
+#include "roi.h"
 
 Q_DECLARE_METATYPE(cv::Mat)
 
@@ -29,5 +31,9 @@ enum ColorTheme {
     DARK        /**< Dark theme. */
 };
 Q_DECLARE_METATYPE(ColorTheme)
+
+Q_DECLARE_METATYPE(Resolution)
+
+Q_DECLARE_METATYPE(ROI)
 
 #endif // CVMAT_QMETADATA_H

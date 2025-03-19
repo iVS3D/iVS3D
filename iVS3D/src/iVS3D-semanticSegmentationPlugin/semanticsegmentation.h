@@ -107,7 +107,7 @@ public:
      *
      * @see ITransform::sendToGui
      */
-    ImageList transform(uint idx, const cv::Mat &img) override;
+    ImageList transform(uint idx, const cv::Mat &img, const Resolution &resolution, const ROI &roi) override;
 
     /**
      * @brief enableCuda is called if the user toggles the use CUDA flag in the core application.
@@ -169,7 +169,10 @@ private:
     QBoolList m_ONNXselectedClasses;// bool for each class of selected model (true if class selected)
     // --- Buffer for image, nn score, segmentation and mask ---
     uint m_imageIdx;
+    cv::Mat m_originalImage;
     cv::Mat m_image;
+    Resolution m_resolution;
+    ROI m_roi;
     cv::Mat m_score;
     cv::Mat m_segmentation;
     cv::Mat m_mask;

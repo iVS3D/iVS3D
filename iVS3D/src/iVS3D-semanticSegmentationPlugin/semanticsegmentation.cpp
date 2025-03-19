@@ -100,7 +100,7 @@ ITransform *SemanticSegmentation::copy()
     return copy;
 }
 
-ImageList SemanticSegmentation::transform(uint idx, const cv::Mat &img)
+ImageList SemanticSegmentation::transform(uint idx, const cv::Mat &img, const Resolution &resolution, const ROI &roi)
 {
     QMutexLocker lock(&m_mutex);
     if(!m_useCuda || !m_ONNXmodelLoaded){
@@ -111,9 +111,17 @@ ImageList SemanticSegmentation::transform(uint idx, const cv::Mat &img)
         emit sendToGui(idx, preview);
     }
 
-    // update image and index buffer
-    m_image = img;
+    // update resolution, roi and index buffer
+    m_resolution = resolution;
+    m_roi = roi;
     m_imageIdx = idx;
+
+    // update the original image
+    m_originalImage = img;
+
+    // resize and crop before processing
+    m_resolution.resize(img, m_image);
+    m_roi.crop(m_image);
 
     // only start calculation if models found
     if(m_ONNXmodelList.size() == 0){
@@ -230,7 +238,7 @@ void SemanticSegmentation::slot_ONNXindexChanged(int n)
     if(m_imageIdx == UINT_MAX){
         return;
     }
-    QTimer::singleShot(0,this,[=](){transform(m_imageIdx, m_image);});
+    QTimer::singleShot(0,this,[=](){transform(m_imageIdx, m_image, m_resolution, m_roi);});
 }
 
 void SemanticSegmentation::slot_selectedClassesChanged(QBoolList classes)
@@ -337,7 +345,40 @@ void SemanticSegmentation::slot_sendGuiPreview()
     }
     cv::Mat preview;
     alphaBlend(m_segmentation, m_image, preview, m_blendAlpha);
-    cv::hconcat(preview, m_mask, preview);
+
+
+    // resize preview to original size of cropped area
+    Resolution targetRes(m_originalImage);
+
+    if(m_roi.isDefault()) {
+        // No ROI, scale back to the full resolution for preview
+        targetRes.resize(preview);
+
+        cv::Mat mask;
+        targetRes.resize(m_mask, mask); // scale the mask as well
+
+        cv::hconcat(preview, mask, preview);
+    } else {
+        // scale back to the ROI of the full resolution
+        cv::Rect targetRoi = m_roi.cropAsCvRect(targetRes);
+        targetRes = Resolution(targetRoi.size());
+
+        targetRes.resize(preview);  // scale the image preview
+
+        cv::Mat fullPreview = m_originalImage;
+        preview.copyTo(fullPreview(targetRoi)); // fullPreview(targetRoi) = preview;
+
+        cv::Mat mask;
+        targetRes.resize(m_mask, mask); // scale the mask preview
+
+        // create black background for the area outside the ROI
+        cv::Mat maskPreview(m_originalImage.rows, m_originalImage.cols, m_originalImage.type());
+        maskPreview.setTo(cv::Scalar(0, 0, 0));
+        mask.copyTo(maskPreview(targetRoi)); // maskPreview(targetRoi) = mask;
+
+        cv::hconcat(fullPreview, maskPreview, preview);
+    }
+
     emit sendToGui(m_imageIdx, preview);
     m_guiUpToDate = true;
 }

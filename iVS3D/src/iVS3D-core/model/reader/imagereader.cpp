@@ -88,7 +88,7 @@ ImageReader *ImageReader::copy()
     ir->m_numImages = m_numImages;
     ir->m_filePaths = m_filePaths;
     ir->m_isValid = m_isValid;
-    ir->m_readerParams = m_readerParams;
+    ir->m_readerParams = std::make_shared<ReaderParams>(*m_readerParams);
     ir->addMetaData(m_md);
     return ir;
 }

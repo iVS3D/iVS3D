@@ -172,6 +172,7 @@ private:
 
     LogFile *m_lfExport;
     DataManager *m_dataManager;
+    ReaderParams m_exportReaderParams;
     ExportExecutor *m_exportExec;
     OutputWidget *m_outputWidget;
     ReconstructDialog *m_reconstructDialog;

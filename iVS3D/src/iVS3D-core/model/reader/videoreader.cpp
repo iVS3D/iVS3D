@@ -109,8 +109,8 @@ bool VideoReader::isDir()
 
 VideoReader *VideoReader::copy()
 {
-    // copy cv::VideoCapture crashes, so create new instead of copy    
-    VideoReader* reader =  new VideoReader(QString::fromStdString(m_path), m_readerParams);
+    // copy cv::VideoCapture crashes, so create new instead of copy
+    VideoReader* reader =  new VideoReader(QString::fromStdString(m_path), std::make_shared<ReaderParams>(*m_readerParams));
     reader->addMetaData(m_md);
     return reader;
 }

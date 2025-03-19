@@ -4,6 +4,8 @@
 #include <QObject>
 #include "opencv2/core.hpp"
 #include "cvmat_qmetadata.h"
+#include "resolution.h"
+#include "roi.h"
 #include "iVS3D-pluginInterface_global.h"
 
 /**
@@ -117,7 +119,7 @@ public:
      * @param img The image to transform
      * @return Pointers to the transformed images
      */
-    virtual ImageList transform(uint idx, const cv::Mat &img) = 0;
+    virtual ImageList transform(uint idx, const cv::Mat &img, const Resolution &resolution, const ROI &roi) = 0;
 
     /**
      * @brief enableCuda enables use of the CUDA api to accelerate computations.
