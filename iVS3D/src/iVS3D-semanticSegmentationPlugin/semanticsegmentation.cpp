@@ -103,13 +103,6 @@ ITransform *SemanticSegmentation::copy()
 ImageList SemanticSegmentation::transform(uint idx, const cv::Mat &img, const Resolution &resolution, const ROI &roi)
 {
     QMutexLocker lock(&m_mutex);
-    if(!m_useCuda || !m_ONNXmodelLoaded){
-        // create preview of image before calculation started
-        cv::Mat preview(img.rows, img.cols, img.type());
-        preview.setTo(cv::Scalar(255, 255, 255));
-        cv::hconcat(img, preview, preview);
-        emit sendToGui(idx, preview);
-    }
 
     // update resolution, roi and index buffer
     m_resolution = resolution;
@@ -117,11 +110,18 @@ ImageList SemanticSegmentation::transform(uint idx, const cv::Mat &img, const Re
     m_imageIdx = idx;
 
     // update the original image
-    m_originalImage = img;
+    resolution.resize(img, m_originalImage);
+
+    if(!m_useCuda || !m_ONNXmodelLoaded){
+        // create preview of image before calculation started
+        cv::Mat preview(m_originalImage.rows, m_originalImage.cols, m_originalImage.type());
+        preview.setTo(cv::Scalar(255, 255, 255));
+        cv::hconcat(m_originalImage, preview, preview);
+        emit sendToGui(idx, preview);
+    }
 
     // resize and crop before processing
-    m_resolution.resize(img, m_image);
-    m_roi.crop(m_image);
+    m_roi.crop(m_originalImage, m_image);
 
     // only start calculation if models found
     if(m_ONNXmodelList.size() == 0){
@@ -365,7 +365,7 @@ void SemanticSegmentation::slot_sendGuiPreview()
 
         targetRes.resize(preview);  // scale the image preview
 
-        cv::Mat fullPreview = m_originalImage;
+        cv::Mat fullPreview = m_originalImage.clone();
         preview.copyTo(fullPreview(targetRoi)); // fullPreview(targetRoi) = preview;
 
         cv::Mat mask;

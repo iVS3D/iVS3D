@@ -434,19 +434,18 @@ void Controller::slot_editCrop()
             em->show();
             return;
         }
-
-        QRect roi = params->getRoi().cropAsQRect(params->getOriginalResolution());
-        CropExport dialog = CropExport(m_mainWindow, img, roi);
+        Resolution imgResolution(*img);
+        QRect roiRect = params->getRoi().cropAsQRect(imgResolution);
+        CropExport dialog = CropExport(m_mainWindow, img, roiRect);
 
         if (dialog.exec() == QDialog::Accepted) {
-            roi = dialog.getROI();
+            roiRect = dialog.getROI();
             //Don't update roi, if no roi has been drawn
-            if (roi.size() != QSize(1,1)) {
-                ROI nRoi(roi, params->getOriginalResolution());
-                bool valid = params->setRoi(nRoi);
+            if (roiRect.size() != QSize(1,1)) {
+                ROI newROI(roiRect, imgResolution);
+                bool valid = params->setRoi(newROI);
                 params->setUseRoi(valid);
                 m_mainWindow->getInputWidget()->setCropStatus(valid);
-                m_mainWindow->getVideoPlayer()->updateRoi(valid? roi : QRect());
                 m_videoPlayerController->slot_mipChanged();
             }
         }
@@ -458,8 +457,6 @@ void Controller::slot_useCropChanged(int checkstate)
     if(m_dataManager->getModelInputPictures()) {
         std::shared_ptr<ReaderParams> params = m_dataManager->getModelInputPictures()->getReaderParams();
         params->setUseRoi(checkstate != Qt::Unchecked);
-        QRect roi = params->getRoi().cropAsQRect(params->getOriginalResolution());
-        m_mainWindow->getVideoPlayer()->updateRoi(params->getUseRoi()? roi : QRect());
         m_videoPlayerController->slot_mipChanged();
     }
 }

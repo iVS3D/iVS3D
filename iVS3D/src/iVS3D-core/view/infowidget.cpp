@@ -17,8 +17,16 @@ InfoWidget::InfoWidget(QWidget *parent, QString title, ColorTheme theme) :
     // open folder / video / meta data buttons
     ui->setupUi(this);
     ui->toolButton_folder->setIcon(QIcon(theme == DARK ? ":/icons/openFolderIconW" : ":/icons/openFolderIconB"));
+    ui->toolButton_folder->setToolButtonStyle(Qt::ToolButtonStyle::ToolButtonTextBesideIcon);
+    ui->toolButton_folder->setText(tr(" load images"));
+
     ui->toolButton_video->setIcon( QIcon(theme == DARK ? ":/icons/openVideoIconW"  : ":/icons/openVideoIconB"));
+    ui->toolButton_video->setToolButtonStyle(Qt::ToolButtonStyle::ToolButtonTextBesideIcon);
+    ui->toolButton_video->setText(tr(" load video"));
+
     ui->toolButton_meta->setIcon( QIcon(theme == DARK ? ":/icons/openMetaIconW"  : ":/icons/openMetaIconB"));
+    ui->toolButton_meta->setToolButtonStyle(Qt::ToolButtonStyle::ToolButtonTextBesideIcon);
+    ui->toolButton_meta->setText(tr(" load meta data"));
     ui->toolButton_meta->setEnabled(false);
 
     // resolution, altitude, crop settings
