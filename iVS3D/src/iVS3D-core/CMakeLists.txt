@@ -25,13 +25,6 @@ file(GLOB_RECURSE UI_FILES
     "${CMAKE_CURRENT_LIST_DIR}/*.ui"
 )
 
-# remove ots files on windows
-if(WIN32)
-    list(FILTER HEADER_FILES EXCLUDE REGEX "ots(.)*h")
-    list(FILTER SRC_FILES EXCLUDE REGEX "ots(.)*cpp")
-    list(FILTER UI_FILES EXCLUDE REGEX "ots(.)*ui")
-endif()
-
 # set include directories
 include_directories(SYSTEM
     ${Qt${QT_VERSION_MAJOR}Core_INCLUDE_DIRS}
@@ -52,11 +45,9 @@ qt5_add_resources(QRC_SRC_FILES
     "${CMAKE_CURRENT_LIST_DIR}/darkstyle.qrc"
     "${CMAKE_CURRENT_LIST_DIR}/resources.qrc"
 )
-if (UNIX)
-    qt5_add_resources(QRC_SRC_FILES 
-        "${CMAKE_CURRENT_LIST_DIR}/lib3D_ots.qrc"
-    )
-endif()
+qt5_add_resources(QRC_SRC_FILES
+    "${CMAKE_CURRENT_LIST_DIR}/lib3D_ots.qrc"
+)
 
 # set compiled translation files (.qm)
 set(QM_FILES
@@ -117,12 +108,6 @@ add_dependencies(${TARGET_NAME}
 install(TARGETS ${TARGET_NAME} 
     DESTINATION bin
 )
-if(WIN32)
-    install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/copy_to_install_dir/ 
-        DESTINATION bin/colmap
-        FILES_MATCHING PATTERN "*"
-    )
-endif()
 
 if(Update_Translations)
     # if Update_Translations flag is set to ON, we want to override existing .ts files with new Strings from the src files.

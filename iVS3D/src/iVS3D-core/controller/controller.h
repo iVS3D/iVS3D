@@ -24,9 +24,7 @@
 #include "controller/videoplayercontroller.h"
 #include "controller/automaticcontroller.h"
 
-#if defined(Q_OS_LINUX)
-    #include "colmapwrapper.h"
-#endif
+#include "colmapwrapper.h"
 
 #include "plugin/algorithmmanager.h"
 #include "plugin/transformmanager.h"
@@ -172,11 +170,9 @@ private:
     DataManager* m_dataManager;
     OpenExecutor *m_openExec;
     ProgressDialog *m_inputProgressDialog = nullptr;
-    #if defined(Q_OS_LINUX)
-        lib3d::ots::ColmapWrapper *m_colmapWrapper;
-        QAction *m_colmapWrapperSettingsAction;
-        QPushButton *m_newProductPushButton;
-    #endif
+    lib3d::ots::ColmapWrapper *m_colmapWrapper;
+    QAction *m_colmapWrapperSettingsAction;
+    QPushButton *m_newProductPushButton;
     bool m_exporting = false;
     //Prevents multiple drag and drops at the same time
     bool m_isImporting = false;

@@ -37,6 +37,11 @@ NewProductDialog::NewProductDialog(ColmapWrapper *ipWrapper, QWidget *parent)
             this,
             &NewProductDialog::onPbSelectImageDirectoryClicked);
 
+
+    connect(ui->cb_customCommand,
+            &QCheckBox::clicked,
+            this,
+            &NewProductDialog::onCustomCommandClicked);
     connect(ui->cb_prodCameraPoses,
             &QCheckBox::clicked,
             this,
@@ -73,6 +78,33 @@ NewProductDialog::NewProductDialog(ColmapWrapper *ipWrapper, QWidget *parent)
 NewProductDialog::~NewProductDialog()
 {
     delete ui;
+}
+
+
+//==================================================================================================
+void NewProductDialog::onCustomCommandClicked()
+{
+    if (ui->cb_customCommand->isChecked()) {
+        // TODO
+        ui->cb_prodCameraPoses->setEnabled(false);
+        ui->cb_prodCameraPoses->setChecked(false);
+        ui->cb_prodPointCloud->setEnabled(false);
+        ui->cb_prodPointCloud->setChecked(false);
+        ui->cb_prodMesh->setEnabled(false);
+        ui->cb_prodMesh->setChecked(false);
+        ui->cob_customCommand->setEnabled(true);
+        enableSaveButtonState();
+    } else {
+        ui->buttonBox->button(QDialogButtonBox::Save)->setEnabled(false);
+        ui->cb_prodCameraPoses->setEnabled(true);
+        ui->cb_prodPointCloud->setEnabled(true);
+        ui->cob_customCommand->setEnabled(false);
+
+    }
+
+
+
+    updateSettingsVisibility();
 }
 
 //==================================================================================================
@@ -162,10 +194,14 @@ void NewProductDialog::onPbSelectImageDirectoryClicked()
 
 //==================================================================================================
 void NewProductDialog::updateSettingsVisibility()
-{
+{    
     ui->gb_settingsCamPoses->setVisible(ui->cb_prodCameraPoses->isChecked());
     ui->gb_settingsPointCloud->setVisible(ui->cb_prodPointCloud->isChecked());
-    ui->gb_settingsMesh->setVisible(ui->cb_prodMesh->isChecked());
+    ui->gb_settingsMesh->setVisible(ui->cb_prodMesh->isChecked());    
+
+    ui->gb_settingsCamPoses->setVisible(ui->cb_customCommand->isChecked());
+    ui->gb_settingsPointCloud->setVisible(ui->cb_customCommand->isChecked());
+    ui->gb_settingsMesh->setVisible(ui->cb_customCommand->isChecked());
 
     //  ui->gb_settingsMesh->setVisible(ui->cb_prodMesh->isChecked());
 }
@@ -193,13 +229,13 @@ void NewProductDialog::onAccepted()
     QString genericDirPath = "%1/" + ui->le_sequenceName->text() + ".images";
     QString displayDirPath, importDirPath;
     if (mpColmapWrapper->connectionType() == ColmapWrapper::SSH) {
-        displayDirPath = genericDirPath.arg(
-            QUrl(mpColmapWrapper->remoteWorkspacePath()).toString(QUrl::StripTrailingSlash));
-        importDirPath = genericDirPath.arg(
-            QUrl(mpColmapWrapper->mntPntRemoteWorkspacePath()).toString(QUrl::StripTrailingSlash));
+        displayDirPath = QDir::toNativeSeparators(genericDirPath.arg(
+            mpColmapWrapper->remoteWorkspacePath()));
+        importDirPath = QDir::toNativeSeparators(genericDirPath.arg(
+            mpColmapWrapper->mntPntRemoteWorkspacePath()));
     } else {
-        displayDirPath = genericDirPath.arg(
-            QUrl(mpColmapWrapper->localWorkspacePath()).toString(QUrl::StripTrailingSlash));
+        displayDirPath = QDir::toNativeSeparators(genericDirPath.arg(
+            mpColmapWrapper->localWorkspacePath()));
         importDirPath = displayDirPath;
     }
 
@@ -238,7 +274,7 @@ void NewProductDialog::onAccepted()
                                      imgFiles.size(),
                                      this);
             progress.setWindowModality(Qt::WindowModal);
-
+            progress.show();
             bool isCanceled = false;
             for (int i = 0; i < imgFiles.size(); i++) {
                 progress.setValue(i);
@@ -247,14 +283,14 @@ void NewProductDialog::onAccepted()
                 if (progress.wasCanceled()) {
                     //--- remove already copied files
                     for (int j = i - 1; j >= 0; --j)
-                        QFile::remove(importDirPath + QDir::separator() + imgFiles[j]);
+                        QFile::remove(QDir::toNativeSeparators(importDirPath + QDir::separator() + imgFiles[j]));
 
                     isCanceled = true;
                     break;
                 }
                 // copy does not overwrite existing, so should be very perfomant if files already exist
-                QFile::copy(srcDirPath + QDir::separator() + imgFiles[i],
-                            importDirPath + QDir::separator() + imgFiles[i]);
+                QFile::copy(QDir::toNativeSeparators(srcDirPath + QDir::separator() + imgFiles[i]),
+                            QDir::toNativeSeparators(importDirPath + QDir::separator() + imgFiles[i]));
             }
             progress.setValue(imgFiles.size());
 
@@ -277,9 +313,17 @@ void NewProductDialog::onAccepted()
     //--- create job to estimate camera poses if applicable
     if (ui->cb_prodCameraPoses->isChecked()) {
         ColmapWrapper::SJob camParamsJob = createJob(ColmapWrapper::CAMERA_POSES);
+        camParamsJob.displayName = "Camera poses";
+
+        QString image_path = ui->le_imagePath->text();
+
+        if (mpColmapWrapper->connectionType() == ColmapWrapper::SSH) {
+            image_path = QDir::fromNativeSeparators(image_path);
+        }
+
         camParamsJob.parameters.insert(
             std::pair<std::string, std::string>("image_path",
-                                                ui->le_imagePath->text().toStdString()));
+                                                image_path.toStdString()));
         camParamsJob.parameters.insert(
             std::pair<std::string, std::string>("camera_model",
                                                 COLMAP_CAM_MODELS[ui->cb_camModel->currentIndex()]));
@@ -318,6 +362,8 @@ void NewProductDialog::onAccepted()
     if (ui->cb_prodPointCloud->isChecked()) {
         ColmapWrapper::SJob pointCloudJob = createJob(ColmapWrapper::DENSE_CLOUD);
 
+        pointCloudJob.displayName = "Dense point cloud";
+
         pointCloudJob.parameters.insert(
             std::pair<std::string, std::string>("cache_size",
                                                 std::to_string(ui->sb_cacheSize->value())));
@@ -334,6 +380,8 @@ void NewProductDialog::onAccepted()
     if (ui->cb_prodMesh->isChecked()) {
         ColmapWrapper::SJob meshJob = createJob(ColmapWrapper::MESHED_MODEL);
 
+        meshJob.displayName = "Meshed model";
+
         meshJob.parameters.insert(
             std::pair<std::string, std::string>("quality", std::to_string(quality)));
 
@@ -343,6 +391,63 @@ void NewProductDialog::onAccepted()
 
         mNewJobList.push_back(meshJob);
     }
+
+
+    if(ui->cb_customCommand->isChecked()){
+        ColmapWrapper::SJob customCommandJob = createJob(ColmapWrapper::CUSTOM_COMMAND);
+
+        QString image_path = ui->le_imagePath->text();
+
+        if (mpColmapWrapper->connectionType() == ColmapWrapper::SSH) {
+            image_path = QDir::fromNativeSeparators(image_path);
+        }
+
+        customCommandJob.parameters.insert(
+            std::pair<std::string, std::string>("custom_command",
+                                                mpColmapWrapper->customCommands().at(ui->cob_customCommand->currentIndex()).second.toStdString()));
+
+        customCommandJob.displayName = mpColmapWrapper->customCommands().at(ui->cob_customCommand->currentIndex()).first.toStdString();
+
+        customCommandJob.parameters.insert(
+            std::pair<std::string, std::string>("image_path",
+                                                image_path.toStdString()));
+        customCommandJob.parameters.insert(
+            std::pair<std::string, std::string>("camera_model",
+                                                COLMAP_CAM_MODELS[ui->cb_camModel->currentIndex()]));
+        customCommandJob.parameters.insert(
+            std::pair<std::string, std::string>("single_camera",
+                                                ui->cb_singleCam->isChecked() ? "1" : "0"));
+
+        customCommandJob.parameters.insert(
+            std::pair<std::string, std::string>("camera_params",
+                                                ui->le_intrinsicParameters->text().toStdString()));
+        customCommandJob.parameters.insert(std::pair<std::string, std::string>("multiple_models", "1"));
+        customCommandJob.parameters.insert(std::pair<std::string, std::string>(
+            "gpus", ui->le_poseGpus->text().replace(",", "_").toStdString()));
+
+        customCommandJob.parameters.insert(
+            std::pair<std::string, std::string>("max_focal_length_ratio",
+                                                ui->cb_highFocalLength->isChecked() ? "1000"
+                                                                                    : "10"));
+        customCommandJob.parameters.insert(
+            std::pair<std::string, std::string>("robust_mode",
+                                                std::to_string(ui->cb_useRobustMode->isChecked())));
+
+        customCommandJob.parameters.insert(
+            std::pair<std::string, std::string>("quality", std::to_string(quality)));
+
+        customCommandJob.parameters.insert(
+            std::pair<std::string, std::string>("max_threads",
+                                                ui->le_maxThreads->text().toStdString()));
+
+        customCommandJob.parameters.insert(
+            std::pair<std::string, std::string>("cache_size",
+                                                std::to_string(ui->sb_cacheSize->value())));
+
+        mNewJobList.push_back(customCommandJob);
+
+    }
+
 }
 
 //==================================================================================================
@@ -368,6 +473,13 @@ void NewProductDialog::onShow()
     ui->cb_prodPointCloud->setEnabled(true);
     ui->cb_useRobustMode->setChecked(mpColmapWrapper->useRobustMode());
     ui->cb_prodMesh->setChecked(false);
+    ui->cb_customCommand->setChecked(false);
+    ui->cob_customCommand->setEnabled(false);
+    ui->cob_customCommand->clear();
+
+    for(auto pair: mpColmapWrapper->customCommands())
+        ui->cob_customCommand->addItem(pair.first);
+
     if (mpColmapWrapper->connectionType() == ColmapWrapper::LOCAL) {
         ui->cb_prodMesh->setEnabled(mpColmapWrapper->localOpenMVSBinPath() != "");
     } else {
@@ -394,6 +506,11 @@ void NewProductDialog::onShow()
             QString::fromStdString(mpColmapWrapper->getLocalPresetSequence().imagePath));
     }
 
+
+    ui->cb_customCommand->setVisible(mpColmapWrapper->customCommands().size()!=0);
+    ui->cob_customCommand->setVisible(mpColmapWrapper->customCommands().size()!=0);
+
+
     validateImagePath();
     validateSequenceName();
 }
@@ -412,9 +529,11 @@ void NewProductDialog::enableSaveButtonState()
     if(mpColmapWrapper->areChecksDisabled())
         isEnabled &= (ui->cb_prodCameraPoses->isChecked() 
                         || ui->cb_prodPointCloud->isChecked()
-                        || ui->cb_prodMesh->isChecked());
+                        || ui->cb_prodMesh->isChecked()
+                        || ui->cb_customCommand->isChecked());
     else
-        isEnabled &= ui->cb_prodCameraPoses->isChecked();
+        isEnabled &= (ui->cb_prodCameraPoses->isChecked()
+                        || ui->cb_customCommand->isChecked());
 
     ui->buttonBox->button(QDialogButtonBox::Save)
         ->setEnabled(isEnabled);

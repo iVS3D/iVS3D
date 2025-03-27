@@ -98,7 +98,8 @@ class ColmapWrapper : public QObject
     enum EProductType {
       CAMERA_POSES = 0, /**< Camera poses / Sparse point cloud */
       DENSE_CLOUD,      /**< Dense point cloud */
-      MESHED_MODEL      /**< Meshed 3D model */
+      MESHED_MODEL,      /**< Meshed 3D model */
+      CUSTOM_COMMAND  /**< Custom Command */
     };
 
     enum ESetupTestResult {
@@ -118,6 +119,8 @@ class ColmapWrapper : public QObject
 
         /// Name of sequence to which the job / product is assiciated.
         std::string sequenceName;
+
+        std::string displayName;
 
         /// Product type that is computed by this job.
         EProductType product;
@@ -209,6 +212,9 @@ class ColmapWrapper : public QObject
 
         /// User on remote server.
         QString remoteUsr;
+
+        /// Custom command for 3d reconstruction
+        QList<QPair<QString, QString>> customCommands;
 
         /// Interval of background synchronization between server and client
         int syncInterval;
@@ -316,6 +322,11 @@ class ColmapWrapper : public QObject
      * @brief Returns path to mount point of remote workspace on local machine.
      */
     QString mntPntRemoteWorkspacePath() const;
+
+    /**
+     * @brief Returns custom command
+     */
+    QList<QPair<QString, QString>> customCommands() const;
 
     /**
      * @brief Returns type of connection to COLMAP.
@@ -478,6 +489,11 @@ class ColmapWrapper : public QObject
     void setUseRobustMode(bool useRobustMode);
 
     /**
+     * @brief Set the custom command.
+     */
+    void setCustomCommands(QList<QPair<QString, QString>> customCommands);
+
+    /**
      * @brief Mount remote workspace into path specified with setMntPntRemoteWorkspacePath().
      */
     int mountRemoteWorkspace();
@@ -621,6 +637,11 @@ class ColmapWrapper : public QObject
     void clearWorkerStateFile();
 
     /**
+     * @brief Return the first file with a wildcard suffix.
+     */
+    QString getFirstMatchingFileNameWithWildcard(const QString& path, QString baseName) const;
+
+    /**
      * @brief Read work queue from file (colmap_work_queue.yaml) in workspace.
      */
     void readWorkQueueFromFile();
@@ -714,6 +735,9 @@ class ColmapWrapper : public QObject
 
     /// flag wether to use robust mode
     bool mUseRobustMode;
+
+    /// input field for custom commands
+    QList<QPair<QString, QString>> mCustomCommands;
 
     /// Pointer to temporary directory.
     QTemporaryDir* mpTempDir;

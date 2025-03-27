@@ -1,74 +1,36 @@
 #include "exportcontroller.h"
 
-#if defined(Q_OS_LINUX)
-    ExportController::ExportController(OutputWidget *outputWidget, DataManager *dataManager, lib3d::ots::ColmapWrapper *colmap)
-    {
 
-        m_exportExec = nullptr;
-        m_reconstructDialog = nullptr;
-        m_currentExports.clear();
+ExportController::ExportController(OutputWidget *outputWidget, DataManager *dataManager, lib3d::ots::ColmapWrapper *colmap)
+{
 
-        m_outputWidget = outputWidget;
-        m_dataManager = dataManager;
-        m_colmap = colmap;
+    m_exportExec = nullptr;
+    m_reconstructDialog = nullptr;
+    m_currentExports.clear();
 
-        connect(m_outputWidget, &OutputWidget::sig_reconstruct, this, &ExportController::slot_reconstruct);
-        connect(m_outputWidget, &OutputWidget::sig_export, this, &ExportController::slot_export);
-        connect(m_outputWidget, &OutputWidget::sig_pathChanged, this, &ExportController::slot_outputPathChanged);
+    m_outputWidget = outputWidget;
+    m_dataManager = dataManager;
+    m_colmap = colmap;
 
-        connect(m_dataManager->getModelInputPictures(), &ModelInputPictures::sig_mipChanged, this, &ExportController::slot_onKeyframesChanged);
+    connect(m_outputWidget, &OutputWidget::sig_reconstruct, this, &ExportController::slot_reconstruct);
+    connect(m_outputWidget, &OutputWidget::sig_export, this, &ExportController::slot_export);
+    connect(m_outputWidget, &OutputWidget::sig_pathChanged, this, &ExportController::slot_outputPathChanged);
 
-        m_outputWidget->setEnabled(true);
+    connect(m_dataManager->getModelInputPictures(), &ModelInputPictures::sig_mipChanged, this, &ExportController::slot_onKeyframesChanged);
 
+    m_outputWidget->setEnabled(true);
 
-        // set standard (input) path
-        m_path = m_dataManager->getModelInputPictures()->getPath();
-        if(!m_dataManager->getModelInputPictures()->getReader()->isDir()){
-            QStringList pathList = m_path.split("/");
-            pathList.removeLast();
-            m_path = pathList.join("/");
-        }
-        m_path += "/export";
-        m_outputWidget->setOutputPath(m_path);
-
-        m_outputWidget->enableReconstruct(false);
-
-
+    // set standard (input) path
+    m_path = m_dataManager->getModelInputPictures()->getPath();
+    if(!m_dataManager->getModelInputPictures()->getReader()->isDir()){
+        QStringList pathList = m_path.split("/");
+        pathList.removeLast();
+        m_path = pathList.join("/");
     }
-#elif defined(Q_OS_WIN)
-    ExportController::ExportController(OutputWidget *outputWidget, DataManager *dataManager)
-    {
-
-        m_exportExec = nullptr;
-        m_reconstructDialog = nullptr;
-        m_currentExports.clear();
-
-        m_outputWidget = outputWidget;
-        m_dataManager = dataManager;
-
-        connect(m_outputWidget, &OutputWidget::sig_reconstruct, this, &ExportController::slot_reconstruct);
-        connect(m_outputWidget, &OutputWidget::sig_export, this, &ExportController::slot_export);
-        connect(m_outputWidget, &OutputWidget::sig_pathChanged, this, &ExportController::slot_outputPathChanged);
-
-        connect(m_dataManager->getModelInputPictures(), &ModelInputPictures::sig_mipChanged, this, &ExportController::slot_onKeyframesChanged);
-
-        m_outputWidget->setEnabled(true);
-
-        // set standard (input) path
-        m_path = m_dataManager->getModelInputPictures()->getPath();
-        if(!m_dataManager->getModelInputPictures()->getReader()->isDir()){
-            QStringList pathList = m_path.split("/");
-            pathList.removeLast();
-            m_path = pathList.join("/");
-        }
-        m_path += "/export";
-        m_outputWidget->setOutputPath(m_path);
-
-        m_outputWidget->enableReconstruct(false);
-
-
-    }
-#endif
+    m_path += "/export";
+    m_outputWidget->setOutputPath(m_path);
+    m_outputWidget->enableReconstruct(false);
+}
 
 ExportController::~ExportController()
 {
@@ -345,9 +307,7 @@ void ExportController::slot_exportFinished(int result)
 
     //Save current exportPath and name
     m_currentExports.insert(m_path.split("/").last(), m_path);
-    #if defined(Q_OS_LINUX)
-        m_colmap->setLocalPresetSequence(m_path.split("/").last(), m_path + "/images");
-    #endif
+    m_colmap->setLocalPresetSequence(m_path.split("/").last(), m_path + "/images");
     emit sig_exportFinished(getOutputSettings());
 }
 
@@ -365,206 +325,6 @@ void ExportController::slot_nextImageOnPlayer(uint idx)
 {
     m_imageOnPlayerId = idx;
 }
-
-#if defined(Q_OS_WIN)
-bool ExportController::startReconstruct()
-{
-    //get data from GUI
-    ApplicationSettings as = ApplicationSettings::instance();
-    QMap<QString, QString> reconstructtools = as.getReconstructPath();
-    QString executablePath = reconstructtools.take(m_reconstructDialog->getReconstructtool());
-    QString exportName = m_reconstructDialog->getExportName();
-    QString startargs = m_reconstructDialog->getStartArguments();
-    bool createProject = m_reconstructDialog->getCreateProject();
-
-
-
-    //make reconstructdir String
-    //this path leads to the reconstruct executable (colmap.bat)
-    QStringList extractWorkDir = executablePath.split("/");
-    extractWorkDir.removeLast();
-    QString reconstructdir;
-    for (int i = 0; i < extractWorkDir.length(); i++) {
-        reconstructdir.append(extractWorkDir[i]);
-        if (i < extractWorkDir.length() - 1) {
-            reconstructdir.append("/");
-        }
-    }
-
-    //exportpath creation
-    //this path leads to the selected export
-
-    QString exportPath = m_currentExports.find(exportName).value();
-    QStringList exportDirList = exportPath.split("/");
-    QString exportDir = "";
-    for (int i = 0; i < exportDirList.length() - 1; i++) {
-        exportDir.append(exportDirList[i]);
-        if (i < exportDirList.length() - 2) {
-            exportDir.append("/");
-        }
-    }
-
-    //get Itransforms and create maskPath
-    QStringList iTransformNames = TransformManager::instance().getTransformList();
-    std::vector<ITransform*> iTransformCopies;
-    QString maskPath = exportPath;
-    //mask path in project.ini file (for COLMAP) is set for the first iTransform that has a masks folder
-    bool maskPathIsSet = false;
-    std::vector<bool> iTransformUsed = m_outputWidget->getSelectedITransformMasks();
-    if (iTransformUsed.size() != iTransformNames.length()) {
-        //this shouldn't happen
-        qDebug () << "start reconstruct failed, because .getTransformList() and getSelectedITransformMasks() didn't return Lists with the same size";
-    }
-    for (uint i = 0; i < unsigned(iTransformNames.length()); ++i) {
-        if (!iTransformUsed[i]) {
-            continue;
-        }
-        iTransformCopies.push_back(TransformManager::instance().getTransform(i)->copy());
-        maskPath = exportPath;
-        maskPath.append("/").append(iTransformCopies[i]->getName());
-        QStringList iTransformOutputNames = iTransformCopies[i]->getOutputNames();
-        for (int j = 0; j < iTransformOutputNames.length(); ++j) {
-            QString maskCheck = iTransformOutputNames[j];
-            if (!maskPathIsSet && maskCheck.replace("masks", "").isEmpty()) {
-                maskPath.append("/").append(iTransformOutputNames[j]);
-                maskPathIsSet = true;
-            }
-        }
-    }
-
-    //project file creation
-    QString projectiniPath = "";
-    if (createProject) {
-        QString databasePath = exportDir + "/database.db";
-        QString imagesPath = exportPath;
-        projectiniPath = exportDir + "/" + exportName + "-project.ini";
-        QString defaultFilePath = QCoreApplication::applicationDirPath() + "/colmap";
-
-        //database Copy
-        if (!createDatabaseFile(defaultFilePath + "/defaultdatabase.db", databasePath)) {
-            qDebug() << "can't continue, Failed to copy database";
-            return false;
-        }
-
-        //project Copy
-        QMap<QString, QString> settingsmap;
-        settingsmap.insert("image_path", imagesPath);
-        settingsmap.insert("database_path", databasePath);
-        if (maskPathIsSet) {
-            settingsmap.insert("mask_path", maskPath);
-        }
-        if (!createProjectFile(defaultFilePath + "/defaultproject.ini", projectiniPath, settingsmap)) {
-            qDebug() << "can't continue, Failed to create projectfile";
-            return false;
-        }
-    }
-
-    //boolean for whether it starts colmap gui or explorer
-    bool colmapGUI = false;
-    if (startargs.contains("gui", Qt::CaseSensitive)) {
-        colmapGUI = true;
-    }
-
-    //boolean for whether it starts colmap automatic reconstruction
-    bool autoreconstruct = false;
-    if (startargs.contains("automatic_reconstructor", Qt::CaseSensitive)) {
-        autoreconstruct = true;
-    }
-
-    //cmd.exe startarg
-    QString cmdargs = "";
-    if (executablePath.contains(".bat", Qt::CaseSensitive) || executablePath.contains(".exe", Qt::CaseSensitive)) {
-        //executable is a batch or executable file
-
-        //start args for cmd
-        //approach with "cd C:/.." command first and then "colmap --startargs .. --project_path .."
-        cmdargs.append("/K \"cd " + reconstructdir);
-        cmdargs.append("&&colmap ");
-
-        cmdargs.append(startargs);
-
-        if (createProject) {
-            cmdargs.append(" --project_path ");
-            cmdargs.append(projectiniPath);
-        }
-
-        if (autoreconstruct) {
-            cmdargs.append(" --workspace_path ");
-            cmdargs.append(exportDir);
-            cmdargs.append(" --image_path ");
-            cmdargs.append(exportDir + "/images");
-        }
-
-        cmdargs.append("\"");
-
-        executablePath = "cmd.exe " + cmdargs;
-
-        //cmd shortcut plus batch file creation
-        QString batchStartargs = startargs;
-        if (createProject && colmapGUI) {
-            batchStartargs.append(" --project_path ");
-            batchStartargs.append(projectiniPath);
-        }
-        if (autoreconstruct) {
-            batchStartargs.append(" --workspace_path ");
-            batchStartargs.append(exportDir);
-            batchStartargs.append(" --image_path ");
-            QString imagespath = exportDir;
-            imagespath.append("/images");
-            batchStartargs.append(imagespath);
-        }
-        if (!createShortcutplusBatch(reconstructdir, batchStartargs, exportDir)) {
-            //creation of shortcut and or batchfile failed
-            qDebug() << "creation of shortcut and or batchfile failed";
-        }
-
-    }
-    else {
-        //executable is not a .bat nor .exe file
-        qDebug() << "executable is neither a .exe nor a .bat file";
-        emit sig_hasStatusMessage("executable is neither a .exe nor a .bat file!");
-        return false;
-    }
-
-
-    QString debugargs = cmdargs;
-
-    //starts process
-    QProcess reconstructProcess;
-    if (colmapGUI) {
-        if (/*reconstructProcess.startDetached(executablePath)*/QProcess::startDetached(executablePath, QStringList(""))) {
-            emit sig_hasStatusMessage("start of Reconstruction Software successful");
-            return true;
-        }
-        else {
-            qDebug() << "Couldn't start colmap gui process!";
-            emit sig_hasStatusMessage("failed to start Reconstruction Software!");
-        }
-    }
-    else {
-
-        QStringList exportDirectoryList = exportDir.split("/");
-        QString exportDirReverse = "";
-        for (int i = 0; i < exportDirectoryList.length(); i++) {
-            exportDirReverse.append(exportDirectoryList[i]);
-            if (i < exportDirectoryList.length() - 1) {
-                exportDirReverse.append("\\");
-            }
-        }
-        if (reconstructProcess.startDetached("explorer.exe " + exportDirReverse)) {
-            emit sig_hasStatusMessage(tr("start of explorer successful"));
-            return true;
-        }
-        else {
-            qDebug() << "Couldn't start explorer process!";
-            emit sig_hasStatusMessage(tr("failed to start Reconstruction Software!"));
-        }
-    }
-
-    return false;
-}
-
-#elif defined(Q_OS_LINUX)
 
 bool ExportController::startReconstruct()
 {
@@ -653,7 +413,6 @@ bool ExportController::startReconstruct()
         return true;
     }
 }
-#endif
 
 void ExportController::deleteExportFolder(QString path)
 {

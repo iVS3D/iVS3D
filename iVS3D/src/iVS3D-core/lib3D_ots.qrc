@@ -71,9 +71,11 @@
         <file>assets/icons/glyphicons-37-file@3x-dark.png</file>
         <file>assets/icons/glyphicons-37-file-dark.png</file>
         <file>ots/colmapwrapper/localBootstrapper.sh</file>
+        <file>ots/colmapwrapper/localBootstrapper.bat</file>
         <file>ots/colmapwrapper/colmap_worker_state.yaml</file>
         <file>ots/colmapwrapper/colmap_work_queue.yaml</file>
         <file>ots/colmapwrapper/remoteBootstrapper.sh</file>
+        <file>ots/colmapwrapper/remoteBootstrapper.bat</file>
         <file>ots/colmapwrapper/ColmapWorkerScript/ColmapWorker.py</file>
         <file>ots/colmapwrapper/ColmapWorkerScript/GpsEntry.py</file>
         <file>ots/colmapwrapper/ColmapWorkerScript/ellipsoid.py</file>

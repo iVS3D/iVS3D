@@ -12,11 +12,6 @@ ExportWidget::ExportWidget(QWidget *parent, QStringList transformList) :
         m_checkboxes.push_back(cb);
         ui->verticalLayout_transforms->addWidget(cb);
     }
-#if defined(Q_OS_WIN)
-    m_reconstructBtn = new QPushButton(tr("reconstruct"));
-    ui->horizontalLayout->addWidget(m_reconstructBtn);
-    connect(m_reconstructBtn, &QPushButton::clicked, this, &ExportWidget::on_pushButton_reconstruct_clicked);
-#endif
 }
 
 ExportWidget::~ExportWidget()
@@ -47,11 +42,9 @@ void ExportWidget::enableExportPathEditable(bool enabled)
 
 void ExportWidget::enableReconstruct(bool enabled)
 {
-#if defined(Q_OS_WIN)
-    m_reconstructBtn->setEnabled(enabled);
-#else
+
     (void)enabled;
-#endif
+
 }
 
 std::vector<bool> ExportWidget::getSelectedITransforms()

@@ -5,6 +5,7 @@
 #include <QObject>
 #include <QDialog>
 #include <QLineEdit>
+#include <QTableWidgetItem>
 
 #include "../colmapwrapper.h"
 #include "applicationsettings.h"
@@ -50,6 +51,9 @@ class SettingsDialog : public QDialog
     void onAccepted();
     void onCancel();
     void onRestoreDefaults();
+    void onAddCustomCommand();
+    void onRemoveCustomCommand(int row);
+    void onClickonExperimental();
 
   private:
     Ui::SettingsDialog *ui;
@@ -61,6 +65,11 @@ class SettingsDialog : public QDialog
 
     void settingsChanged();
     void updateStatusMsg(const QPair<ColmapWrapper::ESetupTestResult,QString> &test, QLineEdit *input = nullptr);
+    void loadCustomCommands();
+    void updateRemoveButtonCallbacks();
+    void addEmptyRow();
+
+
 
 };
 

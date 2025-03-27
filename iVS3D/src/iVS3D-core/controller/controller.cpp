@@ -3,9 +3,7 @@
 
 
 Controller::Controller(QString inputPath, QString settingsPath, QString outputPath, QString logPath)
-    #if defined(Q_OS_LINUX)
         : m_colmapWrapper(new lib3d::ots::ColmapWrapper)
-    #endif
 {
     m_videoPlayerController = nullptr;
     m_algorithmController = nullptr;
@@ -24,7 +22,6 @@ Controller::Controller(QString inputPath, QString settingsPath, QString outputPa
     QLocale selectedLocale = ApplicationSettings::instance().getLocale();
 
     QWidget *otsWidget = nullptr;
-#if defined(Q_OS_LINUX)
     const auto otsTheme = ApplicationSettings::instance().getColorTheme() == ColorTheme::DARK ? lib3d::ots::ui::ETheme::DARK : lib3d::ots::ui::ETheme::LIGHT;
 
     m_colmapWrapper->setChecksDisabled(ApplicationSettings::instance().getDisableChecks());
@@ -36,7 +33,6 @@ Controller::Controller(QString inputPath, QString settingsPath, QString outputPa
     m_newProductPushButton = m_colmapWrapper->getOrCreateUiControlsFactory()->createNewProductPushButton(otsTheme, nullptr);
     otsWidget->layout()->addWidget(m_newProductPushButton);
 
-#endif
     bool interpolateMetaData = ApplicationSettings::instance().getInterpolateMetaData();
     m_mainWindow = new MainWindow(
                 nullptr,
@@ -55,12 +51,10 @@ Controller::Controller(QString inputPath, QString settingsPath, QString outputPa
     m_mainWindow->enableRedo(false);
     m_mainWindow->enableTools(false);
 
-#if defined(Q_OS_LINUX)
     m_colmapWrapperSettingsAction = m_colmapWrapper->getOrCreateUiControlsFactory()->createSettingsAction(otsTheme, nullptr);
     m_mainWindow->addSettingsAction(m_colmapWrapperSettingsAction);
 
     m_colmapWrapper->getOrCreateUiControlsFactory()->updateIconTheme(otsTheme);
-#endif
 
     if(AlgorithmManager::instance().getAlgorithmCount() + TransformManager::instance().getTransformCount() >0){
         displayPluginSettings();
@@ -98,9 +92,7 @@ Controller::Controller(QString inputPath, QString settingsPath, QString outputPa
     connect(infoWidget, &InfoWidget::sig_useCropChanged, this, &Controller::slot_useCropChanged);
     connect(infoWidget, &InfoWidget::sig_altitudeChanged, this, &Controller::slot_altitudeChanged);
 
-#if defined(Q_OS_LINUX)
     connect(m_mainWindow, &MainWindow::sig_quit, m_colmapWrapper->getOrCreateUiControlsFactory(), &lib3d::ots::ui::ColmapWrapperControlsFactory::onQuit);
-#endif
     connect(m_mainWindow, &MainWindow::sig_changeInterpolateMetaData, this, &Controller::slot_changeInterpolateMetaData);
 
     connect(this, &Controller::sig_hasStatusMessage, m_mainWindow, &MainWindow::slot_displayStatusMessage);
@@ -134,9 +126,7 @@ Controller::Controller(QString inputPath, QString settingsPath, QString outputPa
 
 Controller::~Controller()
 {
-    #if defined(Q_OS_LINUX)
-        delete m_colmapWrapper;
-    #endif
+    delete m_colmapWrapper;
     TransformManager::instance().exit();
 }
 
@@ -284,13 +274,11 @@ void Controller::slot_toggleColorTheme()
     }
     m_mainWindow->setColorTheme(ApplicationSettings::instance().getColorTheme());
 
-#ifdef Q_OS_LINUX
     const auto otsTheme = ApplicationSettings::instance().getColorTheme() == ColorTheme::DARK ? lib3d::ots::ui::ETheme::DARK : lib3d::ots::ui::ETheme::LIGHT;
     m_colmapWrapper->getOrCreateUiControlsFactory()->updateIconTheme(otsTheme);
     // update icons of settings action and new product button
     m_colmapWrapper->getOrCreateUiControlsFactory()->createSettingsAction(otsTheme, m_mainWindow, m_colmapWrapperSettingsAction);
     m_colmapWrapper->getOrCreateUiControlsFactory()->createNewProductPushButton(otsTheme, m_mainWindow, m_newProductPushButton);
-#endif
     // notify the plugins next!
 }
 
@@ -733,11 +721,8 @@ void Controller::onSuccessfulOpen()
     connect(m_algorithmController, &AlgorithmController::sig_stopPlay, m_videoPlayerController, &VideoPlayerController::slot_stopPlay);
 
     // ExportController manages algorithm used widget and reconstruct widget and delegates export of images and 3d-reconstruction
-    #if defined(Q_OS_LINUX)
-        m_exportController = new ExportController(m_mainWindow->getOutputWidget(), m_dataManager, m_colmapWrapper);
-    #elif defined(Q_OS_WIN)
-        m_exportController = new ExportController(m_mainWindow->getOutputWidget(), m_dataManager);
-    #endif
+    m_exportController = new ExportController(m_mainWindow->getOutputWidget(), m_dataManager, m_colmapWrapper);
+
     connect(m_exportController, &ExportController::sig_hasStatusMessage, m_mainWindow, &MainWindow::slot_displayStatusMessage);
     connect(m_exportController, &ExportController::sig_stopPlay, m_videoPlayerController, &VideoPlayerController::slot_stopPlay);
     connect(m_exportController, &ExportController::sig_exportStarted, this, &Controller::slot_exportStarted);

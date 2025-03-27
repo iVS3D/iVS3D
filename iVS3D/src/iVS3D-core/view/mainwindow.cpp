@@ -25,10 +25,6 @@ MainWindow::MainWindow(QWidget *parent, ColorTheme theme, int cuda, bool createL
 {
     ui->setupUi(this);
 
-#if defined(Q_OS_WIN)
-    addSettingsAction(ui->actionSet_Reconstructiontool_Path);
-#endif
-
     // --- create GUI Elements VideoPlayer, Timeline and Info-Widgets with Buttons
     // --- for sampling and export of images or 3d-reconstruction
 

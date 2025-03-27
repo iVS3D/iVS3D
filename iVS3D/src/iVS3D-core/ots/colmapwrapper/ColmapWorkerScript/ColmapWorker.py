@@ -43,8 +43,9 @@ class OpenCvYamlDumper(yaml.Dumper):
 #---------------------------------------------------------------------------------------------------------------------
 # Class representing specific job
 class Job:
-    def __init__(self, sequenceName: str, productType: str, jobState: str, progress: str, parameterList: dict) -> None:
+    def __init__(self, sequenceName: str, displayName:str, productType: str, jobState: str, progress: str, parameterList: dict) -> None:
         self.sequenceName = sequenceName
+        self.displayName = displayName
         self.productType = productType
         self.jobState = jobState
         self.progress  = progress
@@ -56,7 +57,7 @@ class Job:
             self.progress, self.parameterList))
 
     def getProductTypeStr(self) -> str:
-        productNames = ['CAMERA_POSES', 'DENSE_CLOUD', 'MESHED_MODEL']
+        productNames = ['CAMERA_POSES', 'DENSE_CLOUD', 'MESHED_MODEL', 'CUSTOM_COMMAND']
         return productNames[int(self.productType)]
 
     def getJobStateStr(self) -> str:
@@ -143,14 +144,15 @@ def copytree(src, dst, symlinks=False, ignore=None, copy_function=shutil.copy2,
                      dirs_exist_ok=dirs_exist_ok)
 
 
-def poll_process_and_scan_logs(p, scan_function = None):
+def poll_process_and_scan_logs(p, scan_function = None, progress_key_word=None):
     while p.poll() is None:
         output = p.stdout.readline()
         updateHeartBeat()
         try:
             if output != b"":
                 line = output.strip().decode("utf-8")
-                print(line)
+                if progress_key_word is None or progress_key_word not in line:
+                    print(line)
                 if scan_function != None:
                     scan_function(line)
         except Exception as e:            
@@ -286,6 +288,56 @@ def init_eta_calculation():
         
     return get_eta_after_step
 
+
+def computeCustomCommandJob(colmapDatabaseFilePath: str, projectImageDir: str, colmapProjectDirPath: str, projectOutputDirPath: str, sequenceName: str, parameterList: dict) -> bool:
+    print("processing custom command job", str(currentJob))
+
+    try:
+        custom_command = parameterList['custom_command']
+        if custom_command is None or custom_command =="":
+            raise Exception("Empty custom command")
+
+        print(' Processing CUSTOM COMMAND '+str(custom_command)+' ...')
+
+        progressCallback(0)
+
+        gpus = parameterList['gpus'].replace("_",",")
+        # quality 0 - 3 lower is faster
+        quality = parameterList['quality']
+        camModel = parameterList['camera_model']
+
+        def scan_function(line):
+            # Scanning custom command stdout for progress
+            if "iVS3D_PROGRESS" in line:               
+                _, progress, step, eta = line.split(" ")                
+                progressCallback(int(progress), eta=int(eta), step=int(step), force_Write = True)
+
+        args = ["python3", 
+            "-u",
+            custom_command, 
+            projectImageDir, 
+            colmapProjectDirPath,
+            projectOutputDirPath,
+            "--quality", quality,
+            "--gpus", gpus,
+            "--camera_model", camModel]  
+
+        print(" ".join(args))
+    
+        p = subprocess.Popen(args, stdout=subprocess.PIPE)             
+            
+        poll_process_and_scan_logs(p, scan_function, progress_key_word="iVS3D_PROGRESS")
+
+
+        # Check the return code
+        if p.returncode != 0:
+            return False
+    
+    except Exception as ex:
+        print(ex,  traceback.format_exc())
+        return False
+
+    return True
 
 ######################################################################################################################
 # Compute camera poses for given parameter list.
@@ -946,6 +998,21 @@ def listImgFiles(dirPath: str) -> list:
 
     return imgFileList
 
+
+######################################################################################################################
+# Get all files using the filepath and the wildcard operator
+# Return the last modified one
+def get_first_file_with_wildcard(yamlFilePath):
+    yamlFilePath_wildcard = None
+    yamlFilePath_wildcard_list = glob.glob(yamlFilePath+"*")
+    yamlFilePath_wildcard_list = [x for x in yamlFilePath_wildcard_list if not ".lock_worker" in x]
+    if len(yamlFilePath_wildcard_list) == 0:
+        yamlFilePath_wildcard = yamlFilePath
+    else:
+        yamlFilePath_wildcard = max(yamlFilePath_wildcard_list, key=os.path.getmtime)
+
+    return yamlFilePath_wildcard
+
 ######################################################################################################################
 # Load yml file
 # Returns: object of yaml file
@@ -963,7 +1030,9 @@ def loadYaml_raw(yamlFilePath: str):
     # create lock file
     Path(yamlLockFilePath).touch()
 
-    with open(yamlFilePath, 'r') as iStream:
+    yamlFilePath_wildcard = get_first_file_with_wildcard(yamlFilePath)
+
+    with open(yamlFilePath_wildcard, 'r') as iStream:
         data = iStream.read()
         try:
             yamlObj = yaml.load(data[len(OPENCV_YAML_HEADER):], Loader=yaml.BaseLoader) # handle opencv header
@@ -1002,7 +1071,15 @@ def writeYaml_raw(yamlFilePath: str, yamlObj):
     try:
         # create lock file    
         Path(yamlLockFilePath).touch()
-        with open(yamlFilePath, 'w') as oStream:
+        
+        # clear all files
+        yamlFilePath_wildcard_list = glob.glob(yamlFilePath+"*")    
+        yamlFilePath_wildcard_list = [x for x in yamlFilePath_wildcard_list if not ".lock_worker" in x]
+ 
+        for file in yamlFilePath_wildcard_list:
+            os.remove(file)
+
+        with open(yamlFilePath+str(time.time()), 'w') as oStream:
             oStream.write(OPENCV_YAML_HEADER)  # handle opencv header
             yaml.dump(yamlObj, oStream, Dumper=OpenCvYamlDumper)
     
@@ -1057,8 +1134,16 @@ def processJob(workspacePath: str, currentJob: Job) -> bool:
     projectOutputDirPath = os.path.join(workspacePath , currentJob.sequenceName + ".output")
     createFolderForSequence(colmapDatabaseFilePath, projectImageDir, colmapProjectDirPath, projectOutputDirPath)
 
+
+    if( currentJob.getProductTypeStr() == 'CUSTOM_COMMAND'):
+        # process custom job
+        success = computeCustomCommandJob(colmapDatabaseFilePath, projectImageDir, colmapProjectDirPath, projectOutputDirPath, currentJob.sequenceName, currentJob.parameterList)
+
+        if( not success ):
+            return False
+
     # if current product type of job is CAMERA_POSES handle creation of project
-    if( currentJob.getProductTypeStr() == 'CAMERA_POSES' ):
+    elif( currentJob.getProductTypeStr() == 'CAMERA_POSES' ):
 
         if os.path.exists(colmapDatabaseFilePath):
             os.remove(colmapDatabaseFilePath)          
@@ -1110,8 +1195,6 @@ def processJob(workspacePath: str, currentJob: Job) -> bool:
         if( not success ):
             return False
 
-    # end if, else currentJob.getProductTypeStr == 'CAMERA_POSES'
-
     return True
 
 ######################################################################################################################
@@ -1123,12 +1206,12 @@ def popFirstJobFromQueue(yamlFilePath: str) -> Job:
     print("-- Reading job from list ...")
     yamlObj = loadYaml(yamlFilePath)
     if( yamlObj == 0 ):
-        return False, Job("",-1,-1,-1,"")
+        return False, Job("","",-1,-1,-1,"")
 
     # check if there is a job in list. Return false if not.
     if( len(yamlObj["queue"]) == 0):
         print("No job in list.")
-        return False, Job("",-1,-1,-1,"")
+        return False, Job("","",-1,-1,-1,"")
 
     yamlJobEntry = None
     # read and delete job
@@ -1144,12 +1227,12 @@ def popFirstJobFromQueue(yamlFilePath: str) -> Job:
         break
 
     if yamlJobEntry is None:
-        return False, Job("",-1,-1,-1,"")
+        return False, Job("","",-1,-1,-1,"")
 
     # write current job to state file
     writeCurrentJobToStateFile(WORKER_STATE_YAML_PATH, yamlJobEntry)
 
-    job = Job(yamlJobEntry["sequenceName"], yamlJobEntry["productType"], yamlJobEntry["jobState"], yamlJobEntry["progress"], yamlJobEntry["parameters"])
+    job = Job(yamlJobEntry["sequenceName"], yamlJobEntry["displayName"], yamlJobEntry["productType"], yamlJobEntry["jobState"], yamlJobEntry["progress"], yamlJobEntry["parameters"])
     print("Current Job: {}".format(job))
 
     # write modified yamlObj back to file
@@ -1328,11 +1411,11 @@ if __name__ == "__main__":
         print('ERROR: {} does not exist!').format(COLMAP_BIN)
         sys.exit()
 
-    if not os.path.exists(WORKER_STATE_YAML_PATH):
+    if not os.path.exists(get_first_file_with_wildcard(WORKER_STATE_YAML_PATH)):
         print('ERROR: {} does not exist!').format(WORKER_STATE_YAML_PATH)
         sys.exit()
 
-    if not os.path.exists(WORK_QUEUE_YAML_PATH):
+    if not os.path.exists(get_first_file_with_wildcard(WORK_QUEUE_YAML_PATH)):
         print('ERROR: {} does not exist!').format(WORK_QUEUE_YAML_PATH)
         sys.exit()
 

@@ -17,6 +17,18 @@ SettingsDialog::SettingsDialog(ColmapWrapper *ipWrapper, QWidget *parent)
     ui->setupUi(this);
     this->setWindowTitle(QObject::tr("COLMAP Wrapper Settings"));
 
+    // Set up the custom commands table
+    ui->tw_customCommands->setColumnCount(3);
+    ui->tw_customCommands->setHorizontalHeaderLabels(QStringList() << "Name" << "Command" << "");
+
+    ui->tw_customCommands->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
+    ui->tw_customCommands->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
+    ui->tw_customCommands->horizontalHeader()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
+
+    // Load existing custom commands
+    loadCustomCommands();
+
+
     //--- connect ui elements to slots
     connect(ui->pb_localColmapBinary,
             &QPushButton::clicked,
@@ -44,7 +56,7 @@ SettingsDialog::SettingsDialog(ColmapWrapper *ipWrapper, QWidget *parent)
           this, &SettingsDialog::onUnmountPushButtonPressed);
   connect(ui->pb_installScript, &QPushButton::clicked,
            this, &SettingsDialog::onInstallScriptsPushButtonPressed);*/
-    connect(ui->buttonBox->button(QDialogButtonBox::Apply),
+    connect(ui->buttonBox->button(QDialogButtonBox::Ok),
             &QPushButton::pressed,
             this,
             &SettingsDialog::onAccepted);
@@ -54,7 +66,11 @@ SettingsDialog::SettingsDialog(ColmapWrapper *ipWrapper, QWidget *parent)
             &SettingsDialog::onRestoreDefaults);
 
     connect(ui->buttonBox, &QDialogButtonBox::close, this, &SettingsDialog::onCancel);
-    ui->buttonBox->button(QDialogButtonBox::Apply)->setEnabled(false);
+    connect(ui->pb_addRow,             &QPushButton::clicked,
+            this,
+            &SettingsDialog::addEmptyRow);
+
+    connect(ui->cb_experimental, &QCheckBox::toggled, this, &SettingsDialog::onClickonExperimental);
 
   connect(mpColmapWrapper, &ColmapWrapper::setupStatusUpdate, this, &SettingsDialog::onStatusChanged);
   connect(ui->le_localWorkspace, &QLineEdit::textChanged, this, &SettingsDialog::settingsChanged);
@@ -79,6 +95,7 @@ SettingsDialog::SettingsDialog(ColmapWrapper *ipWrapper, QWidget *parent)
 
   //--- hide remote settings (default)
   ui->f_remote->setVisible(false);
+  ui->f_customCommand->setVisible(false);
   //updateStatusMsg();
 }
 
@@ -97,6 +114,87 @@ void SettingsDialog::onUpdateToLightTheme()
 {
   settingsChanged();
 }
+
+void SettingsDialog::onClickonExperimental(){
+    ui->f_customCommand->setVisible(ui->cb_experimental->isChecked());
+}
+
+void SettingsDialog::onAddCustomCommand()
+{
+    int rowCount = ui->tw_customCommands->rowCount();
+    ui->tw_customCommands->insertRow(rowCount);
+    ui->tw_customCommands->setItem(rowCount, 0, new QTableWidgetItem(""));
+    ui->tw_customCommands->setItem(rowCount, 1, new QTableWidgetItem(""));
+
+}
+
+
+void SettingsDialog::onRemoveCustomCommand(int row)
+{
+    ui->tw_customCommands->removeRow(row);
+    ui->tw_customCommands->update();
+
+    updateRemoveButtonCallbacks();
+}
+
+void SettingsDialog::updateRemoveButtonCallbacks()
+{
+    int rowCount = ui->tw_customCommands->rowCount();
+    for (int i = 0; i < rowCount - 1; ++i) {
+        QWidget *widget = ui->tw_customCommands->cellWidget(i, 2);
+        if (QPushButton *removeButton = qobject_cast<QPushButton*>(widget)) {
+            // Disconnect previous connections
+            removeButton->disconnect();
+
+            // Reconnect with the updated row index
+            connect(removeButton, &QPushButton::clicked, [this, i]() {
+                this->onRemoveCustomCommand(i);
+            });
+        }
+    }
+}
+
+void SettingsDialog::loadCustomCommands()
+{
+    QList<QPair<QString, QString>> customCommands = mpColmapWrapper->customCommands();
+
+    for(int i = 0; i< ui->tw_customCommands->rowCount();i++)
+        ui->tw_customCommands->removeRow(i);
+
+    ui->tw_customCommands->update();
+    ui->tw_customCommands->setRowCount(0);
+
+    for (QList<QPair<QString, QString>>::const_iterator it = customCommands.constBegin(); it != customCommands.constEnd(); ++it) {
+        int rowCount = ui->tw_customCommands->rowCount();
+        ui->tw_customCommands->insertRow(rowCount);
+
+        const QPair<QString, QString> &pair = *it;
+        ui->tw_customCommands->setItem(rowCount, 0, new QTableWidgetItem(pair.first));
+        ui->tw_customCommands->setItem(rowCount, 1, new QTableWidgetItem(pair.second));
+
+        QPushButton *removeButton = new QPushButton("Remove");
+        connect(removeButton, &QPushButton::clicked, [this, rowCount]() {
+            this->onRemoveCustomCommand(rowCount);
+        });
+        ui->tw_customCommands->setCellWidget(rowCount, 2, removeButton);
+    }
+
+}
+
+void SettingsDialog::addEmptyRow()
+{
+    int rowCount = ui->tw_customCommands->rowCount();
+    ui->tw_customCommands->insertRow(rowCount);
+    ui->tw_customCommands->setItem(rowCount, 0, new QTableWidgetItem(""));
+    ui->tw_customCommands->setItem(rowCount, 1, new QTableWidgetItem(""));
+
+    QPushButton *removeButton = new QPushButton("Remove");
+    connect(removeButton, &QPushButton::clicked, [this, rowCount]() {
+        this->onRemoveCustomCommand(rowCount);
+    });
+    ui->tw_customCommands->setCellWidget(rowCount, 2, removeButton);
+}
+
 
 //==================================================================================================
 void SettingsDialog::onLocalColmapBinaryPushButtonPressed()
@@ -220,6 +318,24 @@ void SettingsDialog::onAccepted()
     ui->l_error->setStyleSheet("QLabel { border : 1px solid orange; color : orange; }");
     this->repaint();
 
+    // Collect custom commands from the table
+    QList<QPair<QString, QString>> customCommands;
+    int rowCount = ui->tw_customCommands->rowCount();
+    for (int i = 0; i < rowCount; ++i) {
+        QTableWidgetItem *nameItem = ui->tw_customCommands->item(i, 0);
+        QTableWidgetItem *commandItem = ui->tw_customCommands->item(i, 1);
+        if (nameItem && commandItem) {
+            QString name = nameItem->text();
+            QString command = commandItem->text();
+            if (!name.trimmed().isEmpty() && !command.trimmed().isEmpty()) {
+                customCommands.append(QPair(name, command));
+            }
+        }
+    }
+
+
+
+
   ColmapWrapper::SSettings *settings = new ColmapWrapper::SSettings{
       ui->le_localColmapBinary->text(),
       ui->le_remoteColmapBinary->text(),
@@ -231,6 +347,7 @@ void SettingsDialog::onAccepted()
       static_cast<ColmapWrapper::EConnectionType>(ui->cb_connection->currentIndex()),
       ui->le_remoteAddr->text(),
       ui->le_remoteUsr->text(),
+      customCommands,
       ui->sb_syncInterval->value()
   };
   mSetupResults = ColmapWrapper::SSetupResults();
@@ -241,20 +358,19 @@ void SettingsDialog::onAccepted()
       return;
   }
 
+    mpColmapWrapper->setCustomCommands(customCommands);
+
+
   ui->l_error->setStyleSheet("QLabel { border : 1px solid green; color : green; }");
   ui->l_error->setText(tr("Setup successfull"));
   mpColmapWrapper->applySettings(settings);
   mpColmapWrapper->writeSettings();
-  ui->buttonBox->button(QDialogButtonBox::Apply)->setEnabled(false);
-  ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
   delete settings;
 }
 
 void SettingsDialog::onCancel()
 {
     mpColmapWrapper->readSettings();
-    ui->buttonBox->button(QDialogButtonBox::Apply)->setEnabled(false);
-    ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
 }
 
 void SettingsDialog::onRestoreDefaults()
@@ -270,17 +386,14 @@ void SettingsDialog::onRestoreDefaults()
     ui->le_remoteColmapBinary->setText(mpColmapWrapper->remoteColmapBinPath());
     ui->le_remoteOpenMVSBinaryFolder->setText(mpColmapWrapper->remoteOpenMVSBinPath());
     ui->le_remoteWorkspace->setText(mpColmapWrapper->remoteWorkspacePath());
-    ui->le_mntPnt->setText(mpColmapWrapper->mntPntRemoteWorkspacePath());
+    ui->le_mntPnt->setText(mpColmapWrapper->mntPntRemoteWorkspacePath());   
     ui->sb_syncInterval->setValue(mpColmapWrapper->syncInterval());
 
-    ui->buttonBox->button(QDialogButtonBox::Apply)->setEnabled(false);
-    ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
+    loadCustomCommands();
 }
 
 void SettingsDialog::settingsChanged()
 {
-    ui->buttonBox->button(QDialogButtonBox::Apply)->setEnabled(true);
-    ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
     ui->l_error->setStyleSheet("QLabel { border : none; }");
     ui->l_error->setText("");
     QString textColor = this->palette().text().color().name();
@@ -292,36 +405,8 @@ void SettingsDialog::settingsChanged()
     ui->le_mntPnt->setStyleSheet(css);
 }
 
-void SettingsDialog::updateStatusMsg(const QPair<ColmapWrapper::ESetupTestResult,QString> &test, QLineEdit *input)
-{
-    /*if(mpColmapWrapper->getSetupStatus() != ColmapWrapper::SETUP_OK) {
+void SettingsDialog::updateStatusMsg(const QPair<ColmapWrapper::ESetupTestResult,QString> &test, QLineEdit *input){
 
-        QString msg;
-        switch (mpColmapWrapper->getSetupStatus()) {
-        case ColmapWrapper::ERR_EXE:
-            msg = tr("colmap executabel was not found or is not executable");
-            break;
-        case ColmapWrapper::ERR_SSH:
-            msg = tr("ssh connection failed");
-            break;
-        case ColmapWrapper::ERR_PATH:
-            msg = tr("path to workspace or local mount point does not exist");
-            break;
-        case ColmapWrapper::ERR_MOUNT:
-            msg = tr("remote workspace was not mounted correctly");
-            break;
-        default:
-            msg = tr("unknown reason!");
-        }
-        ui->l_error->setStyleSheet("QLabel { border : 1px solid red; color : red; }");
-        ui->l_error->setText(tr("Setup failed: ") + msg);
-    } else {
-        ui->l_error->setStyleSheet("QLabel { border : 1px solid green; color : green; }");
-        ui->l_error->setText(tr("Setup successfull"));
-        mpColmapWrapper->writeSettings();
-        ui->buttonBox->button(QDialogButtonBox::Apply)->setEnabled(false);
-        ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
-    }*/
     if(test.first == ColmapWrapper::TEST_SUCCESSFUL){
         if(input) input->setStyleSheet("QLineEdit { color: green; }");
         return;
@@ -349,9 +434,7 @@ void SettingsDialog::onShow()
     ui->le_mntPnt->setText(mpColmapWrapper->mntPntRemoteWorkspacePath());
     ui->sb_syncInterval->setValue(mpColmapWrapper->syncInterval());
 
-    ui->buttonBox->button(QDialogButtonBox::Apply)->setEnabled(false);
-    ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
-
+    loadCustomCommands();
   //updateStatusMsg();
 }
 
