@@ -44,6 +44,10 @@ def poll_process_output(p):
         except Exception as e:            
             print("Failed to parse line!")
             traceback.print_exc()
+    
+    # Check the return code
+    if p.returncode != 0:
+        raise Exception("Command failed")
 
 
 def run_odm(input_dir, work_dir, output_dir, camera_model, quality, gpus):
@@ -88,7 +92,6 @@ def run_odm(input_dir, work_dir, output_dir, camera_model, quality, gpus):
     os.system("cp " + str(os.path.join(work_dir, "opensfm/reference_lla.json")) + " " + str(output_dir))
     os.system("cp " + str(os.path.join(work_dir, "opensfm/colmap_export/*.txt")) + " " + str(output_dir))
     os.system("cp " + str(os.path.join(work_dir, "opensfm/odm_report/report.pdf")) + " " + str(output_dir))
-
 
 def parseArguments():
     descriptionTxt='''\

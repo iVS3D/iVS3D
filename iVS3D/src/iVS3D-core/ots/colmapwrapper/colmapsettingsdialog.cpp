@@ -50,16 +50,10 @@ SettingsDialog::SettingsDialog(ColmapWrapper *ipWrapper, QWidget *parent)
             static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
             this,
             &SettingsDialog::onConnectionComboBoxIdxChanged);
-    /*  connect(ui->pb_mount, &QPushButton::clicked,
-          this, &SettingsDialog::onMountPushButtonPressed);
-  connect(ui->pb_unmount, &QPushButton::clicked,
-          this, &SettingsDialog::onUnmountPushButtonPressed);
-  connect(ui->pb_installScript, &QPushButton::clicked,
-           this, &SettingsDialog::onInstallScriptsPushButtonPressed);*/
-    connect(ui->buttonBox->button(QDialogButtonBox::Ok),
+    connect(ui->buttonBox->button(QDialogButtonBox::Apply),
             &QPushButton::pressed,
             this,
-            &SettingsDialog::onAccepted);
+            &SettingsDialog::onApply);
     connect(ui->buttonBox->button(QDialogButtonBox::RestoreDefaults),
             &QPushButton::pressed,
             this,
@@ -284,20 +278,6 @@ void SettingsDialog::onConnectionComboBoxIdxChanged(int currentIdx)
 }
 
 //==================================================================================================
-void SettingsDialog::onMountPushButtonPressed()
-{
-    mpColmapWrapper->setMntPntRemoteWorkspacePath(ui->le_mntPnt->text());
-    mpColmapWrapper->mountRemoteWorkspace();
-}
-
-//==================================================================================================
-void SettingsDialog::onUnmountPushButtonPressed()
-{
-    mpColmapWrapper->setMntPntRemoteWorkspacePath(ui->le_mntPnt->text());
-    mpColmapWrapper->unmountRemoteWorkspace();
-}
-
-//==================================================================================================
 void SettingsDialog::onInstallScriptsPushButtonPressed()
 {
     if (static_cast<ColmapWrapper::EConnectionType>(ui->cb_connection->currentIndex())
@@ -305,14 +285,13 @@ void SettingsDialog::onInstallScriptsPushButtonPressed()
         mpColmapWrapper->setLocalWorkspacePath(ui->le_localWorkspace->text());
     } else {
         mpColmapWrapper->setMntPntRemoteWorkspacePath(ui->le_mntPnt->text());
-        mpColmapWrapper->mountRemoteWorkspace();
     }
 
     mpColmapWrapper->installScriptFilesIntoWorkspace();
 }
 
 //==================================================================================================
-void SettingsDialog::onAccepted()
+void SettingsDialog::onApply()
 {
     ui->l_error->setText("Testing connection... this may take up to 10 seconds");
     ui->l_error->setStyleSheet("QLabel { border : 1px solid orange; color : orange; }");

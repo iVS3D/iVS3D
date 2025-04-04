@@ -312,22 +312,20 @@ def computeCustomCommandJob(colmapDatabaseFilePath: str, projectImageDir: str, c
                 _, progress, step, eta = line.split(" ")                
                 progressCallback(int(progress), eta=int(eta), step=int(step), force_Write = True)
 
-        args = ["python3", 
-            "-u",
-            custom_command, 
+        args = [custom_command, 
             projectImageDir, 
             colmapProjectDirPath,
             projectOutputDirPath,
             "--quality", quality,
             "--gpus", gpus,
             "--camera_model", camModel]  
-
-        print(" ".join(args))
+        
+        args = " ".join(args)
+        print(args)
     
-        p = subprocess.Popen(args, stdout=subprocess.PIPE)             
+        p = subprocess.Popen(args, shell=True, stdout=subprocess.PIPE)             
             
         poll_process_and_scan_logs(p, scan_function, progress_key_word="iVS3D_PROGRESS")
-
 
         # Check the return code
         if p.returncode != 0:

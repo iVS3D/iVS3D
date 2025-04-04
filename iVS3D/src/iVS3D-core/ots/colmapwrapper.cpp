@@ -29,12 +29,6 @@ static QString WORK_QUEUE_FILE_NAME = "colmap_work_queue.yaml";
 static QString WORKER_STATE_FILE_NAME = "colmap_worker_state.yaml";
 static QString IS_RUNNING_FILE_NAME = "_colmapRunning";
 
-static QString SYNC_CMD = "rsync";
-static QString SYNC_BASE_ARGS = "-avzuh";
-
-static QString MNT_CMD = "sshfs";
-static QString UMNT_CMD = "fusermount";
-
 //--- List of strings representing product type name
 static std::vector<QString> PRODUCT_TYPE_STR_LIST = {"CAMERA_POSES", "DENSE_CLOUD", "MESHED_MODEL", "CUSTOM_COMMAND"};
 
@@ -55,7 +49,6 @@ ColmapWrapper::ColmapWrapper(const QString iSettingsFile, const bool iSettingsOn
                            iSettingsFile),
       mpTempDir(nullptr),
       mpPyWorkerProcess(new QProcess()), mpMountProcess(new QProcess()),
-      mpSyncProcess(new QProcess()), mCheckWorkerTimer(), mWorkspaceStatus(IN_SYNC),
       mpUiControls(nullptr)
 {
     this->readSettings();
@@ -119,11 +112,6 @@ void ColmapWrapper::init()
     //--- check worker state file
     //--- initial sync and import of sequence is done at the end of checkRunningJobs
     bool runningJobChanged = checkWorkerState();
-
-    //--- if running job has not changed, i.e. currently no running job in state file, sync
-    //--- workspace from server.
-    if (!runningJobChanged && mConnectionType != LOCAL)
-        syncWorkspaceFromServer();
 
     mCheckWorkerTimer.start();
 }
@@ -707,7 +695,6 @@ void ColmapWrapper::readWorkerStateFromFile()
 
     /*
    * This reading access is needed to prevent opencv from crashing.
-   * Seems to be an error related to syncing lokal and remote workspace.
    */
     QFile f(inputFile);
     f.open(QIODevice::ReadOnly);
@@ -774,11 +761,6 @@ void ColmapWrapper::afterSettingsChanged()
     //--- check worker state file
     //--- initial sync and import of sequence is done at the end of checkRunningJobs
     bool runningJobChanged = checkWorkerState();
-
-    //--- if running job has not changed, i.e. currently no running job in state file, sync
-    //--- workspace from server.
-    if (!runningJobChanged && mConnectionType != LOCAL)
-        syncWorkspaceFromServer();
 }
 
 //==================================================================================================
@@ -953,12 +935,6 @@ bool ColmapWrapper::useRobustMode()
 }
 
 //==================================================================================================
-ColmapWrapper::EWorkspaceStatus ColmapWrapper::getWorkspaceStatus() const
-{
-    return mWorkspaceStatus;
-}
-
-//==================================================================================================
 std::vector<ColmapWrapper::SSequence> ColmapWrapper::getFinishedSequenceList() const
 {
     return mAvailableSequences;
@@ -1036,112 +1012,6 @@ bool ColmapWrapper::isRemoteWorkspaceMounted(QString iRemoteWorkspacePathMntPath
 }
 
 //==================================================================================================
-int ColmapWrapper::mountRemoteWorkspace()
-{
-
-    //--- if already mounted or path not set, return
-    if (isRemoteWorkspaceMounted(mMntPntRemoteWorkspacePath)
-        || mMntPntRemoteWorkspacePath.isEmpty()) {
-        qDebug() << "Info: Remote Workspace already mounted!";
-        return 0;
-    }
-
-    //--- construct temporary mount directory
-    QDir dir;
-    dir.mkpath(mMntPntRemoteWorkspacePath);
-
-    //--- construct arguments to synchronize from server to local workspace
-    QStringList args;
-    args << QString(mRemoteUsr + "@" + mRemoteAddr + ":" + mRemoteWorkspacePath)
-         << mMntPntRemoteWorkspacePath;
-
-    //--- write info to log file
-    qDebug() << "Cmd: " << MNT_CMD << args;
-
-    //--- call sync cmd
-    /*mpMountProcess->start(MNT_CMD, args);
-  mpMountProcess->waitForFinished();
-  qDebug() << mpMountProcess->exitCode();
-  QString stdOut = mpSyncProcess->readAllStandardOutput();
-  QString stdErr = mpSyncProcess->readAllStandardError();
-  if(!stdOut.isEmpty()) qDebug() << stdOut;
-  if(!stdErr.isEmpty()) qDebug() << stdErr;*/
-    int exitCode = QProcess::execute(MNT_CMD, args);
-    qDebug() << "Mount exit code: " << exitCode;
-    // if mounted successfully, install scripts if missing
-    if (exitCode == 0 && !hasScriptFilesInstalled()) {
-        qDebug() << "Installing script files";
-        installScriptFilesIntoWorkspace();
-    }
-    return exitCode;
-}
-
-//==================================================================================================
-void ColmapWrapper::unmountRemoteWorkspace()
-{
-
-    //--- if not mounted or path not set, return
-    if (!isRemoteWorkspaceMounted(mMntPntRemoteWorkspacePath)
-        || mMntPntRemoteWorkspacePath.isEmpty()) {
-        qDebug() << "Info: Remote Workspace is not mounted!";
-        return;
-    }
-
-    //--- construct arguments to synchronize from server to local workspace
-    QStringList args;
-    args << "-u" << mMntPntRemoteWorkspacePath
-        /*<< QString("&>> " + mSshLogFilePath)*/;
-
-    //--- write info to log file
-    qDebug() << "Cmd: " << UMNT_CMD << args;
-
-    //--- call sync cmd
-    mpMountProcess->start(UMNT_CMD, args);
-    mpMountProcess->waitForFinished();
-
-    QString stdOut = mpSyncProcess->readAllStandardOutput();
-    QString stdErr = mpSyncProcess->readAllStandardError();
-    if (!stdOut.isEmpty())
-        qDebug() << stdOut;
-    if (!stdErr.isEmpty())
-        qDebug() << stdErr;
-}
-
-//==================================================================================================
-void ColmapWrapper::syncWorkspaceFromServer()
-{
-
-    //--- return if connection type is local
-    if (mConnectionType == LOCAL) {
-        qDebug() << "Warning: Connection type is LOCAL!";
-        return;
-    }
-
-    //--- update workspace status
-    mWorkspaceStatus = SYNCING;
-    emit workspaceStatusUpdate();
-
-    //--- construct arguments to synchronize from server to local workspace
-    QStringList args;
-    args << SYNC_BASE_ARGS << "--delete" << mMntPntRemoteWorkspacePath + QDir::separator()
-         << mLocalWorkspacePath;
-
-    //--- write info to log file
-    qDebug() << "Cmd: " << SYNC_CMD << args;
-
-    //--- call sync cmd
-    mpSyncProcess->setParent(this);
-    mpSyncProcess->start(SYNC_CMD, args);
-
-    QString stdOut = mpSyncProcess->readAllStandardOutput();
-    QString stdErr = mpSyncProcess->readAllStandardError();
-    if (!stdOut.isEmpty())
-        qDebug() << stdOut;
-    if (!stdErr.isEmpty())
-        qDebug() << stdErr;
-}
-
-//==================================================================================================
 bool ColmapWrapper::checkWorkerState()
 {
 
@@ -1172,11 +1042,8 @@ bool ColmapWrapper::checkWorkerState()
     if (runningJobChanged) {
         qDebug() << "Info: Running Job has changed.";
 
-        if (mConnectionType != LOCAL)
-            syncWorkspaceFromServer();
     } else {
         qDebug() << "Info: Running Job unchanged.";
-        mWorkspaceStatus = IN_SYNC;
         emit workspaceStatusUpdate();
     }
 
@@ -1548,11 +1415,6 @@ void ColmapWrapper::startProcessing()
     file.seek(0);              // go to the beginning of the file
     file.write(text.toUtf8()); // write the new text back to the file
     file.close();              // close the file handle.
-
-    //--- call sync cmd
-    //  mpPyWorkerProcess->setParent(this);
-    //mpPyWorkerProcess->start(mpTempDir->path() + "/colmapbootstrapper.sh");
-
 
     QString x = QDir::toNativeSeparators(mpTempDir->path() + "/colmapbootstrapper"+scriptExtension);
     mpPyWorkerProcess->startDetached(x);

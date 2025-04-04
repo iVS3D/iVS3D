@@ -85,14 +85,6 @@ class ColmapWrapper : public QObject
     };
 
     /**
-     * @brief Enum holding states of workspace.
-     */
-    enum EWorkspaceStatus {
-      IN_SYNC = 0,    /**< Workspace is synchronized. */
-      SYNCING         /**< Workspace is currently being synchronized. */
-    };
-
-    /**
      * @brief Enum holding product types that can be processed with Agisoft Metashape.
      */
     enum EProductType {
@@ -494,21 +486,6 @@ class ColmapWrapper : public QObject
     void setCustomCommands(QList<QPair<QString, QString>> customCommands);
 
     /**
-     * @brief Mount remote workspace into path specified with setMntPntRemoteWorkspacePath().
-     */
-    int mountRemoteWorkspace();
-
-    /**
-     * @brief Unmount remote workspace.
-     */
-    void unmountRemoteWorkspace();
-
-    /**
-     * @brief Synchronize workspace from server to local machine.
-     */
-    void syncWorkspaceFromServer();
-
-    /**
      * @brief Method to check worker state.
      *
      * @return True if running Job has changed. False, otherwise.
@@ -583,11 +560,6 @@ class ColmapWrapper : public QObject
      * @brief Get state of worker.
      */
     EWorkerState getWorkerState() const;
-
-    /**
-     * @brief Get status of workspace.
-     */
-    EWorkspaceStatus getWorkspaceStatus() const;
 
     /**
      * @brief Get path of file for given product in sequence.
@@ -748,9 +720,6 @@ class ColmapWrapper : public QObject
     /// Process for mounting operations.
     QProcess* mpMountProcess;
 
-    /// Process for synchronization operations.
-    QProcess* mpSyncProcess;
-
     /// Timer object to chech worker file server and client
     QTimer mCheckWorkerTimer;
 
@@ -787,9 +756,6 @@ class ColmapWrapper : public QObject
 
     /// Interval of background synchronization between server and client
     int mSyncInterval;
-
-    /// Status of workspace
-    EWorkspaceStatus mWorkspaceStatus;
 
     /// List of available sequences
     std::vector<SSequence> mAvailableSequences;

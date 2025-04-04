@@ -45,10 +45,8 @@ class SettingsDialog : public QDialog
     void onLocalWorkspacePushButtonPressed();
     void onSelectMountPntPushButtonPressed();
     void onConnectionComboBoxIdxChanged(int idx);
-    void onMountPushButtonPressed();
-    void onUnmountPushButtonPressed();
     void onInstallScriptsPushButtonPressed();
-    void onAccepted();
+    void onApply();
     void onCancel();
     void onRestoreDefaults();
     void onAddCustomCommand();

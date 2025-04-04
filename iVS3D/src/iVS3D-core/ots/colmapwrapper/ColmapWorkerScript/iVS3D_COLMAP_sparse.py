@@ -22,8 +22,12 @@ def poll_process_output(p):
         except Exception as e:            
             print("Failed to parse line!")
             traceback.print_exc()
+            
+    # Check the return code
+    if p.returncode != 0:
+        raise Exception("Command failed")
 
-def create_sparse_with_COLMAP_ultra(input_dir, work_dir, output_dir, camera_model, quality, gpus):
+def create_sparse_with_COLMAP(input_dir, work_dir, output_dir, camera_model, quality, gpus):
 
     # path to colmap binary
     COLMAP_BIN = "colmap"
@@ -107,7 +111,7 @@ def create_sparse_with_COLMAP_ultra(input_dir, work_dir, output_dir, camera_mode
 
 def parseArguments():
     descriptionTxt='''\
-    Example for custom python command to control COLMAP + PGSR Gaussian Splatting.
+    Example for custom python command to control COLMAP.
     '''
 
     parser = argparse.ArgumentParser(description=descriptionTxt)
@@ -130,7 +134,7 @@ if __name__ == "__main__":
     work_dir = Path(args.work_dir)
     output_dir = Path(args.output_dir)
 
-    create_sparse_with_COLMAP_ultra(input_dir, work_dir, output_dir, args.camera_model, quality=args.quality, gpus=args.gpus)
+    create_sparse_with_COLMAP(input_dir, work_dir, output_dir, args.camera_model, quality=args.quality, gpus=args.gpus)
 
 
 
