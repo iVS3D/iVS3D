@@ -9,7 +9,7 @@ Reader_stub::Reader_stub(std::vector<uint> picOrder, std::vector<QString> picPat
 
 }
 
-cv::Mat Reader_stub::getPic(uint idx) {
+cv::Mat Reader_stub::getPic(uint idx, PictureProcessingFlags flags) {
     QMutexLocker locker(&m_mutex);
     int current = m_picOrder.at(idx);
     cv::Mat ret = cv::imread(m_picPaths.at(current).toStdString());
@@ -20,6 +20,6 @@ uint Reader_stub::getPicCount() {
     return m_picCount;
 }
 
-SequentialReader * Reader_stub::createSequentialReader(std::vector<uint> indices) {
+SequentialReader * Reader_stub::createSequentialReader(std::vector<uint> indices, PictureProcessingFlags flags) {
     return new SequentialReaderImpl(this, indices, false);
 }

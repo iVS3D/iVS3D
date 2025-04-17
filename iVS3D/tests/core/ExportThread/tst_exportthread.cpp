@@ -65,7 +65,6 @@ void tst_exportThread::init() {
     else {
         qDebug() << "m_mip is nullptr";
     }
-
     m_iTransformStub = new ITransform_stub();
 }
 
@@ -117,6 +116,11 @@ void tst_exportThread::initTestCase()
     m_testresourcePath = QString(TEST_RESOURCES);
     m_testVideoPath = m_testresourcePath + "/video.mp4";
     requireResource(m_testVideoPath);
+
+
+    //m_mip->getReaderParams()->setWorkingResolution(m_mip->getReaderParams()->getOriginalResolution());
+    //m_mip->getReaderParams()->setRoi(ROI());
+    //m_mip->getReaderParams()->setUseRoi(false);
 }
 
 void tst_exportThread::cleanupTestCase()
@@ -139,7 +143,7 @@ void tst_exportThread::test_exportVideo()
     volatile bool stopped = false;
     std::vector<ITransform*> transforms;
     auto prog = new Progressable();
-    ExportThread t(prog, m_mip, QPoint(200,400), m_exportPath, "MyTestExport", &stopped, QRect(0,0,0,0), transforms, new LogFile("test", false));
+    ExportThread t(prog, m_mip, m_exportPath, "MyTestExport", &stopped, transforms, new LogFile("test", false));
     t.start();
     while(!t.isFinished()){
         QTest::qWait(250);
@@ -163,7 +167,7 @@ void tst_exportThread::test_abortExportImmediately()
     volatile bool stopped = false;
     std::vector<ITransform*> transforms;
     auto prog = new Progressable();
-    ExportThread exportThread(prog, m_mip, QPoint(200,400), m_exportPath, "MyTestExport", &stopped, QRect(0,0,0,0),transforms, new LogFile("test", false));
+    ExportThread exportThread(prog, m_mip, m_exportPath, "MyTestExport", &stopped,transforms, new LogFile("test", false));
     exportThread.start();
     stopped = true;
     while (!exportThread.isFinished()) {
@@ -203,7 +207,7 @@ void tst_exportThread::test_exportCorrectImages()
         iTransformSubDirs.push_back(iTransformSubDir);
     }
     auto prog = new Progressable();
-    ExportThread exportThread(prog, m_mip, m_mip->getInputResolution(), m_exportPath, "MyTestExport", &stopped, QRect(0,0,0,0),transforms, new LogFile("test", false));
+    ExportThread exportThread(prog, m_mip, m_exportPath, "MyTestExport", &stopped,transforms, new LogFile("test", false));
     exportThread.start();
     qDebug () << "started exportthread, this needs some time.";
     while (!exportThread.isFinished()) {
@@ -227,7 +231,7 @@ void tst_exportThread::test_exportCorrectImages()
     std::vector<uint> keyframelist = m_mip->getAllKeyframes(false);
     for (uint i = 0; i < m_mip->getKeyframeCount(false); ++i) {
         cv::Mat mipPic = *m_mip->getPic(keyframelist[i]);
-        ImageList comparePic = m_iTransformStub->transform(0, mipPic);
+        ImageList comparePic = m_iTransformStub->transform(0, mipPic, m_mip->getReaderParams()->getWorkingResolution(), m_mip->getReaderParams()->getRoi());
         QVERIFY(comparePic.length() == iTransformOutputNames.length());
         for (int j = 0; j < iTransformOutputNames.length(); ++j) {
             //aquire images
@@ -262,6 +266,7 @@ void tst_exportThread::test_exportResolutionAndCrop()
 {
     QFETCH(QPoint, in_resolution);
     QFETCH(QRect, in_roi);
+    QFETCH(bool, in_useRoi);
     QFETCH(bool, in_withTransfrom);
     QFETCH(QPoint, out_resolution);
 
@@ -269,14 +274,20 @@ void tst_exportThread::test_exportResolutionAndCrop()
     std::sort(kfs.begin(), kfs.end());
     m_mip->setBoundaries(QPoint(0,m_mip->getPicCount()-1));
     m_mip->updateMIP(kfs);
+
+    m_mip->getReaderParams()->setWorkingResolution(Resolution(in_resolution));
+    m_mip->getReaderParams()->setRoi(ROI(in_roi, m_mip->getReaderParams()->getOriginalResolution()));
+    m_mip->getReaderParams()->setUseRoi(in_useRoi);
+
+    qDebug() << "m_mip setup done: " << m_mip->getReaderParams()->toText();
     volatile bool stopped = false;
     std::vector<ITransform*> transforms;
     if(in_withTransfrom){
         transforms.push_back(new ITransform_stub);
     }
     auto prog = new Progressable();
-    ExportThread t(prog, m_mip, in_resolution, m_exportPath, "MyTestExport", &stopped, in_roi, transforms, new LogFile("test", false));
-
+    ExportThread t(prog, m_mip, m_exportPath, "MyTestExport", &stopped, transforms, new LogFile("test", false));
+    qDebug() << "thread created";
     t.start();
     while(!t.isFinished()){
         QTest::qWait(250);
@@ -284,6 +295,7 @@ void tst_exportThread::test_exportResolutionAndCrop()
 
     QVERIFY(t.getResult() == 0);
     QVERIFY(t.isFinished());
+    qDebug() << "Thread finished";
 
     auto compareOutput = [=](QString path){
         QStringList imgs = QDir(path).entryList(QStringList("*.png"));
@@ -309,19 +321,20 @@ void tst_exportThread::test_exportResolutionAndCrop_data()
 {
     QTest::addColumn<QPoint>("in_resolution");
     QTest::addColumn<QRect>("in_roi");
+    QTest::addColumn<bool>("in_useRoi");
     QTest::addColumn<bool>("in_withTransfrom");
     QTest::addColumn<QPoint>("out_resolution");
 
-    // test id                  |   in_resolution       |   in_roi              | in_withTr | out_resolution
-    // -------------------------+-----------------------+-----------------------+-----------+-------
-    QTest::addRow("default")     << QPoint(1080,1920)   << QRect(0,0,0,0)       << false    << QPoint(1080,1920);
-    QTest::addRow("default+roi") << QPoint(1080,1920)   << QRect(20,20,300,300) << false    << QPoint(300,300);
-    QTest::addRow("res")         << QPoint(455,1000)    << QRect(0,0,0,0)       << false    << QPoint(455,1000);
-    QTest::addRow("res+roi")     << QPoint(540,960)     << QRect(250,250,540,960)<< false   << QPoint(270,480);
-    QTest::addRow("iTr_default")     << QPoint(1080,1920)   << QRect(0,0,0,0)       << true    << QPoint(1080,1920);
-    QTest::addRow("iTr_default+roi") << QPoint(1080,1920)   << QRect(20,20,300,300) << true    << QPoint(300,300);
-    QTest::addRow("iTr_res")         << QPoint(455,1000)    << QRect(0,0,0,0)       << true    << QPoint(455,1000);
-    QTest::addRow("iTr_res+roi")     << QPoint(540,960)     << QRect(250,250,540,960)<< true   << QPoint(270,480);
+    // test id                       |   in_resolution       |   in_roi              | in_useRoi  | in_withTr | out_resolution
+    // ------------------------------+-----------------------+-----------------------+------------+-----------+----------------
+    QTest::addRow("default")         << QPoint(1080,1920)   << QRect(0,0,0,0)        << false    << false    << QPoint(1080,1920);
+    QTest::addRow("default+roi")     << QPoint(1080,1920)   << QRect(20,20,300,300)  << true     << false    << QPoint(300,300);
+    QTest::addRow("res")             << QPoint(455,1000)    << QRect(0,0,0,0)        << false    << false    << QPoint(455,1000);
+    QTest::addRow("res+roi")         << QPoint(540,960)     << QRect(250,250,540,960)<< true     << false    << QPoint(270,480);
+    QTest::addRow("iTr_default")     << QPoint(1080,1920)   << QRect(0,0,0,0)        << false    << true     << QPoint(1080,1920);
+    QTest::addRow("iTr_default+roi") << QPoint(1080,1920)   << QRect(20,20,300,300)  << true     << true     << QPoint(300,300);
+    QTest::addRow("iTr_res")         << QPoint(455,1000)    << QRect(0,0,0,0)        << false    << true     << QPoint(455,1000);
+    QTest::addRow("iTr_res+roi")     << QPoint(540,960)     << QRect(250,250,540,960)<< true     << true     << QPoint(270,480);
 }
 
 bool tst_exportThread::deleteImages(QString path)

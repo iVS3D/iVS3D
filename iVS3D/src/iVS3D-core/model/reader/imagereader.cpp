@@ -29,9 +29,21 @@ ImageReader::ImageReader(QString path, std::shared_ptr<ReaderParams> readerParam
     }
     m_numImages = static_cast<int>(m_filePaths.size());
     m_folderPath = path.toStdString();
-    if (m_numImages > 0) {
-        m_isValid = true;
+    if (m_numImages <= 0) {
+        m_isValid = false;
+        return;
     }
+
+    // validate the given readerParams, initialize if necessary!
+    Resolution res(cv::imread(m_filePaths.at(0)));
+    if (!(m_readerParams->getOriginalResolution() == res)) {
+        // The readerParams were initialized previously, but do not match the current input resolution!
+        // We just override it, but this should not happen, wrong usage?
+        Q_ASSERT(!m_readerParams->getOriginalResolution().isValid());
+        m_readerParams->initialize(res);
+    }
+
+    m_isValid = true;
 }
 
 cv::Mat ImageReader::getPic(unsigned int index, PictureProcessingFlags flags)

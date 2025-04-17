@@ -12,7 +12,22 @@ VideoReader::VideoReader(const QString &path, std::shared_ptr<ReaderParams> read
     m_numImages = prev.get(cv::CAP_PROP_FRAME_COUNT)-1;
     m_fps = prev.get(cv::CAP_PROP_FPS);
     m_cap = prev;
-    m_isValid = (m_numImages > 0);
+    if (m_numImages <= 0) {
+        m_isValid = false;
+        return;
+    }
+
+    // validate the given readerParams, initialize if necessary!
+    cv::Mat image;
+    m_cap.read(image);
+    m_cap.set(cv::CAP_PROP_POS_FRAMES, 0);
+    if (!(m_readerParams->getOriginalResolution() == Resolution(image))) {
+        // The readerParams were initialized previously, but do not match the current input resolution!
+        // We just override it, but this should not happen, wrong usage?
+        Q_ASSERT(!m_readerParams->getOriginalResolution().isValid());
+        m_readerParams->initialize(Resolution(image));
+    }
+    m_isValid = true;
 }
 
 VideoReader::~VideoReader()

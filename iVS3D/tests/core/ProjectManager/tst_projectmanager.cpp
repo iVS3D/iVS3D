@@ -121,7 +121,7 @@ void tst_projectmanager::test_saveProject()
     QStringList projectLines = data.split("\n");
 
     QVERIFY(0 == QString::compare(projectLines[3], "            \"testBufferName\": \"testValue\"", Qt::CaseSensitive));
-    QVERIFY(0 == QString::compare(projectLines[14], "    \"Project name\": \"test_saveProject\"", Qt::CaseSensitive));
+    QVERIFY(0 == QString::compare(projectLines[25], "    \"Project name\": \"test_saveProject\"", Qt::CaseSensitive));
 }
 
 void tst_projectmanager::test_createProject()
@@ -191,7 +191,7 @@ void tst_projectmanager::test_loadProject()
 
     QVERIFY(m_testMIP->getPicCount() == 61);
     QVERIFY(m_testMIP->getKeyframeCount(false) == 61);
-    QVERIFY(m_testMIP->getInputResolution() == QPoint(1080, 1920));
+    QVERIFY(m_testMIP->getReaderParams()->getOriginalResolution().toQPoint() == QPoint(1080, 1920));
 
     delete m_testMIP;
     m_testMIP = nullptr;

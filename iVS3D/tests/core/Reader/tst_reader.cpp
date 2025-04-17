@@ -26,6 +26,8 @@ private slots:
     void test_ReadNegativeIndex();
     void test_CopyImageReader();
     void test_CopyVideoReader();
+    void test_ReaderParams_Images();
+    void test_ReaderParams_Video();
 
 private:
     void compare(Reader* a, Reader* b);
@@ -69,10 +71,10 @@ void tst_reader::test_DeleteVideo()
     QFile* video = new QFile((m_resources + "/video.mp4"));
     video->copy(m_resources + "/v/video.mp4");
 
-    Reader* v = ReaderFactory::instance().createReader(m_resources + "/v/video.mp4");
+    std::shared_ptr<ReaderParams> params = std::make_shared<ReaderParams>();
+    Reader* v = ReaderFactory::instance().createReader(m_resources + "/v/video.mp4", params);
     cv::Mat before = v->getPic(0);
     currentDir->cd("v");
-
     bool deleted = currentDir->removeRecursively();
     cv::Mat after = v->getPic(0);
 
@@ -98,12 +100,13 @@ void tst_reader::test_DeleteImages()
     QString image = m_resources + "/image.png";
     QFile::copy(image, m_resources + "/i/image.png");
 
-    Reader* i = ReaderFactory::instance().createReader(m_resources + "/i");
-    cv::Mat before = i->getPic(0);
+    std::shared_ptr<ReaderParams> params = std::make_shared<ReaderParams>();
+    Reader* i = ReaderFactory::instance().createReader(m_resources + "/i", params);
+    cv::Mat before = i->getPic(0, Reader::APPLY_NONE);
     currentDir->cd("i");
 
     bool deleted = currentDir->removeRecursively();
-    cv::Mat after = i->getPic(0);
+    cv::Mat after = i->getPic(0, Reader::APPLY_NONE);
 
     if(after.empty() && deleted){
         // displaing black pics after input is deleted is acceptable behaviour
@@ -121,13 +124,15 @@ void tst_reader::test_DeleteImages()
 
 void tst_reader::test_EmptyFile()
 {
-    Reader* r = ReaderFactory::instance().createReader(m_resources + "/emptyFolder");
+    std::shared_ptr<ReaderParams> params = std::make_shared<ReaderParams>();
+    Reader* r = ReaderFactory::instance().createReader(m_resources + "/emptyFolder", params);
     QCOMPARE(r, nullptr);
 }
 
 void tst_reader::test_ReadOneToMany()
 {
-    Reader* v = ReaderFactory::instance().createReader(m_resources + "/video.mp4");
+    std::shared_ptr<ReaderParams> params_v = std::make_shared<ReaderParams>();
+    Reader* v = ReaderFactory::instance().createReader(m_resources + "/video.mp4", params_v);
     int toMuch = v->getPicCount() + 1;
     cv::Mat vIShouldBeEmpty = v->getPic(toMuch);
 
@@ -136,7 +141,8 @@ void tst_reader::test_ReadOneToMany()
     cv::compare(vIShouldBeEmpty, empty, equal, CV_HAL_CMP_EQ);
     QVERIFY(equal.empty());
 
-    Reader* i = ReaderFactory::instance().createReader(m_resources + "/BlurTest");
+    std::shared_ptr<ReaderParams> params_i = std::make_shared<ReaderParams>();
+    Reader* i = ReaderFactory::instance().createReader(m_resources + "/BlurTest", params_i);
     toMuch = i->getPicCount() + 1;
     cv::Mat iIShouldBeEmpty = i->getPic(toMuch);
 
@@ -148,7 +154,8 @@ void tst_reader::test_ReadOneToMany()
 
 void tst_reader::test_ReadWayToMany()
 {
-    Reader* v = ReaderFactory::instance().createReader(m_resources + "/video.mp4");
+    std::shared_ptr<ReaderParams> params_v = std::make_shared<ReaderParams>();
+    Reader* v = ReaderFactory::instance().createReader(m_resources + "/video.mp4", params_v);
     int toMuch = v->getPicCount() * 2;
     cv::Mat vIShouldBeEmpty = v->getPic(toMuch);
 
@@ -157,7 +164,8 @@ void tst_reader::test_ReadWayToMany()
     cv::compare(vIShouldBeEmpty, empty, equal, CV_HAL_CMP_EQ);
     QVERIFY(equal.empty());
 
-    Reader* i = ReaderFactory::instance().createReader(m_resources + "/BlurTest");
+    std::shared_ptr<ReaderParams> params_i = std::make_shared<ReaderParams>();
+    Reader* i = ReaderFactory::instance().createReader(m_resources + "/BlurTest", params_i);
     toMuch = i->getPicCount() * 2;
     cv::Mat iIShouldBeEmpty = i->getPic(toMuch);
 
@@ -169,7 +177,8 @@ void tst_reader::test_ReadWayToMany()
 
 void tst_reader::test_ReadNegativeIndex()
 {
-    Reader* v = ReaderFactory::instance().createReader(m_resources + "/video.mp4");
+    std::shared_ptr<ReaderParams> params_v = std::make_shared<ReaderParams>();
+    Reader* v = ReaderFactory::instance().createReader(m_resources + "/video.mp4", params_v);
     cv::Mat vIShouldBeEmpty = v->getPic(-1);
 
     cv::Mat empty;
@@ -177,7 +186,8 @@ void tst_reader::test_ReadNegativeIndex()
     cv::compare(vIShouldBeEmpty, empty, equal, CV_HAL_CMP_EQ);
     QVERIFY(equal.empty());
 
-    Reader* i = ReaderFactory::instance().createReader(m_resources + "/BlurTest");
+    std::shared_ptr<ReaderParams> params_i = std::make_shared<ReaderParams>();
+    Reader* i = ReaderFactory::instance().createReader(m_resources + "/BlurTest", params_i);
     cv::Mat iIShouldBeEmpty = i->getPic(-1);
 
     cv::Mat newequal;
@@ -188,7 +198,8 @@ void tst_reader::test_ReadNegativeIndex()
 
 void tst_reader::test_CopyImageReader()
 {
-    Reader* i = ReaderFactory::instance().createReader(m_resources + "/BlurTest");
+    std::shared_ptr<ReaderParams> params = std::make_shared<ReaderParams>();
+    Reader* i = ReaderFactory::instance().createReader(m_resources + "/BlurTest", params);
 
     Reader* copy = i->copy();
 
@@ -197,11 +208,34 @@ void tst_reader::test_CopyImageReader()
 
 void tst_reader::test_CopyVideoReader()
 {
-    Reader* v = ReaderFactory::instance().createReader(m_resources + "/video.mp4");
+    std::shared_ptr<ReaderParams> params = std::make_shared<ReaderParams>();
+    Reader* v = ReaderFactory::instance().createReader(m_resources + "/video.mp4", params);
 
     Reader* copy = v->copy();
 
     compare(v, copy);
+    delete v;
+}
+
+void tst_reader::test_ReaderParams_Images()
+{
+    std::shared_ptr<ReaderParams> params = std::make_shared<ReaderParams>();
+    Reader* i = ReaderFactory::instance().createReader(m_resources + "/BlurTest", params);
+    QCOMPARE(params->getOriginalResolution(), Resolution(640,428));
+    QCOMPARE(params->getWorkingResolution(), Resolution(640,428));
+    QVERIFY(params->getRoi().isDefault());
+    QVERIFY(!params->getUseRoi());
+    delete i;
+}
+
+void tst_reader::test_ReaderParams_Video()
+{
+    std::shared_ptr<ReaderParams> params = std::make_shared<ReaderParams>();
+    Reader* v = ReaderFactory::instance().createReader(m_resources + "/video.mp4", params);
+    QCOMPARE(params->getOriginalResolution(), Resolution(1080,1920));
+    QCOMPARE(params->getWorkingResolution(), Resolution(1080,1920));
+    QVERIFY(params->getRoi().isDefault());
+    QVERIFY(!params->getUseRoi());
     delete v;
 }
 

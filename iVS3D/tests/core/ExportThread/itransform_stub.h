@@ -19,7 +19,7 @@ public:
     QString getName() const ;
     QStringList getOutputNames();
     ITransform *copy() {throw "not implemented";}
-    ImageList transform(uint idx, const cv::Mat &img);
+    ImageList transform(uint idx, const cv::Mat &img, const Resolution &resolution, const ROI &roi);
     void enableCuda(bool) {throw "not implemented";}
     void setSettings(QMap<QString, QVariant>) {throw "not implemented";}
     QMap<QString, QVariant> getSettings() {throw "not implemented";}
