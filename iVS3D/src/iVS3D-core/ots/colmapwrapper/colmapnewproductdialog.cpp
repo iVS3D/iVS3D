@@ -194,16 +194,10 @@ void NewProductDialog::onPbSelectImageDirectoryClicked()
 
 //==================================================================================================
 void NewProductDialog::updateSettingsVisibility()
-{    
-    ui->gb_settingsCamPoses->setVisible(ui->cb_prodCameraPoses->isChecked());
-    ui->gb_settingsPointCloud->setVisible(ui->cb_prodPointCloud->isChecked());
-    ui->gb_settingsMesh->setVisible(ui->cb_prodMesh->isChecked());    
-
-    ui->gb_settingsCamPoses->setVisible(ui->cb_customCommand->isChecked());
-    ui->gb_settingsPointCloud->setVisible(ui->cb_customCommand->isChecked());
-    ui->gb_settingsMesh->setVisible(ui->cb_customCommand->isChecked());
-
-    //  ui->gb_settingsMesh->setVisible(ui->cb_prodMesh->isChecked());
+{
+    ui->gb_settingsCamPoses->setVisible(ui->cb_prodCameraPoses->isChecked() || ui->cb_customCommand->isChecked());
+    ui->gb_settingsPointCloud->setVisible(ui->cb_prodPointCloud->isChecked() || ui->cb_customCommand->isChecked());
+    ui->gb_settingsMesh->setVisible(ui->cb_prodMesh->isChecked() || ui->cb_customCommand->isChecked());
 }
 
 //==================================================================================================

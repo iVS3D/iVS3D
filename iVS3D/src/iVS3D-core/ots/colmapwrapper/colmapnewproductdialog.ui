@@ -191,7 +191,7 @@
         <item>
          <widget class="QCheckBox" name="cb_customCommand">
           <property name="text">
-           <string> 0. Custom command </string>
+           <string>0. Custom command </string>
           </property>
          </widget>
         </item>
