@@ -5,6 +5,7 @@
 #include "operationstack.h"
 #include "stringcontainer.h"
 #include "cvmat_qmetadata.h"
+#include "adaptivetoolbutton.h"
 
 #include <QRegExp>
 #include <QRegularExpression>
@@ -15,10 +16,6 @@
 #include <QPushButton>
 #include <QHBoxLayout>
 #include <QDoubleSpinBox>
-
-namespace Ui {
-class InfoWidget;
-}
 
 /**
  * @class InfoWidget
@@ -159,13 +156,21 @@ private slots:
     void on_checkBox_crop_valueChanged(int state);
 
 protected:
-    Ui::InfoWidget *ui;
+// input buttons
+    AdaptiveToolButton *m_openMetaDataButton;
+    AdaptiveToolButton *m_openImagesButton;
+    AdaptiveToolButton *m_openVideoButton;
+    QHBoxLayout *m_inputButtonLayout;
+
+// resolution, altitude, crop settings
     QWidget *m_settingsWidget;
     QFormLayout *m_settingsLayout;
     QComboBox *m_resolutionComboBox;
     QDoubleSpinBox *m_altitudeSpinBox;
     QPushButton *m_cropPushButton;
     QCheckBox *m_cropCheckBox;
+
+// operation stack
     OperationStack *m_opStack;
 };
 

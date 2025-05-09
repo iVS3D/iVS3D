@@ -1,6 +1,6 @@
 #include "infowidget.h"
-#include "ui_infowidget.h"
 #include "applicationsettings.h"
+
 
 #include <QObject>
 /*!
@@ -11,23 +11,36 @@
  * Creates an InfoWidget with and displays the given \a title at the top.
  */
 InfoWidget::InfoWidget(QWidget *parent, QString title, ColorTheme theme) :
-    QWidget(parent),
-    ui(new Ui::InfoWidget)
+    QWidget(parent)
 {
-    // open folder / video / meta data buttons
-    ui->setupUi(this);
-    ui->toolButton_folder->setIcon(QIcon(theme == DARK ? ":/icons/openFolderIconW" : ":/icons/openFolderIconB"));
-    ui->toolButton_folder->setToolButtonStyle(Qt::ToolButtonStyle::ToolButtonTextBesideIcon);
-    ui->toolButton_folder->setText(tr(" load images"));
+    this->setLayout(new QVBoxLayout(this));
+    
+    // open folder / video / meta data buttons  
+    m_inputButtonLayout = new QHBoxLayout(this);
+    
+    m_openImagesButton = new AdaptiveToolButton(tr(" load images"), tr(" images"), this);
+    m_openImagesButton->setIconForTheme(QIcon(":/icons/openFolderIconW"), DARK);
+    m_openImagesButton->setIconForTheme(QIcon(":/icons/openFolderIconB"), LIGHT);
+    m_openImagesButton->setColorTheme(theme);
+    m_inputButtonLayout->addWidget(m_openImagesButton);
+    connect(m_openImagesButton, &AdaptiveToolButton::clicked, this, &InfoWidget::on_toolButton_folder_clicked);
 
-    ui->toolButton_video->setIcon( QIcon(theme == DARK ? ":/icons/openVideoIconW"  : ":/icons/openVideoIconB"));
-    ui->toolButton_video->setToolButtonStyle(Qt::ToolButtonStyle::ToolButtonTextBesideIcon);
-    ui->toolButton_video->setText(tr(" load video"));
+    m_openVideoButton = new AdaptiveToolButton(tr(" load video"), tr(" video"), this);
+    m_openVideoButton->setIconForTheme(QIcon(":/icons/openVideoIconW"), DARK);
+    m_openVideoButton->setIconForTheme(QIcon(":/icons/openVideoIconB"), LIGHT);
+    m_openVideoButton->setColorTheme(theme);
+    m_inputButtonLayout->addWidget(m_openVideoButton);
+    connect(m_openVideoButton, &AdaptiveToolButton::clicked, this, &InfoWidget::on_toolButton_video_clicked);
 
-    ui->toolButton_meta->setIcon( QIcon(theme == DARK ? ":/icons/openMetaIconW"  : ":/icons/openMetaIconB"));
-    ui->toolButton_meta->setToolButtonStyle(Qt::ToolButtonStyle::ToolButtonTextBesideIcon);
-    ui->toolButton_meta->setText(tr(" load meta data"));
-    ui->toolButton_meta->setEnabled(false);
+    m_openMetaDataButton = new AdaptiveToolButton(tr(" load meta data"), tr(" meta data"), this);
+    m_openMetaDataButton->setIconForTheme(QIcon(":/icons/openMetaIconW"), DARK);
+    m_openMetaDataButton->setIconForTheme(QIcon(":/icons/openMetaIconB"), LIGHT);
+    m_openMetaDataButton->setColorTheme(theme);
+    m_openMetaDataButton->setEnabled(false);
+    m_inputButtonLayout->addWidget(m_openMetaDataButton);
+    connect(m_openMetaDataButton, &AdaptiveToolButton::clicked, this, &InfoWidget::on_toolButton_meta_clicked);
+
+    this->layout()->addItem(m_inputButtonLayout);
 
     // resolution, altitude, crop settings
     m_settingsWidget = new QWidget(this);
@@ -68,32 +81,32 @@ InfoWidget::InfoWidget(QWidget *parent, QString title, ColorTheme theme) :
 
 InfoWidget::~InfoWidget()
 {
-    delete ui;
+    
 }
 
 void InfoWidget::enableOpenMetaData(bool status, QString tooltip)
 {
-    ui->toolButton_meta->setEnabled(status);
-    if (!tooltip.isEmpty()) ui->toolButton_meta->setToolTip(tooltip);
+    m_openMetaDataButton->setEnabled(status);
+    if (!tooltip.isEmpty()) m_openMetaDataButton->setToolTip(tooltip);
 }
 
 void InfoWidget::enableOpenImages(bool status, QString tooltip)
 {
-    ui->toolButton_folder->setEnabled(status);
-    if (!tooltip.isEmpty()) ui->toolButton_folder->setToolTip(tooltip);
+    m_openImagesButton->setEnabled(status);
+    if (!tooltip.isEmpty()) m_openImagesButton->setToolTip(tooltip);
 }
 
 void InfoWidget::enableOpenVideo(bool status, QString tooltip)
 {
-    ui->toolButton_video->setEnabled(status);
-    if (!tooltip.isEmpty()) ui->toolButton_video->setToolTip(tooltip);
+    m_openVideoButton->setEnabled(status);
+    if (!tooltip.isEmpty()) m_openVideoButton->setToolTip(tooltip);
 }
 
 void InfoWidget::setColorTheme(ColorTheme theme)
 {
-    ui->toolButton_folder->setIcon(QIcon(theme == DARK ? ":/icons/openFolderIconW" : ":/icons/openFolderIconB"));
-    ui->toolButton_video->setIcon( QIcon(theme == DARK ? ":/icons/openVideoIconW"  : ":/icons/openVideoIconB"));
-    ui->toolButton_meta->setIcon(  QIcon(theme == DARK ? ":/icons/openMetaIconW"  : ":/icons/openMetaIconB"));
+    for(AdaptiveToolButton *button : { m_openImagesButton, m_openVideoButton, m_openMetaDataButton }) {
+        button->setColorTheme(theme);
+    }
 }
 
 OperationStack *InfoWidget::getOpStack()
