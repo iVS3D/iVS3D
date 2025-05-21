@@ -58,7 +58,20 @@ find_package(OpenCV 4.7 REQUIRED COMPONENTS
     core
     imgcodecs
     videoio
+    dnn
+    imgproc
 )
+
+include(cmake/FindOnnxruntime.cmake)
+
+if(onnxruntime_FOUND)
+    message(STATUS "Found Onnxruntime: ${onnxruntime_INSTALL_PREFIX} (found suitable version \"${onnxruntime_VERSION}\")")
+    set(COMMON_COMPILE_DEFINITIONS ${COMMON_COMPILE_DEFINITIONS}
+        -DWITH_ONNXRUNTIME
+    )
+else()
+    message(WARNING "onnxruntime not found. Please download it here: https://github.com/microsoft/onnxruntime/releases/tag/v1.22.0 and set the environment variable 'onnxruntime_INSTALL_PREFIX' to the installation path.")
+endif()
 
 # CUDA (if applicable)
 if(With_CUDA)

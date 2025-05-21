@@ -17,3 +17,6 @@ if(Install_Models)
     add_subdirectory(iVS3D-models)
 endif()
 
+if(onnxruntime_FOUND)
+    add_subdirectory(iVS3D-neuralNet)
+endif()

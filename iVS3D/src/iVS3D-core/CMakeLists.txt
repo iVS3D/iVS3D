@@ -89,6 +89,10 @@ target_link_libraries(${TARGET_NAME}
     Qt${QT_VERSION_MAJOR}::Svg
 )
 
+if(onnxruntime_FOUND)
+    target_link_libraries(${TARGET_NAME} neuralnet)
+endif()
+
 # add defines
 target_compile_definitions(${TARGET_NAME} PRIVATE 
     ${COMMON_COMPILE_DEFINITIONS}

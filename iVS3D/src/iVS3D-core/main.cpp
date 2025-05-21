@@ -10,6 +10,9 @@
 #include "view/darkstyle/DarkStyle.h"
 #include "cvmat_qmetadata.h"
 
+#include <NeuralNetFactory.h>
+#include <opencv2/dnn.hpp>
+
 #include <QFlags>
 #include <QTranslator>
 
@@ -54,6 +57,45 @@ int main(int argc, char *argv[])
     qRegisterMetaType<std::vector<uint>>("vectorUint");
     qRegisterMetaType<Resolution>("Resolution");
     qRegisterMetaType<ROI>("ROI");
+
+
+    // ############# SOME TESTS FOR iVS3D-NeuralNet #########################
+
+    auto netResult = NN::NeuralNetFactory::create("/path/to/neural_network_models/Segmentation_ConvNeXt-tiny_Aerial_512x512.onnx", true);
+    if(!netResult) {
+        std::cout << "Failed to load the ONNX model: " << netResult.error();
+        return 1;
+    }
+    NN::NeuralNetPtr net = *netResult;
+    SHAPE_DEBUG_PRINT(net->inputShape())
+    SHAPE_DEBUG_PRINT(net->outputShape())
+
+
+    cv::Mat img = cv::imread("/home/dom/Videos/export158/images/00000000.png");
+    //cv::Mat input = cv::dnn::blobFromImage(img, 1.0f, cv::Size(512, 512), cv::Scalar(0, 0, 0), true, false);
+    //std::cout << "Blob shape: " << input.size << std::endl;
+
+    cv::Mat square;
+    cv::resize(img, square, cv::Size(net->inputShape()[2],net->inputShape()[3]));
+
+    square.convertTo(square, CV_32FC3);
+    auto in_tensor = NN::Tensor::fromCvMat(square);
+    if(!in_tensor) {
+        std::cout <<"Failed to create input " << in_tensor.error();
+        return 1;
+    }
+    std::cout << "Created input tensor: ";
+    TENSOR_DEBUG_PRINT(*in_tensor)
+
+    std::cout << "Running inference..." << std::endl;
+    auto out_tensor = net->infer(*in_tensor);
+    if(!out_tensor) {
+        std::cout << "Failed at inference " << out_tensor.error();
+        return 1;
+    }
+    TENSOR_DEBUG_PRINT(*out_tensor)
+
+    // #################### END of testing ##################################
 
     QCommandLineParser parser;
     QCommandLineOption noGUI("nogui", "Executes in terminal mode without the GUI. In this case auto settings file (-a), input (-i) and output (-o) need to be provided.");
