@@ -1,3 +1,6 @@
 [submodule "iVS3D/src/iVS3D-models"]
 	path = iVS3D/src/iVS3D-models
 	url = ../iVS3D-models
+[submodule "doc/doxygen-awesome-css"]
+	path = doc/doxygen-awesome-css
+	url = https://github.com/jothepro/doxygen-awesome-css.git

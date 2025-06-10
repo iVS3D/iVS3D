@@ -101,6 +101,8 @@ compile_commands.json
 ### doxygen files ###
 doc/html
 doc/latex
+Doxyfile
+generated_doc
 
 ### testresources ###
 *testresources/
