@@ -29,9 +29,14 @@ jobs:
     - name: Checkout source
       uses: actions/checkout@v4
       with:
-        # Fetch full history with tags
-        fetch-depth: 0
-        submodules: true
+        fetch-depth: 0      # Fetch full history with tags for versioning
+        submodules: false   # Do not fetch submodules, as models are large and not needed for docs
+        lfs: true           # Fetch LFS files (images)  
+
+    - name: Fetch doxygen-awesome-css submodule
+      run: |
+        git submodule init
+        git submodule update --depth 1 --remote doc/doxygen-awesome-css
 
     - name: Install Doxygen
       run: sudo apt-get update && sudo apt-get install -y doxygen graphviz
