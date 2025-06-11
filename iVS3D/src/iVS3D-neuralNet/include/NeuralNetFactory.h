@@ -17,6 +17,7 @@
 namespace NN
 {
     /**
+     * @ingroup NeuralNet
      * @class NeuralNetFactory
      * @brief Factory class for creating NeuralNet instances. This abstracts from the underlying inference engine (e.g., ONNX Runtime).
      */

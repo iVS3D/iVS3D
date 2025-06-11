@@ -7,6 +7,15 @@
  * @date May 2025
  */
 
+/**
+ * @defgroup NeuralNet NeuralNet
+ * @brief Neural Network Library containing Tensor and NeuralNet classes for inference.
+ * @details Contains the Tensor class for representing N-dimensional arrays with various data types.
+ * The Tensor class supports operations like reshaping, mapping, reducing, and converting to/from cv::Mat.
+ *
+ * A factory handles model loading and abstracts the underlying inference engine (e.g., ONNX Runtime).
+ */
+
 #include <variant>
 #include <vector>
 #include <cstdint>
@@ -28,6 +37,8 @@
 /**
  * @brief NN Neural Network Library containing Tensor and NeuralNet classes for inference.
  * 
+ * @ingroup NeuralNet
+ * 
  * @details Contains the Tensor class for representing N-dimensional arrays with various data types.
  * The Tensor class supports operations like reshaping, mapping, reducing, and converting to/from cv::Mat.
  * 
@@ -40,6 +51,8 @@
 namespace NN
 {
     /**
+     * @ingroup NeuralNet
+     * 
      * @brief Shape of a N-dimensional Tensor represented as the size in each dimension. Can be -1 in case of dynamic dimensions.
      * 
      * @details
@@ -86,6 +99,8 @@ namespace NN
     std::string shapeToString(const Shape& shape);
 
     /**
+     * @ingroup NeuralNet
+     * 
      * @brief TensorType encapsulates the supported data types of tensor elements.
      * The supported types are:
      * - Float
@@ -149,6 +164,8 @@ namespace NN
     // --- End heplers
     
     /**
+     * @ingroup NeuralNet
+     * @class Tensor
      * @brief A Tensor represents a N-dimensional array containing elements of the same type. Can be used as input and output for inference.
      * 
      * @details

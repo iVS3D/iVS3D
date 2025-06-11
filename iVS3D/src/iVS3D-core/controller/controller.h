@@ -3,7 +3,7 @@
 
 /** @defgroup Controller Controller
  *
- * @ingroup Controller
+ * @ingroup iVS3D
  *
  * @brief manages interaction between model and view.
  */

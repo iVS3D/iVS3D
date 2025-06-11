@@ -3,7 +3,7 @@
 
 /** @defgroup Model Model
  *
- * @ingroup Model
+ * @ingroup iVS3D
  *
  * @brief Manages image and project data and holds logic for exporting.
  */

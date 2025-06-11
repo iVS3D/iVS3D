@@ -89,9 +89,6 @@ target_link_libraries(${TARGET_NAME}
     Qt${QT_VERSION_MAJOR}::Svg
 )
 
-
-target_link_libraries(${TARGET_NAME} NeuralNet)
-
 # add defines
 target_compile_definitions(${TARGET_NAME} PRIVATE 
     ${COMMON_COMPILE_DEFINITIONS}

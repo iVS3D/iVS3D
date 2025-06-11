@@ -1,6 +1,10 @@
 #ifndef CVMAT_QMETADATA_H
 #define CVMAT_QMETADATA_H
 
+/**
+ * @defgroup iVS3D iVS3D Main App
+ */
+
 #include <QObject>
 #include <QColor>
 #include <QList>

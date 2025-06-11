@@ -1,7 +1,7 @@
 #ifndef ALGORITHMMANAGER_H
 #define ALGORITHMMANAGER_H
 
-/** @defgroup Plugin Plugin
+/** @defgroup Plugin Plugins
  *
  * @ingroup Plugin
  *

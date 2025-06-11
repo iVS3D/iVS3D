@@ -21,6 +21,7 @@
 namespace NN
 {
     /**
+     * @ingroup NeuralNet
      * @class OrtNeuralNet
      * @brief A class that implements the NeuralNet interface using ONNX Runtime.
      * 

@@ -4,6 +4,9 @@
  *  @brief Contains reduction operations for tensors such as sum, min, max, argmin, and argmax.
  *  @author Dominik Wüst (dominik.wuest@iosb.fraunhofer.de)
  *  @date May 2025
+ * 
+ *  @defgroup ReduceOps ReduceOps
+ *  @ingroup NeuralNet
  */
 
 #include <limits>
@@ -13,6 +16,7 @@
 namespace NN {
 
 /**
+ * @ingroup ReduceOps
  * @brief Reduces a Tensor by summing its elements along a specified axis.
  * 
  * @details
@@ -41,6 +45,7 @@ struct ReduceSum {
 };
 
 /**
+ * @ingroup ReduceOps
  * @brief Reduces a Tensor by computing the minimum value along a specified axis.
  * 
  * @details
@@ -60,6 +65,7 @@ struct ReduceMin {
 };
 
 /**
+ * @ingroup ReduceOps
  * @brief Reduces a Tensor by computing the maximum value along a specified axis.
  * 
  * @details
@@ -79,6 +85,7 @@ struct ReduceMax {
 };
 
 /**
+ * @ingroup ReduceOps
  * @brief Reduces a Tensor by finding the index of the minimum value along a specified axis.
  * 
  * @details
@@ -103,6 +110,7 @@ struct ReduceArgMin {
 };
 
 /**
+ * @ingroup ReduceOps
  * @brief Reduces a Tensor by finding the index of the maximum value along a specified axis.
  * 
  * @details

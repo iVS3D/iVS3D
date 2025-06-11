@@ -3,7 +3,7 @@
 
 /** @defgroup View View
  *
- * @ingroup View
+ * @ingroup iVS3D
  *
  * @brief manages Gui elements and dialogs for user interaction.
  */

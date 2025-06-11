@@ -22,7 +22,7 @@ else()
 endif()
 
 # Check for CUDAToolkit
-find_package(CUDAToolkit 12.0 REQUIRED)
+find_package(CUDAToolkit 12.0)
 if(NOT CUDAToolkit_FOUND)
     set(HAS_CUDA_TOOLKIT FALSE)
     message(STATUS "CUDAToolkit not found. HAS_CUDA_TOOLKIT set to FALSE.")

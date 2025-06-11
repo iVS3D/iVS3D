@@ -17,6 +17,7 @@
 namespace NN
 {
     /**
+     * @ingroup NeuralNet
      * @class NeuralNet
      * @brief Abstract base class for neural networks.
      * 
@@ -71,7 +72,13 @@ namespace NN
     };
 
     /**
+     * @ingroup NeuralNet
+     * 
      * @brief Smart pointer type for managing NeuralNet instances.
+     * 
+     * @details
+     * This is a shared pointer type that allows for easy management of NeuralNet instances.
+     * It is used to avoid memory leaks and ensure proper cleanup of resources.
      */
     using NeuralNetPtr = std::shared_ptr<NeuralNet>;
 }
