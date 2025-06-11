@@ -46,10 +46,22 @@ find_library(Onnxruntime_LIBRARY onnxruntime
 )
 # Only set the version if we have a valid library
 if(Onnxruntime_LIBRARY)
-    set(Onnxruntime_VERSION 1.22.0)
-    set(Onnxruntime_VERSION_MAJOR 1)
-    set(Onnxruntime_VERSION_MINOR 22)
-    set(Onnxruntime_VERSION_PATCH 0)
+    # Read version from VERSION_NUMBER file if it exists
+    set(Onnxruntime_VERSION_FILE "${Onnxruntime_ROOT_DIR}/VERSION_NUMBER")
+    if(EXISTS "${Onnxruntime_VERSION_FILE}")
+        file(READ "${Onnxruntime_VERSION_FILE}" Onnxruntime_VERSION_CONTENT)
+        string(STRIP "${Onnxruntime_VERSION_CONTENT}" Onnxruntime_VERSION)
+
+        # Parse major, minor, patch
+        string(REGEX MATCH "^([0-9]+)\\.([0-9]+)\\.([0-9]+)" _ ${Onnxruntime_VERSION})
+        set(Onnxruntime_VERSION_MAJOR "${CMAKE_MATCH_1}")
+        set(Onnxruntime_VERSION_MINOR "${CMAKE_MATCH_2}")
+        set(Onnxruntime_VERSION_PATCH "${CMAKE_MATCH_3}")
+    endif()
+
+    if(NOT Onnxruntime_VERSION)
+        message(WARNING "Could not determine Onnxruntime version. VERSION_NUMBER file missing or invalid.")
+    endif()
 
     add_library(Onnxruntime SHARED IMPORTED)
     set_property(TARGET Onnxruntime PROPERTY IMPORTED_LOCATION "${Onnxruntime_LIBRARY}")
@@ -60,4 +72,4 @@ endif()
 
 find_package_handle_standard_args(Onnxruntime 
     REQUIRED_VARS Onnxruntime_LIBRARY Onnxruntime_INCLUDE_DIRS 
-    HANDLE_COMPONENTS)
+    VERSION_VAR Onnxruntime_VERSION)

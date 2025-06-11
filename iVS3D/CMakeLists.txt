@@ -65,14 +65,15 @@ find_package(OpenCV 4.7 REQUIRED COMPONENTS
     imgproc
 )
 
-find_package(Onnxruntime 1.22.0)
+find_package(Onnxruntime 1.18.0)
 
 
 include(cmake/CheckCudaSupport.cmake)
 if(WITH_CUDA)
 
     #find_package(CUDA 12.0 REQUIRED)
-    enable_language(CUDA)
+    #enable_language(CUDA)
+    find_package(CUDAToolkit 12.0 REQUIRED)
 
     # set CUDNN variables
     set(CUDNN_INCLUDE_DIR "${CUDA_TOOLKIT_ROOT_DIR}/include" PATH FORCE)

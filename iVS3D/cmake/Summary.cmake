@@ -107,13 +107,13 @@ function(print_summary)
     endif()
     # CUDA
     if(WITH_CUDA)
-        print_row("CUDA" "YES" "${CMAKE_CUDA_COMPILER_VERSION}")
+        print_row("CUDA" "YES" "${CUDA_VERSION_STRING}")
     else()
-        # If CUDA is not enabled, provide a reason by checking HAS_CUDA and HAS_OPENCV_CUDA
-        if(DEFINED HAS_CUDA AND NOT HAS_CUDA)
-            set(CUDA_REASON "CUDA compiler not found")
+        # If CUDA is not enabled, provide a reason by checking HAS_CUDA_TOOLKIT and HAS_OPENCV_CUDA
+        if(DEFINED HAS_CUDA_TOOLKIT AND NOT HAS_CUDA_TOOLKIT)
+            set(CUDA_REASON "CUDA Toolkit not found")
         elseif(DEFINED HAS_OPENCV_CUDA AND NOT HAS_OPENCV_CUDA)
-            set(CUDA_REASON "OpenCV with CUDA modules not found")
+            set(CUDA_REASON "OpenCV CUDA modules not found")
         else()
             set(CUDA_REASON "Disabled by user")
         endif()

@@ -24,7 +24,7 @@ find_package(OpenCV 4.7 REQUIRED COMPONENTS
 )
 
 # CUDA (if applicable)
-if(With_CUDA)
+if(WITH_CUDA)
 
     # cudaoptflow from opencv is required
     find_package(OpenCV 4.7 REQUIRED COMPONENTS
@@ -150,3 +150,5 @@ if(Update_Translations)
         DEPENDS ${HEADER_FILES} ${SRC_FILES}
     )
 endif()
+
+add_plugin_summary("${TARGET_NAME}" TRUE)
