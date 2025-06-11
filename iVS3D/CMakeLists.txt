@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.25.0)
+cmake_minimum_required(VERSION 3.22.0)
 
 # get version from git-tag
 include(cmake/gitversion.cmake)

@@ -16,6 +16,7 @@ endfunction()
 
 # Adding all avalibale examples
 add_example(map)
+add_example(reduce)
 add_example(reduceWithIndex)
 
 add_component_summary("${TARGET_NAME}-Examples" TRUE)

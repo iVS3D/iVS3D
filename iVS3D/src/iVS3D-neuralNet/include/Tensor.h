@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file Tensor.h
+ * @brief Contains the Tensor class for representing N-dimensional arrays with various data types.
+ * @author Dominik Wüst (dominik.wuest@iosb.fraunhofer.de)
+ * @date May 2025
+ */
+
 #include <variant>
 #include <vector>
 #include <cstdint>
@@ -35,10 +42,19 @@ namespace NN
     /**
      * @brief Shape of a N-dimensional Tensor represented as the size in each dimension. Can be -1 in case of dynamic dimensions.
      * 
-     * @code 
-     * NeuralNet net; 
+     * @details
+     * The Shape is a vector of int64_t values, where each value represents the size of the corresponding dimension.
+     * A Shape can be used to describe the input or output shape of a Tensor in a neural network.
+     * For example, a Shape of [-1, 3, 512, 512] indicates a dynamic batch size (first dimension),
+     * 3 channels, and a spatial resolution of 512x512 pixels. The -1 indicates that the batch size can vary.
+     * 
+     * @code{.cpp}
+     * NeuralNet net = ...; // create a neural network instance
      * net.inputShape(); // might be [-1,3,512,512] in NCHW format with a dynamic batch size, 3 channels and 512x512 pixels
      * @endcode
+     * 
+     * The shape of a Tensor is never empty, so it always contains at least one dimension. It is guaranteed that no dimension is -1,
+     * so the shape is static. This means that the number of elements in a Tensor can be calculated as the product of all dimensions.
      *  */ 
     using Shape = std::vector<int64_t>;
 
@@ -100,6 +116,10 @@ namespace NN
     };
 
     // --- Helper to extract std::array traits
+
+    /**
+     * @brief Checks if a type is a std::array.
+     */
     template <typename T>
     struct is_std_array : std::false_type {};
 
@@ -109,10 +129,15 @@ namespace NN
         static constexpr size_t size = N;
     };
 
-    // Remove cv/ref qualifiers and decay to check std::array
+    /**
+     * @brief Remove cv/ref qualifiers and decay to check std::array<T, N>
+     */
     template <typename T>
     using decay_t = typename std::decay<T>::type;
 
+    /**
+     * @brief Traits for mapping a function over a std::array.
+     */
     template <typename Func, typename InputElem>
     struct map_array_traits {
         using return_type = std::decay_t<std::invoke_result_t<Func, InputElem>>;
@@ -160,13 +185,18 @@ namespace NN
         static tl::expected<Tensor, std::string> fromCvMat(const cv::Mat& mat);
 
         /**
-         * @brief Create a new Tensor object from a given data vector and shape. The number of elements in the vector must match 
-         * @code shapeNumElements(shape) @endcode.
+         * @brief Create a new Tensor object from a given data vector and shape. The number of elements in the vector must match shapeNumElements(shape).
          * 
          * @tparam T The datatype, this must be on of the following: uint8_t, int64_t, float.
          * @param data The data vector. This will be copied!
          * @param shape The shape of the new Tensor.
          * @return tl::expected<Tensor, std::string> A Tensor object containing the data and shape or an error message.
+         * 
+         * @details
+         * This function creates a Tensor from a vector of data. The data will be copied!
+         * 
+         * @see fromData(std::vector<T>&&, const Shape&) for a move version.
+         * @see reduce.cpp for an example of using this function.
          */
         template <typename T>
         static tl::expected<Tensor, std::string> fromData(const std::vector<T>& data, const Shape& shape) {
@@ -174,13 +204,28 @@ namespace NN
         }
 
         /**
-         * @brief Create a new Tensor object from a given data vector and shape. The number of elements in the vector must match 
-         * @code shapeNumElements(shape) @endcode.
+         * @brief Create a new Tensor object from a given data vector and shape. The number of elements in the vector must match shapeNumElements(shape).
          * 
          * @tparam T The datatype, this must be on of the following: uint8_t, int64_t, float.
          * @param data The data vector. The new Tensor takes ownership of the data!
          * @param shape The shape of the new Tensor.
          * @return tl::expected<Tensor, std::string> A Tensor object containing the data and shape or an error message.
+         * 
+         * @details
+         * This function creates a Tensor from a vector of data. The data will be moved into the Tensor!
+         * This is useful for performance reasons when you already have the data in a vector and want to avoid copying.
+         * 
+         * @code{.cpp}
+         * // Create a 2D tensor with float data
+         * Shape shape2d = {3, 4}; // 3x4 tensor (CHW format)
+         * std::vector<float> data2d = {1.0, 2.0, 3.0, 4.0,
+         *                              5.0, 6.0, 7.0, 8.0,
+         *                              9.0, 10.0, 11.0, 12.0};
+         * auto tensor2d = Tensor::fromData(std::move(data2d), shape2d);
+         * @endcode
+         * 
+         * @see fromData(const std::vector<T>&, const Shape&) for a copy version.
+         * @see reduce.cpp for an example of using this function.
          */
         template <typename T>
         static tl::expected<Tensor, std::string> fromData(std::vector<T>&& data, const Shape& shape) {
@@ -199,6 +244,29 @@ namespace NN
          * 
          * @tparam T The datatype of the vector. This must match the Tensors current type!
          * @return tl::expected<std::vector<T>, std::string>  Retruns the data vector or an error message if the Tensor does not contain the requested data type.
+         * 
+         * @details
+         * This function extracts the data from the Tensor and returns it as a vector of the specified type.
+         * If the Tensor does not contain the requested data type, an error message is returned.
+         * 
+         * @code{.cpp}
+         * // Create a Tensor with float data
+         * Shape shape = {2, 3}; // 2x3 tensor (CHW format)
+         * std::vector<float> data = {1.0, 2.0, 3.0, 
+         *                            4.0, 5.0, 6.0};
+         * auto tensor = Tensor::fromData(std::move(data), shape).value();
+         * TensorType type = tensor.dtype(); // Should be TensorType::Float
+         * // Convert Tensor to vector<float>
+         * auto vec = tensor.toVector<float>();
+         * if (vec) {
+         *     // Successfully converted to vector<float>
+         *     std::cout << "Tensor data: ";
+         *     for (const auto& val : vec.value()) {
+         *         std::cout << val << " ";
+         *     }
+         *     std::cout << std::endl;
+         * }
+         * @endcode
          */
         template <typename T>
         tl::expected<std::vector<T>, std::string> toVector() const {
@@ -209,7 +277,8 @@ namespace NN
         }
 
         /**
-         * @brief Create a cv::Mat from a Tensor. In case of 2/3 dimensions this will convert back to CVs HWC layout. Returns an error for dimensions other than 2 or 3.
+         * @brief Create a cv::Mat from a Tensor. In case of 2/3 dimensions this will convert back to CVs HWC layout. 
+         * Returns an error for dimensions other than 2 or 3.
          * 
          * @return tl::expected<cv::Mat, std::string> A cv::Mat object with the data in HWC format or an error message.
          */
@@ -278,10 +347,22 @@ namespace NN
         /**
          * @brief Reduce the Tensor along a given axis by applying an accumulative operation.
          * 
-         * @tparam Op Templated to work with different data types. See @see ReduceOps.h ReduceOps.h
+         * @tparam Op Templated to work with different data types.
          * @param op An accumulative operation like ReduceMin/ReduceMax/ReduceSum.
          * @param axis The axis in which we apply the operation, in the output this axis will have size 1.
          * @return tl::expected<Tensor, std::string> Returns a reduced Tensor or an error message.
+         * 
+         * @details This function applies the specified reduction operation along the given axis.
+         * The output tensor will have the same shape as the input tensor, except for the reduced axis,
+         * which will have size 1.
+         * @code{.cpp}
+         * NN::Tensor tensor = ...; // some tensor with shape [N, C, H, W]
+         * auto reduced_tensor = tensor.value().reduce(ReduceSum{}, 1);
+         * reduced_tensor.value().toString(); // Should print something like "Tensor(shape=[N, 1, H, W], dtype=float)"
+         * @endcode
+         * 
+         * @see ReduceOps.h for the supported operations.
+         * @see reduce.cpp for an example of using this function.
          */
         template <typename Op>
         tl::expected<Tensor, std::string> reduce(const Op& op, uint64_t axis) const {
@@ -334,16 +415,19 @@ namespace NN
          * each vector, so the output will have shape [N,1]:
          * 
          * @code {.cpp}
-         * NN::Tensor tensor = ... // shape is [N,K] 
-         * auto result = tensor.reduceWithIndex(NN::ReduceArgMax{},1); // apply arg-max to axis 1 (corresponds to K)
+         * Tensor tensor = ... // shape is [N,K] 
+         * auto result = tensor.reduceWithIndex(ReduceArgMax{},1); // apply arg-max to axis 1 (corresponds to K)
          * if (!result){
          *   std::cout << "ERROR: " << result.error() << std::endl;
          *   return -1;
          * } 
-         * NN::Tensor argmax_tensor = result.value();
+         * Tensor argmax_tensor = result.value();
          * std::cout << "Resulting tensor: " << argmax_tensor.toString() << std::endl; 
          * // Resulting tensor: tensor(shape=[N,1], dtype=int64)
          * @endcode
+         * 
+         * @see ReduceOps.h for the supported operations.
+         * @see reduceWithIndex.cpp for an example of using this function.
          * 
          */
         template <typename Op>
@@ -387,6 +471,26 @@ namespace NN
          * @tparam Func Templated function type (T->V) where T matches the current data type and V is a valid new data type.
          * @param f The mapping function which is applied to each element.
          * @return tl::expected<Tensor, std::string> Returns a new Tensor or an error message.
+         * 
+         * @details
+         * This function applies the given function to each element of the Tensor and returns a new Tensor with the mapped values.
+         * The function must accept an element of the current data type and return a value of the new data type.
+         * 
+         * Example usage: convert a Tensor of uint8_t values to float values.
+         * @code {.cpp}
+         * NN::Tensor tensor = ... // Tensor(shape=[512,512], dtype=uint8)
+         * auto result = tensor.map([](uint8_t val) -> float {
+         *     return static_cast<float>(val) / 255.0f; // Normalize to [0,1]
+         * });
+         * if (!result) {
+         *     std::cerr << "ERROR: " << result.error() << std::endl;
+         *     return -1;
+         * }
+         * NN::Tensor normalized = std::move(result.value());
+         * std::cout << normalized.toString() << std::endl; // Tensor(shape=[512,512], dtype=float)
+         * @endcode
+         * 
+         * @see Tensor::map(Func&& f, int axis) for a version that adds a new dimension.
          */
         template <typename Func>
         tl::expected<Tensor, std::string> map(Func&& f) const{
@@ -416,8 +520,10 @@ namespace NN
          * @param axis The axis to insert the new dimension.
          * @return tl::expected<Tensor, std::string> Returns a new Tensor or an error message.
          * 
-         * @details Example usage: Map a 2D-Tensor of class-indices to a 3D-Tensor with RGB colors assigned to each class.decay_t
+         * @details Example usage: Map a 2D-Tensor of class-indices to a 3D-Tensor with RGB colors assigned to each class.
          * The mapping function therefore maps a class index (int64_t) to a RGB color (std::array<3,uint8_t>).
+         * This will create a new dimension in the output Tensor at the given axis (in this case appends the new dimension at the front).
+         * 
          * @code {.cpp}
          * NN::Tensor classes = ... // Tensor(shape=[512,512], dtype=int64)
          * std::vector<std::array<uint8_t,3>> colors = { {255,0,0}, {127,127,127}, ... }; // a color per class
@@ -431,6 +537,9 @@ namespace NN
          * NN::Tensor colorized = std::move(result.value());
          * std::cout << colorized.toString() << std::endl; // Tensor(shape=[3,512,512], dtype=uint8)
          * @endcode
+         * 
+         * @see Tensor::map(Func&& f) for a version that does not add a new dimension.
+         * @see map.cpp for an example of using this function.
          */
         template <typename Func>
         tl::expected<Tensor, std::string> map(Func&& func, int axis) const {
@@ -484,10 +593,25 @@ namespace NN
             }, m_data);
         }
 
+        /**
+         * @brief Squeeze the Tensor by removing dimensions of size 1. This operation is performed inplace.
+         * 
+         * @return tl::expected<void, std::string> This should never fail.
+         */
         tl::expected<void, std::string> squeeze();
 
+        /**
+         * @brief Squeeze the Tensor by removing a specific dimension of size 1.
+         * @param axis The axis to remove. This must be in range [0,shape.size()-1] and the dimension at this axis must be 1.
+         * @return tl::expected<void, std::string> Returns an error message if the axis is invalid or the dimension is not 1.
+         */
         tl::expected<void, std::string> squeeze(int64_t axis);
 
+        /**
+         * @brief Add a new dimension of size 1 at the specified axis.
+         * @param axis The axis to insert the new dimension. This must be in range [0,shape.size()].
+         * @return tl::expected<void, std::string> Returns an error message if the axis is invalid.
+         */
         tl::expected<void, std::string> unsqueeze(int64_t axis);
 
 

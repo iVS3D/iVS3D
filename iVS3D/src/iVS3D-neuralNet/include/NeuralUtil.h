@@ -1,8 +1,54 @@
 #pragma once
 
+/**
+ * @file NeuralUtil.h
+ * @brief Contains utility functions for tensor operations in neural networks.
+ * 
+ * @details This functional header provides utility functions to bind tensor operations such as reduction, mapping, reshaping, squeezing, unsqueezing, and converting to OpenCV Mat format.
+ * These functions are designed to be used with the Tensor class and can be easily integrated into neural network workflows by using tl::expected::and_then for chaining operations.
+ * 
+ * @code{.cpp}
+ * NeuralNetPtr model = ...; // some neural network model for semantic segmentation
+ * cv::Mat image = ...;      // some OpenCV RGB input image
+ * std::vector<std::array<uint8_t,3>> colors = {
+ *    {0, 0, 0},    // background
+ *    {255, 0, 0},  // class 1
+ *    ...           // other classes
+ * };
+ * 
+ * auto workflow = Tensor::fromCvMat(image)
+ *    .and_then(Util::bind_map([](uint8_t val){
+ *        return static_cast<float>(val) / 255.0f; // normalize to [0,1]
+ *     })
+ *    .and_then(Util::bind_inference(model))
+ *    .and_then(Util::bind_reduce(ReduceArgMax, 1))
+ *    .and_then(Util::bind_squeeze())
+ *    .and_then(Util::bind_map([colors](int64_t val) {
+ *        return colors[val]; // map class index to RGB color
+ *     }, 0))
+ *    .and_then(Util::bind_toCvMat());
+ * 
+ * if (!workflow) {
+ *    std::cerr << "Error occurred during workflow: " << workflow.error() << std::endl;
+ * }
+ * cv::Mat outputImage = workflow.value();
+ * @endcode
+ *
+ * @author Dominik Wüst (dominik.wuest@iosb.fraunhofer.de)
+ * @date May 2025
+ */
+
 #include <Tensor.h>
 #include <NeuralNet.h>
 
+/**
+ * @brief Namespace for utility functions related to neural networks and tensors.
+ * 
+ * @details
+ * This namespace contains functions to bind tensor operations such as reduction, mapping, reshaping, squeezing, unsqueezing, and converting to OpenCV Mat format.
+ * These functions are designed to be used with the Tensor class and can be easily integrated into neural network workflows.
+ * The functions return callable objects that can be used with tl::expected::and_then for chaining operations.
+ */
 namespace NN::Util {
 
 template<typename ReduceOp>

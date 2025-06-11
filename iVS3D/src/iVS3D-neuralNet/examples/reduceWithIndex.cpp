@@ -1,3 +1,15 @@
+/**
+ * @file reduceWithIndex.cpp
+ * @brief Example usage of the Tensor class to create a 3D tensor and reduce it along an axis by finding the index of the maximum value.
+ * 
+ * @details This example demonstrates how to create a 3D tensor, reduce it along a specified axis using the ReduceArgMax operation,
+ * and print the reduced values. The 3D tensor is initialized with some sample data, and the reduction operation finds the index of the maximum value along the specified axis.
+ * The output shows the original tensor, the reduced tensor, and the values of the squeezed tensor.
+ * 
+ * @author Dominik Wüst (dominik.wuest@iosb.fraunhofer.de)
+ * @date May 2025
+ */
+
 #include <Tensor.h>
 #include <iostream>
 #include <vector>

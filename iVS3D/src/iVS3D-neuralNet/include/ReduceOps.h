@@ -1,5 +1,10 @@
 #pragma once
-/** @file ReduceOps.h */
+
+/** @file ReduceOps.h
+ *  @brief Contains reduction operations for tensors such as sum, min, max, argmin, and argmax.
+ *  @author Dominik Wüst (dominik.wuest@iosb.fraunhofer.de)
+ *  @date May 2025
+ */
 
 #include <limits>
 #include <cstddef>
@@ -7,11 +12,24 @@
 
 namespace NN {
 
-    /**
-     * @brief 
-     * 
-     */
-// ReduceSum: computes sum along a dimension
+/**
+ * @brief Reduces a Tensor by summing its elements along a specified axis.
+ * 
+ * @details
+ * This operation initializes an accumulator to zero and adds each element along the specified axis.
+ * @code{.cpp}
+ * Tensor tensor = ...; // some tensor
+ * auto result = tensor.reduce(ReduceSum{}, 1); // reduce along axis 1
+ * if (result) {
+ *     std::cout << "Reduced Tensor: " << result.value().toString() << std::endl;
+ * } else {
+ *     std::cerr << "Error: " << result.error() << std::endl;
+ * }
+ * @endcode
+ * 
+ * @see Tensor::reduce For the main reduction function that applies this operation.
+ * @see reduce.cpp For an example of using this operation.
+ */
 struct ReduceSum {
     template<typename T>
     T initial() const { return T(0); }
@@ -22,7 +40,15 @@ struct ReduceSum {
     }
 };
 
-// ReduceMin: computes min value
+/**
+ * @brief Reduces a Tensor by computing the minimum value along a specified axis.
+ * 
+ * @details
+ * This operation initializes an accumulator to the maximum possible value and updates it with the minimum value found along the specified axis.
+ * 
+ * @see Tensor::reduce For the main reduction function that applies this operation.
+ * @see reduce.cpp For an example of using Tensor::reduce.
+ */
 struct ReduceMin {
     template<typename T>
     T initial() const { return std::numeric_limits<T>::max(); }
@@ -33,7 +59,15 @@ struct ReduceMin {
     }
 };
 
-// ReduceMax: computes max value
+/**
+ * @brief Reduces a Tensor by computing the maximum value along a specified axis.
+ * 
+ * @details
+ * This operation initializes an accumulator to the lowest possible value and updates it with the maximum value found along the specified axis.
+ * 
+ * @see Tensor::reduce For the main reduction function that applies this operation.
+ * @see reduce.cpp For an example of using Tensor::reduce.
+ */
 struct ReduceMax {
     template<typename T>
     T initial() const { return std::numeric_limits<T>::lowest(); }
@@ -44,7 +78,16 @@ struct ReduceMax {
     }
 };
 
-// ReduceArgMin: stores the index of min value
+/**
+ * @brief Reduces a Tensor by finding the index of the minimum value along a specified axis.
+ * 
+ * @details
+ * This operation initializes an accumulator with the first index and the maximum possible value.
+ * It updates the accumulator with the index and value of the minimum element found along the specified axis.
+ * 
+ * @see Tensor::reduceWithIndex For the main reduction function that applies this operation.
+ * @see reduceWithIndex.cpp For an example of using Tensor::reduceWithIndex.
+ */
 struct ReduceArgMin {
     template<typename T>
     std::pair<int64_t, T> initial() const {
@@ -59,7 +102,16 @@ struct ReduceArgMin {
     }
 };
 
-// ReduceArgMax: stores the index of max value
+/**
+ * @brief Reduces a Tensor by finding the index of the maximum value along a specified axis.
+ * 
+ * @details
+ * This operation initializes an accumulator with the first index and the lowest possible value.
+ * It updates the accumulator with the index and value of the maximum element found along the specified axis.
+ * 
+ * @see Tensor::reduceWithIndex For the main reduction function that applies this operation.
+ * @see reduceWithIndex.cpp For an example of using Tensor::reduceWithIndex.
+ */
 struct ReduceArgMax {
     template<typename T>
     std::pair<int64_t, T> initial() const {

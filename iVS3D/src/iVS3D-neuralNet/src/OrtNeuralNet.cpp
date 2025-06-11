@@ -92,11 +92,11 @@ tl::expected<NN::Tensor, std::string> NN::OrtNeuralNet::infer(const NN::Tensor& 
     return ortValueToTensor(outputs.front());
 }
 
-std::vector<int64_t> NN::OrtNeuralNet::inputShape() const {
+NN::Shape NN::OrtNeuralNet::inputShape() const {
     return m_inputShape;
 }
 
-std::vector<int64_t> NN::OrtNeuralNet::outputShape() const {
+NN::Shape NN::OrtNeuralNet::outputShape() const {
     return m_outputShape;
 }
 

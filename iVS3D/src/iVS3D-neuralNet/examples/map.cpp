@@ -1,3 +1,14 @@
+/**
+ * @file map.cpp
+ * @brief Example usage of the Tensor class to create a 2D tensor and map its values to colors.
+ * 
+ * @details This example demonstrates how to create a 2D tensor with integer data, map its values to RGB colors based on whether they are even or odd,
+ * and print the resulting colorized tensor. The mapping function assigns red (255,0,0) for even numbers and green (0,255,0) for odd numbers.
+ * 
+ * @author Dominik Wüst (dominik.wuest@iosb.fraunhofer.de)
+ * @date May 2025
+ */
+
 #include <Tensor.h>
 #include <iostream>
 #include <vector>
