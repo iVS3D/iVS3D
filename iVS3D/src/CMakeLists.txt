@@ -2,6 +2,8 @@
 add_subdirectory(iVS3D-core)
 add_subdirectory(iVS3D-pluginInterface)
 
+add_subdirectory(iVS3D-neuralNet)
+
 if(Build_Plugins)
     add_subdirectory(iVS3D-blurPlugin)
     add_subdirectory(iVS3D-nthFramePlugin)
@@ -15,8 +17,4 @@ endif()
 
 if(Install_Models)
     add_subdirectory(iVS3D-models)
-endif()
-
-if(onnxruntime_FOUND)
-    add_subdirectory(iVS3D-neuralNet)
 endif()

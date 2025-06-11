@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.14.0)
+cmake_minimum_required(VERSION 3.25.0)
 
 # get version from git-tag
 include(cmake/gitversion.cmake)
@@ -12,6 +12,9 @@ set(COMMON_COMPILE_DEFINITIONS ${COMMON_COMPILE_DEFINITIONS}
     -DIVS3D_VER=${VERSION_STR}
     -DIVS3D_DAT=${TODAY}
 )
+
+# Add your cmake/ folder to the module search path
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 # Set build type to release if not specified otherwise
 if("${CMAKE_BUILD_TYPE}" STREQUAL "")
@@ -27,22 +30,22 @@ set(Install_Models ON CACHE BOOL "Copy neural network models to install director
 # Set 'Build_Tests' option (default false)
 set(Build_Tests OFF CACHE BOOL "Build test routines.")
 
+# Set 'Build_Examples' option (default false)
+set(Build_Examples OFF CACHE BOOL "Build examples.")
+
 # Set 'Update_Translations' option (default false)
 set(Update_Translations OFF CACHE BOOL "Enable rescanning sources to update .ts files.")
 
-# Set 'With_CUDA' option (default true)
-set(With_CUDA ON CACHE BOOL "Build with CUDA library")
-
-# CXX Flags
-set(CMAKE_CXX_STANDARD 17)
-if(NOT WIN32)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -std=c++17")
-endif()
-set(CMAKE_CXX_STANDARD_REQUIRED ON)   # Enforce C++17
-set(CMAKE_CXX_EXTENSIONS OFF)         # Use only standard C++ (disable compiler-specific extensions)
-
 # Add paths to linker search and installed rpath.
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+
+
+
+# Setup Summary on Top Level
+if(PROJECT_IS_TOP_LEVEL)
+    include(cmake/Summary.cmake)
+    define_summary_property()
+endif()
 
 # 3rd_party
 
@@ -62,21 +65,14 @@ find_package(OpenCV 4.7 REQUIRED COMPONENTS
     imgproc
 )
 
-include(cmake/FindOnnxruntime.cmake)
+find_package(Onnxruntime 1.22.0)
 
-if(onnxruntime_FOUND)
-    message(STATUS "Found Onnxruntime: ${onnxruntime_INSTALL_PREFIX} (found suitable version \"${onnxruntime_VERSION}\")")
-    set(COMMON_COMPILE_DEFINITIONS ${COMMON_COMPILE_DEFINITIONS}
-        -DWITH_ONNXRUNTIME
-    )
-else()
-    message(WARNING "onnxruntime not found. Please download it here: https://github.com/microsoft/onnxruntime/releases/tag/v1.22.0 and set the environment variable 'onnxruntime_INSTALL_PREFIX' to the installation path.")
-endif()
 
-# CUDA (if applicable)
-if(With_CUDA)
+include(cmake/CheckCudaSupport.cmake)
+if(WITH_CUDA)
 
-    find_package(CUDA 12.0 REQUIRED)
+    #find_package(CUDA 12.0 REQUIRED)
+    enable_language(CUDA)
 
     # set CUDNN variables
     set(CUDNN_INCLUDE_DIR "${CUDA_TOOLKIT_ROOT_DIR}/include" PATH FORCE)
@@ -107,5 +103,9 @@ if(Build_Tests)
     enable_testing()
 
     add_subdirectory(tests/)
+    add_component_summary("iVS3D-Tests" TRUE)
 endif() # Build_Tests
 
+if(PROJECT_IS_TOP_LEVEL)
+    print_summary()
+endif()

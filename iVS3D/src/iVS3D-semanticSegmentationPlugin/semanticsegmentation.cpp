@@ -1,5 +1,6 @@
 #include "semanticsegmentation.h"
-
+#include <QApplication>
+#include <QMessageBox>
 
 SemanticSegmentation::SemanticSegmentation()
 {
@@ -25,24 +26,21 @@ SemanticSegmentation::SemanticSegmentation()
         }
     }
 
-    m_ONNXmodelLoaded = false;
     m_imageIdx = UINT_MAX;
     m_blendAlpha = 0.5f;
     m_guiUpToDate = false;
 
     cv::ocl::setUseOpenCL(true);
     m_useCuda = false;
-    m_ONNXmodel = nullptr;
+    m_model = nullptr;
     m_settingsWidget = nullptr;
+
 }
 
 SemanticSegmentation::~SemanticSegmentation()
 {
     if (m_settingsWidget != nullptr) {
         delete m_settingsWidget;
-    }
-    if (m_ONNXmodelLoaded && (m_ONNXmodel != nullptr)) {
-            delete m_ONNXmodel;
     }
 }
 
@@ -92,11 +90,10 @@ ITransform *SemanticSegmentation::copy()
     copy->m_ONNXmodelIdx = this->m_ONNXmodelIdx;
     copy->m_ONNXselectedClasses = this->m_ONNXselectedClasses;
     copy->m_useCuda = this->m_useCuda;
-    copy->m_ONNXmodel = this->m_ONNXmodel;
-    copy->m_ONNXmodelLoaded = this->m_ONNXmodelLoaded;
-    this->m_ONNXmodel = nullptr;
+    copy->m_model = this->m_model;
+
+    this->m_model = nullptr;
     this->m_useCuda = false;
-    this->m_ONNXmodelLoaded = false;
     return copy;
 }
 
@@ -112,7 +109,7 @@ ImageList SemanticSegmentation::transform(uint idx, const cv::Mat &img, const Re
     // update the original image
     resolution.resize(img, m_originalImage);
 
-    if(!m_useCuda || !m_ONNXmodelLoaded){
+    if(!m_useCuda){
         // create preview of image before calculation started
         cv::Mat preview(m_originalImage.rows, m_originalImage.cols, m_originalImage.type());
         preview.setTo(cv::Scalar(255, 255, 255));
@@ -125,43 +122,91 @@ ImageList SemanticSegmentation::transform(uint idx, const cv::Mat &img, const Re
 
     // only start calculation if models found
     if(m_ONNXmodelList.size() == 0){
-        qDebug() << "No models loaded. Abort.";
+        showErrorMessage(tr("Failed to load model: No model found in %1").arg(QCoreApplication::applicationDirPath() + MODEL_PATH));
         return ImageList();
     }
 
     // load selected model
-    if(!m_ONNXmodelLoaded){
-        loadModel();
+    if(!m_model) {
+        QString modelPath = QCoreApplication::applicationDirPath() + MODEL_PATH + "/" + m_ONNXmodelList[m_ONNXmodelIdx];
+        emit sig_message(HW_NAME(m_useCuda), tr("Loading model..."), true);
+
+        auto modelResult = NN::NeuralNetFactory::create(modelPath.toStdString(), m_useCuda);
+        if(!modelResult) {
+            showErrorMessage(tr("Failed to load model: %1 \n %2").arg(modelPath, QString::fromStdString(modelResult.error())));
+            return ImageList();
+        }
+        m_model = std::move(modelResult.value());
     }
 
-    slot_computeScore();            // compute NN score
+    // get last two dimensions of the input shape
+    auto shape = m_model->inputShape();
+    if(shape.size() < 2) {
+        showErrorMessage(tr("Failed to load model: Invalid input shape %1").arg(QString::fromStdString(NN::shapeToString(shape))));
+        m_model = nullptr;
+        return ImageList();
+    }
+    cv::Size inputSize(shape[shape.size()-2], shape[shape.size()-1]);
+    cv::Mat input_resized;
+    cv::resize(m_image, input_resized, inputSize, cv::INTER_AREA);
+    // normalize input image
+    input_resized.convertTo(input_resized, CV_32FC3, 1.0f / 255.0); // normalize to [0,1]
+    
+    cv::cvtColor(input_resized, input_resized, cv::COLOR_BGR2RGB);   // switch RB
 
-    slot_computeSegmentation();     // create semantic map from score
+    // subtract mean values for RGB channels
+    cv::Scalar mean = cv::Scalar(0.485, 0.456, 0.406);
+    cv::subtract(input_resized, mean, input_resized);
 
-    slot_computeMask();             // create binary mask from score
+    emit sig_message(HW_NAME(m_useCuda) , tr("Computing preview..."), true);
+    auto start = std::chrono::high_resolution_clock::now(); // start clock
+
+    std::cout << "Running inference for semseg..." << std::endl;
+    auto result = NN::Tensor::fromCvMat(input_resized)
+        .and_then(NN::Util::bind_inference(m_model))
+        .and_then(NN::Util::bind_reduceWithIndex(NN::ReduceArgMax{},1))
+        .and_then(NN::Util::bind_squeeze());
+
+    std::cout << "...done!" << std::endl;
+    auto end = std::chrono::high_resolution_clock::now();   // stop clock
+    auto durationMs = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    
+
+    if(!result) {
+        emit sig_message(HW_NAME(m_useCuda), tr("Failed to compute segmentation!"), false);
+        showErrorMessage(tr("Failed to compute segmentation: %1").arg(QString::fromStdString(result.error())));
+        std::cout << "With error: " << result.error() << std::endl;
+        m_model = nullptr;
+        return ImageList();
+    }
+
+    emit sig_message(HW_NAME(m_useCuda), tr("Finished preview in ") + QString::number(durationMs) + tr("ms"), false);
+
+    m_segmentationClasses = std::move(result.value());
+    TENSOR_DEBUG_PRINT(m_segmentationClasses);
+
+    if (!computeColorization() || !computeMask()) {
+        m_model = nullptr;
+        return ImageList();
+    }
+    std::cout << "Colorization and mask done!" << std::endl;
+    auto print_mat = [](const cv::Mat& mat) {
+        std::cout << "cv::Mat(size=" << mat.size() << ", channels=" << mat.channels() << ", type=" << mat.type() << ", dims=" << mat.dims << ")" << std::endl;
+    };
+    
+    print_mat(m_segmentationColorized);
+    print_mat(m_segmentationMask);
+    print_mat(m_image);
 
     m_guiUpToDate = false;
-    slot_sendGuiPreview();          // visualize result on gui
-
-    return ImageList({m_mask});// return the result
+    sendGuiPreview();          // visualize result on gui
+    return ImageList({m_segmentationMask}); // return the result
 }
 
 void SemanticSegmentation::enableCuda(bool enabled)
 {
     m_useCuda = enabled;
-    if(m_ONNXmodelLoaded){
-        if(m_useCuda){
-            qDebug() << "loaded. activating cuda...";
-            m_ONNXmodel->setPreferableBackend(cv::dnn::DNN_BACKEND_CUDA);
-            m_ONNXmodel->setPreferableTarget(cv::dnn::DNN_TARGET_CUDA);
-            emit sig_message(HW_NAME(m_useCuda), tr("Loaded model (cuda)"), false);
-            qDebug() << "cuda alive :)";
-        } else {
-            m_ONNXmodel->setPreferableBackend(cv::dnn::DNN_BACKEND_OPENCV);
-            m_ONNXmodel->setPreferableTarget(cv::dnn::DNN_TARGET_CPU);
-            emit sig_message(HW_NAME(m_useCuda), tr("Loaded model"), false);
-        }
-    }
+    m_model = nullptr;
 }
 
 void SemanticSegmentation::setSettings(QMap<QString, QVariant> settings)
@@ -214,7 +259,7 @@ QMap<QString, QVariant> SemanticSegmentation::getSettings()
 void SemanticSegmentation::slot_ONNXindexChanged(int n)
 {
     // update model
-    m_ONNXmodelLoaded = false;
+    m_model = nullptr;
     m_ONNXmodelIdx = n;
     m_guiUpToDate = false;
 
@@ -251,8 +296,8 @@ void SemanticSegmentation::slot_selectedClassesChanged(QBoolList classes)
     }
 
     QTimer::singleShot(0,this,[=](){
-        slot_computeMask();
-        slot_sendGuiPreview();
+        computeMask();
+        sendGuiPreview();
         m_guiUpToDate = true;
     });
 }
@@ -266,85 +311,16 @@ void SemanticSegmentation::slot_blendAlphaChanged(float alpha)
         return;
     }
     // update preview
-    QTimer::singleShot(0,this,&SemanticSegmentation::slot_sendGuiPreview);
+    QTimer::singleShot(0,this,&SemanticSegmentation::sendGuiPreview);
 }
 
-void SemanticSegmentation::slot_computeScore()
-{
-    qDebug() << "start prediction";
-    double scaleFactor = 1.0/255;
-    cv::Scalar mean = cv::Scalar(0.485, 0.456, 0.406);
-    bool swapRB = true;
-    bool crop = false;
-
-    // preprocess the image
-    int w,h;
-    getInputHeightAndWidth(h,w,m_ONNXmodelIdx);
-
-    cv::Mat blob;
-    cv::dnn::blobFromImage(m_image, blob, scaleFactor, cv::Size(w,h), mean, swapRB, crop, CV_32F);
-
-    // make prediction
-    qDebug() << "Start image prediction.";
-    if(m_useCuda){
-        QString im = QString("[") + QString::number(m_imageIdx) + QString("]");
-        std::cout << std::right << std::setw(30) << im.toStdString() << std::left << " free mem: " << cv::cuda::DeviceInfo().freeMemory() << "\n";
-    }
-    emit sig_message(HW_NAME(m_useCuda) , tr("Computing preview..."), true);
-    auto start = std::chrono::high_resolution_clock::now(); // start clock
-
-    m_ONNXmodel->setInput(blob);                             // set model input ...
-    m_score = m_ONNXmodel->forward();                    // ... and predict output
-
-    auto end = std::chrono::high_resolution_clock::now();   // stop clock
-    auto durationMs = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-
-    qDebug() << "Predicted the image in " << QString::number(durationMs) << "ms";
-    emit sig_message(HW_NAME(m_useCuda), tr("Finished preview in ") + QString::number(durationMs) + tr("ms"), false);
-}
-
-void SemanticSegmentation::slot_computeSegmentation()
-{
-    // fetch classes and colors for visualizing segmentation
-    QStringList classes;
-    QColorList colors;
-    getClassesAndColors(classes, colors);
-
-    // colorize the score
-    cv::Mat segmentation_score;
-    m_score.copyTo(segmentation_score);
-    colorizeSegmentation(segmentation_score, m_segmentation, colors);
-
-    // resize the result to the original width and height
-    if(m_segmentation.cols != m_image.cols || m_segmentation.rows != m_image.rows) {
-        cv::resize(m_segmentation, m_segmentation, cv::Size(m_image.cols, m_image.rows), 0, 0, cv::INTER_NEAREST);
-    }
-}
-
-void SemanticSegmentation::slot_computeMask()
-{
-    // colorize selected classes in score
-    cv::Mat mask_score;
-    m_score.copyTo(mask_score);
-    colorizeSegmentationBinary(mask_score, m_mask, m_ONNXselectedClasses);
-
-
-    // single-channel image has to be converted to 3 channel image
-    cv::cvtColor(m_mask, m_mask, cv::COLOR_GRAY2RGB);
-
-    // resize the result to the original width and height
-    if(m_mask.cols != m_image.cols || m_mask.rows != m_image.rows) {
-        cv::resize(m_mask, m_mask, cv::Size(m_image.cols, m_image.rows), 0, 0, cv::INTER_NEAREST);
-    }
-}
-
-void SemanticSegmentation::slot_sendGuiPreview()
+void SemanticSegmentation::sendGuiPreview()
 {
     if(m_guiUpToDate){
         return;
     }
     cv::Mat preview;
-    alphaBlend(m_segmentation, m_image, preview, m_blendAlpha);
+    alphaBlend(m_segmentationColorized, m_image, preview, m_blendAlpha);
 
 
     // resize preview to original size of cropped area
@@ -355,7 +331,7 @@ void SemanticSegmentation::slot_sendGuiPreview()
         targetRes.resize(preview);
 
         cv::Mat mask;
-        targetRes.resize(m_mask, mask); // scale the mask as well
+        targetRes.resize(m_segmentationMask, mask); // scale the mask as well
 
         cv::hconcat(preview, mask, preview);
     } else {
@@ -369,7 +345,7 @@ void SemanticSegmentation::slot_sendGuiPreview()
         preview.copyTo(fullPreview(targetRoi)); // fullPreview(targetRoi) = preview;
 
         cv::Mat mask;
-        targetRes.resize(m_mask, mask); // scale the mask preview
+        targetRes.resize(m_segmentationMask, mask); // scale the mask preview
 
         // create black background for the area outside the ROI
         cv::Mat maskPreview(m_originalImage.rows, m_originalImage.cols, m_originalImage.type());
@@ -381,6 +357,17 @@ void SemanticSegmentation::slot_sendGuiPreview()
 
     emit sendToGui(m_imageIdx, preview);
     m_guiUpToDate = true;
+}
+
+void SemanticSegmentation::showErrorMessage(const QString &message)
+{
+    QMetaObject::invokeMethod(
+        QApplication::instance(),  // Any QObject living in the GUI thread works
+        [message]() {
+            QMessageBox::critical(nullptr, QObject::tr("Error"), message);
+        },
+        Qt::QueuedConnection
+    );
 }
 
 void SemanticSegmentation::getClassesAndColors(QStringList &cl, QColorList &co)
@@ -454,195 +441,62 @@ void SemanticSegmentation::readClassesAndColorsFile(std::vector<std::string> &cl
     }
 }
 
-
-void SemanticSegmentation::colorizeSegmentation(const cv::Mat score, cv::Mat &segmentation, QList<QColor> colorList)
-{
-    std::vector<cv::Vec3b> colors;
-    for(int i = 0; i<colorList.size(); i++){
-        colors.push_back(cv::Vec3b(colorList[i].blue(),colorList[i].green(),colorList[i].red()));
-    }
-    const int rows = score.size[2];
-    const int cols = score.size[3];
-    const int chns = score.size[1];
-
-    if (chns != static_cast<int>(colors.size()))
-    {
-        CV_Error(cv::Error::StsError, cv::format("Number of output classes does not match "
-                                                 "number of colors (%d != %d)", chns, (int)colors.size()));
-    }
-    cv::Mat maxCl = cv::Mat::zeros(rows, cols, CV_8UC1);
-    cv::Mat maxVal(rows, cols, CV_32FC1, score.data);
-    for (int ch = 1; ch < chns; ch++)
-    {
-        for (int row = 0; row < rows; row++)
-        {
-            const float *ptrScore = score.ptr<float>(0, ch, row);
-            uint8_t *ptrMaxCl = maxCl.ptr<uint8_t>(row);
-            float *ptrMaxVal = maxVal.ptr<float>(row);
-            for (int col = 0; col < cols; col++)
-            {
-                if (ptrScore[col] > ptrMaxVal[col])
-                {
-                    ptrMaxVal[col] = ptrScore[col];
-                    ptrMaxCl[col] = static_cast<uchar>(ch);
-                }
-            }
-        }
-    }
-    segmentation.create(rows, cols, CV_8UC3);
-    for (int row = 0; row < rows; row++)
-    {
-        const uchar *ptrMaxCl = maxCl.ptr<uchar>(row);
-        cv::Vec3b *ptrSegm = segmentation.ptr<cv::Vec3b>(row);
-        for (int col = 0; col < cols; col++)
-        {
-            if(1/*mShowClassBoxes.at(static_cast<int>(ptrMaxCl[col]))->isChecked()*/) {
-                ptrSegm[col] = colors[ptrMaxCl[col]];
-            }
-            else {
-                ptrSegm[col] = cv::Vec3b(0, 0, 0);
-            }
-        }
-    }
-}
-
-void SemanticSegmentation::loadModel()
-{
-    QString modelPath = QCoreApplication::applicationDirPath() + MODEL_PATH + "/" + m_ONNXmodelList[m_ONNXmodelIdx];
-    std::cout << "\n\n<---------- LOADING MODEL ----------->\n";
-    if(m_useCuda){
-        std::cout << std::left << std::setw(30) << "Target:" << "GPU" << "\n";
-        std::cout << std::left << std::setw(30) << "Target name:" << cv::cuda::DeviceInfo().name() << "\n";
-        std::cout << std::left << std::setw(30) << "Target memory:" << cv::cuda::DeviceInfo().totalMemory() << "\n";
-        std::cout << std::left << std::setw(30) << "Target memory free:" << cv::cuda::DeviceInfo().freeMemory() << "\n";
-    }
-    else{
-        std::cout << std::left << std::setw(30) << "Target:" << "CPU" << "\n";
-    }
-    std::cout << std::left << std::setw(30) << "Model name:" << m_ONNXmodelList[m_ONNXmodelIdx].toStdString() << "\n";
-    std::cout << std::left << std::setw(30) << "Model path:" << modelPath.toStdString() << "\n";
-
-    qDebug() << "Try to load model from " << modelPath;
-    emit sig_message(HW_NAME(m_useCuda), tr("Loading model..."), true);
-    auto start = std::chrono::high_resolution_clock::now();
-
-
-    try {
-        if(m_ONNXmodel){
-            delete m_ONNXmodel;
-            m_ONNXmodel = nullptr;
-        }
-        m_ONNXmodel = new cv::dnn::Net(cv::dnn::readNetFromONNX(modelPath.toStdString()));
-        if(m_useCuda){
-            m_ONNXmodel->setPreferableBackend(cv::dnn::DNN_BACKEND_CUDA);
-            m_ONNXmodel->setPreferableTarget(cv::dnn::DNN_TARGET_CUDA);
-            emit sig_message(HW_NAME(m_useCuda), tr("Loaded model (cuda)"), false);
-        } else {
-            m_ONNXmodel->setPreferableBackend(cv::dnn::DNN_BACKEND_OPENCV);
-            m_ONNXmodel->setPreferableTarget(cv::dnn::DNN_TARGET_CPU);
-            emit sig_message(HW_NAME(m_useCuda), tr("Loaded model"), false);
-        }
-        m_ONNXmodelLoaded = true;
-    }  catch (QException &e) {
-        qDebug() <<  "failed to load model: " << e.what();
-    }
-
-    auto end = std::chrono::high_resolution_clock::now();
-    auto durationMs = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-
-    std::cout << std::left << std::setw(30) << "Model loaded in:" << durationMs << "\n";
-
-    qDebug() << "Successfully loaded model from " << modelPath;
-    qDebug() << "Successfully loaded model in " << QString::number(durationMs) << "ms";
-
-}
-
-void SemanticSegmentation::colorizeSegmentationBinary(const cv::Mat score, cv::Mat &segmentation, QList<bool> selectedClasses)
-{
-    std::vector<bool> classes;
-    for(int i = 0; i<selectedClasses.size(); i++){
-        classes.push_back(selectedClasses[i]);
-    }
-
-    const int rows = score.size[2];
-    const int cols = score.size[3];
-    const int chns = score.size[1];
-
-    if (chns != static_cast<int>(classes.size()))
-    {
-        CV_Error(cv::Error::StsError, cv::format("Number of output classes does not match "
-                                                 "number of colors (%d != %d)", chns, (int)classes.size()));
-    }
-    cv::Mat maxCl = cv::Mat::zeros(rows, cols, CV_8UC1);
-    cv::Mat maxVal(rows, cols, CV_32FC1, score.data);
-    for (int ch = 1; ch < chns; ch++)
-    {
-        for (int row = 0; row < rows; row++)
-        {
-            const float *ptrScore = score.ptr<float>(0, ch, row);
-            uint8_t *ptrMaxCl = maxCl.ptr<uint8_t>(row);
-            float *ptrMaxVal = maxVal.ptr<float>(row);
-            for (int col = 0; col < cols; col++)
-            {
-                if (ptrScore[col] > ptrMaxVal[col])
-                {
-                    ptrMaxVal[col] = ptrScore[col];
-                    ptrMaxCl[col] = static_cast<uchar>(ch);
-                }
-            }
-        }
-    }
-    segmentation.create(rows, cols, CV_8UC1);
-    for (int row = 0; row < rows; row++)
-    {
-        const uchar *ptrMaxCl = maxCl.ptr<uchar>(row);
-        uchar *ptrSegm = segmentation.ptr<uchar>(row);
-        for (int col = 0; col < cols; col++)
-        {
-            if(classes[ptrMaxCl[col]]) {
-                ptrSegm[col] = 255;
-            }
-            else {
-                ptrSegm[col] = 0;
-            }
-        }
-    }
-}
-
-void SemanticSegmentation::getInputHeightAndWidth(int &inputHeight, int &inputWidth, int modelIdx)
-{
-    // get model name and erase everything except the size part
-    std::string modelName = m_ONNXmodelList[modelIdx].toStdString();
-
-    // Regular expression to match the naming convention
-    std::regex pattern(R"(Segmentation_([^_]+)_([^_]+)_([0-9]+)x([0-9]+)\.onnx)");
-    std::smatch matches;
-
-    if (std::regex_match(modelName, matches, pattern)) {
-        if (matches.size() == 5) { // matches[0] is the whole match, matches[1]..[4] are the groups
-            std::string architecture = matches[1];
-            std::string dataset = matches[2];
-            int height = std::stoi(matches[3]);
-            int width = std::stoi(matches[4]);
-
-            std::cout << "Architecture: " << architecture << std::endl;
-            std::cout << "Dataset: " << dataset << std::endl;
-            std::cout << "Width: " << width << std::endl;
-            std::cout << "Height: " << height << std::endl;
-
-            inputHeight = height;
-            inputWidth = width;
-
-        } else {
-            std::cerr << "Error: Unexpected match size." << std::endl;
-        }
-    } else {
-        std::cerr << "Error: Filename does not match expected format." << std::endl;
-    }
-
-}
-
 void SemanticSegmentation::alphaBlend(const cv::Mat &foreground, const cv::Mat &background, cv::Mat &destionation, float alpha)
 {
     destionation = alpha * foreground + (1.0f - alpha) * background;
+}
+
+bool SemanticSegmentation::computeColorization()
+{
+    // compute the colorized segmentation for the gui
+    QStringList classes;
+    QColorList colors;
+    getClassesAndColors(classes, colors);
+    auto colorResult = m_segmentationClasses
+        .map([colors](const int64_t& value) -> std::array<uint8_t,3> {
+            return { 
+                static_cast<uint8_t>(colors[value].blue()), 
+                static_cast<uint8_t>(colors[value].green()), 
+                static_cast<uint8_t>(colors[value].red())
+            };
+        }, 0)
+        .and_then(NN::Util::bind_toCvMat());
+
+    if(!colorResult) {
+        showErrorMessage(tr("Failed to compute colorized segmentation: %1").arg(QString::fromStdString(colorResult.error())));
+        m_model = nullptr;
+        return false;
+    }
+    m_segmentationColorized = std::move(colorResult.value());
+    // resize the result to the original width and height
+    if(m_segmentationColorized.cols != m_image.cols || m_segmentationColorized.rows != m_image.rows) {
+        cv::resize(m_segmentationColorized, m_segmentationColorized, cv::Size(m_image.cols, m_image.rows), 0, 0, cv::INTER_NEAREST);
+    }
+    return true;
+}
+
+bool SemanticSegmentation::computeMask()
+{
+    // compute the binary mask for the selected classes
+    auto classList = m_ONNXselectedClasses;
+    
+    auto maskResult = m_segmentationClasses
+        .map([classList](const int64_t& value) -> uint8_t {
+            return classList[value] ? 255 : 0; // only keep selected classes
+        })
+        .and_then(NN::Util::bind_toCvMat());
+
+    if(!maskResult) {
+        showErrorMessage(tr("Failed to compute binary mask: %1").arg(QString::fromStdString(maskResult.error())));
+        m_model = nullptr;
+        return false;
+    }
+    m_segmentationMask = std::move(maskResult.value());
+    // resize the result to the original width and height
+    if(m_segmentationMask.cols != m_image.cols || m_segmentationMask.rows != m_image.rows) {
+        cv::resize(m_segmentationMask, m_segmentationMask, cv::Size(m_image.cols, m_image.rows), 0, 0, cv::INTER_NEAREST);
+    }
+
+    cv::cvtColor(m_segmentationMask, m_segmentationMask, cv::COLOR_GRAY2RGB);
+    return true;
 }

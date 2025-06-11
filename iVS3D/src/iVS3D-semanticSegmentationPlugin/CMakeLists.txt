@@ -1,5 +1,12 @@
 set(TARGET_NAME SemanticSegmentation)
 
+# Can't built if iVS3D-neuralNet is not found
+if(NOT TARGET NeuralNet)
+    message(WARNING "iVS3D-NeuralNet not found - skipping build of 'iVS3D-SemanticSegmentation' plugin.")
+    add_plugin_summary("${TARGET_NAME}" FALSE "Missing NeuralNet")
+    return()
+endif()
+
 # set include directories
 include_directories(SYSTEM
     ${Qt${QT_VERSION_MAJOR}Core_INCLUDE_DIRS}
@@ -82,6 +89,9 @@ target_link_libraries(${TARGET_NAME}
     ${CUDNN_LIBRARIES}
 )
 
+
+target_link_libraries(${TARGET_NAME} NeuralNet)
+
 # add defines
 target_compile_definitions(${TARGET_NAME} PRIVATE 
     ${COMMON_COMPILE_DEFINITIONS}
@@ -119,3 +129,5 @@ if(Update_Translations)
         DEPENDS ${HEADER_FILES} ${SRC_FILES}
     )
 endif()
+
+add_plugin_summary("${TARGET_NAME}" TRUE)

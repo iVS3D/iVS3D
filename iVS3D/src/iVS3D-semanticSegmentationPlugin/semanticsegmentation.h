@@ -36,6 +36,10 @@
 #include <iomanip>
 #include <regex>
 
+#include <NeuralNetFactory.h>
+#include <Tensor.h>
+#include <NeuralUtil.h>
+
 #define MODEL_PATH "/plugins/resources/neural_network_models"
 #define HW_NAME(x) x ? "Using GPU (cuda)" : "Using CPU"
 #define USED_MODEL "Used Model"
@@ -149,50 +153,44 @@ private slots:
     void slot_ONNXindexChanged(int n);
     void slot_selectedClassesChanged(QBoolList classes);
     void slot_blendAlphaChanged(float alpha);
-    // --- tasks for transforming an image ---
-    // (packed as slots to add tasks to event queue)
-    void slot_computeScore();           // evaluate selected m_ONNXmodel (input:
-    void slot_computeSegmentation();
-    void slot_computeMask();
-    void slot_sendGuiPreview();
 
 private:
     // --- gui data
     SettingsWidget *m_settingsWidget;   // settings widget for this ITransform
     float m_blendAlpha;                 // alpha for semantic map overlay
     bool m_guiUpToDate;                 // is true if gui is up to date, used to avoid unnessecary updates
+    void sendGuiPreview();
+    void showErrorMessage(const QString &message);
+
     // --- ONNX model data ---
     QStringList m_ONNXmodelList;    // model names
-    cv::dnn::Net *m_ONNXmodel;       // active model
-    bool m_ONNXmodelLoaded;         // true if selected model is loaded as active model
+    NN::NeuralNetPtr m_model;       // active model
     int m_ONNXmodelIdx;             // index of selected model in m_ONNXmodelList
     QBoolList m_ONNXselectedClasses;// bool for each class of selected model (true if class selected)
+
     // --- Buffer for image, nn score, segmentation and mask ---
     uint m_imageIdx;
     cv::Mat m_originalImage;
     cv::Mat m_image;
     Resolution m_resolution;
     ROI m_roi;
-    cv::Mat m_score;
-    cv::Mat m_segmentation;
-    cv::Mat m_mask;
+    NN::Tensor m_segmentationClasses;
+    cv::Mat m_segmentationColorized;
+    cv::Mat m_segmentationMask;
     // --- use CUDA acceleration ---
     bool m_useCuda;
-    // --- Widget synch ---
+    // --- Widget sync ---
     bool m_updateClasses = true;       //Disable updates if classes are set manuel
 
     // --- get Classes and Colors for each model ---
     void getClassesAndColors(QStringList &classes, QList<QColor> &colors);
     void readClassesAndColorsFile(std::vector<std::string> &classes, std::vector<cv::Vec3b> &colors, const std::string &filepath);
-    // --- read size of input layer for each model ---
-    void getInputHeightAndWidth(int &inputHeight, int &inputWidth, int modelIdx);
+    
     // --- blend two images using an alpha value ---
     void alphaBlend(const cv::Mat &foreground,const cv::Mat &background, cv::Mat &destionation, float alpha);
-    // --- create semanitc map and binary mask from score ---
-    void colorizeSegmentationBinary(const cv::Mat score, cv::Mat &segmentation, QList<bool> selectedClasses);
-    void colorizeSegmentation(const cv::Mat score, cv::Mat &segmentation, QList<QColor> colorList);
-    // --- load model to ram / vram ---
-    void loadModel();
+
+    bool computeColorization();
+    bool computeMask();
     QMutex m_mutex;
 };
 
