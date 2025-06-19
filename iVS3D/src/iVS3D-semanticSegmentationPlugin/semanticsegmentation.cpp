@@ -146,31 +146,18 @@ ImageList SemanticSegmentation::transform(uint idx, const cv::Mat &img, const Re
         m_model = nullptr;
         return ImageList();
     }
-    cv::Size inputSize(shape[shape.size()-2], shape[shape.size()-1]);
-    cv::Mat input_resized;
-    cv::resize(m_image, input_resized, inputSize, cv::INTER_AREA);
-    // normalize input image
-    input_resized.convertTo(input_resized, CV_32FC3, 1.0f / 255.0); // normalize to [0,1]
-    
-    cv::cvtColor(input_resized, input_resized, cv::COLOR_BGR2RGB);   // switch RB
-
-    // subtract mean values for RGB channels
-    cv::Scalar mean = cv::Scalar(0.485, 0.456, 0.406);
-    cv::subtract(input_resized, mean, input_resized);
 
     emit sig_message(HW_NAME(m_useCuda) , tr("Computing preview..."), true);
     auto start = std::chrono::high_resolution_clock::now(); // start clock
 
     std::cout << "Running inference for semseg..." << std::endl;
-    auto result = NN::Tensor::fromCvMat(input_resized)
+    auto result = NN::Tensor::fromCvMat(m_image, m_model->inputShape(), 1.0f/255.0f, {0.485f, 0.456f, 0.406f})
         .and_then(NN::Util::bind_inference(m_model))
-        .and_then(NN::Util::bind_reduceWithIndex(NN::ReduceArgMax{},1))
+        .and_then(NN::Util::bind_reduceWithIndex(NN::ReduceArgMax{}, 1))
         .and_then(NN::Util::bind_squeeze());
-
     std::cout << "...done!" << std::endl;
     auto end = std::chrono::high_resolution_clock::now();   // stop clock
     auto durationMs = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-    
 
     if(!result) {
         emit sig_message(HW_NAME(m_useCuda), tr("Failed to compute segmentation!"), false);

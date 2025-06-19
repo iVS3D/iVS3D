@@ -29,6 +29,7 @@
 #include <utility>
 
 #include <opencv2/core.hpp>
+#include <opencv2/imgproc.hpp>
 
 #include <tl/expected.hpp>
 
@@ -36,97 +37,104 @@
 
 /**
  * @brief NN Neural Network Library containing Tensor and NeuralNet classes for inference.
- * 
+ *
  * @ingroup NeuralNet
- * 
+ *
  * @details Contains the Tensor class for representing N-dimensional arrays with various data types.
  * The Tensor class supports operations like reshaping, mapping, reducing, and converting to/from cv::Mat.
- * 
+ *
  * A factory handles model loading and abstracts the underlying inference engine (e.g., ONNX Runtime).
- * 
+ *
  * @author Dominik Wüst (dominik.wuest@iosb.fraunhofer.de)
  * @date May 2025
- * 
+ *
  */
 namespace NN
 {
     /**
      * @ingroup NeuralNet
-     * 
+     *
      * @brief Shape of a N-dimensional Tensor represented as the size in each dimension. Can be -1 in case of dynamic dimensions.
-     * 
+     *
      * @details
      * The Shape is a vector of int64_t values, where each value represents the size of the corresponding dimension.
      * A Shape can be used to describe the input or output shape of a Tensor in a neural network.
      * For example, a Shape of [-1, 3, 512, 512] indicates a dynamic batch size (first dimension),
      * 3 channels, and a spatial resolution of 512x512 pixels. The -1 indicates that the batch size can vary.
-     * 
+     *
      * @code{.cpp}
      * NeuralNet net = ...; // create a neural network instance
      * net.inputShape(); // might be [-1,3,512,512] in NCHW format with a dynamic batch size, 3 channels and 512x512 pixels
      * @endcode
-     * 
+     *
      * The shape of a Tensor is never empty, so it always contains at least one dimension. It is guaranteed that no dimension is -1,
      * so the shape is static. This means that the number of elements in a Tensor can be calculated as the product of all dimensions.
-     *  */ 
+     *  */
     using Shape = std::vector<int64_t>;
 
     /**
      * @brief Calculates the number of elements from a given Shape.
-     * 
-     * @details Returns @code shape[0] * shape[1] * ... * shape[N-1] @endcode 
-     * 
+     *
+     * @details Returns @code shape[0] * shape[1] * ... * shape[N-1] @endcode
+     *
      * @param shape The shape object.
      * @return int64_t The number of elements in a Tensor with that shape.
      */
-    int64_t shapeNumElements(const Shape& shape);
+    int64_t shapeNumElements(const Shape &shape);
 
     /**
      * @brief Calculates the stride to iterate elements in a given axis.
-     * 
+     *
      * @param shape The shape of the tensor to iterate.
      * @param axis The axis to iterate. This must be in range [0,shape.size()-1]!
      * @return int64_t the stride (stepsize) to iterate the given axis.
      */
-    int64_t shapeToStride(const Shape& shape, uint64_t axis);
+    int64_t shapeToStride(const Shape &shape, uint64_t axis);
 
     /**
      * @brief Creates a human-readable string from the given shape.
-     * 
+     *
      * @param shape The shape to convert.
      * @return std::string A string with the shapes elements in printable form.
      */
-    std::string shapeToString(const Shape& shape);
+    std::string shapeToString(const Shape &shape);
 
     /**
      * @ingroup NeuralNet
-     * 
+     *
      * @brief TensorType encapsulates the supported data types of tensor elements.
      * The supported types are:
      * - Float
      * - Int64
      * - UInt8
-     * 
+     *
      */
-    enum class TensorType {
-        Float,       // float32
-        Int64,       // int64_t
-        UInt8,       // uint8_t
-        Invalid      // Invalid type, used for error handling
+    enum class TensorType
+    {
+        Float,  // float32
+        Int64,  // int64_t
+        UInt8,  // uint8_t
+        Invalid // Invalid type, used for error handling
     };
 
     /**
      * @brief Convert the TensorType to a human-readable string.
-     * 
+     *
      * @param type The TensorType to convert.
      * @return constexpr const char* Returns a string representation of the type.
      */
-    constexpr const char* toString(TensorType type) {
-        switch (type) {
-            case TensorType::Float: return "float32";
-            case TensorType::Int64: return "int64";
-            case TensorType::UInt8: return "uint8";
-            default: return "Invalid";
+    constexpr const char *toString(TensorType type)
+    {
+        switch (type)
+        {
+        case TensorType::Float:
+            return "float32";
+        case TensorType::Int64:
+            return "int64";
+        case TensorType::UInt8:
+            return "uint8";
+        default:
+            return "Invalid";
         }
     };
 
@@ -136,10 +144,13 @@ namespace NN
      * @brief Checks if a type is a std::array.
      */
     template <typename T>
-    struct is_std_array : std::false_type {};
+    struct is_std_array : std::false_type
+    {
+    };
 
     template <typename U, std::size_t N>
-    struct is_std_array<std::array<U, N>> : std::true_type {
+    struct is_std_array<std::array<U, N>> : std::true_type
+    {
         using value_type = U;
         static constexpr size_t size = N;
     };
@@ -154,7 +165,8 @@ namespace NN
      * @brief Traits for mapping a function over a std::array.
      */
     template <typename Func, typename InputElem>
-    struct map_array_traits {
+    struct map_array_traits
+    {
         using return_type = std::decay_t<std::invoke_result_t<Func, InputElem>>;
         static_assert(is_std_array<return_type>::value, "Function must return std::array");
 
@@ -162,24 +174,24 @@ namespace NN
         static constexpr size_t size = is_std_array<return_type>::size;
     };
     // --- End heplers
-    
+
     /**
      * @ingroup NeuralNet
      * @class Tensor
      * @brief A Tensor represents a N-dimensional array containing elements of the same type. Can be used as input and output for inference.
-     * 
+     *
      * @details
      * Supported element types are:
-     * 
+     *
      * - uint8_t
      * - float
      * - int64_t
-     * 
+     *
      * @see TensorType for the supported types.
-     * 
-     * Tensors can be created from and converted to cv::Mat or std::vector<T>. 
-     * The element type is passed as a Template argument or deduced from the cv::Mat::depth property. 
-     * 
+     *
+     * Tensors can be created from and converted to cv::Mat or std::vector<T>.
+     * The element type is passed as a Template argument or deduced from the cv::Mat::depth property.
+     *
      * @date May 2025
      * @author Dominik Wüst (dominik.wuest@iosb.fraunhofer.de)
      */
@@ -189,49 +201,203 @@ namespace NN
         using TensorData = std::variant<
             std::vector<float>,
             std::vector<int64_t>,
-            std::vector<uint8_t>
-        >;
+            std::vector<uint8_t>>;
 
         /**
-         * @brief Create a new Tensor object from a cv::Mat. This will convert from CVs HWC layout to ONNX standard layout [N]CHW. 
+         * @brief Create a new Tensor object from a cv::Mat. This will convert from CVs HWC layout to ONNX standard layout [N]CHW.
          * In this case the N -dimsension is NOT created as it would be 1!
-         * 
+         *
          * @param mat The cv::Mat containing the data in HWC layout for the Tensor.
          * @return tl::expected<Tensor, std::string> A Tensor in CHW layout or an error message.
          */
-        static tl::expected<Tensor, std::string> fromCvMat(const cv::Mat& mat);
+        static tl::expected<Tensor, std::string> fromCvMat(const cv::Mat &mat);
 
         /**
-         * @brief Create a new Tensor object from a given data vector and shape. The number of elements in the vector must match shapeNumElements(shape).
-         * 
-         * @tparam T The datatype, this must be on of the following: uint8_t, int64_t, float.
-         * @param data The data vector. This will be copied!
-         * @param shape The shape of the new Tensor.
-         * @return tl::expected<Tensor, std::string> A Tensor object containing the data and shape or an error message.
+         * @brief Create a new Tensor object from a cv::Mat with a specific shape, optional scaling, and per-channel mean-subtraction.
+         *
+         * @param mat The cv::Mat containing the data in HWC layout for the Tensor.
+         * @param shape The desired shape of the Tensor.
+         * @param scale The scale factor to apply to the input data (default: 1.0).
+         * @param mean The mean values to subtract from each channel (default: empty vector).
+         * @return tl::expected<Tensor, std::string> A Tensor in CHW layout or an error message.
          * 
          * @details
-         * This function creates a Tensor from a vector of data. The data will be copied!
+         * This function creates a Tensor from a cv::Mat with the specified shape.
+         * The shape must be valid, meaning it must have at least two dimensions [...,H,W].
+         * If the Channel dimension is present, it must match the number of channels in the cv::Mat or be -1 (dynamic).
          * 
-         * @see fromData(std::vector<T>&&, const Shape&) for a move version.
-         * @see reduce.cpp for an example of using this function.
+         * - If the cv::Mat is grayscale, it will be converted to a single channel Tensor.
+         * - If the cv::Mat has 3 channels, it will be converted from BGR to RGB.
+         * - If the cv::Mat has more than 3 channels, it will be treated as a multi-channel Tensor.
+         *
+         * The following steps are applied (in this order):
+         * 1. Resize the cv::Mat to match W and H of the shape if necessary.
+         * 2. If input is BGR, convert it to RGB.
+         * 3. The data will be converted to float32 and scaled by the given scale factor.
+         * 4. If a mean vector is provided, it will be subtracted from each channel.
+         * 
+         * The resulting Tensor will be of type float32. Its shape will be squeezed, i.e. leading dimensions of size 1 and dynamic dimensions will be removed.
+         * 
          */
-        template <typename T>
-        static tl::expected<Tensor, std::string> fromData(const std::vector<T>& data, const Shape& shape) {
-            return fromData(std::vector<T>(data), shape);  // delegates to move overload
+        static tl::expected<Tensor, std::string> fromCvMat(const cv::Mat &mat, const Shape &shape, float scale = 1.0f, std::vector<float> mean = {})
+        {
+            if (mat.empty())
+            {
+                return tl::unexpected("Input image is empty");
+            }
+
+            if (shape.size() < 2)
+            {
+                return tl::unexpected("Invalid shape, expected at least [H,W] or more dimensions");
+            }
+
+            // grayscale images (shape = [H,W])
+            if (mat.channels() == 1)
+            {
+
+                // check if all shape dimensions are 1 or -1 except the last two
+                for (auto dim = shape.begin(); dim != shape.end() - 2; ++dim)
+                {
+                    if (*dim != 1 && *dim != -1)
+                    {
+                        return tl::unexpected("Invalid shape for grayscale image, expected [H,W] or [...,H,W] with leading dimensions being 1 or -1");
+                    }
+                }
+
+                // check if mean vector is valid
+                if (mean.size() > 1)
+                {
+                    return tl::unexpected("Mean vector for grayscale image must not have more than one element");
+                }
+
+                cv::Mat tmp;
+
+                // convert to float and resize if necessary
+                cv::Size size(shape[shape.size() - 2], shape[shape.size() - 1]);
+                if (size != mat.size())
+                {
+                    cv::resize(mat, tmp, size, 0, 0, cv::INTER_AREA);
+                    tmp.convertTo(tmp, CV_32F, scale);
+                }
+                else
+                {
+                    mat.convertTo(tmp, CV_32F, scale);
+                }
+
+                // subtract mean if provided
+                if (mean.size() == 1)
+                {
+                    tmp -= mean[0];
+                }
+
+                // create the tensor
+                return fromCvMat(tmp);
+            }
+
+            // validate the channel dimension matches the cv::Mat channels or is dynamic (if present)
+            if ((shape.size() > 2) && (shape[shape.size() - 3] != mat.channels()) && (shape[shape.size() - 3] != -1))
+            {
+                return tl::unexpected("Shape does not match number of channels in cv::Mat. Expected " + std::to_string(mat.channels()) + " channels, got " + std::to_string(shape[shape.size() - 2]));  
+            }
+
+            // check if all shape dimensions are 1 or -1 except the last three
+            for (size_t i = 0; i < shape.size() - 3; ++i)
+            {
+                if (shape[i] != 1 && shape[i] != -1)
+                {
+                    return tl::unexpected("Invalid shape, expected [N,C,H,W] or [...,C,H,W] with leading dimensions being 1 or -1");
+                }
+            }
+
+            cv::Mat tmp;
+            const cv::Mat *matPtr = &mat; // points to the mat were currently working with
+
+            // if 3d, swap red and blue channels from BGR (opencv-standard) to RGB (anything else)
+            if (mat.channels() == 3)
+            {
+                cv::cvtColor(*matPtr, tmp, cv::COLOR_BGR2RGB);
+                matPtr = &tmp;
+            }
+
+            // resize if necessary
+            cv::Size size(shape[shape.size() - 2], shape[shape.size() - 1]);
+            if (size != matPtr->size())
+            {
+                cv::resize(*matPtr, tmp, size, 0, 0, cv::INTER_AREA);
+                matPtr = &tmp;
+            }
+
+            // convert to float and apply scale
+            matPtr->convertTo(tmp, CV_32F, scale);
+
+            // subtract mean if provided
+            if (mean.size() > 0 && mean.size() != tmp.channels())
+            {
+                return tl::unexpected("Mean vector size does not match number of channels in cv::Mat");
+            }
+
+            if (mean.size() == tmp.channels())
+            {
+                // subtract mean from each channel
+                int channels = tmp.channels();
+                int rows = tmp.rows;
+                int cols = tmp.cols * channels;
+
+                if (tmp.isContinuous())
+                {
+                    cols *= rows;
+                    rows = 1;
+                }
+
+                for (int i = 0; i < rows; ++i)
+                {
+                    float *ptr = tmp.ptr<float>(i);
+                    for (int j = 0; j < cols; j += channels)
+                    {
+                        for (int c = 0; c < channels; ++c)
+                        {
+                            ptr[j + c] -= mean[c];
+                        }
+                    }
+                }
+            }
+
+            // create the tensor
+            return fromCvMat(tmp);
         }
 
         /**
          * @brief Create a new Tensor object from a given data vector and shape. The number of elements in the vector must match shapeNumElements(shape).
-         * 
+         *
+         * @tparam T The datatype, this must be on of the following: uint8_t, int64_t, float.
+         * @param data The data vector. This will be copied!
+         * @param shape The shape of the new Tensor.
+         * @return tl::expected<Tensor, std::string> A Tensor object containing the data and shape or an error message.
+         *
+         * @details
+         * This function creates a Tensor from a vector of data. The data will be copied!
+         *
+         * @see fromData(std::vector<T>&&, const Shape&) for a move version.
+         * @see reduce.cpp for an example of using this function.
+         */
+        template <typename T>
+        static tl::expected<Tensor, std::string> fromData(const std::vector<T> &data, const Shape &shape)
+        {
+            return fromData(std::vector<T>(data), shape); // delegates to move overload
+        }
+
+        /**
+         * @brief Create a new Tensor object from a given data vector and shape. The number of elements in the vector must match shapeNumElements(shape).
+         *
          * @tparam T The datatype, this must be on of the following: uint8_t, int64_t, float.
          * @param data The data vector. The new Tensor takes ownership of the data!
          * @param shape The shape of the new Tensor.
          * @return tl::expected<Tensor, std::string> A Tensor object containing the data and shape or an error message.
-         * 
+         *
          * @details
          * This function creates a Tensor from a vector of data. The data will be moved into the Tensor!
          * This is useful for performance reasons when you already have the data in a vector and want to avoid copying.
-         * 
+         *
          * @code{.cpp}
          * // Create a 2D tensor with float data
          * Shape shape2d = {3, 4}; // 3x4 tensor (CHW format)
@@ -240,13 +406,15 @@ namespace NN
          *                              9.0, 10.0, 11.0, 12.0};
          * auto tensor2d = Tensor::fromData(std::move(data2d), shape2d);
          * @endcode
-         * 
+         *
          * @see fromData(const std::vector<T>&, const Shape&) for a copy version.
          * @see reduce.cpp for an example of using this function.
          */
         template <typename T>
-        static tl::expected<Tensor, std::string> fromData(std::vector<T>&& data, const Shape& shape) {
-            if (static_cast<size_t>(shapeNumElements(shape)) != data.size()) {
+        static tl::expected<Tensor, std::string> fromData(std::vector<T> &&data, const Shape &shape)
+        {
+            if (static_cast<size_t>(shapeNumElements(shape)) != data.size())
+            {
                 return tl::unexpected("Data size does not match shape");
             }
 
@@ -258,18 +426,18 @@ namespace NN
 
         /**
          * @brief Create a vector containing the data from the Tensor.
-         * 
+         *
          * @tparam T The datatype of the vector. This must match the Tensors current type!
          * @return tl::expected<std::vector<T>, std::string>  Retruns the data vector or an error message if the Tensor does not contain the requested data type.
-         * 
+         *
          * @details
          * This function extracts the data from the Tensor and returns it as a vector of the specified type.
          * If the Tensor does not contain the requested data type, an error message is returned.
-         * 
+         *
          * @code{.cpp}
          * // Create a Tensor with float data
          * Shape shape = {2, 3}; // 2x3 tensor (CHW format)
-         * std::vector<float> data = {1.0, 2.0, 3.0, 
+         * std::vector<float> data = {1.0, 2.0, 3.0,
          *                            4.0, 5.0, 6.0};
          * auto tensor = Tensor::fromData(std::move(data), shape).value();
          * TensorType type = tensor.dtype(); // Should be TensorType::Float
@@ -286,68 +454,73 @@ namespace NN
          * @endcode
          */
         template <typename T>
-        tl::expected<std::vector<T>, std::string> toVector() const {
-            if (std::holds_alternative<std::vector<T>>(m_data)) {
+        tl::expected<std::vector<T>, std::string> toVector() const
+        {
+            if (std::holds_alternative<std::vector<T>>(m_data))
+            {
                 return std::get<std::vector<T>>(m_data);
             }
             return tl::unexpected("Tensor does not hold requested data type");
         }
 
         /**
-         * @brief Create a cv::Mat from a Tensor. In case of 2/3 dimensions this will convert back to CVs HWC layout. 
+         * @brief Create a cv::Mat from a Tensor. In case of 2/3 dimensions this will convert back to CVs HWC layout.
          * Returns an error for dimensions other than 2 or 3.
-         * 
+         *
          * @return tl::expected<cv::Mat, std::string> A cv::Mat object with the data in HWC format or an error message.
          */
         tl::expected<cv::Mat, std::string> toCvMat() const;
-        
+
         /**
          * @brief Readonly access to the shape of the tensor. Valid tensors ensure the shape is static, so no dimension is -1.
-         * 
+         *
          * @return const Shape& access to the shape object.
          */
-        const Shape& shape() const { return m_shape; }
+        const Shape &shape() const { return m_shape; }
 
         /**
          * @brief Create a human-readable string representation containing the Tensors shape and data type.
-         * 
+         *
          * @return std::string A string like "Tensor(shape=[3,512,512], dtype=float)".
          */
         std::string toString() const;
 
         /**
          * @brief Reshape will interprete the data elements contained in the Tensor as a different shape. This does not move any elements!
-         * 
+         *
          * @param newShape The new shape, it must match the Tensors number of elements.
          * @return tl::expected<void, std::string> Returns an error message only if the new shape is invalid.
          */
-        tl::expected<void, std::string> reshape(const Shape& newShape);
+        tl::expected<void, std::string> reshape(const Shape &newShape);
 
         /**
          * @brief Returns the number of elements contained in the Tensor.
-         * 
+         *
          * @return int64_t The number of elements.
          */
         int64_t numElements() const;
 
         /**
          * @brief Check if the tensor is empty, so to say it contains no elements.
-         * 
+         *
          * @return true If the Tensor contains no elements.
          * @return false If the Tensor contains one or more element.
          */
-        bool empty() const {
+        bool empty() const
+        {
             return m_shape.empty() || shapeNumElements(m_shape) == 0;
         }
 
         /**
-         * @brief Check the data type of the Tensor. This is deduced from the data type of 
+         * @brief Check the data type of the Tensor. This is deduced from the data type of
          * the contained elements.
-         * 
-         * @return TensorType 
+         *
+         * @return TensorType
          */
-        TensorType dtype() const {
-            return std::visit([](const auto& vec) -> TensorType {
+        TensorType dtype() const
+        {
+            return std::visit([](const auto &vec) -> TensorType
+                              {
                 using T = typename std::decay_t<decltype(vec)>::value_type;
                 if constexpr (std::is_same_v<T, float>) {
                     return TensorType::Float;
@@ -357,18 +530,17 @@ namespace NN
                     return TensorType::UInt8;
                 } else {
                     return TensorType::Invalid; // Unsupported type
-                }
-            }, m_data);
+                } }, m_data);
         };
 
         /**
          * @brief Reduce the Tensor along a given axis by applying an accumulative operation.
-         * 
+         *
          * @tparam Op Templated to work with different data types.
          * @param op An accumulative operation like ReduceMin/ReduceMax/ReduceSum.
          * @param axis The axis in which we apply the operation, in the output this axis will have size 1.
          * @return tl::expected<Tensor, std::string> Returns a reduced Tensor or an error message.
-         * 
+         *
          * @details This function applies the specified reduction operation along the given axis.
          * The output tensor will have the same shape as the input tensor, except for the reduced axis,
          * which will have size 1.
@@ -377,17 +549,20 @@ namespace NN
          * auto reduced_tensor = tensor.value().reduce(ReduceSum{}, 1);
          * reduced_tensor.value().toString(); // Should print something like "Tensor(shape=[N, 1, H, W], dtype=float)"
          * @endcode
-         * 
+         *
          * @see ReduceOps.h for the supported operations.
          * @see reduce.cpp for an example of using this function.
          */
         template <typename Op>
-        tl::expected<Tensor, std::string> reduce(const Op& op, uint64_t axis) const {
-            if (axis >= m_shape.size()) {
+        tl::expected<Tensor, std::string> reduce(const Op &op, uint64_t axis) const
+        {
+            if (axis >= m_shape.size())
+            {
                 return tl::unexpected("Invalid reduction axis");
             }
 
-            return std::visit([&](const auto& inputVec) -> tl::expected<Tensor, std::string> {
+            return std::visit([&](const auto &inputVec) -> tl::expected<Tensor, std::string>
+                              {
                 using T = typename std::decay_t<decltype(inputVec)>::value_type;
                 const int64_t D = m_shape.size();
 
@@ -413,47 +588,49 @@ namespace NN
                         output[outIdx] = acc;
                     }
                 }
-                return Tensor::fromData(std::move(output), outShape);
-            }, m_data);
+                return Tensor::fromData(std::move(output), outShape); }, m_data);
         }
 
         /**
-         * @brief Reduce the Tensor along a given axis by applying an accumulative operation. 
+         * @brief Reduce the Tensor along a given axis by applying an accumulative operation.
          * The dimension in the rduced axis will be 1 after this.
-         * 
-         * @tparam Op Templated to work with different data types. See @see ReduceOps.h ReduceOps.h
+         *
+         * @tparam Op Templated to work with different data types.
          * @param op An indexed reduction operation like ReduceArgMax.
          * @param axis The axis in which we apply the operation, in the output this axis will have size 1.
          * @return tl::expected<Tensor, std::string> Returns a reduced Tensor or an error message.
-         * 
+         *
          * @details Example usage for applying an ArgMax-Operation to a 2D-Tensor.
-         * Assume the Tensor contains a batch of K-dimesnional feature vectors and batch size is N. 
-         * Then the shape is [N,K]. We want to obtain the index of the maximum value for 
+         * Assume the Tensor contains a batch of K-dimesnional feature vectors and batch size is N.
+         * Then the shape is [N,K]. We want to obtain the index of the maximum value for
          * each vector, so the output will have shape [N,1]:
-         * 
+         *
          * @code {.cpp}
-         * Tensor tensor = ... // shape is [N,K] 
+         * Tensor tensor = ... // shape is [N,K]
          * auto result = tensor.reduceWithIndex(ReduceArgMax{},1); // apply arg-max to axis 1 (corresponds to K)
          * if (!result){
          *   std::cout << "ERROR: " << result.error() << std::endl;
          *   return -1;
-         * } 
+         * }
          * Tensor argmax_tensor = result.value();
-         * std::cout << "Resulting tensor: " << argmax_tensor.toString() << std::endl; 
+         * std::cout << "Resulting tensor: " << argmax_tensor.toString() << std::endl;
          * // Resulting tensor: tensor(shape=[N,1], dtype=int64)
          * @endcode
-         * 
+         *
          * @see ReduceOps.h for the supported operations.
          * @see reduceWithIndex.cpp for an example of using this function.
-         * 
+         *
          */
         template <typename Op>
-        tl::expected<Tensor, std::string> reduceWithIndex(const Op& op, uint64_t axis) const {
-            if (axis >= m_shape.size()) {
+        tl::expected<Tensor, std::string> reduceWithIndex(const Op &op, uint64_t axis) const
+        {
+            if (axis >= m_shape.size())
+            {
                 return tl::unexpected("Invalid reduction axis");
             }
 
-            return std::visit([&](const auto& inputVec) -> tl::expected<Tensor, std::string> {
+            return std::visit([&](const auto &inputVec) -> tl::expected<Tensor, std::string>
+                              {
                 using T = typename std::decay_t<decltype(inputVec)>::value_type;
 
                 Shape outShape = m_shape;
@@ -477,22 +654,21 @@ namespace NN
                     }
                 }
 
-                return Tensor::fromData(std::move(output), outShape);
-            }, m_data);
+                return Tensor::fromData(std::move(output), outShape); }, m_data);
         }
 
         /**
-         * @brief Map each element of the Tensor to a new value by applying a given function element-wise. 
+         * @brief Map each element of the Tensor to a new value by applying a given function element-wise.
          * This can be used to change the datatype as well.
-         * 
+         *
          * @tparam Func Templated function type (T->V) where T matches the current data type and V is a valid new data type.
          * @param f The mapping function which is applied to each element.
          * @return tl::expected<Tensor, std::string> Returns a new Tensor or an error message.
-         * 
+         *
          * @details
          * This function applies the given function to each element of the Tensor and returns a new Tensor with the mapped values.
          * The function must accept an element of the current data type and return a value of the new data type.
-         * 
+         *
          * Example usage: convert a Tensor of uint8_t values to float values.
          * @code {.cpp}
          * NN::Tensor tensor = ... // Tensor(shape=[512,512], dtype=uint8)
@@ -506,46 +682,48 @@ namespace NN
          * NN::Tensor normalized = std::move(result.value());
          * std::cout << normalized.toString() << std::endl; // Tensor(shape=[512,512], dtype=float)
          * @endcode
-         * 
+         *
          * @see Tensor::map(Func&& f, int axis) for a version that adds a new dimension.
          */
         template <typename Func>
-        tl::expected<Tensor, std::string> map(Func&& f) const{
-            return std::visit([&](const auto& inputVec) -> tl::expected<Tensor, std::string> {
-                using T = typename std::decay_t<decltype(inputVec)>::value_type;
-                using V = std::decay_t<decltype(f(std::declval<T>()))>;
+        tl::expected<Tensor, std::string> map(Func &&f) const
+        {
+            return std::visit([&](const auto &inputVec) -> tl::expected<Tensor, std::string>
+                              {
+                                  using T = typename std::decay_t<decltype(inputVec)>::value_type;
+                                  using V = std::decay_t<decltype(f(std::declval<T>()))>;
 
-                std::vector<V> output;
-                output.resize(inputVec.size());
+                                  std::vector<V> output;
+                                  output.resize(inputVec.size());
 
-                std::transform(inputVec.begin(), inputVec.end(), output.begin(),
-                    [&](const T& val) -> V {
-                        return f(val);
-                    });
+                                  std::transform(inputVec.begin(), inputVec.end(), output.begin(),
+                                                 [&](const T &val) -> V
+                                                 {
+                                                     return f(val);
+                                                 });
 
-                return Tensor::fromData(std::move(output), m_shape);
-
-            }, m_data);
+                                  return Tensor::fromData(std::move(output), m_shape); },
+                              m_data);
         }
 
         /**
          * @brief Map each element of the Tensor to an array of new values by applying a given function element-wise.
          * This adds a new dimension in the given axis.
-         * 
+         *
          * @tparam Func Templated function type (T->std::array<N,U>) where T matches the current data type and U is a valid new data type.
          * @param func The mapping function which is applied to each element.
          * @param axis The axis to insert the new dimension.
          * @return tl::expected<Tensor, std::string> Returns a new Tensor or an error message.
-         * 
+         *
          * @details Example usage: Map a 2D-Tensor of class-indices to a 3D-Tensor with RGB colors assigned to each class.
          * The mapping function therefore maps a class index (int64_t) to a RGB color (std::array<3,uint8_t>).
          * This will create a new dimension in the output Tensor at the given axis (in this case appends the new dimension at the front).
-         * 
+         *
          * @code {.cpp}
          * NN::Tensor classes = ... // Tensor(shape=[512,512], dtype=int64)
          * std::vector<std::array<uint8_t,3>> colors = { {255,0,0}, {127,127,127}, ... }; // a color per class
-         * auto result = classes.map([colors](int64_t index){ 
-         *  return colors[index]; 
+         * auto result = classes.map([colors](int64_t index){
+         *  return colors[index];
          * }, 0);
          * if (!result) {
          *  std::cerr << "ERROR: " << result.error() << std::endl;
@@ -554,18 +732,21 @@ namespace NN
          * NN::Tensor colorized = std::move(result.value());
          * std::cout << colorized.toString() << std::endl; // Tensor(shape=[3,512,512], dtype=uint8)
          * @endcode
-         * 
+         *
          * @see Tensor::map(Func&& f) for a version that does not add a new dimension.
          * @see map.cpp for an example of using this function.
          */
         template <typename Func>
-        tl::expected<Tensor, std::string> map(Func&& func, int axis) const {
+        tl::expected<Tensor, std::string> map(Func &&func, int axis) const
+        {
             // Sanity check axis
-            if (axis < 0 || axis > static_cast<int>(m_shape.size())) {
+            if (axis < 0 || axis > static_cast<int>(m_shape.size()))
+            {
                 return tl::unexpected("Invalid axis to insert new dimension.");
             }
-        
-            return std::visit([&](const auto& input) -> tl::expected<Tensor, std::string> {
+
+            return std::visit([&](const auto &input) -> tl::expected<Tensor, std::string>
+                              {
                 using T = typename std::decay_t<decltype(input)>::value_type;
                 using Traits = map_array_traits<Func, T>;
                 using U = typename Traits::value_type;
@@ -606,13 +787,12 @@ namespace NN
                     }
                 }
             
-                return Tensor::fromData(std::move(outData), newShape);
-            }, m_data);
+                return Tensor::fromData(std::move(outData), newShape); }, m_data);
         }
 
         /**
          * @brief Squeeze the Tensor by removing dimensions of size 1. This operation is performed inplace.
-         * 
+         *
          * @return tl::expected<void, std::string> This should never fail.
          */
         tl::expected<void, std::string> squeeze();
@@ -631,28 +811,31 @@ namespace NN
          */
         tl::expected<void, std::string> unsqueeze(int64_t axis);
 
-
     private:
         TensorData m_data;
         Shape m_shape;
-        
-        static inline std::vector<int64_t> computeStrides(const Shape& shape) {
+
+        static inline std::vector<int64_t> computeStrides(const Shape &shape)
+        {
             std::vector<int64_t> strides(shape.size(), 1);
             for (int i = shape.size() - 2; i >= 0; --i)
                 strides[i] = strides[i + 1] * shape[i + 1];
             return strides;
         }
 
-        static inline std::vector<int64_t> unravelIndex(int64_t index, const std::vector<int64_t>& strides) {
+        static inline std::vector<int64_t> unravelIndex(int64_t index, const std::vector<int64_t> &strides)
+        {
             std::vector<int64_t> coords(strides.size());
-            for (size_t i = 0; i < strides.size(); ++i) {
+            for (size_t i = 0; i < strides.size(); ++i)
+            {
                 coords[i] = index / strides[i];
                 index %= strides[i];
             }
             return coords;
         }
 
-        static inline int64_t ravelIndex(const std::vector<int64_t>& coords, const std::vector<int64_t>& strides) {
+        static inline int64_t ravelIndex(const std::vector<int64_t> &coords, const std::vector<int64_t> &strides)
+        {
             int64_t index = 0;
             for (size_t i = 0; i < coords.size(); ++i)
                 index += coords[i] * strides[i];
@@ -665,29 +848,31 @@ namespace NN
 
 #ifndef TENSOR_DEBUG_PRINT
 #ifdef NDEBUG
-    #define TENSOR_DEBUG_PRINT(tensor) ((void)0);
+#define TENSOR_DEBUG_PRINT(tensor) ((void)0);
 #else
-    #include <iostream>
-    #define TENSOR_DEBUG_PRINT(tensor) (std::cout << (tensor).toString() << std::endl);
+#include <iostream>
+#define TENSOR_DEBUG_PRINT(tensor) (std::cout << (tensor).toString() << std::endl);
 #endif
 #endif
 
 #ifndef SHAPE_DEBUG_PRINT
 #ifdef NDEBUG
-    #define SHAPE_DEBUG_PRINT(shape) ((void)0);
+#define SHAPE_DEBUG_PRINT(shape) ((void)0);
 #else
-    #include <iostream>
-    #define SHAPE_DEBUG_PRINT(shape) (std::cout << NN::shapeToString(shape) << std::endl);
+#include <iostream>
+#define SHAPE_DEBUG_PRINT(shape) (std::cout << NN::shapeToString(shape) << std::endl);
 #endif
 #endif
 
 #ifndef RETURN_ON_ERROR
-#define RETURN_ON_ERROR(expr, retVal)                               \
-    do {                                                            \
-        auto _res = (expr);                                         \
-        if (!_res) {                                                \
-            std::cerr << "Error: " << _res.error() << std::endl;    \
-            return (retVal);                                        \
-        }                                                           \
+#define RETURN_ON_ERROR(expr, retVal)                            \
+    do                                                           \
+    {                                                            \
+        auto _res = (expr);                                      \
+        if (!_res)                                               \
+        {                                                        \
+            std::cerr << "Error: " << _res.error() << std::endl; \
+            return (retVal);                                     \
+        }                                                        \
     } while (0);
 #endif
