@@ -9,11 +9,16 @@ fi
 echo "Build configuration:"
 echo "--------------------"
 echo "  Qt libs:          $QT_PATH/lib"
-echo "  OpenCV libs:      $OCV_BIN"
+echo "  OpenCV libs:      $OpenCV_LIB"
 if [ -n "$CUDA_VERSION" ] 
 then
   echo "  CUDA Version:     $CUDA_VERSION"
   echo "  CUDA libs:        $CUDA_BIN"
+fi
+if [ -n "$ORT_VERSION" ] 
+then
+  echo "  ORT Version:     $ORT_VERSION"
+  echo "  ORT libs:        $Onnxruntime_LIB"
 fi
 echo "  Project version:  $APP_VERSION"
 echo "  Project date:     $APP_DATE"
@@ -23,7 +28,7 @@ echo "--------------------"
 
 # set LD_LIBRARY_PATH
 # this is necessary for ldd to find runtime libraries of Qt, OpenCV and cuda
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$CUDA_BIN:$QT_PATH/lib:$OCV_BIN
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$CUDA_BIN:$QT_PATH/lib:$OpenCV_LIB:$Onnxruntime_LIB
 
 echo "LD_LIBRARY_PATH:    "
 echo "--------------------"
@@ -149,7 +154,7 @@ deployapp() {
   then
     echo " "
     echo "--------------------------------"
-    echo "-- adding cudnn libs  --"
+    echo "-- adding cudnn libs          --"
     echo "--------------------------------"
 
     CUDNN_FILES="libcudnn_ops_infer.so.8 libcudnn_cnn_infer.so.8"
@@ -161,6 +166,25 @@ deployapp() {
         missing_libs+=("$CUDNN_FILE")
       else
         addlibs $INSTALL_PATH/$PACKAGE_NAME/lib/$CUDNN_FILE "$INSTALL_PATH/$PACKAGE_NAME/lib"
+      fi
+    done
+  fi
+
+  if [ -n "$ORT_VERSION" ]
+  then
+    echo " "
+    echo "--------------------------------"
+    echo "-- adding onnxruntime libs    --"
+    echo "--------------------------------"
+
+    ORT_LIBS=$(find $Onnxruntime_LIB -name 'libonnxruntime*.so*')
+    for ORT_LIB in $ORT_LIBS
+    do
+      if ! cp $ORT_LIB $INSTALL_PATH/$PACKAGE_NAME/lib/ 2>/dev/null; then
+        echo "Failed to copy $ORT_LIB"
+        missing_libs+=("$ORT_LIB")
+      else
+        addlibs $INSTALL_PATH/$PACKAGE_NAME/lib/$(basename $ORT_LIB) "$INSTALL_PATH/$PACKAGE_NAME/lib"
       fi
     done
   fi
