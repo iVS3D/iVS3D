@@ -170,24 +170,22 @@ deployapp() {
     done
   fi
 
-  if [ -n "$ORT_VERSION" ]
-  then
+  if [ -n "$ORT_VERSION" ]; then
     echo " "
     echo "--------------------------------"
     echo "-- adding onnxruntime libs    --"
     echo "--------------------------------"
 
-    ORT_LIBS=$(find $Onnxruntime_LIB -name 'libonnxruntime*.so*')
-    for ORT_LIB in $ORT_LIBS
-    do
-      if ! cp $ORT_LIB $INSTALL_PATH/$PACKAGE_NAME/lib/ 2>/dev/null; then
+    while IFS= read -r -d '' ORT_LIB; do
+      if ! cp "$ORT_LIB" "$INSTALL_PATH/$PACKAGE_NAME/lib/" 2>/dev/null; then
         echo "Failed to copy $ORT_LIB"
         missing_libs+=("$ORT_LIB")
       else
-        addlibs $INSTALL_PATH/$PACKAGE_NAME/lib/$(basename $ORT_LIB) "$INSTALL_PATH/$PACKAGE_NAME/lib"
+        addlibs "$INSTALL_PATH/$PACKAGE_NAME/lib/$(basename "$ORT_LIB")" "$INSTALL_PATH/$PACKAGE_NAME/lib"
       fi
-    done
+    done < <(find "$Onnxruntime_LIB" -name 'libonnxruntime*.so*' -print0)
   fi
+
 
   echo " "
   echo "--------------------------------"
