@@ -150,7 +150,8 @@ deployapp() {
     addlibs $qmlfile "$INSTALL_PATH/$PACKAGE_NAME/lib"
   done
 
-  if [ -n "$CUDA_VERSION" ]
+  # copy CUDNN libs if cuda is set to 12.0
+  if [ -n "$CUDA_VERSION" ] && [ "$CUDA_VERSION" == "12.0" ]
   then
     echo " "
     echo "--------------------------------"
@@ -177,6 +178,15 @@ deployapp() {
     echo "--------------------------------"
 
     while IFS= read -r -d '' ORT_LIB; do
+      # Skip _tensorrt.so files
+      if [[ "$ORT_LIB" == *"_tensorrt.so"* ]]; then
+        continue
+      fi
+      # Skip _cuda.so files if CUDA is not set
+      if [[ "$ORT_LIB" == *"_cuda.so"* ]] && [ -z "$CUDA_VERSION" ]; then
+        continue
+      fi
+      # Copy the library to the package lib directory
       if ! cp "$ORT_LIB" "$INSTALL_PATH/$PACKAGE_NAME/lib/" 2>/dev/null; then
         echo "Failed to copy $ORT_LIB"
         missing_libs+=("$ORT_LIB")
