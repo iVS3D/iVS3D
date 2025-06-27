@@ -13,6 +13,8 @@ NN::OrtNeuralNet::OrtNeuralNet(const std::string& modelPath, bool useCuda, int g
 {
     if (useCuda) {
         Ort::ThrowOnError(OrtSessionOptionsAppendExecutionProvider_CUDA(m_sessionOptions, m_gpuId));
+    } else {
+        m_gpuId = -1; // No GPU used
     }
 
     // Sets graph optimization level
@@ -98,6 +100,11 @@ NN::Shape NN::OrtNeuralNet::inputShape() const {
 
 NN::Shape NN::OrtNeuralNet::outputShape() const {
     return m_outputShape;
+}
+
+int NN::OrtNeuralNet::gpuId() const
+{
+    return m_gpuId;
 }
 
 tl::expected<Ort::Value, std::string> NN::OrtNeuralNet::tensorToOrtValue(const Tensor& tensor, std::optional<std::vector<int64_t>> shapeOverride) const {

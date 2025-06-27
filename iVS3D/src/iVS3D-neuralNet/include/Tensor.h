@@ -219,13 +219,14 @@ namespace NN
          * @param shape The desired shape of the Tensor.
          * @param scale The scale factor to apply to the input data (default: 1.0).
          * @param mean The mean values to subtract from each channel (default: empty vector).
+         * @param std The standard deviation values to divide each channel by (default: empty vector).
          * @return tl::expected<Tensor, std::string> A Tensor in CHW layout or an error message.
-         * 
+         *
          * @details
          * This function creates a Tensor from a cv::Mat with the specified shape.
          * The shape must be valid, meaning it must have at least two dimensions [...,H,W].
          * If the Channel dimension is present, it must match the number of channels in the cv::Mat or be -1 (dynamic).
-         * 
+         *
          * - If the cv::Mat is grayscale, it will be converted to a single channel Tensor.
          * - If the cv::Mat has 3 channels, it will be converted from BGR to RGB.
          * - If the cv::Mat has more than 3 channels, it will be treated as a multi-channel Tensor.
@@ -235,136 +236,59 @@ namespace NN
          * 2. If input is BGR, convert it to RGB.
          * 3. The data will be converted to float32 and scaled by the given scale factor.
          * 4. If a mean vector is provided, it will be subtracted from each channel.
-         * 
+         * 5. If a std vector is provided, each channel will be divided by the corresponding std value.
+         *
          * The resulting Tensor will be of type float32. Its shape will be squeezed, i.e. leading dimensions of size 1 and dynamic dimensions will be removed.
-         * 
+         *
          */
-        static tl::expected<Tensor, std::string> fromCvMat(const cv::Mat &mat, const Shape &shape, float scale = 1.0f, std::vector<float> mean = {})
-        {
-            if (mat.empty())
-            {
-                return tl::unexpected("Input image is empty");
-            }
+        static tl::expected<Tensor, std::string> fromCvMat(const cv::Mat &mat, const Shape &shape, float scale = 1.0f, std::vector<float> mean = {}, std::vector<float> std = {});
 
-            if (shape.size() < 2)
-            {
-                return tl::unexpected("Invalid shape, expected at least [H,W] or more dimensions");
-            }
+        /**
+         * @brief Create a new Tensor object from a vector of cv::Mat objects. The cv::Mat objects must have the same size and type.
+         *
+         * @param mats The vector of cv::Mat objects to convert.
+         * @return tl::expected<Tensor, std::string> A Tensor object containing the stacked cv::Mat data in NCHW layout or an error message.
+         *
+         * @details The function stacks the cv::Mat objects along the first dimension (N) and converts them to a Tensor in NCHW layout.
+         * The following requirements must be met:
+         * - All cv::Mat objects must have the same size (rows, cols, channels) and type.
+         * - The cv::Mat objects must not be empty.
+         * - The cv::Mat objects must have a type of either CV_8U or CV_32F.
+         *
+         * The resulting Tensor will have a shape of [N,C,H,W], where:
+         * - N is the number of cv::Mat objects in the input vector.
+         * - C is the number of channels in the cv::Mat objects.
+         * - H is the height (rows) of the cv::Mat objects.
+         * - W is the width (cols) of the cv::Mat objects.
+         *
+         * The datatype of the Tensor will be determined by the cv::Mat type.
+         */
+        static tl::expected<Tensor, std::string> fromCvMats(const std::vector<cv::Mat> &mats);
 
-            // grayscale images (shape = [H,W])
-            if (mat.channels() == 1)
-            {
-
-                // check if all shape dimensions are 1 or -1 except the last two
-                for (auto dim = shape.begin(); dim != shape.end() - 2; ++dim)
-                {
-                    if (*dim != 1 && *dim != -1)
-                    {
-                        return tl::unexpected("Invalid shape for grayscale image, expected [H,W] or [...,H,W] with leading dimensions being 1 or -1");
-                    }
-                }
-
-                // check if mean vector is valid
-                if (mean.size() > 1)
-                {
-                    return tl::unexpected("Mean vector for grayscale image must not have more than one element");
-                }
-
-                cv::Mat tmp;
-
-                // convert to float and resize if necessary
-                cv::Size size(shape[shape.size() - 2], shape[shape.size() - 1]);
-                if (size != mat.size())
-                {
-                    cv::resize(mat, tmp, size, 0, 0, cv::INTER_AREA);
-                    tmp.convertTo(tmp, CV_32F, scale);
-                }
-                else
-                {
-                    mat.convertTo(tmp, CV_32F, scale);
-                }
-
-                // subtract mean if provided
-                if (mean.size() == 1)
-                {
-                    tmp -= mean[0];
-                }
-
-                // create the tensor
-                return fromCvMat(tmp);
-            }
-
-            // validate the channel dimension matches the cv::Mat channels or is dynamic (if present)
-            if ((shape.size() > 2) && (shape[shape.size() - 3] != mat.channels()) && (shape[shape.size() - 3] != -1))
-            {
-                return tl::unexpected("Shape does not match number of channels in cv::Mat. Expected " + std::to_string(mat.channels()) + " channels, got " + std::to_string(shape[shape.size() - 2]));  
-            }
-
-            // check if all shape dimensions are 1 or -1 except the last three
-            for (size_t i = 0; i < shape.size() - 3; ++i)
-            {
-                if (shape[i] != 1 && shape[i] != -1)
-                {
-                    return tl::unexpected("Invalid shape, expected [N,C,H,W] or [...,C,H,W] with leading dimensions being 1 or -1");
-                }
-            }
-
-            cv::Mat tmp;
-            const cv::Mat *matPtr = &mat; // points to the mat were currently working with
-
-            // if 3d, swap red and blue channels from BGR (opencv-standard) to RGB (anything else)
-            if (mat.channels() == 3)
-            {
-                cv::cvtColor(*matPtr, tmp, cv::COLOR_BGR2RGB);
-                matPtr = &tmp;
-            }
-
-            // resize if necessary
-            cv::Size size(shape[shape.size() - 2], shape[shape.size() - 1]);
-            if (size != matPtr->size())
-            {
-                cv::resize(*matPtr, tmp, size, 0, 0, cv::INTER_AREA);
-                matPtr = &tmp;
-            }
-
-            // convert to float and apply scale
-            matPtr->convertTo(tmp, CV_32F, scale);
-
-            // subtract mean if provided
-            if (mean.size() > 0 && mean.size() != tmp.channels())
-            {
-                return tl::unexpected("Mean vector size does not match number of channels in cv::Mat");
-            }
-
-            if (mean.size() == tmp.channels())
-            {
-                // subtract mean from each channel
-                int channels = tmp.channels();
-                int rows = tmp.rows;
-                int cols = tmp.cols * channels;
-
-                if (tmp.isContinuous())
-                {
-                    cols *= rows;
-                    rows = 1;
-                }
-
-                for (int i = 0; i < rows; ++i)
-                {
-                    float *ptr = tmp.ptr<float>(i);
-                    for (int j = 0; j < cols; j += channels)
-                    {
-                        for (int c = 0; c < channels; ++c)
-                        {
-                            ptr[j + c] -= mean[c];
-                        }
-                    }
-                }
-            }
-
-            // create the tensor
-            return fromCvMat(tmp);
-        }
+        /**
+         * @brief Create a new Tensor object from a vector of cv::Mat objects with a specific shape, optional scaling, and per-channel mean-subtraction.
+         *
+         * @param mats The vector of cv::Mat objects to convert.
+         * @param shape The desired shape of the Tensor.
+         * @param scale The scale factor to apply to the input data (default: 1.0).
+         * @param mean The mean values to subtract from each channel (default: empty vector).
+         * @return tl::expected<Tensor, std::string> A Tensor object containing the stacked cv::Mat data in NCHW layout or an error message.
+         *
+         * @details
+         * This function creates a Tensor from a vector of cv::Mat objects with the specified shape. The shape must match the following requirements:
+         * - The shape must have four dimensions [N,C,H,W].
+         * - The first dimension (N) is the number of cv::Mat objects in the input vector.
+         * - The second dimension (C) is the number of channels in the cv::Mat objects.
+         *
+         * If the size of the cv::Mat objects does not match the height and width specified in the shape, they will be resized accordingly.
+         * The following steps are applied (in this order):
+         * 1. Resize each cv::Mat to match the height and width specified in the shape.
+         * 2. The cv:Mat is converted from BGR to RGB.
+         * 3. The data will be converted to float32 and scaled by the scale factor.
+         * 4. If a mean vector is provided, it will be subtracted per-channel.
+         * 5. If a std vector is provided, each channel will be divided by the corresponding std value.
+         */
+        static tl::expected<Tensor, std::string> fromCvMats(const std::vector<cv::Mat> &mats, const Shape &shape, float scale = 1.0f, std::vector<float> mean = {}, std::vector<float> std = {});
 
         /**
          * @brief Create a new Tensor object from a given data vector and shape. The number of elements in the vector must match shapeNumElements(shape).
@@ -840,6 +764,125 @@ namespace NN
             for (size_t i = 0; i < coords.size(); ++i)
                 index += coords[i] * strides[i];
             return index;
+        }
+
+        /**
+         * @brief Create a new Tensor object from a vector of cv::Mat objects with a specific type.
+         *
+         * @param mats The vector of cv::Mat objects to convert.
+         * @tparam T The datatype of the cv::Mat objects, must be one of the following: uint8_t, float.
+         * @tparam CV_TYPE The OpenCV type of the cv::Mat objects, must be one of the following: CV_8U, CV_32F.
+         * @return tl::expected<Tensor, std::string> A Tensor object containing the stacked cv::Mat data in NCHW layout or an error message.
+         */
+        template <typename T, int CV_TYPE>
+        static tl::expected<Tensor, std::string> fromCvMatsTyped(const std::vector<cv::Mat> &mats)
+        {
+            if (mats.empty())
+            {
+                return tl::unexpected("Input vector of cv::Mat is empty");
+            }
+
+            int channels = mats[0].channels();
+            int height = mats[0].rows;
+            int width = mats[0].cols;
+
+            Shape shape = {static_cast<int64_t>(mats.size()), static_cast<int64_t>(channels), static_cast<int64_t>(height), static_cast<int64_t>(width)};
+            auto totalSize = shapeNumElements(shape);
+
+            std::vector<T> data;
+            data.reserve(totalSize);
+
+            for (const auto &mat : mats)
+            {
+                if (mat.depth() != CV_TYPE)
+                {
+                    return tl::unexpected("All cv::Mat must have the same data type");
+                }
+
+                if (mat.channels() != channels || mat.rows != height || mat.cols != width)
+                {
+                    return tl::unexpected("All cv::Mat must have the same size and number of channels");
+                }
+
+                std::vector<cv::Mat> splitted;
+                cv::split(mat, splitted);
+
+                for (int c = 0; c < channels; ++c)
+                {
+                    // data.insert(data.end(), splitted[c].datastart, splitted[c].dataend);
+                    const T *channelData = splitted[c].ptr<T>();
+                    data.insert(data.end(), channelData, channelData + height * width);
+                }
+            }
+
+            return fromData(std::move(data), shape);
+        }
+
+        /**
+         * @brief Preprocess a cv::Mat to match the given shape by resizing, color conversion from BGR to RGB, and scaling.
+         */
+        static cv::Mat preprocessCvMat(const cv::Mat &mat, const Shape &shape, float scale)
+        {
+            cv::Mat tmp;
+            const cv::Mat *matPtr = &mat; // points to the mat were currently working with
+
+            // if 3d, swap red and blue channels from BGR (opencv-standard) to RGB (anything else)
+            if (mat.channels() == 3)
+            {
+                cv::cvtColor(*matPtr, tmp, cv::COLOR_BGR2RGB);
+                matPtr = &tmp;
+            }
+
+            // resize if necessary
+            cv::Size size(shape[shape.size() - 2], shape[shape.size() - 1]);
+            if (size != matPtr->size())
+            {
+                cv::resize(*matPtr, tmp, size, 0, 0, cv::INTER_AREA);
+                matPtr = &tmp;
+            }
+
+            // convert to float and apply scale
+            matPtr->convertTo(tmp, CV_32F, scale);
+            return tmp;
+        }
+
+        /**
+         * @brief Preprocess a cv::Mat to match the given shape by resizing, color conversion from BGR to RGB, scaling, and applying mean and std.
+         */
+        static cv::Mat preprocessCvMat(const cv::Mat &mat, const Shape &shape, float scale, const std::vector<float> &mean, const std::vector<float> &std)
+        {
+            cv::Mat tmp = preprocessCvMat(mat, shape, scale); // first do the basic preprocessing
+
+            // check if mean and std are provided and have the correct size
+            assert(mean.size() == tmp.channels());
+            assert(std.size() == tmp.channels());
+            // check that std is not zero
+            assert(std::all_of(std.begin(), std.end(), [](float s) { return s != 0.0f; }));
+
+            // subtract mean from each channel
+            int channels = tmp.channels();
+            int rows = tmp.rows;
+            int cols = tmp.cols * channels;
+
+            if (tmp.isContinuous())
+            {
+                cols *= rows;
+                rows = 1;
+            }
+
+            for (int i = 0; i < rows; ++i)
+            {
+                float *ptr = tmp.ptr<float>(i);
+                for (int j = 0; j < cols; j += channels)
+                {
+                    for (int c = 0; c < channels; ++c)
+                    {
+                        ptr[j + c] = (ptr[j + c] - mean[c]) / std[c]; // apply mean and std
+                    }
+                }
+            }
+
+            return tmp;
         }
 
         friend class OrtNeuralNet;

@@ -1,9 +1,10 @@
 #include "visualSimilarity.h"
+#include <NeuralUtil.h>
 
 VisualSimilarity::VisualSimilarity()
 {
     QLocale locale = qApp->property("translation").toLocale();
-    QTranslator* translator = new QTranslator();
+    QTranslator *translator = new QTranslator();
     translator->load(locale, "visualSimilarity", "_", ":/translations", ".qm");
     qApp->installTranslator(translator);
 
@@ -12,54 +13,96 @@ VisualSimilarity::VisualSimilarity()
 
 VisualSimilarity::~VisualSimilarity() {}
 
-QWidget* VisualSimilarity::getSettingsWidget(QWidget *parent)
+QWidget *VisualSimilarity::getSettingsWidget(QWidget *parent)
 {
-    if(!m_settingsWidget){
+    if (!m_settingsWidget)
+    {
         createSettingsWidget(parent);
     }
     // update widgets with internal parameter values
     return m_settingsWidget;
 }
 
-std::vector<uint> VisualSimilarity::sampleImages(const std::vector<unsigned int> &imageList, Progressable *receiver, volatile bool *stopped, bool useCuda, LogFileParent* logFile)
+std::vector<uint> VisualSimilarity::sampleImages(const std::vector<unsigned int> &imageList, Progressable *receiver, volatile bool *stopped, bool useCuda, LogFileParent *logFile)
 {
-    if (imageList.size() < 2) {
+    if (imageList.size() < 2)
+    {
         return imageList;
     }
 
-    if (!m_nnNameInput) {
+    if (!m_nnNameInput)
+    {
         return imageList;
     }
 
     logFile->startTimer(LF_TIMER_NN);
 
     // Read nn
-    if (!QFile::exists(QCoreApplication::applicationDirPath()+RESSOURCE_PATH+m_nnFileName)) {
+    if (!QFile::exists(QCoreApplication::applicationDirPath() + RESSOURCE_PATH + m_nnFileName))
+    {
         displayErrorMessage(tr("No valid neural network was selected."));
         return imageList;
     }
     displayMessage(receiver, tr("Loading Neural Network"));
-    displayProgress(receiver,0 , tr("Loading Neural Network"));
-    cv::dnn::Net nn = cv::dnn::readNet(QString(QCoreApplication::applicationDirPath()+RESSOURCE_PATH+m_nnFileName).toStdString());
-    // activate cuda
+    displayProgress(receiver, 0, tr("Loading Neural Network"));
+
+    // loading NN if not already loaded or if useCuda is different
+    if (!m_neuralNet || m_neuralNet->gpuId() != (useCuda ? 0 : -1))
+    {
+        QString neuralNetAbsolutePath = QCoreApplication::applicationDirPath() + RESSOURCE_PATH + m_nnFileName;
+        auto createResult = NN::NeuralNetFactory::create(neuralNetAbsolutePath.toStdString(), useCuda);
+        if (!createResult)
+        {
+            displayErrorMessage(tr("Failed to create neural network from file: %1").arg(neuralNetAbsolutePath));
+            return imageList;
+        }
+        m_neuralNet = createResult.value();
+    }
+
+    // validate neural network input shape
+    if (m_neuralNet->inputShape().size() != 4)
+    {
+        auto m_neuralNetShape = m_neuralNet->inputShape();
+        SHAPE_DEBUG_PRINT(m_neuralNetShape);
+        displayErrorMessage(tr("The selected neural network does not have the expected input shape. Please select a different neural network."));
+        m_neuralNet = nullptr;
+        return imageList;
+    }
+    auto batch = m_neuralNet->inputShape()[0];
+    auto channels = m_neuralNet->inputShape()[1];
+    auto height = m_neuralNet->inputShape()[2];
+    auto width = m_neuralNet->inputShape()[3];
+    if (channels != 3 || height <= 0 || width <= 0)
+    {
+        displayErrorMessage(tr("The selected neural network does not have the expected input shape. Please select a different neural network."));
+        m_neuralNet = nullptr;
+        return imageList;
+    }
+    m_nnInputSize = cv::Size(width, height);
+
+    // compute maximum batch size to avoid OOM errors
     int batchSize = 1;
-    if (useCuda) {
-        nn.setPreferableBackend(cv::dnn::DNN_BACKEND_CUDA);
-        nn.setPreferableTarget(cv::dnn::DNN_TARGET_CUDA);
+    if (batch == -1 && useCuda)
+    {
         // calculate batch size
         const long availableMemory = cv::cuda::DeviceInfo(0).freeMemory();
-        batchSize = round(availableMemory/m_nnInputSize.width/m_nnInputSize.height/3/32*MEM_THRESEHOLD); // RAM/(W*H*C*32)*thresehold <- CV_32F
+        batchSize = round(availableMemory / m_nnInputSize.width / m_nnInputSize.height / 3 / 32 * MEM_THRESEHOLD); // RAM/(W*H*C*32)*thresehold <- CV_32F
         if (batchSize > MAX_BATCH)
             batchSize = MAX_BATCH;
-        std::cout << "Detected " << std::round(availableMemory/10000000.0)/100.0 << "GB free memory." << std::endl;
+        std::cout << "Detected " << std::round(availableMemory / 10000000.0) / 100.0 << "GB free memory." << std::endl;
         std::cout << "Resulting Batch Size: " << batchSize << std::endl;
     }
+
+    NN::Shape nnInputShape = {batchSize, channels, height, width};
+
     // calculate feature vectors
     QFuture<void> futureFeedNN;
     int frameCount = imageList.size();
     cv::Mat inblob, totalFeatureVector;
-    for (uint i = 0; i < frameCount; i+=batchSize) {
-        if (*stopped) {
+    for (uint i = 0; i < frameCount; i += batchSize)
+    {
+        if (*stopped)
+        {
             futureFeedNN.waitForFinished();
             futureFeedNN.cancel();
             return imageList;
@@ -68,20 +111,25 @@ std::vector<uint> VisualSimilarity::sampleImages(const std::vector<unsigned int>
         // --------------- use buffered values if posible -------------
         bool fullBatchAvailableInBuffer = true;
         cv::Mat bufferedBatch;
-        for (uint j = i ; j < i+batchSize && j < frameCount; j++) {
+        for (uint j = i; j < i + batchSize && j < frameCount; j++)
+        {
             cv::Mat out;
-            if (bufferLookup(imageList[j], &out)) {
+            if (bufferLookup(imageList[j], &out))
+            {
                 if (bufferedBatch.empty())
                     bufferedBatch = out;
                 else
                     cv::vconcat(bufferedBatch, out, bufferedBatch);
-            } else {
+            }
+            else
+            {
                 fullBatchAvailableInBuffer = false;
                 bufferedBatch.release();
                 break;
             }
         }
-        if (fullBatchAvailableInBuffer) {
+        if (fullBatchAvailableInBuffer)
+        {
             futureFeedNN.waitForFinished();
             if (totalFeatureVector.empty())
                 totalFeatureVector = bufferedBatch;
@@ -90,22 +138,47 @@ std::vector<uint> VisualSimilarity::sampleImages(const std::vector<unsigned int>
         }
 
         // ----------------------- compute batch ------------------------
-        if (!fullBatchAvailableInBuffer) {
+        if (!fullBatchAvailableInBuffer)
+        {
             std::vector<cv::Mat> imgVec;
-            for (uint j = i ; j < i+batchSize && j < frameCount; j++) {
-                int progress = 100.0*(imageList[j]-*imageList.begin()) / (*(imageList.end()-1)-*imageList.begin());
+            for (uint j = i; j < i + batchSize && j < frameCount; j++)
+            {
+                int progress = 100.0 * (imageList[j] - *imageList.begin()) / (*(imageList.end() - 1) - *imageList.begin());
                 QString progressDesc = tr("Calculating feature vector for frame ") + QString::number(imageList[j]);
                 displayProgress(receiver, progress, progressDesc);
 
                 cv::Mat img = m_reader->getPic(imageList[j]);
-                cv::resize(img, img, m_nnInputSize); // compress image before storing in RAM
                 imgVec.push_back(img);
             }
 
-            inblob = cv::dnn::blobFromImages(imgVec, 1.0/255.0, m_nnInputSize, NN_MEAN, false, true, CV_32F);
-            cv::divide(inblob, NN_STD, inblob);
+            // lambda expression to feed the neural network
+            auto feedImages = [this, nnInputShape](const std::vector<cv::Mat> imgs, cv::Mat *featureVec)
+            {
+                using namespace NN;
+                auto result = Tensor::fromCvMats(imgs, nnInputShape, 1.0 / 255.0, NN_MEAN, NN_STD)
+                                  .and_then(Util::bind_inference(this->m_neuralNet))
+                                  .and_then(Util::bind_squeeze())
+                                  .and_then(Util::bind_toCvMat());
+                if (result)
+                {
+                    if (featureVec->empty())
+                    {
+                        *featureVec = result.value();
+                    }
+                    else
+                    {
+                        cv::vconcat(*featureVec, result.value(), *featureVec);
+                    }
+                }
+                else
+                {
+                    std::cerr << "Error feeding image to neural network: " << result.error() << std::endl;
+                    return;
+                }
+            };
+
             futureFeedNN.waitForFinished();
-            futureFeedNN = QtConcurrent::run(this, &VisualSimilarity::feedImage, inblob, &totalFeatureVector, &nn);
+            futureFeedNN = QtConcurrent::run(feedImages, imgVec, &totalFeatureVector);
         }
         // --------------------------------------------------------------
     }
@@ -119,9 +192,11 @@ std::vector<uint> VisualSimilarity::sampleImages(const std::vector<unsigned int>
     cv::Mat normalizedTotalFeatureVector;
     cv::Mat out;
     cv::normalize(getFeatureVector(totalFeatureVector, 0), normalizedTotalFeatureVector, 1.0, 0.0, cv::NORM_MINMAX);
-    for (int i = 1; i < totalFeatureVector.rows; i++) {
+    for (int i = 1; i < totalFeatureVector.rows; i++)
+    {
         cv::normalize(getFeatureVector(totalFeatureVector, i), out, 1.0, 0.0, cv::NORM_MINMAX);
-        if (out.empty()) {
+        if (out.empty())
+        {
             displayErrorMessage(tr("One of the resulting feature vectors is empty. This maybe caused by a not suitable neural network."));
             return imageList;
         }
@@ -138,7 +213,7 @@ std::vector<uint> VisualSimilarity::sampleImages(const std::vector<unsigned int>
     cv::kmeans(normalizedTotalFeatureVector,
                targetFrames,
                labels,
-               cv::TermCriteria(cv::TermCriteria::EPS+cv::TermCriteria::COUNT,10,1.0),
+               cv::TermCriteria(cv::TermCriteria::EPS + cv::TermCriteria::COUNT, 10, 1.0),
                1,
                cv::KmeansFlags::KMEANS_PP_CENTERS,
                centers);
@@ -155,8 +230,10 @@ std::vector<uint> VisualSimilarity::sampleImages(const std::vector<unsigned int>
     std::vector<uint> keyframe(targetFrames);
     keyframe.assign(targetFrames, -1);
 
-    for (int i = 0; i < frameCount; i++) {
-        if (*stopped) {
+    for (int i = 0; i < frameCount; i++)
+    {
+        if (*stopped)
+        {
             return imageList;
         }
 
@@ -164,14 +241,16 @@ std::vector<uint> VisualSimilarity::sampleImages(const std::vector<unsigned int>
         cv::Mat currCenter = getFeatureVector(centers, currLabel);
         cv::Mat currFeatureVector = getFeatureVector(normalizedTotalFeatureVector, i);
 
-        if (currCenter.empty() || currFeatureVector.empty()) {
+        if (currCenter.empty() || currFeatureVector.empty())
+        {
             displayErrorMessage(tr("Wrong feature vector dimension for selected neural network. (this dimension was specified in the name of the file, which contains the neural network)"));
             return imageList;
         }
-        float d = cv::norm(currCenter,currFeatureVector);
+        float d = cv::norm(currCenter, currFeatureVector);
 
         // safe feature vector as nearest
-        if (distToCenter[currLabel] > d) {
+        if (distToCenter[currLabel] > d)
+        {
             distToCenter[currLabel] = d;
             featureVector[currLabel] = currFeatureVector;
             keyframe[currLabel] = imageList[i];
@@ -185,9 +264,10 @@ std::vector<uint> VisualSimilarity::sampleImages(const std::vector<unsigned int>
 
     // Debug logFile entries
     std::stringstream ss;
-    for (int i = 0; i < frameCount; i++) {
+    for (int i = 0; i < frameCount; i++)
+    {
         ss << std::to_string(labels.at<int>(i));
-        if (i < frameCount-1)
+        if (i < frameCount - 1)
             ss << ",";
     }
     logFile->addCustomEntry("labels", QString::fromStdString(ss.str()), "Additional Info");
@@ -219,7 +299,7 @@ void VisualSimilarity::initialize(Reader *reader, QMap<QString, QVariant> buffer
     m_frameReduction = m_frameReduction < reader->getPicCount() ? m_frameReduction : 2;
 
     m_signalObject = so; // this is a link to the core which provides updates
-    m_reader = reader; // this is our reader for the images
+    m_reader = reader;   // this is our reader for the images
 
     readBuffer(buffer);
 }
@@ -228,27 +308,30 @@ void VisualSimilarity::setSettings(QMap<QString, QVariant> settings)
 {
     // frame reduction
     QMap<QString, QVariant>::iterator itFrameReduction = settings.find(FRAMEREDUCTION_JSON_NAME);
-    if (itFrameReduction != settings.end()) {
+    if (itFrameReduction != settings.end())
+    {
         m_frameReduction = itFrameReduction.value().toInt();
-        if (m_frameReductionInput) {
+        if (m_frameReductionInput)
+        {
             m_frameReductionInput->setValue(m_frameReduction);
         }
     }
 
     // nn name
     QMap<QString, QVariant>::iterator itNNname = settings.find(NNNAME_JSON_NAME);
-    if (itNNname != settings.end()) {
+    if (itNNname != settings.end())
+    {
         m_nnFileName = itNNname.value().toString();
     }
 }
 
-QMap<QString, QVariant> VisualSimilarity::generateSettings(Progressable *receiver, bool useCuda, volatile bool* stopped)
+QMap<QString, QVariant> VisualSimilarity::generateSettings(Progressable *receiver, bool useCuda, volatile bool *stopped)
 {
     // this routine runs if the user activly wants to generate optimal settings for the given images. It can be
     // slow or heavy computation here, the user is prompted with an progress bar.
-    (void) receiver;
-    (void) useCuda;
-    (void) stopped;
+    (void)receiver;
+    (void)useCuda;
+    (void)stopped;
 
     return getSettings();
 }
@@ -272,7 +355,7 @@ void VisualSimilarity::slot_selectedNNChanged(QString nnName)
 
 void VisualSimilarity::slot_reloadNN(int index)
 {
-    QStringList nnNameList = collect_nns(QCoreApplication::applicationDirPath()+RESSOURCE_PATH);
+    QStringList nnNameList = collect_nns(QCoreApplication::applicationDirPath() + RESSOURCE_PATH);
     m_nnNameInput->clear();
     m_nnNameInput->addItems(nnNameList);
 }
@@ -294,24 +377,16 @@ void VisualSimilarity::displayMessage(Progressable *p, QString msg)
                               Q_ARG(QString, msg));
 }
 
-void VisualSimilarity::feedImage(cv::Mat inblob, cv::Mat *totalFeatureVector, cv::dnn::Net *nn)
-{
-    cv::Mat outblob;
-    nn->setInput(inblob);
-    nn->forward(outblob);
-    if (totalFeatureVector->empty())
-        *totalFeatureVector = outblob;
-    cv::vconcat(*totalFeatureVector, outblob, *totalFeatureVector);
-}
-
 bool VisualSimilarity::bufferLookup(uint idx, cv::Mat *out)
 {
     auto iter = std::find(m_bufferUsedIdx.begin(), m_bufferUsedIdx.end(), idx);
-    if (iter != m_bufferUsedIdx.end()) {
+    if (iter != m_bufferUsedIdx.end())
+    {
         // buffered value found
         int vectorPos = iter - m_bufferUsedIdx.begin();
         *out = getFeatureVector(m_bufferMat, vectorPos);
-        if (out->empty()) {
+        if (out->empty())
+        {
             return false;
         }
         return true;
@@ -321,10 +396,11 @@ bool VisualSimilarity::bufferLookup(uint idx, cv::Mat *out)
 
 cv::Mat VisualSimilarity::getFeatureVector(cv::Mat totalVector, int position)
 {
-    if (totalVector.cols != m_featureDims) {
+    if (totalVector.cols != m_featureDims)
+    {
         return cv::Mat();
     }
-    return totalVector(cv::Rect(0,position,m_featureDims,1));
+    return totalVector(cv::Rect(0, position, m_featureDims, 1));
 }
 
 void VisualSimilarity::sendBuffer(cv::Mat bufferMat, std::vector<uint> calculatedIdx)
@@ -336,13 +412,15 @@ void VisualSimilarity::sendBuffer(cv::Mat bufferMat, std::vector<uint> calculate
     cv::Size size = bufferMat.size();
 
     // cv::Mat to string
-    for (int y = 0; y < size.height; y++) {
-        for (int x = 0; x < size.width; x++) {
-            matStream << bufferMat.at<float>(x,y);
-            if (x < size.width-1)
+    for (int y = 0; y < size.height; y++)
+    {
+        for (int x = 0; x < size.width; x++)
+        {
+            matStream << bufferMat.at<float>(x, y);
+            if (x < size.width - 1)
                 matStream << BUFFER_FEATURE_DELIMITER_X;
         }
-        if (y < size.height-1)
+        if (y < size.height - 1)
             matStream << BUFFER_FEATURE_DELIMITER_Y;
     }
     std::string matString = matStream.str();
@@ -353,7 +431,8 @@ void VisualSimilarity::sendBuffer(cv::Mat bufferMat, std::vector<uint> calculate
 
     // ------------- idx of calculated feature vecotors ----------
     QVariantList varUsedIdx;
-    for (uint idx : calculatedIdx) {
+    for (uint idx : calculatedIdx)
+    {
         varUsedIdx.append(idx);
     }
     bufferMap.insert(BUFFER_NAME_IDX, varUsedIdx);
@@ -366,20 +445,26 @@ void VisualSimilarity::readBuffer(QMap<QString, QVariant> buffer)
 {
 
     m_bufferMat = cv::Mat();
-    if (buffer.size() != 0) {
-        //Get the QMap from Variant
+    if (buffer.size() != 0)
+    {
+        // Get the QMap from Variant
         QMapIterator<QString, QVariant> mapIt(buffer);
-        //Find movementBased buffer in the buffer
-        while (mapIt.hasNext()) {
+        // Find movementBased buffer in the buffer
+        while (mapIt.hasNext())
+        {
             mapIt.next();
-            if (mapIt.key().compare(BUFFER_NAME_FEATURES) == 0) {
+            if (mapIt.key().compare(BUFFER_NAME_FEATURES) == 0)
+            {
                 // --------------------- feature vectors ---------------------
                 m_bufferMat = stringToBufferMat(mapIt.value().toString());
                 // -----------------------------------------------------------
-            } else if (mapIt.key().compare(BUFFER_NAME_IDX) == 0) {
+            }
+            else if (mapIt.key().compare(BUFFER_NAME_IDX) == 0)
+            {
                 // ------------- idx of calculated feature vecotors ----------
                 QVariantList varListUsedIdx = mapIt.value().toList();
-                for (const QVariant &varUsedIdx : varListUsedIdx) {
+                for (const QVariant &varUsedIdx : varListUsedIdx)
+                {
                     m_bufferUsedIdx.push_back(varUsedIdx.toUInt());
                 }
                 // -----------------------------------------------------------
@@ -392,15 +477,18 @@ cv::Mat VisualSimilarity::stringToBufferMat(QString string)
 {
     QStringList xStrList = string.split(BUFFER_FEATURE_DELIMITER_Y);
     QList<QStringList> strMat;
-    for (const QString &xStr : xStrList) {
+    for (const QString &xStr : xStrList)
+    {
         strMat.append(xStr.split(BUFFER_FEATURE_DELIMITER_X));
     }
 
     cv::Mat mat = cv::Mat(strMat.size(), strMat[0].size(), CV_32F);
 
-    for (int x = 0; x < strMat.size(); x++) {
-        for (int y = 0; y < strMat[0].size(); y++) {
-            mat.at<float>(x,y) = strMat[x][y].toFloat();
+    for (int x = 0; x < strMat.size(); x++)
+    {
+        for (int y = 0; y < strMat[0].size(); y++)
+        {
+            mat.at<float>(x, y) = strMat[x][y].toFloat();
         }
     }
 
@@ -432,30 +520,30 @@ void VisualSimilarity::createSettingsWidget(QWidget *parent)
     m_settingsWidget->layout()->setMargin(0);
 
     // find all nns available for deep visual similarity in resources/neural_network_models
-    auto availableNNs = collect_nns(QCoreApplication::applicationDirPath()+RESSOURCE_PATH);
+    auto availableNNs = collect_nns(QCoreApplication::applicationDirPath() + RESSOURCE_PATH);
 
-    if(availableNNs.isEmpty()){
+    if (availableNNs.isEmpty())
+    {
         // can't do anything without neural network models
         // display error instead of controls.
         QString errorMessage = tr(
-                                       "<div style='border: 2px solid red; padding: 10px;'>"
-                                       "<p><b>%1</b></p>"
-                                       "<p>%2</p>"
-                                       "</div>"
-                                       "<br>"
-                                       "<p>%3</p>"
-                                       "<code>%4</code><br><br>"
-                                       "<p>%5 <a href='https://github.com/iVS3D/iVS3D-models'>%6</a>.</p>"
-                                       ).arg(
-                                           tr("ERROR:"),
-                                           tr("No neural network models for deep visual similarity were found!"),
-                                           tr("Please add your models to the plugin resources directory and restart iVS3D:"),
-                                           QCoreApplication::applicationDirPath()+RESSOURCE_PATH,
-                                           tr("You can find our neural network models"),
-                                           tr("here")
-                                           );
+                                   "<div style='border: 2px solid red; padding: 10px;'>"
+                                   "<p><b>%1</b></p>"
+                                   "<p>%2</p>"
+                                   "</div>"
+                                   "<br>"
+                                   "<p>%3</p>"
+                                   "<code>%4</code><br><br>"
+                                   "<p>%5 <a href='https://github.com/iVS3D/iVS3D-models'>%6</a>.</p>")
+                                   .arg(
+                                       tr("ERROR:"),
+                                       tr("No neural network models for deep visual similarity were found!"),
+                                       tr("Please add your models to the plugin resources directory and restart iVS3D:"),
+                                       QCoreApplication::applicationDirPath() + RESSOURCE_PATH,
+                                       tr("You can find our neural network models"),
+                                       tr("here"));
 
-        QLabel* errorLabel = new QLabel(errorMessage);
+        QLabel *errorLabel = new QLabel(errorMessage);
 
         // Enable text interaction flags
         errorLabel->setTextInteractionFlags(Qt::TextSelectableByMouse | Qt::LinksAccessibleByMouse);
@@ -465,7 +553,6 @@ void VisualSimilarity::createSettingsWidget(QWidget *parent)
         this->m_settingsWidget->adjustSize();
         return;
     }
-
 
     // frame reduction
     QWidget *frameReductionWidget = new QWidget(parent);
@@ -480,14 +567,15 @@ void VisualSimilarity::createSettingsWidget(QWidget *parent)
     m_frameReductionInput->setValue(m_frameReduction);
     frameReductionWidget->layout()->addWidget(m_frameReductionInput);
     m_settingsWidget->layout()->addWidget(frameReductionWidget);
-    connect(m_frameReductionInput, QOverload<int>::of(&QSpinBox::valueChanged), this, [=](int v){m_frameReduction=v;});
+    connect(m_frameReductionInput, QOverload<int>::of(&QSpinBox::valueChanged), this, [=](int v)
+            { m_frameReduction = v; });
     // nn_name input
     QWidget *nnNameWidget = new QWidget(parent);
     nnNameWidget->setLayout(new QHBoxLayout(parent));
     nnNameWidget->layout()->addWidget(new QLabel(UI_NNNAME_NAME));
     nnNameWidget->setToolTip(UI_NNNAME_DESC);
     m_nnNameInput = new QComboBox(parent);
-//    connect(m_nnNameInput, QOverload<int>::of(&QComboBox::activated), this, &VisualSimilarity::slot_reloadNN);
+    //    connect(m_nnNameInput, QOverload<int>::of(&QComboBox::activated), this, &VisualSimilarity::slot_reloadNN);
     connect(m_nnNameInput, &QComboBox::currentTextChanged, this, &VisualSimilarity::slot_selectedNNChanged);
     m_nnNameInput->addItems(availableNNs);
     nnNameWidget->layout()->addWidget(m_nnNameInput);

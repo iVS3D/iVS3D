@@ -2,7 +2,7 @@ set(TARGET_NAME SemanticSegmentation)
 
 # Can't built if iVS3D-neuralNet is not found
 if(NOT TARGET NeuralNet)
-    message(WARNING "iVS3D-NeuralNet not found - skipping build of 'iVS3D-SemanticSegmentation' plugin.")
+    message(WARNING "iVS3D-NeuralNet not found - skipping build of 'iVS3D-${TARGET_NAME}' plugin.")
     add_plugin_summary("${TARGET_NAME}" FALSE "Missing NeuralNet")
     return()
 endif()

@@ -28,7 +28,7 @@ namespace NN
          * @brief Create a NeuralNet instance from a model file.
          * 
          * @param modelPath The path to the model file (e.g., ONNX model).
-         * @param useCuda Whether to use CUDA for inference (default: false).
+         * @param useGpu Whether to use CUDA for inference (default: false).
          * @param gpuId The GPU ID to use if CUDA is enabled (default: 0).
          * @return tl::expected<NeuralNetPtr, std::string> A pointer to the created NeuralNet or an error message.
          * 
@@ -36,6 +36,6 @@ namespace NN
          * This method loads the model from the specified path and creates an instance of NeuralNet.
          * If the model cannot be loaded or the creation fails, an error message is returned.
          */
-        static tl::expected<NeuralNetPtr, std::string> create(const std::string& modelPath, bool useCuda = false, int gpuId = 0);
+        static tl::expected<NeuralNetPtr, std::string> create(const std::string& modelPath, bool useGpu = false, int gpuId = 0);
     };
 }

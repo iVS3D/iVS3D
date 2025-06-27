@@ -69,6 +69,17 @@ namespace NN
          * @return Shape The output shape of the neural network.
          */
         virtual Shape outputShape() const = 0;
+
+        /**
+         * @brief Get the GPU ID used by the neural network if it is configured to use GPU.
+         * 
+         * @return int The GPU ID, or -1 if the neural network does not use GPU.
+         * 
+         * @details
+         * This method returns the ID of the GPU that the neural network uses for inference.
+         * If the neural network is not using GPU, it returns -1.
+         */
+        virtual int gpuId() const = 0;
     };
 
     /**

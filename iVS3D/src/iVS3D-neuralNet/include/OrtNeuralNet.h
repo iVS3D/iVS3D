@@ -87,6 +87,12 @@ namespace NN
          */
         Shape outputShape() const override;
 
+        /**
+         * @brief Get the GPU ID used by the neural network if it is configured to use GPU.
+         * @return int The GPU ID, or -1 if the neural network does not use GPU.
+         */
+        int gpuId() const override;
+
     private:
         Ort::Env m_env;
         Ort::SessionOptions m_sessionOptions;
