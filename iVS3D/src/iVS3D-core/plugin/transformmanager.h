@@ -81,9 +81,14 @@ public:
     bool isTransformEnabled();
 
     /**
-     * @brief exit ends excecution of the thread that is excecuting the plugin
+     * @brief exit ends excecution of the thread that is excecuting the plugin and frees the plugins resources
      */
     void exit();
+
+    /**
+     * @brief enableCuda enables or disables the usage of CUDA for the transformation plugins
+     * @param enabled @a true if CUDA should be used, @a false if not
+     */
     void enableCuda(bool enabled);
 
     /**
@@ -105,9 +110,20 @@ signals:
     void sig_transformEnabledChanged(bool enabled);
 
 private:
+    /**
+     * Contains and owns the transform plugin as well as the associated QPluginLoader.
+     * This structure is used to manage the lifecycle of the plugin and uses its loader 
+     * to free resources when the plugin is no longer needed.
+     */
+    struct TransformPlugin {
+        ITransformRequestDequeue *transform;
+        QPluginLoader *loader;
+    };
+
     TransformManager();
-    std::vector<ITransformRequestDequeue*> m_transformList;
+    std::vector<TransformPlugin> m_transformList;
     void loadPlugins();
+    void cleanup();
     bool m_transformationEnabled;
     QThread *m_transformThread;
 };
