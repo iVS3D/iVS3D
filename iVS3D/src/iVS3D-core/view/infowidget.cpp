@@ -57,7 +57,7 @@ InfoWidget::InfoWidget(QWidget *parent, QString title, ColorTheme theme) :
 
     {
         m_cropCheckBox = new QCheckBox(tr("Use ROI"), this);
-        m_cropPushButton = new QPushButton(tr("Edit"),this);
+        m_cropPushButton = new QPushButton(tr("Edit ROI"),this);
         auto wrapper = new QWidget(this);
         wrapper->setLayout(new QHBoxLayout(this));
         wrapper->layout()->setMargin(0);
