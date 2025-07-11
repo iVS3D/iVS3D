@@ -120,6 +120,9 @@ iVS3D/src/iVS3D-core/build
 ### releases ###
 Releases
 
+### CMake ###
+CMakeUserPresets.json
+
 ### allowed files ###
 !*resourceloader.pri
 !*setrpath.pri

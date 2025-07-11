@@ -1,0 +1,115 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 22,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "linux-release",
+      "displayName": "Linux Release",
+      "description": "Linux build in Release mode",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      },
+      "binaryDir": "${sourceDir}/build/linux-release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/build/linux-release",
+        "OpenCV_DIR": "$env{OpenCV_DIR}",
+        "Onnxruntime_ROOT_DIR": "$env{Onnxruntime_ROOT_DIR}"
+      }
+    },
+    {
+      "name": "linux-debug",
+      "displayName": "Linux Debug",
+      "description": "Linux build in Debug mode",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      },
+      "binaryDir": "${sourceDir}/build/linux-debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/build/linux-debug",
+        "OpenCV_DIR": "$env{OpenCV_DIR}",
+        "Onnxruntime_ROOT_DIR": "$env{Onnxruntime_ROOT_DIR}"
+      }
+    },
+    {
+      "name": "windows-release",
+      "displayName": "Windows Release",
+      "description": "Windows build using Visual Studio 2022",
+      "generator": "Visual Studio 17 2022",
+      "architecture": "x64",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      },
+      "binaryDir": "${sourceDir}/build/windows-release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/build/windows-release",
+        "OpenCV_DIR": "$env{OpenCV_DIR}",
+        "Onnxruntime_ROOT_DIR": "$env{Onnxruntime_ROOT_DIR}"
+      }
+    },
+    {
+      "name": "windows-debug",
+      "displayName": "Windows Debug",
+      "description": "Windows build using Visual Studio 2022 (Debug)",
+      "generator": "Visual Studio 17 2022",
+      "architecture": "x64",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      },
+      "binaryDir": "${sourceDir}/build/windows-debug",
+      "cacheVariables": {
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/build/windows-debug",
+        "CMAKE_BUILD_TYPE": "Debug",
+        "OpenCV_DIR": "$env{OpenCV_DIR}",
+        "Onnxruntime_ROOT_DIR": "$env{Onnxruntime_ROOT_DIR}"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "build-linux-release",
+      "displayName": "Build Linux Release",
+      "description": "Build the project in Release mode on Linux",
+      "configurePreset": "linux-release",
+      "jobs": 12
+    },
+    {
+      "name": "build-linux-debug",
+      "displayName": "Build Linux Debug",
+      "description": "Build the project in Debug mode on Linux",
+      "configurePreset": "linux-debug",
+      "jobs": 12
+    },
+    {
+      "name": "build-windows-release",
+      "displayName": "Build Windows Release",
+      "description": "Build the project in Release mode on Windows",
+      "configurePreset": "windows-release",
+      "configuration": "Release",
+      "jobs": 12
+    },
+    {
+      "name": "build-windows-debug",
+      "displayName": "Build Windows Debug",
+      "description": "Build the project in Debug mode on Windows",
+      "configurePreset": "windows-debug",
+      "configuration": "Debug",
+      "jobs": 12
+    }
+  ],
+  "testPresets": []
+}
