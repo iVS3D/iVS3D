@@ -835,7 +835,7 @@ namespace NN
 
             // resize if necessary
             cv::Size size(shape[shape.size() - 2], shape[shape.size() - 1]);
-            if (size != matPtr->size())
+            if (size != cv::Size(-1,-1) && size != matPtr->size())
             {
                 cv::resize(*matPtr, tmp, size, 0, 0, cv::INTER_AREA);
                 matPtr = &tmp;

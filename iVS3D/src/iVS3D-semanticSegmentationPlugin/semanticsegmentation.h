@@ -155,6 +155,20 @@ private slots:
     void slot_blendAlphaChanged(float alpha);
 
 private:
+    struct ClassInfo
+    {
+        QString name; // Name of the class
+        QColor color; // Color for the class in the semantic map
+    };
+
+    struct ModelInfo
+    {
+        std::vector<float> mean, std;   // Mean and standard deviation for normalization
+        std::vector<ClassInfo> classes; // Classes with their colors for the model
+    } m_modelInfo;
+
+    bool loadModelInfo();
+
     // --- gui data
     SettingsWidget *m_settingsWidget;   // settings widget for this ITransform
     float m_blendAlpha;                 // alpha for semantic map overlay
@@ -181,10 +195,6 @@ private:
     bool m_useCuda;
     // --- Widget sync ---
     bool m_updateClasses = true;       //Disable updates if classes are set manuel
-
-    // --- get Classes and Colors for each model ---
-    void getClassesAndColors(QStringList &classes, QList<QColor> &colors);
-    void readClassesAndColorsFile(std::vector<std::string> &classes, std::vector<cv::Vec3b> &colors, const std::string &filepath);
     
     // --- blend two images using an alpha value ---
     void alphaBlend(const cv::Mat &foreground,const cv::Mat &background, cv::Mat &destionation, float alpha);

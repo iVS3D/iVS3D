@@ -103,7 +103,7 @@ namespace NN
 
             // convert to float and resize if necessary
             cv::Size size(shape[shape.size() - 2], shape[shape.size() - 1]);
-            if (size != mat.size())
+            if (size != cv::Size(-1,-1) && size != mat.size())
             {
                 cv::resize(mat, tmp, size, 0, 0, cv::INTER_AREA);
                 tmp.convertTo(tmp, CV_32F, scale);

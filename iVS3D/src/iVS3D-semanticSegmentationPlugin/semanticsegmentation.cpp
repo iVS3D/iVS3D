@@ -1,6 +1,9 @@
 #include "semanticsegmentation.h"
 #include <QApplication>
 #include <QMessageBox>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonArray>
 
 SemanticSegmentation::SemanticSegmentation()
 {
@@ -16,12 +19,17 @@ SemanticSegmentation::SemanticSegmentation()
     QDir dir(path);
     qDebug() << dir.currentPath();
     m_ONNXmodelList = dir.entryList(filter);
+    QStringList filteredModelList;
+    for (int i=0; i<m_ONNXmodelList.size(); i++) {
+        m_ONNXmodelIdx = i;
+        if (loadModelInfo()) { // we only display models with valid model info file (same name but .json ending)
+            filteredModelList.push_back(m_ONNXmodelList[i]);
+        }
+    }
+    m_ONNXmodelList = filteredModelList;
     m_ONNXmodelIdx = 0;
-    if (m_ONNXmodelList.size()) {
-        QStringList classes;
-        QList<QColor> colors;
-        getClassesAndColors(classes,colors);
-        for(int i = 0; i<classes.size(); i++){
+    if (m_ONNXmodelList.size() && loadModelInfo()) {
+        for(int i = 0; i<m_modelInfo.classes.size(); i++){
             m_ONNXselectedClasses.push_back(true);
         }
     }
@@ -54,12 +62,15 @@ QWidget* SemanticSegmentation::getSettingsWidget(QWidget *parent)
     m_settingsWidget = new SettingsWidget(parent, m_ONNXmodelList, 0.5, QCoreApplication::applicationDirPath() + MODEL_PATH);
     m_ONNXmodelIdx = 0;
     if(m_ONNXmodelList.size()){
+        m_ONNXselectedClasses.clear();
+        for(int i = 0; i<m_modelInfo.classes.size(); i++){
+            m_ONNXselectedClasses.push_back(true);
+        }
         QStringList classes;
         QList<QColor> colors;
-        getClassesAndColors(classes,colors);
-        m_ONNXselectedClasses.clear();
-        for(int i = 0; i<classes.size(); i++){
-            m_ONNXselectedClasses.push_back(true);
+        for(const auto &cls : m_modelInfo.classes) {
+            classes.append(cls.name);
+            colors.append(cls.color);
         }
         m_settingsWidget->slot_classesAndColorsChanged(classes,colors,m_ONNXselectedClasses);
     }
@@ -91,6 +102,7 @@ ITransform *SemanticSegmentation::copy()
     copy->m_ONNXselectedClasses = this->m_ONNXselectedClasses;
     copy->m_useCuda = this->m_useCuda;
     copy->m_model = this->m_model;
+    copy->m_modelInfo = this->m_modelInfo;
 
     this->m_model = nullptr;
     this->m_useCuda = false;
@@ -151,10 +163,19 @@ ImageList SemanticSegmentation::transform(uint idx, const cv::Mat &img, const Re
     auto start = std::chrono::high_resolution_clock::now(); // start clock
 
     std::cout << "Running inference for semseg..." << std::endl;
-    auto result = NN::Tensor::fromCvMat(m_image, m_model->inputShape(), 1.0f/255.0f, {0.485f, 0.456f, 0.406f})
+    auto result = NN::Tensor::fromCvMat(m_image, m_model->inputShape(), 1.0f, m_modelInfo.mean, m_modelInfo.std)
         .and_then(NN::Util::bind_inference(m_model))
-        .and_then(NN::Util::bind_reduceWithIndex(NN::ReduceArgMax{}, 1))
+        .and_then([](NN::Tensor&& tensor) -> tl::expected<NN::Tensor, std::string> {
+            // squeeze the tensor to remove leading dimensions of size 1
+            if(tensor.dtype() == NN::TensorType::Float) {
+                return tensor.reduceWithIndex(NN::ReduceArgMax{}, 1);
+            }
+            return tl::expected<NN::Tensor, std::string>(std::move(tensor));
+        })
         .and_then(NN::Util::bind_squeeze());
+
+    std::cout << "Tensor after inference: " << result.value().toString() << std::endl;
+
     std::cout << "...done!" << std::endl;
     auto end = std::chrono::high_resolution_clock::now();   // stop clock
     auto durationMs = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
@@ -251,19 +272,26 @@ void SemanticSegmentation::slot_ONNXindexChanged(int n)
     m_guiUpToDate = false;
 
     // update class checkboxes on gui
-    QStringList classes;
-    QColorList colors;
-    getClassesAndColors(classes, colors);
+    if(!loadModelInfo()){
+        showErrorMessage(tr("Failed to load config file for model: %1").arg(m_ONNXmodelList[m_ONNXmodelIdx]));
+        return;
+    }
 
     if(m_updateClasses) {
         // update local class list
         m_ONNXselectedClasses.clear();
-        for(int i = 0; i<classes.size(); i++){
+        for(int i = 0; i<m_modelInfo.classes.size(); i++){
             m_ONNXselectedClasses.push_back(true);
         }
     }
     m_updateClasses = true;
 
+    QStringList classes;
+    QColorList colors;
+    for(const auto &cls : m_modelInfo.classes) {
+        classes.append(cls.name);
+        colors.append(cls.color);
+    }
     emit sig_classesAndColorsChanged(classes,colors, m_ONNXselectedClasses);
 
     // update gui with new model
@@ -299,6 +327,55 @@ void SemanticSegmentation::slot_blendAlphaChanged(float alpha)
     }
     // update preview
     QTimer::singleShot(0,this,&SemanticSegmentation::sendGuiPreview);
+}
+
+bool SemanticSegmentation::loadModelInfo()
+{
+    // find the current model path
+    QString modelPath = QCoreApplication::applicationDirPath() + MODEL_PATH + "/" + m_ONNXmodelList[m_ONNXmodelIdx];
+    // change ending from .onnx to .json to get the config path
+    QString configPath = modelPath.left(modelPath.lastIndexOf('.')) + ".json";
+    if(!QFile::exists(configPath)){
+        qDebug() << "Config file does not exist: " << configPath;
+        return false;
+    }
+    // read the config file and parse to ModelInfo
+    QFile file(configPath);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        qDebug() << "Failed to open config file: " << configPath;
+        return false;
+    }
+    QByteArray data = file.readAll();
+    QJsonParseError err;
+    QJsonDocument doc = QJsonDocument::fromJson(data, &err);
+    if (err.error != QJsonParseError::NoError) {
+        throw std::runtime_error(("JSON parse error: " + err.errorString()).toStdString());
+    }
+
+    QJsonObject obj = doc.object();
+
+    m_modelInfo = ModelInfo();
+
+    for (auto val : obj["mean"].toArray())
+        m_modelInfo.mean.push_back((float)val.toDouble());
+    for (auto val : obj["std"].toArray())
+        m_modelInfo.std.push_back((float)val.toDouble());
+
+    for (auto cls_val : obj["classes"].toArray()) {
+        QJsonObject cls_obj = cls_val.toObject();
+        ClassInfo cls;
+        cls.name = cls_obj["name"].toString();
+
+        auto c = cls_obj["color"].toArray();
+        if (c.size() != 3) {
+            qDebug() << "Invalid color format for class" << cls.name;
+            continue; // skip this class if color is not valid
+        }
+        cls.color = QColor(c[0].toInt(), c[1].toInt(), c[2].toInt());
+        m_modelInfo.classes.push_back(cls);
+    }
+
+    return true;
 }
 
 void SemanticSegmentation::sendGuiPreview()
@@ -357,77 +434,6 @@ void SemanticSegmentation::showErrorMessage(const QString &message)
     );
 }
 
-void SemanticSegmentation::getClassesAndColors(QStringList &cl, QColorList &co)
-{
-    std::vector<std::string> classes;
-    std::vector<cv::Vec3b> colors;
-
-    std::string modelPath = (QCoreApplication::applicationDirPath() + MODEL_PATH + "/" + m_ONNXmodelList[m_ONNXmodelIdx]).toStdString();
-    // Find the position of the last dot in the string
-    std::size_t dot_pos = modelPath.find_last_of('.');
-
-    // If a dot is found, replace the extension
-    if (dot_pos != std::string::npos) {
-        modelPath.replace(dot_pos, std::string::npos, ".txt");
-    } else {
-        // If no dot is found, append .txt (this handles cases with no extension)
-        modelPath += ".txt";
-    }
-
-    if (!QFile::exists(QString::fromStdString(modelPath))){
-        qDebug() << "Classes and colors file does not exist: " << QString::fromStdString(modelPath);
-        return;
-    }
-
-    readClassesAndColorsFile(classes, colors, modelPath);
-
-    for(int i = 0; i<(int)classes.size(); i++){
-        cl.push_back(QString::fromStdString(classes[i]));
-        co.push_back(QColor::fromRgb(colors[i][0], colors[i][1],colors[i][2]));
-    }
-}
-
-void SemanticSegmentation::readClassesAndColorsFile(std::vector<std::string> &classes, std::vector<cv::Vec3b> &colors, const std::string &filepath)
-{
-    // open the file
-    std::fstream modelTextFile;
-    modelTextFile.open(filepath, std::ios::in);
-
-    // if the file is open read lines
-    if (modelTextFile.is_open()) {
-        std::string line;
-        //read data from file object and put it into string.
-        while(std::getline(modelTextFile, line)) {
-            // get the classes and colors
-            std::stringstream lineStream(line);
-            std::string segment;
-            std::vector<std::string> classesAndColors;
-            while(std::getline(lineStream, segment, ';'))
-            {
-                classesAndColors.push_back(segment);
-            }
-            std::string classLabel = classesAndColors.at(0);
-            std::string colorString = classesAndColors.at(1);
-
-            // add class label to classes
-            classes.push_back(classLabel);
-
-            // get color as cv::Vec3b
-            std::stringstream colorStream(colorString);
-            std::string rgbSegment;
-            std::vector<std::string> rgb;
-            while(std::getline(colorStream, rgbSegment, ','))
-            {
-                rgb.push_back(rgbSegment);
-            }
-            colors.push_back(cv::Vec3b(std::stoi(rgb.at(0)), std::stoi(rgb.at(1)), std::stoi(rgb.at(2))));
-        }
-
-        //close the file object.
-        modelTextFile.close();
-    }
-}
-
 void SemanticSegmentation::alphaBlend(const cv::Mat &foreground, const cv::Mat &background, cv::Mat &destionation, float alpha)
 {
     destionation = alpha * foreground + (1.0f - alpha) * background;
@@ -436,15 +442,12 @@ void SemanticSegmentation::alphaBlend(const cv::Mat &foreground, const cv::Mat &
 bool SemanticSegmentation::computeColorization()
 {
     // compute the colorized segmentation for the gui
-    QStringList classes;
-    QColorList colors;
-    getClassesAndColors(classes, colors);
     auto colorResult = m_segmentationClasses
-        .map([colors](const int64_t& value) -> std::array<uint8_t,3> {
+        .map([this](const int64_t& value) -> std::array<uint8_t,3> {
             return { 
-                static_cast<uint8_t>(colors[value].blue()), 
-                static_cast<uint8_t>(colors[value].green()), 
-                static_cast<uint8_t>(colors[value].red())
+                static_cast<uint8_t>(m_modelInfo.classes[value].color.blue()), 
+                static_cast<uint8_t>(m_modelInfo.classes[value].color.green()), 
+                static_cast<uint8_t>(m_modelInfo.classes[value].color.red())
             };
         }, 0)
         .and_then(NN::Util::bind_toCvMat());
