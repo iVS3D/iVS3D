@@ -222,6 +222,19 @@ auto bind_toCvMat() {
 
 /**
  * @ingroup NeuralUtil
+ * @brief Binds a conversion operation from a tensor to a vector.
+ * 
+ * @see Tensor::toVector for the main conversion function that applies this operation.
+ */
+template<typename T, typename... Args>
+auto bind_toVector() {
+    return [=](NN::Tensor&& tensor) {
+        return tensor.toVector<T>();
+    };
+}
+
+/**
+ * @ingroup NeuralUtil
  * @brief Binds an inference operation on a neural network model.
  * 
  * @param model The neural network model to perform inference on.

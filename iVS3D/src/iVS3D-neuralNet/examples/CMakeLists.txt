@@ -33,5 +33,6 @@ add_example(map)
 add_example(reduce)
 add_example(reduceWithIndex)
 add_example(inference_segmentation USE_CXXOPTS USE_HELPERS)
+add_example(inference_embedding USE_CXXOPTS USE_HELPERS)
 
 add_component_summary("${TARGET_NAME}-Examples" TRUE)
