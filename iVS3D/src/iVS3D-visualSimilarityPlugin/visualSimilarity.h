@@ -174,9 +174,7 @@ private:
     signalObject *m_signalObject = nullptr;
     // parameters
     int m_frameReduction = -1;
-    int m_featureDims = -1;
-    cv::Size m_nnInputSize = cv::Size(-1,-1);
-    const QRegularExpression m_nnNameFormat = QRegularExpression("^(ImageEmbedding)\\w+_(?<featureDims>\\d+)_(?<width>\\d+)x(?<height>\\d+).onnx$");
+    const QRegularExpression m_nnNameFormat = QRegularExpression("^(ImageEmbedding)\\w+.onnx$");
     QString m_nnFileName = "ImageEmbedding_NAME_DIMENSION_WIDTHxHEIGHT.onnx";
     // widgets
     QWidget *m_settingsWidget = nullptr;

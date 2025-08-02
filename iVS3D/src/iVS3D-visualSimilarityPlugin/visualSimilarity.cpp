@@ -72,13 +72,30 @@ std::vector<uint> VisualSimilarity::sampleImages(const std::vector<unsigned int>
     auto channels = m_neuralNet->inputShape()[1];
     auto height = m_neuralNet->inputShape()[2];
     auto width = m_neuralNet->inputShape()[3];
+    // if height or width is -1, we need to determine it from the first image
+    if (height == -1 || width == -1) {
+        auto image = m_reader->getPic(imageList[0]);
+        if (height == -1) height = image.rows;
+        if (width == -1) width = image.cols;
+    }
+    std::cout << "Neural Network Input Shape: " << NN::shapeToString(m_neuralNet->inputShape()) << std::endl;
     if (channels != 3 || height <= 0 || width <= 0)
     {
         displayErrorMessage(tr("The selected neural network does not have the expected input shape. Please select a different neural network."));
         m_neuralNet = nullptr;
         return imageList;
     }
-    m_nnInputSize = cv::Size(width, height);
+
+    // check the output shape of the neural network, we expect NxF where F is the feature dimension
+    if (m_neuralNet->outputShape().size() != 2)
+    {
+        auto m_neuralNetShape = m_neuralNet->outputShape();
+        SHAPE_DEBUG_PRINT(m_neuralNetShape);
+        displayErrorMessage(tr("The selected neural network does not have the expected output shape. Please select a different neural network."));
+        m_neuralNet = nullptr;
+        return imageList;
+    }
+    
 
     // compute maximum batch size to avoid OOM errors
     int batchSize = 1;
@@ -86,7 +103,7 @@ std::vector<uint> VisualSimilarity::sampleImages(const std::vector<unsigned int>
     {
         // calculate batch size
         const long availableMemory = cv::cuda::DeviceInfo(0).freeMemory();
-        batchSize = round(availableMemory / m_nnInputSize.width / m_nnInputSize.height / 3 / 32 * MEM_THRESEHOLD); // RAM/(W*H*C*32)*thresehold <- CV_32F
+        batchSize = round(availableMemory / (width * height * 3 * 32) * MEM_THRESEHOLD); // RAM/(W*H*C*32)*thresehold <- CV_32F
         if (batchSize > MAX_BATCH)
             batchSize = MAX_BATCH;
         std::cout << "Detected " << std::round(availableMemory / 10000000.0) / 100.0 << "GB free memory." << std::endl;
@@ -155,6 +172,8 @@ std::vector<uint> VisualSimilarity::sampleImages(const std::vector<unsigned int>
             auto feedImages = [this, nnInputShape](const std::vector<cv::Mat> imgs, cv::Mat *featureVec)
             {
                 using namespace NN;
+                // TODO: check if scaling by 1.0/255.0 is needed
+                // TODO: check which mean and std are needed!
                 auto result = Tensor::fromCvMats(imgs, nnInputShape, 1.0 / 255.0, NN_MEAN, NN_STD)
                                   .and_then(Util::bind_inference(this->m_neuralNet))
                                   .and_then(Util::bind_squeeze())
@@ -345,12 +364,8 @@ QMap<QString, QVariant> VisualSimilarity::getSettings()
 
 void VisualSimilarity::slot_selectedNNChanged(QString nnName)
 {
-    QRegularExpressionMatch match = m_nnNameFormat.match(nnName);
-    m_featureDims = match.captured("featureDims").toInt();
-    int w = match.captured("width").toInt();
-    int h = match.captured("height").toInt();
-    m_nnInputSize = cv::Size(w, h);
     m_nnFileName = nnName;
+    m_neuralNet = nullptr; // reset neural net to force reload
 }
 
 void VisualSimilarity::slot_reloadNN(int index)
@@ -396,11 +411,12 @@ bool VisualSimilarity::bufferLookup(uint idx, cv::Mat *out)
 
 cv::Mat VisualSimilarity::getFeatureVector(cv::Mat totalVector, int position)
 {
-    if (totalVector.cols != m_featureDims)
+    auto featuredims = m_neuralNet->outputShape()[1];
+    if (totalVector.cols != featuredims)
     {
         return cv::Mat();
     }
-    return totalVector(cv::Rect(0, position, m_featureDims, 1));
+    return totalVector(cv::Rect(0, position, featuredims, 1));
 }
 
 void VisualSimilarity::sendBuffer(cv::Mat bufferMat, std::vector<uint> calculatedIdx)
