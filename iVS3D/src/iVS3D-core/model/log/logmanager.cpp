@@ -73,7 +73,7 @@ bool LogManager::slot_updateLog()
 
     // create neccessary direcotries
     if (!QDir(m_logDir).exists()) {
-        QDir().mkpath(FULL_FILE_PATH);
+        QDir().mkpath(m_logDir);
     }
 
     // writing json in file
