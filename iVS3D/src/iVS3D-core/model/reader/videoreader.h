@@ -1,41 +1,56 @@
 #ifndef VIDEOREADER_H
 #define VIDEOREADER_H
 
-#include "readerfactory.h"
-#include "reader.h"
-#include <QObject>
-#include <opencv2/videoio.hpp>
-#include <opencv2/imgproc.hpp>
-#include <opencv2/imgcodecs.hpp>
+#include <iostream>
 #include <QMutex>
 #include <QMutexLocker>
-#include "algorithmmanager.h"
-#include "sequentialreaderimpl.h"
-#include "readerparams.h"
+#include <QObject>
+#include <opencv2/imgcodecs.hpp>
+#include <opencv2/imgproc.hpp>
+#include <opencv2/videoio.hpp>
 
+#include "algorithmmanager.h"
+#include "reader.h"
+#include "readerfactory.h"
+#include "readerparams.h"
+#include "sequentialreaderimpl.h"
+
+extern "C" {
+#include <libavcodec/avcodec.h>
+#include <libavformat/avformat.h>
+#include <libavutil/rational.h>
+#include <libswscale/swscale.h>
+}
+
+#define NOT_IMPLEMENTED assert(false && "Not implemtented yet.")
 
 /**
  * @class VideoReader
  *
  * @ingroup Model
  *
- * @brief The VideoReader class is used to import video files. Implements the Reader interface
+ * @brief The VideoReader class is used to import video files and implement the
+ * Reader interface. It utilizes the FFMPEG libaries to enable frame perfect
+ * random access inside a video stream.
  *
- * @author Daniel Brommer
+ * @author Dominic Zahn
  *
- * @date 2021/02/05
+ * @date 2025/08/01
  */
 
 class VideoReader : public Reader
 
 {
-public:
+   public:
     /**
-     * @brief VideoReader constructor which reads the given file and creates cv::VideoCapture from it.
+     * @brief VideoReader constructor which reads the given file and creates
+     * cv::VideoCapture from it.
      *
-     * @param path Path to the video. Video can be the types, which cv::VideoCapture can handle
+     * @param path Path to the video. Video can be the types, which
+     * cv::VideoCapture can handle
      */
-    explicit VideoReader(const QString &path, std::shared_ptr<ReaderParams> readerParams);
+    explicit VideoReader(const QString& path,
+                         std::shared_ptr<ReaderParams> readerParams);
     /**
      * @brief VideoReader destructor
      *
@@ -47,7 +62,8 @@ public:
      * @param index Index of the frame to be returned
      * @return cv::Mat of the selected frame
      */
-    cv::Mat getPic(unsigned int index, PictureProcessingFlags flags = APPLY_ALL) override;
+    cv::Mat getPic(unsigned int index,
+                   PictureProcessingFlags flags = APPLY_ALL) override;
     /**
      * @brief Returns the number of frame
      *
@@ -93,12 +109,15 @@ public:
     std::vector<std::string> getFileVector() override;
 
     /**
-     * @brief createSequentialReader Creates a SequentialReader object for the given indices.
-     * This can be used to access images concurrently if the images are known a priori.
+     * @brief createSequentialReader Creates a SequentialReader object for the
+     * given indices. This can be used to access images concurrently if the
+     * images are known a priori.
      * @param indices The indices of the images that will be accessed
      * @return SequentialReader instance (caller takes ownership!)
      */
-    SequentialReader *createSequentialReader(std::vector<uint> indices, PictureProcessingFlags flags = APPLY_ALL) override;
+    SequentialReader* createSequentialReader(
+        std::vector<uint> indices,
+        PictureProcessingFlags flags = APPLY_ALL) override;
 
     /**
      * @brief addMetaData Used to add MetaData to the reader
@@ -116,19 +135,37 @@ public:
      */
     bool isValid() override;
 
-private:
-    int m_currentIndex = 0;
-    std::string m_path;
-    unsigned int m_numImages;
-    cv::VideoCapture m_cap;
+   private:
+    // getter exposed members
+    int m_currentIndex = -1;
+    std::string m_path = "";
+    size_t m_frameCount = -1;
     bool m_isValid = false;
-    double m_fps;
+    AVRational m_avgVideoFPS;
     MetaData* m_md = nullptr;
+    //
 
     QMutex m_mutex;
     std::shared_ptr<ReaderParams> m_readerParams;
+    int64_t m_startTimestamp = AV_NOPTS_VALUE;
+    std::map<uint, AVFrame*> m_buffer;
+    AVRational m_streamTimeBase = AV_TIME_BASE_Q;
+    int m_streamId = -1;
+    int m_lastFrameIdx = -1;
+    // AV/SWS-Objects
+    AVFormatContext* m_formatContext = nullptr;
+    AVCodecContext* m_codecContext = nullptr;
+    const AVCodec* m_codec = nullptr;
+    struct SwsContext* m_swsContext = nullptr;
+
+    // private helper functions
+    cv::Mat avFrame2CvMat(const AVFrame* av_f);
+    void openFormatContext();
+    void selectVideoStream();
+    void openCodec();
+    void createSWS();
 };
 
 REGISTER_READER("VideoReader", VideoReader)
 
-#endif // VIDEOREADER_H
+#endif  // VIDEOREADER_H

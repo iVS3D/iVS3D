@@ -1,145 +1,188 @@
 #include "videoreader.h"
-#include <iostream>
 
-VideoReader::VideoReader(const QString &path, std::shared_ptr<ReaderParams> readerParams) : m_path(path.toUtf8().constData()), m_readerParams(readerParams)
-{
+VideoReader::VideoReader(const QString &path,
+                         std::shared_ptr<ReaderParams> readerParams)
+    : m_path(path.toUtf8().constData()), m_readerParams(readerParams) {
     QFileInfo info(path);
     if (!info.isFile()) {
         m_isValid = false;
         return;
     }
-    cv::VideoCapture prev(m_path, cv::CAP_FFMPEG);
-    m_numImages = prev.get(cv::CAP_PROP_FRAME_COUNT);
-    m_fps = prev.get(cv::CAP_PROP_FPS);
-    m_cap = prev;
-    if (m_numImages <= 0) {
-        m_isValid = false;
-        return;
+
+    m_formatContext = avformat_alloc_context();
+    assert(m_formatContext);
+        avformat_open_input(&m_formatContext, m_path.c_str(), NULL, NULL);
+    printf("Format %s, duration %ld us\n", m_formatContext->iformat->long_name,
+           m_formatContext->duration);
+    avformat_find_stream_info(m_formatContext, NULL);
+
+    // Select Video Stream
+    const AVCodec *codec = NULL;
+    AVCodecParameters *codecParams = nullptr;
+    for (m_streamId = 0; m_streamId < m_formatContext->nb_streams;
+         m_streamId++) {
+        AVStream *stream = m_formatContext->streams[m_streamId];
+        codecParams = stream->codecpar;
+        codec = avcodec_find_decoder(codecParams->codec_id);
+        assert(codec);
+        AVMediaType codecType = codecParams->codec_type;
+        if (codecType == AVMEDIA_TYPE_VIDEO) {
+            m_frameCount = stream->nb_frames;
+            m_avgVideoFPS = stream->avg_frame_rate;
+            m_startTimestamp = stream->start_time;
+            m_streamTimeBase = stream->time_base;
+            break;
+        }
     }
 
+    // Open CODEC
+    m_codecContext = avcodec_alloc_context3(codec);
+    assert(m_codecContext);
+    printf("Codec: %s\n", codec->name);
+    avcodec_parameters_to_context(m_codecContext, codecParams);
+    AVDictionary *notFoundOptions = nullptr;
+    avcodec_open2(m_codecContext, codec, &notFoundOptions);
+    // TODO: display not found options
+
+    // Create SwsContext for conversion
+    AVPixelFormat pixFormat = m_codecContext->pix_fmt;
+    // replaceDeprecatedPixFmt(pixFormat);
+    int m_outW = m_codecContext->width;
+    int m_outH = m_codecContext->height;
+    m_swsContext =
+        sws_getContext(m_codecContext->width, m_codecContext->height, pixFormat,
+                       m_outW, m_outH, AVPixelFormat::AV_PIX_FMT_BGR24,
+                       SWS_BILINEAR, NULL, NULL, NULL);
+    assert(m_swsContext);
+
     // validate the given readerParams, initialize if necessary!
-    cv::Mat image;
-    m_cap.read(image);
-    m_cap.set(cv::CAP_PROP_POS_FRAMES, 0);
-    if (!(m_readerParams->getOriginalResolution() == Resolution(image))) {
-        // The readerParams were initialized previously, but do not match the current input resolution!
+    uint w = m_codecContext->width;
+    uint h = m_codecContext->height;
+    const Resolution res(w, h);
+    if (!(m_readerParams->getOriginalResolution() == res)) {
+        // The readerParams were initialized previously, but do not match the
+        // current input resolution !
         // We just override it, but this should not happen, wrong usage?
         Q_ASSERT(!m_readerParams->getOriginalResolution().isValid());
-        m_readerParams->initialize(Resolution(image));
+        m_readerParams->initialize(res);
     }
     m_isValid = true;
 }
 
-VideoReader::~VideoReader()
-{
-    m_cap.release();
+VideoReader::~VideoReader() {
+    sws_freeContext(m_swsContext);
+    avformat_free_context(m_formatContext);
 }
 
-void VideoReader::addMetaData(MetaData *md)
-{
-    m_md = md;
-}
+void VideoReader::addMetaData(MetaData *md) { m_md = md; }
 
-MetaData *VideoReader::getMetaData()
-{
-    return m_md;
-}
+MetaData *VideoReader::getMetaData() { return m_md; }
 
-bool VideoReader::isValid()
-{
-    return m_isValid;
-}
+bool VideoReader::isValid() { return m_isValid; }
 
-
-cv::Mat VideoReader::getPic(unsigned int index, PictureProcessingFlags flags)
-{
+cv::Mat VideoReader::getPic(unsigned int index, PictureProcessingFlags flags) {
     QMutexLocker locker(&m_mutex);
 
-    // minimum distance from the current index in the video to the next index for jumping.
-    // If the distance to the next index is less, reading frame by frame is faster
-    // else jumping there might be faster (depending on the video length, resolution, etc.)
-    // This value was chosen empirically on a modern desktop PC with Windows 11 (May 2023)
-    const int MIN_JUMP_DISTANCE = 40;
-
-    // invalid index requested
-    if(index >= getPicCount()){
-        cv::Mat empty;
-        return empty;
+    std::map<uint, AVFrame *>::iterator iter = m_buffer.find(index);
+    const bool backwardsSeek = index < m_lastFrameIdx;
+    const bool inBuffer = iter != m_buffer.end();
+    const bool longRangeSeek = abs((int)(m_lastFrameIdx - index)) >
+                               m_avgVideoFPS.num / m_avgVideoFPS.den;
+    if (!inBuffer && (backwardsSeek || longRangeSeek)) {
+        // jump to last I-Frame before index
+        int64_t timeStampInStreamTime =
+            m_startTimestamp +
+            av_rescale_q(index,
+                         AVRational{m_avgVideoFPS.den, m_avgVideoFPS.num},
+                         m_streamTimeBase);
+        av_seek_frame(m_formatContext, m_streamId, timeStampInStreamTime,
+                      AVSEEK_FLAG_BACKWARD);
     }
 
-    cv::Mat ret;
-
-    // Jump if:
-    // - going backwards
-    // - going forward more than MIN_JUMP_DISTANCE
-    if(index <= (uint)m_currentIndex  || index >= (uint)(m_currentIndex + MIN_JUMP_DISTANCE)){
-        // jump to the desired index
-        m_cap.set(cv::CAP_PROP_POS_FRAMES, index);
-        m_cap.read(ret);
-        m_currentIndex = index;
-    } else {
-        // grab images sequentially until index is reached
-        while(m_currentIndex < (int)index-1) {
-            m_cap.grab();
-            m_currentIndex++;
+    // sequential read until index is reached
+    assert(index < m_frameCount);
+    AVPacket *packet = nullptr;
+    packet = av_packet_alloc();
+    while (iter == m_buffer.end()) {
+        if (m_buffer.size() > m_avgVideoFPS.num / m_avgVideoFPS.den) {
+            for (auto d_iter : m_buffer) {
+                AVFrame *av_frame = d_iter.second;
+                av_frame_free(&av_frame);
+                d_iter.second = nullptr;
+            }
+            m_buffer.clear();
         }
-        m_cap.read(ret);
-        m_currentIndex++;
+
+        av_read_frame(m_formatContext, packet);
+        int send_res = avcodec_send_packet(m_codecContext, packet);
+        if (send_res == AVERROR(EINVAL) && m_codecContext->codec) {
+            avcodec_send_packet(m_codecContext, NULL);  // send flush packet
+        }
+        int receive_res = 0;
+        while (receive_res == 0) {
+            AVFrame *av_frame = nullptr;
+            av_frame = av_frame_alloc();
+            receive_res = avcodec_receive_frame(m_codecContext, av_frame);
+            if (receive_res != 0) break;
+            int64_t idx =
+                av_rescale_q(av_frame->pts, m_streamTimeBase,
+                             AVRational{m_avgVideoFPS.den, m_avgVideoFPS.num});
+            m_buffer[idx] = av_frame;
+            m_lastFrameIdx = idx;
+        }
+        iter = m_buffer.find(index);
     }
+    av_packet_free(&packet);
+    cv::Mat img = avFrame2CvMat(iter->second);
 
-
-    if(flags & PictureProcessingFlags::APPLY_RESIZING){
-        m_readerParams->getWorkingResolution().resize(ret);
+    // apply processing
+    if (flags & PictureProcessingFlags::APPLY_RESIZING) {
+        m_readerParams->getWorkingResolution().resize(img);
     }
-    if(flags & PictureProcessingFlags::APPLY_CROPPING && m_readerParams->getUseRoi()) {
-        m_readerParams->getRoi().crop(ret);
+    if (flags & PictureProcessingFlags::APPLY_CROPPING &&
+        m_readerParams->getUseRoi()) {
+        m_readerParams->getRoi().crop(img);
     }
-    return ret;
+    return img;
 }
 
-unsigned int VideoReader::getPicCount()
-{
-    return m_numImages;
+unsigned int VideoReader::getPicCount() { return m_frameCount; }
+
+QString VideoReader::getInputPath() { return QString::fromStdString(m_path); }
+
+double VideoReader::getFPS() { return av_q2d(m_avgVideoFPS); }
+
+double VideoReader::getVideoDuration() {
+    int64_t d_streamTime = m_formatContext->duration;
+    int64_t d_sec =
+        av_rescale_q(d_streamTime, m_streamTimeBase, AVRational({1, 1}));
+    return d_sec;
 }
 
-QString VideoReader::getInputPath()
-{
-    return QString::fromStdString(m_path);
+bool VideoReader::isDir() { return false; }
+
+VideoReader *VideoReader::copy() {
+    return new VideoReader(QString::fromStdString(m_path), m_readerParams);
 }
 
-double VideoReader::getFPS()
-{
-    return m_fps;
-}
-
-double VideoReader::getVideoDuration()
-{
-    return (double) m_numImages / m_fps;
-}
-
-bool VideoReader::isDir()
-{
-    return false;
-}
-
-VideoReader *VideoReader::copy(std::shared_ptr<ReaderParams> params)
-{
-    std::shared_ptr<ReaderParams> p = params;
-    if (!p) { // if no params are provided, copy the old ones
-        p = std::make_shared<ReaderParams>(*m_readerParams);
-    }
-    // copy cv::VideoCapture crashes, so create new instead of copy
-    VideoReader* reader =  new VideoReader(QString::fromStdString(m_path), p);
-    reader->addMetaData(m_md);
-    return reader;
-}
-
-std::vector<std::string> VideoReader::getFileVector()
-{
+std::vector<std::string> VideoReader::getFileVector() {
     return std::vector<std::string>();
 }
 
-SequentialReader *VideoReader::createSequentialReader(std::vector<uint> indices, PictureProcessingFlags flags)
-{
+SequentialReader *VideoReader::createSequentialReader(
+    std::vector<uint> indices, PictureProcessingFlags flags) {
     return new SequentialReaderImpl(this, indices, true, flags);
+}
+
+cv::Mat VideoReader::avFrame2CvMat(const AVFrame *av_f) {
+    const Resolution res = m_readerParams->getOriginalResolution();
+    const uint w = res.getWidth();
+    const uint h = res.getHeight();
+
+    cv::Mat cv_f(h, w, CV_8UC3);
+    const int cv_lineSize = cv_f.step1();
+    sws_scale(m_swsContext, av_f->data, av_f->linesize, 0,
+              m_codecContext->height, &cv_f.data, &cv_lineSize);
+
+    return cv_f;
 }

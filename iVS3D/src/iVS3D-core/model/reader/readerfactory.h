@@ -10,7 +10,6 @@ class ReaderFactory
 {
 public:
 
-
     static ReaderFactory &instance(){
         static ReaderFactory INSTANCE;
         return INSTANCE;
@@ -18,7 +17,7 @@ public:
 
     Reader* createReader(QString path, std::shared_ptr<ReaderParams> params);
 
-     bool reg(std::string name, AbstractReader builder);
+    bool reg(std::string name, AbstractReader builder);
 
 private:
     std::map<std::string, AbstractReader> m_availablerReader;

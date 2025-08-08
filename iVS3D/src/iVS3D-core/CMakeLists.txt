@@ -4,6 +4,12 @@ if(WIN32)
     set(app_icon_resource_windows "${CMAKE_CURRENT_SOURCE_DIR}/resources/ivs3dIcon.ico")
 endif()
 
+# FFMPEG libs
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(AVFORMAT REQUIRED libavformat)
+pkg_check_modules(AVCODEC REQUIRED libavcodec)
+pkg_check_modules(AVUTIL REQUIRED libavutil)
+pkg_check_modules(SWSCALE REQUIRED libswscale)
 
 # set header, source and form files
 file(GLOB_RECURSE HEADER_FILES
@@ -23,6 +29,13 @@ include_directories(SYSTEM
     ${Qt${QT_VERSION_MAJOR}Widgets_INCLUDE_DIRS}
     ${OpenCV_INCLUDE_DIRS}
 )
+
+include_directories(${OpenCV_INCLUDE_DIRS})
+include_directories(${AVFORMAT_INCLUDE_DIRS})
+include_directories(${AVCODEC_INCLUDE_DIRS})
+include_directories(${AVUTIL_INCLUDE_DIRS})
+include_directories(${SWSCALE_INCLUDE_DIRS})
+
 include_directories(
     "${CMAKE_CURRENT_LIST_DIR}/../iVS3D-pluginInterface"
 )
@@ -71,7 +84,11 @@ add_executable(${TARGET_NAME}
 )
 target_link_libraries(${TARGET_NAME}
     iVS3D-pluginInterface
-    ${OpenCV_LIBRARIES} 
+    ${OpenCV_LIBRARIES}
+    ${AVFORMAT_LIBRARIES}
+    ${AVCODEC_LIBRARIES}
+    ${AVUTIL_LIBRARIES}
+    ${SWSCALE_LIBRARIES}
     Qt${QT_VERSION_MAJOR}::Core
     Qt${QT_VERSION_MAJOR}::Widgets
     Qt${QT_VERSION_MAJOR}::Gui
