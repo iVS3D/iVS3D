@@ -6,8 +6,8 @@
 #include <QPoint>
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
+#include <QVariant>
 
-#include "ISerializable.h"
 #include "resolution.h"
 #include "roi.h"
 
@@ -19,7 +19,7 @@
  * @author Dominik Wüst
  * @date March 2025
  */
-class ReaderParams : ISerializable {
+class ReaderParams {
 private:
     Resolution m_originalResolution;
     Resolution m_workingResolution;
@@ -64,6 +64,6 @@ public:
     ROI getRoi() const {return m_roi;}
     bool getUseRoi() const {return m_useRoi;}
 
-    QVariant toText() override;
-    void fromText(QVariant data) override;
+    QVariant toText();
+    void fromText(QVariant data);
 };

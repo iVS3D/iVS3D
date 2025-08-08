@@ -118,6 +118,9 @@ VideoPlayer::VideoPlayer(QWidget *parent, ColorTheme theme) :
 
     m_roi = QRect(0,0,0,0);
     m_roiRect = nullptr;
+
+    connect(ui->pushButton_roi, &QPushButton::clicked, [=](){ emit sig_cropEdit(); });
+    connect(ui->checkBox_roi, &QCheckBox::stateChanged, [=](int state){ emit sig_useCropChanged(state==Qt::Checked); });
 }
 
 
@@ -447,4 +450,14 @@ bool VideoPlayer::checkOverlap() {
 
     // Check if label overlaps the image area
     return labelRect.intersects(imageInView.toRect());
+}
+
+bool VideoPlayer::getCropStatus()
+{
+    return ui->checkBox_roi->checkState() == Qt::Checked;
+}
+
+void VideoPlayer::setCropStatus(bool checked)
+{
+    ui->checkBox_roi->setCheckState(checked ? Qt::Checked : Qt::Unchecked);
 }

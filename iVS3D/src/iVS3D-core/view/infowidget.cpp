@@ -48,26 +48,7 @@ InfoWidget::InfoWidget(QWidget *parent, QString title, ColorTheme theme) :
     m_settingsWidget->setLayout(m_settingsLayout);
     m_settingsLayout->setMargin(0);
 
-    m_resolutionComboBox = new QComboBox(this);
-    m_resolutionComboBox->setEditable(true);
-    m_settingsLayout->addRow(tr("Working resolution"), m_resolutionComboBox);
-    connect(m_resolutionComboBox, &QComboBox::currentTextChanged, this, &InfoWidget::on_comboBox_resolution_currentTextChanged);
-
     m_altitudeSpinBox = nullptr; // only display the altitude box if we have metadata!
-
-    {
-        m_cropCheckBox = new QCheckBox(tr("Use ROI"), this);
-        m_cropPushButton = new QPushButton(tr("Edit ROI"),this);
-        auto wrapper = new QWidget(this);
-        wrapper->setLayout(new QHBoxLayout(this));
-        wrapper->layout()->setMargin(0);
-        wrapper->layout()->addWidget(m_cropCheckBox);
-        wrapper->layout()->addWidget(m_cropPushButton);
-        m_settingsLayout->addRow(tr("Region of interest (ROI)"), wrapper);
-
-        connect(m_cropPushButton, &QPushButton::clicked, this, &InfoWidget::on_pushButton_cropEdit_clicked);
-        connect(m_cropCheckBox, &QCheckBox::stateChanged, this, &InfoWidget::on_checkBox_crop_valueChanged);
-    }
 
     this->layout()->addWidget(m_settingsWidget);
     m_settingsWidget->setEnabled(false);
@@ -114,52 +95,6 @@ OperationStack *InfoWidget::getOpStack()
     return m_opStack;
 }
 
-void InfoWidget::setResolutionList(QStringList resList, int idx)
-{
-    Q_ASSERT(!resList.empty());
-    Q_ASSERT(idx>=0);
-    Q_ASSERT(idx < resList.size());
-
-    m_resolutionComboBox->clear();
-    m_resolutionComboBox->addItems(resList);
-    m_resolutionComboBox->setCurrentIndex(idx);
-}
-
-void InfoWidget::setResolution(QString resolution)
-{
-    m_resolutionComboBox->setEditText(resolution);
-}
-
-void InfoWidget::setResolutionValid(bool valid)
-{
-    QPalette colorPalette = m_resolutionComboBox->palette();
-    if (valid) {
-        ApplicationSettings as = ApplicationSettings::instance();
-        if (as.getColorTheme() == DARK) {
-            //darkstyle on
-            colorPalette.setColor(QPalette::Text, Qt::white);
-        }
-        else {
-            //darkstyle off
-            colorPalette.setColor(QPalette::Text, Qt::black);
-        }
-    }
-    else {
-        colorPalette.setColor(QPalette::Text, Qt::red);
-    }
-    m_resolutionComboBox->setPalette(colorPalette);
-}
-
-bool InfoWidget::getCropStatus()
-{
-    return m_cropCheckBox->checkState() == Qt::Checked;
-}
-
-void InfoWidget::setCropStatus(bool checked)
-{
-    m_cropCheckBox->setCheckState(checked ? Qt::Checked : Qt::Unchecked);
-}
-
 void InfoWidget::setAltitudeVisible(bool visible)
 {
     if (visible && !m_altitudeSpinBox) {
@@ -204,22 +139,7 @@ void InfoWidget::on_toolButton_meta_clicked()
     emit sig_openMetaPressed();
 }
 
-void InfoWidget::on_pushButton_cropEdit_clicked()
-{
-    emit sig_cropEdit();
-}
-
 void InfoWidget::on_spinBox_altitude_valueChanged(double d)
 {
     emit sig_altitudeChanged(d);
-}
-
-void InfoWidget::on_comboBox_resolution_currentTextChanged(const QString &text)
-{
-    emit sig_resChanged(text);
-}
-
-void InfoWidget::on_checkBox_crop_valueChanged(int state)
-{
-    emit sig_useCropChanged(state==Qt::Checked);
 }

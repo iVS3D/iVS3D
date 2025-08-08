@@ -52,7 +52,7 @@ public:
      * @param name The output name
      * @param iTransformCopies The ITransform instances to create additional export images
      */
-    void startExport(QString path, QString name, std::vector<ITransform*> iTransformCopies, LogFile *logFile);
+    void startExport(const ExportConfig& config, LogFile *logFile);
 
 public slots:
     /**
@@ -88,7 +88,6 @@ private:
     DataManager* m_dataManager;
     ExportThread* m_exportThread;
     QObject* m_parent;
-    QString m_exportPath;
 
     QPoint m_boundaries = QPoint(0, 0);
 };

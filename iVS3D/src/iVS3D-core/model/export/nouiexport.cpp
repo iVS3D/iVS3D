@@ -108,7 +108,14 @@ void noUIExport::runExport()
 
     m_dataManager->createProject(outputName, pathWOimages + "/" + outputName + "-project.json");
 
-    m_exportExec->startExport(m_path, outputName, iTransformCopies, m_logFile);
+    ExportConfig config;
+    config.name = outputName;
+    config.destination = m_path;
+    config.transformations = iTransformCopies;
+    config.format = "png";
+    config.readerParams = *m_dataManager->getModelInputPictures()->getReaderParams();
+
+    m_exportExec->startExport(config, m_logFile);
 }
 
 void noUIExport::slot_exportFinished(int result)

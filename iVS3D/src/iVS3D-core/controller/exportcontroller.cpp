@@ -15,6 +15,7 @@ ExportController::ExportController(OutputWidget *outputWidget, DataManager *data
     connect(m_outputWidget, &OutputWidget::sig_reconstruct, this, &ExportController::slot_reconstruct);
     connect(m_outputWidget, &OutputWidget::sig_export, this, &ExportController::slot_export);
     connect(m_outputWidget, &OutputWidget::sig_pathChanged, this, &ExportController::slot_outputPathChanged);
+    connect(m_outputWidget, &OutputWidget::sig_resChanged, this, &ExportController::slot_workingResolutionChanged);
 
     connect(m_dataManager->getModelInputPictures(), &ModelInputPictures::sig_mipChanged, this, &ExportController::slot_onKeyframesChanged);
 
@@ -30,6 +31,9 @@ ExportController::ExportController(OutputWidget *outputWidget, DataManager *data
     m_path += "/export";
     m_outputWidget->setOutputPath(m_path);
     m_outputWidget->enableReconstruct(false);
+
+    m_exportReaderParams = *m_dataManager->getModelInputPictures()->getReaderParams();
+
 }
 
 ExportController::~ExportController()
@@ -67,6 +71,8 @@ QMap<QString, QVariant> ExportController::getOutputSettings()
     }
     settings.insert(stringContainer::UseITransform, useItransformVariant);
     settings.insert(stringContainer::ITransformSettings, iTransformSettings);
+
+    settings.insert(stringContainer::OutputFormat, m_outputWidget->getExportFormat());
     return settings;
 
 }
@@ -84,6 +90,20 @@ void ExportController::setOutputSettings(QMap<QString, QVariant> settings)
         selection.push_back(useItransform.toBool());
     }
     m_outputWidget->setSelectedITransformMasks(selection);
+
+    if(settings.contains(stringContainer::Resolution)) {
+        QString resolution = settings.find(stringContainer::Resolution).value().toString();
+        Resolution res;
+        if(res.fromString(resolution)){
+            m_exportReaderParams.setWorkingResolution(res);
+            m_outputWidget->setResolution(resolution);
+        }
+    }
+
+    if(settings.contains(stringContainer::OutputFormat)){
+        QString format = settings.find(stringContainer::OutputFormat).value().toString();
+        m_outputWidget->setOutputFormat(format);
+    }
 
     QList<QVariant> iTransformSettingsList = settings.find(stringContainer::ITransformSettings).value().toList();
     int idx = 0;
@@ -125,7 +145,11 @@ void ExportController::slot_reconstruct()
 
 void ExportController::slot_export()
 {
+    // use ROI, ROI, etc from MIP reader, but use the export resolution!
+    auto exportRes = m_exportReaderParams.getWorkingResolution();
     m_exportReaderParams = *m_dataManager->getModelInputPictures()->getReaderParams();
+    m_exportReaderParams.setWorkingResolution(exportRes);
+
     m_lfExport = LogManager::instance().createLogFile("Export", false);
     m_lfExport->setSettings(getOutputSettings());
 
@@ -252,8 +276,15 @@ void ExportController::slot_export()
 
     m_dataManager->createProject(outputName, pathWOimages + "/" + outputName + "-project.json");
 
+    ExportConfig config;
+    config.name = outputName;
+    config.destination = m_path;
+    config.format = m_outputWidget->getExportFormat();
+    config.readerParams = m_exportReaderParams;
+    config.transformations = iTransformCopies;
+
     //start export
-    m_exportExec->startExport(m_path, outputName, iTransformCopies, m_lfExport);
+    m_exportExec->startExport(config, m_lfExport);
     emit sig_exportStarted();
     m_timer = QElapsedTimer();
     m_timer.start();
@@ -602,4 +633,16 @@ bool ExportController::createShortcutplusBatch(QString reconstructDir, QString s
     shortcutFile->close();
 
     return true;
+}
+
+void ExportController::slot_workingResolutionChanged(QString resolution)
+{
+    if(m_dataManager->getModelInputPictures()) {
+        Resolution res;
+        if (res.fromString(resolution)){
+            bool valid = m_exportReaderParams.setWorkingResolution(res);
+            m_outputWidget->setResolutionValid(valid);
+            m_outputWidget->enableExport(valid);
+        }
+    }
 }

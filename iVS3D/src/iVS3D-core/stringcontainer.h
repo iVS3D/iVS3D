@@ -26,6 +26,7 @@ struct stringContainer
     // Identifier for the settings maps
     static const QString OutputPath;
     static const QString Resolution;
+    static const QString OutputFormat;
     static const QString ROI;
     static const QString UseROI;
     static const QString UseITransform;

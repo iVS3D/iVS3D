@@ -143,6 +143,7 @@ public slots:
      */
     void slot_nextImageOnPlayer(uint idx);
 
+    void slot_workingResolutionChanged(QString resolution);
 private:
     /**
      * @brief startReconstruct handles starting reconstruct software, preparing its start-arguments, creating batch-files and project-file

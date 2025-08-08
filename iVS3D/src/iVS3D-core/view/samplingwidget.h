@@ -78,6 +78,10 @@ public:
 
     void disablePreview();
 
+    void setResolutionList(QStringList resList, int idx);
+    void setResolution(QString resolution);
+    void setResolutionValid(bool valid);
+
 
 signals:
 
@@ -101,29 +105,21 @@ signals:
     void sig_startSampling();
 
     /**
-     * @brief [signal] sig_startGenerateSettings is emitted on generate settings button pressed.
-     */
-    void sig_startGenerateSettings();
-
-    /**
      * @brief [signal] sig_enablePreviewChanged(...) is emitted on enable preview checkbox state changed.
      * @param enabled Is @a true if enable preview is checked, @a false otherwise.
      */
     void sig_enablePreviewChanged(bool enabled);
 
     /**
-     * @brief [signal] sig_addAuto(...) is emitted when add automatic execution is clicked
-     * @param idx The index of the currently selected plugin
-     * @param generate @a true if generate Settings is used @a false otherwise
+     * @brief [signal] sig_resChanged(...) is emitted if the resolution in the combo box is changed
+     * @param resolution The selected resolution as a string
      */
-    void sig_addAuto(int idx, bool generate);
+    void sig_resChanged(QString resolution);
 
 private slots:
     void slot_selectedAlgoChanged(int idx);
     void slot_startSamplingPressed();
-    void slot_startGeneratePressed();
     void slot_enablePreviewChanged(bool enabled);
-    void on_addAuto_clicked();
 
 private:
     Ui::SamplingWidget *ui;

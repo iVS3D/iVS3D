@@ -5,6 +5,7 @@
 #include <opencv2/core.hpp>
 #include "metadata.h"
 #include "sequentialreader.h"
+#include "readerparams.h"
 
 /**
  * @interface Reader
@@ -69,11 +70,12 @@ public:
      */
     virtual bool isDir() = 0;
     /**
-     * @brief Creates this reader again and returns it
+     * @brief Creates this reader again and returns it. Optionally, one can provide a shared ptr to a different set of parameters.
+     * @param params The new parameters to use. Uses the same as the original reader if nullptr is provided.
      *
      * @return New instance of this reader
      */
-    virtual Reader *copy() = 0;
+    virtual Reader *copy(std::shared_ptr<ReaderParams> params = nullptr) = 0;
     /**
      * @brief Returns a vector with filepaths (only valid, if the reader is a imagereader)
      *
@@ -102,7 +104,6 @@ public:
      * @return @a true if the reader is valid, @a false otherwise
      */
     virtual bool isValid() = 0;
-
 };
 
 #endif // READER_H

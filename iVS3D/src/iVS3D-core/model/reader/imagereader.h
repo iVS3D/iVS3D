@@ -82,7 +82,7 @@ public:
      * @brief copy creates a new instance of ImageReader that is a copy of itself
      * @return ImageReader that is an exact copy
      */
-    ImageReader *copy() override;
+    ImageReader *copy(std::shared_ptr<ReaderParams> params) override;
     /**
      * @brief addMetaData Used to add MetaData to the reader
      * @param md The MetaData to be saved

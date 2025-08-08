@@ -122,10 +122,14 @@ bool VideoReader::isDir()
     return false;
 }
 
-VideoReader *VideoReader::copy()
+VideoReader *VideoReader::copy(std::shared_ptr<ReaderParams> params)
 {
+    std::shared_ptr<ReaderParams> p = params;
+    if (!p) { // if no params are provided, copy the old ones
+        p = std::make_shared<ReaderParams>(*m_readerParams);
+    }
     // copy cv::VideoCapture crashes, so create new instead of copy
-    VideoReader* reader =  new VideoReader(QString::fromStdString(m_path), std::make_shared<ReaderParams>(*m_readerParams));
+    VideoReader* reader =  new VideoReader(QString::fromStdString(m_path), p);
     reader->addMetaData(m_md);
     return reader;
 }

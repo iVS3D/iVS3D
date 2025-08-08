@@ -85,11 +85,10 @@ Controller::Controller(QString inputPath, QString settingsPath, QString outputPa
     connect(m_mainWindow, &MainWindow::sig_selectLanguage, this, &Controller::slot_selectLanguage);
     connect(m_mainWindow, &MainWindow::sig_restart, this, &Controller::slot_restart);
 
-
     InfoWidget* infoWidget = m_mainWindow->getInputWidget();
-    connect(infoWidget, &InfoWidget::sig_resChanged, this, &Controller::slot_workingResolutionChanged);
-    connect(infoWidget, &InfoWidget::sig_cropEdit, this, &Controller::slot_editCrop);
-    connect(infoWidget, &InfoWidget::sig_useCropChanged, this, &Controller::slot_useCropChanged);
+    connect(m_mainWindow->getSamplingWidget(), &SamplingWidget::sig_resChanged, this, &Controller::slot_workingResolutionChanged);
+    connect(m_mainWindow->getVideoPlayer(), &VideoPlayer::sig_cropEdit, this, &Controller::slot_editCrop);
+    connect(m_mainWindow->getVideoPlayer(), &VideoPlayer::sig_useCropChanged, this, &Controller::slot_useCropChanged);
     connect(infoWidget, &InfoWidget::sig_altitudeChanged, this, &Controller::slot_altitudeChanged);
 
     connect(m_mainWindow, &MainWindow::sig_quit, m_colmapWrapper->getOrCreateUiControlsFactory(), &lib3d::ots::ui::ColmapWrapperControlsFactory::onQuit);
@@ -404,7 +403,7 @@ void Controller::slot_workingResolutionChanged(QString resolution)
         Resolution res;
         if (res.fromString(resolution)){
             bool valid = params->setWorkingResolution(res);
-            m_mainWindow->getInputWidget()->setResolutionValid(valid);
+            m_mainWindow->getSamplingWidget()->setResolutionValid(valid);
             m_videoPlayerController->slot_mipChanged();
         }
     }
@@ -433,7 +432,7 @@ void Controller::slot_editCrop()
                 ROI newROI(roiRect, imgResolution);
                 bool valid = params->setRoi(newROI);
                 params->setUseRoi(valid);
-                m_mainWindow->getInputWidget()->setCropStatus(valid);
+                m_mainWindow->getVideoPlayer()->setCropStatus(valid);
                 m_videoPlayerController->slot_mipChanged();
             }
         }
@@ -536,7 +535,8 @@ void Controller::setInputWidgetInfo() {
             resolutionIdx = resList.length()-1;
         }
     }
-    m_mainWindow->getInputWidget()->setResolutionList(resList, resolutionIdx);
+    m_mainWindow->getSamplingWidget()->setResolutionList(resList, resolutionIdx);
+    m_mainWindow->getOutputWidget()->setResolutionList(resList, resolutionIdx);
 
     // set altitude (if available)
     setAltitude();
@@ -754,7 +754,7 @@ void Controller::onSuccessfulOpen()
 
     // update the working resolution, roi, etc
     std::shared_ptr<ReaderParams> params = m_dataManager->getModelInputPictures()->getReaderParams();
-    m_mainWindow->getInputWidget()->setCropStatus(params->getUseRoi());
+    m_mainWindow->getVideoPlayer()->setCropStatus(params->getUseRoi());
     QRect roi = params->getRoi().cropAsQRect(params->getOriginalResolution());
     m_mainWindow->getVideoPlayer()->updateRoi(params->getUseRoi()? roi : QRect());
 }

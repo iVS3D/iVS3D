@@ -18,6 +18,9 @@ OutputWidget::OutputWidget(QWidget *parent, QString title, QStringList transform
     connect(m_exportW, &ExportWidget::sig_pathChanged, this, &OutputWidget::slot_pathChanged);
     connect(m_exportW, &ExportWidget::sig_addAuto, this, &OutputWidget::slot_addAuto);
     connect(m_progressW, &ProgressWidget::sig_abort, this, &OutputWidget::slot_abort);
+    connect(m_exportW, &ExportWidget::sig_resChanged, [=](QString res) {
+        emit sig_resChanged(res);
+    });
 
 
     this->setMinimumSize(200,250);
@@ -72,6 +75,31 @@ bool OutputWidget::setSelectedITransformMasks(std::vector<bool> selection)
 void OutputWidget::enableCreateFilesWidget(bool enable)
 {
     m_exportW->enableCreateFilesWidget(enable);
+}
+
+void OutputWidget::setResolutionList(QStringList resList, int idx)
+{
+    m_exportW->setResolutionList(resList,idx);
+}
+
+void OutputWidget::setResolution(QString resolution)
+{
+    m_exportW->setResolution(resolution);
+}
+
+void OutputWidget::setResolutionValid(bool valid)
+{
+    m_exportW->setResolutionValid(valid);
+}
+
+QString OutputWidget::getExportFormat()
+{
+    return m_exportW->getExportFormat();
+}
+
+bool OutputWidget::setOutputFormat(QString format)
+{
+    return m_exportW->setOutputFormat(format);
 }
 
 void OutputWidget::slot_displayProgress(int progress, QString currentOperation)

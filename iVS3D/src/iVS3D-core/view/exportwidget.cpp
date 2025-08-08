@@ -12,6 +12,8 @@ ExportWidget::ExportWidget(QWidget *parent, QStringList transformList) :
         m_checkboxes.push_back(cb);
         ui->verticalLayout_transforms->addWidget(cb);
     }
+
+    connect(ui->comboBox_resolution, &QComboBox::currentTextChanged, [=](const QString& text) { emit sig_resChanged(text); });
 }
 
 ExportWidget::~ExportWidget()
@@ -98,10 +100,64 @@ bool ExportWidget::setSelectedITransforms(std::vector<bool> selection)
 void ExportWidget::enableCreateFilesWidget(bool enable)
 {
     if (enable) {
-        ui->createFilesWidget->show();
+        ui->label_transforms->show();
     }
     else {
-        ui->createFilesWidget->hide();
+        ui->label_transforms->hide();
     }
 }
+
+void ExportWidget::setResolutionList(QStringList resList, int idx)
+{
+    Q_ASSERT(!resList.empty());
+    Q_ASSERT(idx>=0);
+    Q_ASSERT(idx < resList.size());
+
+    ui->comboBox_resolution->clear();
+    ui->comboBox_resolution->addItems(resList);
+    ui->comboBox_resolution->setCurrentIndex(idx);
+}
+
+void ExportWidget::setResolution(QString resolution)
+{
+    ui->comboBox_resolution->setEditText(resolution);
+}
+
+void ExportWidget::setResolutionValid(bool valid)
+{
+    QPalette colorPalette = ui->comboBox_resolution->palette();
+    if (valid) {
+        ApplicationSettings as = ApplicationSettings::instance();
+        if (as.getColorTheme() == DARK) {
+            //darkstyle on
+            colorPalette.setColor(QPalette::Text, Qt::white);
+        }
+        else {
+            //darkstyle off
+            colorPalette.setColor(QPalette::Text, Qt::black);
+        }
+    }
+    else {
+        colorPalette.setColor(QPalette::Text, Qt::red);
+    }
+    ui->comboBox_resolution->setPalette(colorPalette);
+}
+
+
+QString ExportWidget::getExportFormat()
+{
+    return ui->comboBox_format->currentText();
+}
+
+bool ExportWidget::setOutputFormat(QString format)
+{
+    int idx = ui->comboBox_format->findText(format);
+    if (idx >= 0) {
+        ui->comboBox_format->setCurrentIndex(idx);
+        return true;
+    }
+    return false;
+}
+
+
 

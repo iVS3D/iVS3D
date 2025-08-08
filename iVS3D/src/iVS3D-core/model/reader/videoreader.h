@@ -83,7 +83,7 @@ public:
      *
      * @return New instance of this reader
      */
-    VideoReader *copy() override;
+    VideoReader *copy(std::shared_ptr<ReaderParams> params) override;
 
     /**
      * @brief Returns a empty vector

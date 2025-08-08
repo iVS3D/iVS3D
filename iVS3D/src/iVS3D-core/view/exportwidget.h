@@ -83,6 +83,13 @@ public:
      */
     void enableCreateFilesWidget(bool enable);
 
+    void setResolutionList(QStringList resList, int idx);
+    void setResolution(QString resolution);
+    void setResolutionValid(bool valid);
+
+    QString getExportFormat();
+    bool setOutputFormat(QString format);
+
 signals:
 
     /**
@@ -105,6 +112,12 @@ signals:
      * @brief [signal] sig_addAuto() is emitted on Add to automatic button pressed.
      */
     void sig_addAuto();
+
+    /**
+     * @brief [signal] sig_resChanged(...) is emitted if the resolution in the combo box is changed
+     * @param resolution The selected resolution as a string
+     */
+    void sig_resChanged(QString resolution);
 
 private slots:
     void on_pushButton_browse_clicked();

@@ -81,6 +81,13 @@ public:
      */
     void enableCreateFilesWidget(bool enable);
 
+    void setResolutionList(QStringList resList, int idx);
+    void setResolution(QString resolution);
+    void setResolutionValid(bool valid);
+
+    QString getExportFormat();
+    bool setOutputFormat(QString format);
+
 signals:
     /**
      * @brief sig_pathChanged gets emitted once the export path has been altered
@@ -103,6 +110,12 @@ signals:
      * @brief sig_addAuto signal to add the current output to the automatic execution (triggered by user)
      */
     void sig_addAuto();
+
+    /**
+     * @brief [signal] sig_resChanged(...) is emitted if the resolution in the combo box is changed
+     * @param resolution The selected resolution as a string
+     */
+    void sig_resChanged(QString resolution);
 
 public slots:
     /**

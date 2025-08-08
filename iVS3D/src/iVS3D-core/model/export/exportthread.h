@@ -31,6 +31,14 @@
 
 #define JPEG_COMPRESSION_PARAMS {cv::IMWRITE_JPEG_QUALITY, 100}
 
+struct ExportConfig {
+    QString name;
+    QString destination;
+    QString format;
+    ReaderParams readerParams;
+    std::vector<ITransform*> transformations;
+};
+
 /**
  * @class ExportThread
  *
@@ -60,7 +68,7 @@ public:
      * @param roi The region of interest
      * @param iTransformCopies The ITransform instances to run fro creating additional images
      */
-    explicit ExportThread(Progressable* receiver, ModelInputPictures* mip, const QString &path, const QString &name, volatile bool* stopped, const std::vector<ITransform*> &iTransformCopies, LogFile *logFile);
+    explicit ExportThread(Progressable* receiver, ModelInputPictures* mip, const ExportConfig& config, volatile bool* stopped, LogFile *logFile);
     ~ExportThread();
 
     /**
@@ -73,13 +81,10 @@ public:
 private:
     Progressable* m_receiver;
     Reader* m_reader;
-    std::shared_ptr<ReaderParams> m_readerParams;
     std::vector<uint> m_keyframes;
     volatile bool* m_stopped;
-    QString m_path;
-    QString m_name;
+    ExportConfig m_config;
     int m_result = 0;
-    std::vector<ITransform*> m_iTransformCopies;
     LogFile *m_logFile;
     int m_progress = 0;
     ExportExif* m_exportExif;

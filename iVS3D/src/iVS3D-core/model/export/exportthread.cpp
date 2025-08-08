@@ -1,17 +1,14 @@
 #include "exportthread.h"
 
-ExportThread::ExportThread(Progressable* receiver, ModelInputPictures* mip, const QString &path, const QString &name, volatile bool* stopped, const std::vector<ITransform*> &iTransformCopies, LogFile *logFile)
+ExportThread::ExportThread(Progressable* receiver, ModelInputPictures* mip, const ExportConfig& config, volatile bool* stopped, LogFile *logFile)
 {
     m_receiver = receiver;
-    m_reader = mip->getReader()->copy();
-    m_readerParams = mip->getReaderParams();
+    m_config = config;
+    m_reader = mip->getReader()->copy(std::make_shared<ReaderParams>(m_config.readerParams));
     m_keyframes = mip->getAllKeyframes(true);
-    m_path = path;
-    if(m_path.endsWith("/images"))
-        m_path = m_path.left(m_path.length() - QString("/images").length());
-    m_name = name;
+    if(m_config.destination.endsWith("/images"))
+        m_config.destination = m_config.destination.left(m_config.destination.length() - QString("/images").length());
     m_stopped = stopped;
-    m_iTransformCopies = iTransformCopies;
     m_logFile = logFile;
     m_progress = 0;
 
@@ -23,8 +20,8 @@ ExportThread::ExportThread(Progressable* receiver, ModelInputPictures* mip, cons
 
 ExportThread::~ExportThread()
 {
-    for(int i = 0; i<(int)m_iTransformCopies.size(); i++){
-        ITransform *iTr = m_iTransformCopies[i];
+    for(int i = 0; i<(int)m_config.transformations.size(); i++){
+        ITransform *iTr = m_config.transformations[i];
         delete iTr;
     }
 
@@ -45,10 +42,10 @@ void ExportThread::run(){
     QPoint imageSize = QPoint(originalMat.cols, originalMat.rows);
 
     // ROI is used if it's enabled and it's not the entire image (which would be default)
-    bool usesRoi = m_readerParams->getUseRoi() && !m_readerParams->getRoi().isDefault();
+    bool usesRoi = m_config.readerParams.getUseRoi() && !m_config.readerParams.getRoi().isDefault();
 
     // Resize if the working resolution differs from the input resolution
-    bool usesResize = !(m_readerParams->getOriginalResolution() == m_readerParams->getWorkingResolution());
+    bool usesResize = !(m_config.readerParams.getOriginalResolution() == m_config.readerParams.getWorkingResolution());
 
     // if input is an image and we do not modify it in any way (i.e. resizing) we do not need to
     // load the image and write it back, instead we copy the input file including all metadata
@@ -70,14 +67,14 @@ void ExportThread::run(){
     // Setup the ImageProcessor
     ImageProcessor processor;
     // exporting from cv::Mat or copying input image
-    QString imagePath = m_path + QString("/images");
+    QString imagePath = m_config.destination + QString("/images");
     if(useCopy)             processor.addCommand(std::make_unique<CopyFileCommand>(m_reader->getFileVector(), imagePath));
-    else                    processor.addCommand(std::make_unique<WriteToDiskCommand>(imagePath));
+    else                    processor.addCommand(std::make_unique<WriteToDiskCommand>(imagePath, "", m_config.format));
     // adding an exif tag only if we have gps data available, we don't need to do this if we copied the image before
     if(!useCopy && useExif) processor.addCommand(std::make_unique<ExifTagCommand>(gpsReader));
     // export itransform plugin output
-    for(auto plugin : m_iTransformCopies)
-        processor.addCommand(std::make_unique<TransformCommand>(plugin, m_path));
+    for(auto plugin : m_config.transformations)
+        processor.addCommand(std::make_unique<TransformCommand>(plugin, m_config.destination));
 
     // run the processor to export images
     SequentialReader *seq_reader = m_reader->createSequentialReader(m_keyframes, Reader::APPLY_ALL);

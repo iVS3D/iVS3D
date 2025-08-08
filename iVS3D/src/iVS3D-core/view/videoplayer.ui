@@ -354,6 +354,23 @@
        </property>
       </spacer>
      </item>
+     <item>
+      <widget class="QCheckBox" name="checkBox_roi">
+       <property name="layoutDirection">
+        <enum>Qt::RightToLeft</enum>
+       </property>
+       <property name="text">
+        <string>ROI</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pushButton_roi">
+       <property name="text">
+        <string>Edit</string>
+       </property>
+      </widget>
+     </item>
     </layout>
    </item>
   </layout>

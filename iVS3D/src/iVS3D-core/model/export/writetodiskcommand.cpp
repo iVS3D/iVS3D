@@ -11,7 +11,7 @@ bool WriteToDiskCommand::ensureFolderExists()
     }
 }
 
-WriteToDiskCommand::WriteToDiskCommand(QString folderpath, QString prefix_) : folder(folderpath), prefix(prefix_), initialized(false) { }
+WriteToDiskCommand::WriteToDiskCommand(QString folderpath, QString prefix_, QString format_) : folder(folderpath), prefix(prefix_), format(format_), initialized(false) { }
 
 std::optional<QString> WriteToDiskCommand::execute(ImageContext &ctx)
 {
@@ -19,7 +19,7 @@ std::optional<QString> WriteToDiskCommand::execute(ImageContext &ctx)
         return "ERROR: failed to create /images folder for export: " + folder;
     }
 
-    ctx.filename = QDir::cleanPath(folder + "/" + prefix + QString::number(ctx.index, 10).rightJustified(8, '0') + ".png");
+    ctx.filename = QDir::cleanPath(folder + "/" + prefix + QString::number(ctx.index, 10).rightJustified(8, '0') + "." + format);
     if (!cv::imwrite(ctx.filename.toStdString(), ctx.image, {cv::IMWRITE_JPEG_QUALITY, 100})) {
         return "ERROR: failed to export image: " + ctx.filename;
     }

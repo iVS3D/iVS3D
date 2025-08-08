@@ -132,6 +132,9 @@ public:
      */
     void setColorTheme(ColorTheme theme);
 
+    void setCropStatus(bool checked);
+    bool getCropStatus();
+
     struct OverlayEntry {
         QString text;
         bool isHeader = false;
@@ -189,6 +192,13 @@ signals:
      * @brief [signal] sig_deleteAllKeyframes() is emitted on delete all button press.
      */
     void sig_deleteAllKeyframes();
+
+    /**
+     * @brief [signal] sig_cropEdit() is emitted if the crop button is pressed.
+     */
+    void sig_cropEdit();
+
+    void sig_useCropChanged(bool useCrop);
 
 protected:
     void resizeEvent(QResizeEvent *e); // used to resize displayed image
