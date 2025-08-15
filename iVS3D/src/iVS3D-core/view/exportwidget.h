@@ -5,6 +5,7 @@
 #include <QFileDialog>
 #include <QCheckBox>
 #include <QPushButton>
+#include <QDoubleSpinBox>
 
 #include "applicationsettings.h" // used to determin text color depending on GUI style
 
@@ -90,6 +91,18 @@ public:
     QString getExportFormat();
     bool setOutputFormat(QString format);
 
+    /**
+     * @brief setAltitudeVisible will show or hide the altitude selector
+     * @param visible @a true shows the selector, @a false will hide it
+     */
+    void setAltitudeVisible(bool visible);
+
+    /**
+     * @brief setAltitude sets the value of the altitude selector
+     * @param altitude
+     */
+    void setAltitude(double altitude);
+
 signals:
 
     /**
@@ -119,16 +132,24 @@ signals:
      */
     void sig_resChanged(QString resolution);
 
+    /**
+     * @brief [signal] sig_altitudeChanged() is emitted when the altitude is changed by the user.
+     */
+    void sig_altitudeChanged(double altitude);
+
 private slots:
     void on_pushButton_browse_clicked();
     void on_pushButton_export_clicked();
     void on_pushButton_reconstruct_clicked();
     void on_pushButton_addAuto_clicked();
     void on_lineEdit_textChanged(const QString &text);
+    void on_spinBox_altitude_valueChanged(double d);
 
 private:
     Ui::ExportWidget *ui;
     std::vector<QCheckBox*> m_checkboxes;
+
+    QDoubleSpinBox *m_altitudeSpinBox;
 
 };
 

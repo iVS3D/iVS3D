@@ -88,6 +88,18 @@ public:
     QString getExportFormat();
     bool setOutputFormat(QString format);
 
+    /**
+     * @brief setAltitudeVisible will show or hide the altitude selector
+     * @param visible @a true shows the selector, @a false will hide it
+     */
+    void setAltitudeVisible(bool visible);
+
+    /**
+     * @brief setAltitude sets the value of the altitude selector
+     * @param altitude
+     */
+    void setAltitude(double altitude);
+
 signals:
     /**
      * @brief sig_pathChanged gets emitted once the export path has been altered
@@ -116,6 +128,11 @@ signals:
      * @param resolution The selected resolution as a string
      */
     void sig_resChanged(QString resolution);
+
+    /**
+     * @brief [signal] sig_altitudeChanged() is emitted when the altitude is changed by the user.
+     */
+    void sig_altitudeChanged(double altitude);
 
 public slots:
     /**

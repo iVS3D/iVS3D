@@ -85,11 +85,11 @@ Controller::Controller(QString inputPath, QString settingsPath, QString outputPa
     connect(m_mainWindow, &MainWindow::sig_selectLanguage, this, &Controller::slot_selectLanguage);
     connect(m_mainWindow, &MainWindow::sig_restart, this, &Controller::slot_restart);
 
-    InfoWidget* infoWidget = m_mainWindow->getInputWidget();
+    OutputWidget* outputWidget = m_mainWindow->getOutputWidget();
     connect(m_mainWindow->getSamplingWidget(), &SamplingWidget::sig_resChanged, this, &Controller::slot_workingResolutionChanged);
     connect(m_mainWindow->getVideoPlayer(), &VideoPlayer::sig_cropEdit, this, &Controller::slot_editCrop);
     connect(m_mainWindow->getVideoPlayer(), &VideoPlayer::sig_useCropChanged, this, &Controller::slot_useCropChanged);
-    connect(infoWidget, &InfoWidget::sig_altitudeChanged, this, &Controller::slot_altitudeChanged);
+    connect(outputWidget, &OutputWidget::sig_altitudeChanged, this, &Controller::slot_altitudeChanged);
 
     connect(m_mainWindow, &MainWindow::sig_quit, m_colmapWrapper->getOrCreateUiControlsFactory(), &lib3d::ots::ui::ColmapWrapperControlsFactory::onQuit);
     connect(m_mainWindow, &MainWindow::sig_changeInterpolateMetaData, this, &Controller::slot_changeInterpolateMetaData);
@@ -540,8 +540,6 @@ void Controller::setInputWidgetInfo() {
 
     // set altitude (if available)
     setAltitude();
-
-    m_mainWindow->getInputWidget()->enableSettings(true);
 }
 
 void Controller::displayPluginSettings()
@@ -563,8 +561,7 @@ void Controller::onFailedOpen()
     m_mainWindow->enableSaveProject(false);
     m_mainWindow->enableUndo(false);
     m_mainWindow->enableRedo(false);
-    m_mainWindow->getInputWidget()->enableSettings(false);
-    m_mainWindow->getInputWidget()->setAltitudeVisible(false);
+    m_mainWindow->getOutputWidget()->setAltitudeVisible(false);
     m_mainWindow->getVideoPlayer()->updateOverlayText({});
     m_mainWindow->enableOpenMetaData(false);
     m_mainWindow->enableTools(false);
@@ -649,16 +646,16 @@ void Controller::setAltitude()
             if (!gpsReader->hasAltitudeData()) {
                 continue;
             }
-            m_mainWindow->getInputWidget()->setAltitudeVisible(true);
+            m_mainWindow->getOutputWidget()->setAltitudeVisible(true);
             QVariant gpsData = reader->getImageMetaData(0);
             QHash<QString, QVariant> gpsHash = gpsData.toHash();
             double altitude_abs = gpsHash.find("GPSAltitude").value().toDouble();
             double altitude = (gpsHash.find("GPSAltitudeRef").value().toString() == "0") ? altitude_abs : altitude_abs * -1;
-            m_mainWindow->getInputWidget()->setAltitude(altitude);
+            m_mainWindow->getOutputWidget()->setAltitude(altitude);
             return;
         }
     }
-    m_mainWindow->getInputWidget()->setAltitudeVisible(false);
+    m_mainWindow->getOutputWidget()->setAltitudeVisible(false);
 }
 
 void Controller::onSuccessfulOpen()

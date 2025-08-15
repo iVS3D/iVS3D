@@ -137,7 +137,6 @@ MainWindow::MainWindow(QWidget *parent, ColorTheme theme, int cuda, bool createL
     m_timeline->setEnabled(false);
     m_videoplayer->setEnabled(false);
     m_inputWidget->setEnabled(true);
-    m_inputWidget->enableSettings(false);
     m_samplingWidget->setEnabled(false);
     m_outputWidget->setEnabled(false);
     //m_opStack->setEnabled(false);

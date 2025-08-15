@@ -21,7 +21,9 @@ OutputWidget::OutputWidget(QWidget *parent, QString title, QStringList transform
     connect(m_exportW, &ExportWidget::sig_resChanged, [=](QString res) {
         emit sig_resChanged(res);
     });
-
+    connect(m_exportW, &ExportWidget::sig_altitudeChanged, [=](double altitude) {
+        emit sig_altitudeChanged(altitude);
+    });
 
     this->setMinimumSize(200,250);
 }
@@ -100,6 +102,16 @@ QString OutputWidget::getExportFormat()
 bool OutputWidget::setOutputFormat(QString format)
 {
     return m_exportW->setOutputFormat(format);
+}
+
+void OutputWidget::setAltitudeVisible(bool visible)
+{
+    m_exportW->setAltitudeVisible(visible);
+}
+
+void OutputWidget::setAltitude(double altitude)
+{
+    m_exportW->setAltitude(altitude);
 }
 
 void OutputWidget::slot_displayProgress(int progress, QString currentOperation)

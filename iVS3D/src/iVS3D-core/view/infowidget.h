@@ -76,18 +76,6 @@ public:
      */
     OperationStack* getOpStack();
 
-    /**
-     * @brief setAltitudeVisible will show or hide the altitude selector
-     * @param visible @a true shows the selector, @a false will hide it
-     */
-    void setAltitudeVisible(bool visible);
-
-    /**
-     * @brief setAltitude sets the value of the altitude selector
-     * @param altitude
-     */
-    void setAltitude(double altitude);
-
     void enableSettings(bool enabled);
 
 
@@ -96,16 +84,10 @@ signals:
     void sig_openFolderPressed();
     void sig_openMetaPressed();
 
-    /**
-     * @brief [signal] sig_altitudeChanged() is emitted when the altitude is changed by the user.
-     */
-    void sig_altitudeChanged(double altitude);
-
 private slots:
     void on_toolButton_folder_clicked();
     void on_toolButton_video_clicked();
     void on_toolButton_meta_clicked();
-    void on_spinBox_altitude_valueChanged(double d);
 
 protected:
 // input buttons
@@ -113,11 +95,7 @@ protected:
     AdaptiveToolButton *m_openImagesButton;
     AdaptiveToolButton *m_openVideoButton;
     QHBoxLayout *m_inputButtonLayout;
-
-// resolution, altitude, crop settings
-    QWidget *m_settingsWidget;
-    QFormLayout *m_settingsLayout;
-    QDoubleSpinBox *m_altitudeSpinBox;
+    
 
 // operation stack
     OperationStack *m_opStack;

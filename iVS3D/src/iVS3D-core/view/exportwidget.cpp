@@ -14,6 +14,8 @@ ExportWidget::ExportWidget(QWidget *parent, QStringList transformList) :
     }
 
     connect(ui->comboBox_resolution, &QComboBox::currentTextChanged, [=](const QString& text) { emit sig_resChanged(text); });
+
+    m_altitudeSpinBox = nullptr; // only display the altitude box if we have metadata!
 }
 
 ExportWidget::~ExportWidget()
@@ -84,6 +86,11 @@ void ExportWidget::on_pushButton_addAuto_clicked()
 void ExportWidget::on_lineEdit_textChanged(const QString &text)
 {
     emit sig_pathChanged(text);
+}
+
+void ExportWidget::on_spinBox_altitude_valueChanged(double d)
+{
+    emit sig_altitudeChanged(d);
 }
 
 bool ExportWidget::setSelectedITransforms(std::vector<bool> selection)
@@ -159,5 +166,28 @@ bool ExportWidget::setOutputFormat(QString format)
     return false;
 }
 
+void ExportWidget::setAltitudeVisible(bool visible)
+{
 
+    if (visible && !m_altitudeSpinBox) {
+        // altitude spinbox has not been created yet
+        m_altitudeSpinBox = new QDoubleSpinBox(this);
+        
+        ui->formLayout->insertRow(1,tr("Altitude of the first image"), m_altitudeSpinBox);
+        connect(m_altitudeSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &ExportWidget::on_spinBox_altitude_valueChanged);
+        return;
+    }
+    if(!visible && m_altitudeSpinBox) {
+        // the altitude spinbox exists but is not needed anymore, delete it!
+        connect(m_altitudeSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &ExportWidget::on_spinBox_altitude_valueChanged);
+        ui->formLayout->removeRow(1); // this deleted the m_altitudeSpinBox and the label!
+        m_altitudeSpinBox = nullptr;
+        return;
+    }
+}
+
+void ExportWidget::setAltitude(double altitude)
+{
+    if(m_altitudeSpinBox) m_altitudeSpinBox->setValue(altitude);
+}
 

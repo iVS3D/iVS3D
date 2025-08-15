@@ -42,17 +42,6 @@ InfoWidget::InfoWidget(QWidget *parent, QString title, ColorTheme theme) :
 
     this->layout()->addItem(m_inputButtonLayout);
 
-    // resolution, altitude, crop settings
-    m_settingsWidget = new QWidget(this);
-    m_settingsLayout = new QFormLayout(m_settingsWidget);
-    m_settingsWidget->setLayout(m_settingsLayout);
-    m_settingsLayout->setMargin(0);
-
-    m_altitudeSpinBox = nullptr; // only display the altitude box if we have metadata!
-
-    this->layout()->addWidget(m_settingsWidget);
-    m_settingsWidget->setEnabled(false);
-
     // operation stack
     m_opStack = new OperationStack(this);
     m_opStack->layout()->setMargin(0);
@@ -95,34 +84,6 @@ OperationStack *InfoWidget::getOpStack()
     return m_opStack;
 }
 
-void InfoWidget::setAltitudeVisible(bool visible)
-{
-    if (visible && !m_altitudeSpinBox) {
-        // altitude spinbox has not been created yet
-        m_altitudeSpinBox = new QDoubleSpinBox(this);
-        m_settingsLayout->insertRow(1,tr("Altitude of the first image"), m_altitudeSpinBox);
-        connect(m_altitudeSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &InfoWidget::on_spinBox_altitude_valueChanged);
-        return;
-    }
-    if(!visible && m_altitudeSpinBox) {
-        // the altitude spinbox exists but is not needed anymore, delete it!
-        connect(m_altitudeSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &InfoWidget::on_spinBox_altitude_valueChanged);
-        m_settingsLayout->removeRow(1); // this deleted the m_altitudeSpinBox and the label!
-        m_altitudeSpinBox = nullptr;
-        return;
-    }
-}
-
-void InfoWidget::setAltitude(double altitude)
-{
-    if(m_altitudeSpinBox) m_altitudeSpinBox->setValue(altitude);
-}
-
-void InfoWidget::enableSettings(bool enabled)
-{
-    m_settingsWidget->setEnabled(enabled);
-}
-
 void InfoWidget::on_toolButton_folder_clicked()
 {
     emit sig_openFolderPressed();
@@ -137,9 +98,4 @@ void InfoWidget::on_toolButton_meta_clicked()
 {
     qDebug("openmeta");
     emit sig_openMetaPressed();
-}
-
-void InfoWidget::on_spinBox_altitude_valueChanged(double d)
-{
-    emit sig_altitudeChanged(d);
 }
