@@ -42,6 +42,16 @@ void ITransformRequestDequeue::enableCuda(bool enabled)
     m_transform->enableCuda(enabled);
 }
 
+void ITransformRequestDequeue::deactivate()
+{
+    m_transform->deactivate();
+}
+
+void ITransformRequestDequeue::activate()
+{
+    m_transform->activate();
+}
+
 void ITransformRequestDequeue::moveToThread(QThread *thread)
 {
     m_transform->moveToThread(thread);
@@ -85,4 +95,14 @@ void ITransformRequestDequeue::slot_startTransform()
 void ITransformRequestDequeue::slot_enableCuda(bool enabled)
 {
     enableCuda(enabled);
+}
+
+void ITransformRequestDequeue::slot_deactivate()
+{
+    deactivate();
+}
+
+void ITransformRequestDequeue::slot_activate()
+{
+    activate();
 }

@@ -131,6 +131,8 @@ public:
      */
     QMap<QString, QVariant> getSettings() override;
 
+    void deactivate() override;
+
 signals:
     /**
      * @brief [signal] sig_classesAndColorsChanged is emitted if a new model with different classes and colors is selected.

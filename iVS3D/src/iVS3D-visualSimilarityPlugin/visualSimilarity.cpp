@@ -1,5 +1,7 @@
 #include "visualSimilarity.h"
 #include <NeuralUtil.h>
+#include <atomic>
+#include <optional>
 
 VisualSimilarity::VisualSimilarity()
 {
@@ -103,10 +105,16 @@ std::vector<uint> VisualSimilarity::sampleImages(const std::vector<unsigned int>
     {
         // calculate batch size
         const long availableMemory = cv::cuda::DeviceInfo(0).freeMemory();
-        batchSize = round(availableMemory / (width * height * 3 * 32) * MEM_THRESEHOLD); // RAM/(W*H*C*32)*thresehold <- CV_32F
+        batchSize = floor(availableMemory / (width * height * 3 * 32) * MEM_THRESEHOLD); // RAM/(W*H*C*32)*thresehold <- CV_32F
         if (batchSize > MAX_BATCH)
             batchSize = MAX_BATCH;
+        
         std::cout << "Detected " << std::round(availableMemory / 10000000.0) / 100.0 << "GB free memory." << std::endl;
+
+        if (batchSize < 1) {
+            batchSize = 1;
+            std::cerr << "Warning: Not enough memory available! Trying anyway with batch size 1..." << std::endl;
+        }
         std::cout << "Resulting Batch Size: " << batchSize << std::endl;
     }
 
@@ -114,16 +122,21 @@ std::vector<uint> VisualSimilarity::sampleImages(const std::vector<unsigned int>
 
     // calculate feature vectors
     QFuture<void> futureFeedNN;
+    std::optional<NN::NeuralError> inferenceError;
+
     int frameCount = imageList.size();
     cv::Mat inblob, totalFeatureVector;
-    for (uint i = 0; i < frameCount; i += batchSize)
+    for (int i = 0; i < frameCount; i += batchSize)
     {
         if (*stopped)
         {
             futureFeedNN.waitForFinished();
             futureFeedNN.cancel();
+            m_neuralNet = nullptr;
             return imageList;
         }
+
+        std::cout << "Processing batch from " << i << " to " << std::min(i + batchSize, frameCount) << std::endl;
 
         // --------------- use buffered values if posible -------------
         bool fullBatchAvailableInBuffer = true;
@@ -169,7 +182,7 @@ std::vector<uint> VisualSimilarity::sampleImages(const std::vector<unsigned int>
             }
 
             // lambda expression to feed the neural network
-            auto feedImages = [this, nnInputShape](const std::vector<cv::Mat> imgs, cv::Mat *featureVec)
+            auto feedImages = [this, nnInputShape, &inferenceError](const std::vector<cv::Mat> imgs, cv::Mat *featureVec)
             {
                 using namespace NN;
                 // TODO: check if scaling by 1.0/255.0 is needed
@@ -191,12 +204,40 @@ std::vector<uint> VisualSimilarity::sampleImages(const std::vector<unsigned int>
                 }
                 else
                 {
-                    std::cerr << "Error feeding image to neural network: " << result.error() << std::endl;
-                    return;
+                    inferenceError = result.error();
                 }
             };
 
             futureFeedNN.waitForFinished();
+
+            if (inferenceError.has_value()) {
+                if (inferenceError.value().code() == NN::ErrorCode::OutOfMemory)
+                {
+                    if (batchSize <= 1)
+                    {
+                        displayErrorMessage(tr("Not enough memory available to feed the neural network!\n To resolve this you can:\n- Reduce the working resolution or\n- Select a smaller neural network or\n-Disable CUDA"));
+                        futureFeedNN.cancel();
+                        m_neuralNet = nullptr;
+                        return imageList;
+                    }
+                    
+                    inferenceError.reset();
+                    i -= batchSize; // repeat this batch
+                    batchSize = std::max(1, batchSize / 2); // reduce batch size
+                    i -= batchSize;
+                    std::cerr << "Not enough memory available to feed the neural network. Reducing the batch size to " << batchSize << std::endl;
+
+                    continue;
+                }
+                else
+                {
+                    // Error we cant handle here, display to the user and end the sampling
+                    displayErrorMessage(tr("An error occurred while feeding the neural network:\n%1").arg(QString::fromStdString(inferenceError.value().message())));
+                    futureFeedNN.cancel();
+                    m_neuralNet = nullptr;
+                    return imageList;
+                }
+            }
             futureFeedNN = QtConcurrent::run(feedImages, imgVec, &totalFeatureVector);
         }
         // --------------------------------------------------------------
@@ -299,6 +340,8 @@ std::vector<uint> VisualSimilarity::sampleImages(const std::vector<unsigned int>
     m_bufferUsedIdx = imageList;
 
     logFile->stopTimer();
+
+    m_neuralNet = nullptr;
 
     return keyframe;
 }

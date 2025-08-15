@@ -77,6 +77,17 @@ void TransformManager::selectTransform(uint id)
     }
     m_transformList[id].transform->moveToThread(m_transformThread);
     emit sig_selectedTransformChanged(id);
+    QMetaObject::invokeMethod(m_transformList[id].transform, "slot_activate", Qt::DirectConnection);
+}
+
+void TransformManager::deactivateTransform(uint id)
+{
+    std::cout << "[INFO] Deactivating transform plugin with id: " << id << std::endl;
+    if(id >= m_transformList.size()){
+        return;
+    }
+    //m_transformList[id].transform->deactivate();
+    QMetaObject::invokeMethod(m_transformList[id].transform, "slot_deactivate", Qt::DirectConnection);
 }
 
 void TransformManager::setTransformationEnabled(bool enabled)

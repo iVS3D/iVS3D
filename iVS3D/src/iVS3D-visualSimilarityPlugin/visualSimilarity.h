@@ -44,7 +44,7 @@
 #include "signalobject.h"
 
 #define RESSOURCE_PATH "/plugins/resources/neural_network_models/"
-#define MEM_THRESEHOLD 0.7f
+#define MEM_THRESEHOLD 0.8f
 #define MAX_BATCH 100
 #define NN_STD {0.229, 0.224, 0.225}
 #define NN_MEAN {0.485, 0.456, 0.406}

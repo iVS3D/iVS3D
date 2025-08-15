@@ -153,7 +153,7 @@ auto bind_reshape(const std::vector<int64_t>& newShape) {
  */
 template<typename... Args>
 auto bind_squeeze() {
-    return [=](NN::Tensor&& tensor) -> tl::expected<NN::Tensor,std::string> {
+    return [=](NN::Tensor&& tensor) -> tl::expected<NN::Tensor, NN::NeuralError> {
         auto result = tensor.squeeze();
         if (!result) {
             return tl::unexpected(result.error());
@@ -175,7 +175,7 @@ auto bind_squeeze() {
  */
 template<typename... Args>
 auto bind_squeeze(int64_t axis) {
-    return [=](NN::Tensor&& tensor) -> tl::expected<NN::Tensor,std::string> {
+    return [=](NN::Tensor&& tensor) -> tl::expected<NN::Tensor,NN::NeuralError> {
         auto result = tensor.squeeze(axis);
         if (!result) {
             return tl::unexpected(result.error());
@@ -198,7 +198,7 @@ auto bind_squeeze(int64_t axis) {
  */
 template<typename... Args>
 auto bind_unsqueeze(int64_t axis) {
-    return [=](NN::Tensor&& tensor) -> tl::expected<NN::Tensor,std::string> {
+    return [=](NN::Tensor&& tensor) -> tl::expected<NN::Tensor,NN::NeuralError> {
         auto result = tensor.unsqueeze(axis);
         if (!result) {
             return tl::unexpected(result.error());

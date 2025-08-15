@@ -71,9 +71,9 @@ namespace NN
         /**
          * @brief Perform inference on the given input Tensor using the ONNX model.
          * @param input The input Tensor to the neural network. This tensor must have the correct shape and data type expected by the model.
-         * @return tl::expected<Tensor, std::string> The output Tensor or an error message.
+         * @return tl::expected<Tensor, NeuralError> The output Tensor or an error object.
          */
-        tl::expected<Tensor, std::string> infer(const Tensor& input) override;
+        tl::expected<Tensor, NeuralError> infer(const Tensor& input) override;
 
         /**
          * @brief Get the input shape of the neural network.
@@ -105,8 +105,8 @@ namespace NN
         std::string m_outputName;
         int m_gpuId;
 
-        tl::expected<Ort::Value, std::string> tensorToOrtValue(const Tensor& tensor, std::optional<std::vector<int64_t>> shapeOverride = std::nullopt) const;
-        tl::expected<Tensor, std::string> ortValueToTensor(const Ort::Value& value) const;
+        tl::expected<Ort::Value, NeuralError> tensorToOrtValue(const Tensor& tensor, std::optional<std::vector<int64_t>> shapeOverride = std::nullopt) const;
+        tl::expected<Tensor, NeuralError> ortValueToTensor(const Ort::Value& value) const;
     };
 }
 

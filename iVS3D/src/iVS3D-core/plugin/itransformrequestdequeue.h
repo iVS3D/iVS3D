@@ -78,6 +78,10 @@ public:
      */
     void enableCuda(bool enabled) override;
 
+    void deactivate() override;
+
+    void activate() override;
+
     /**
      * @brief moveToThread moves this ITransformRequestDequeue with its ITransform instance to the given thread.
      * @param thread The worker thread to move to
@@ -122,6 +126,10 @@ public slots:
      * @param enabled Enables CUDA if @a true, disables CUDA otherwise.
      */
     void slot_enableCuda(bool enabled);
+
+    void slot_deactivate();
+
+    void slot_activate();
 
 private slots:
     void slot_sendToGui(uint idx, const cv::Mat &img);

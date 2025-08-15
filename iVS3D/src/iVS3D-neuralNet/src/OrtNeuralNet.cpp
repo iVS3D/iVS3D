@@ -55,7 +55,7 @@ NN::OrtNeuralNet::OrtNeuralNet(const std::string& modelPath, bool useCuda, int g
     m_outputShape = outputTensorInfo.GetShape();
 }
 
-tl::expected<NN::Tensor, std::string> NN::OrtNeuralNet::infer(const NN::Tensor& input) {
+tl::expected<NN::Tensor, NN::NeuralError> NN::OrtNeuralNet::infer(const NN::Tensor& input) {
 
     std::vector<int64_t> actualShape = input.shape();
 
@@ -67,7 +67,7 @@ tl::expected<NN::Tensor, std::string> NN::OrtNeuralNet::infer(const NN::Tensor& 
     } else if (actualShape.size() != m_inputShape.size()) {
         std::ostringstream oss;
         oss << "Input shape rank mismatch: got " << actualShape.size() << ", expected " << m_inputShape.size();
-        return tl::unexpected(oss.str());
+        return tl::unexpected(NeuralError(ErrorCode::InvalidArgument, oss.str()));
     }
 
     const std::vector<int64_t>& effectiveShape = overrideShape.has_value() ? *overrideShape : actualShape;
@@ -77,7 +77,7 @@ tl::expected<NN::Tensor, std::string> NN::OrtNeuralNet::infer(const NN::Tensor& 
         if (m_inputShape[i] != -1 && effectiveShape[i] != m_inputShape[i]) {
             std::ostringstream oss;
             oss << "Shape mismatch at dim " << i << ": got " << effectiveShape[i] << ", expected " << m_inputShape[i];
-            return tl::unexpected(oss.str());
+            return tl::unexpected(NeuralError(ErrorCode::InvalidArgument, oss.str()));
         }
     }
 
@@ -88,10 +88,18 @@ tl::expected<NN::Tensor, std::string> NN::OrtNeuralNet::infer(const NN::Tensor& 
     // Run inference using Ort
     const char* inputNames[] = { m_inputName.c_str() };
     const char* outputNames[] = { m_outputName.c_str() };
-    auto outputs = m_session.Run(Ort::RunOptions{nullptr}, inputNames, &*ortInput, 1, outputNames, 1);
 
-    // Convert output to Tensor
-    return ortValueToTensor(outputs.front());
+    try{
+        auto outputs = m_session.Run(Ort::RunOptions{nullptr}, inputNames, &*ortInput, 1, outputNames, 1);
+        // Convert output to Tensor
+        return ortValueToTensor(outputs.front());
+    } catch (const Ort::Exception& e) {
+        // TODO: Not every Ort error is memory related!
+        return tl::unexpected(NeuralError(ErrorCode::OutOfMemory, std::string("Ort exception: ") + e.what()));
+    } catch (const std::exception& e) {
+        return tl::unexpected(NeuralError(ErrorCode::RuntimeError, std::string("Std exception: ") + e.what()));
+    }
+    return tl::unexpected(NeuralError(ErrorCode::RuntimeError, "Unknown error during inference"));
 }
 
 NN::Shape NN::OrtNeuralNet::inputShape() const {
@@ -107,8 +115,8 @@ int NN::OrtNeuralNet::gpuId() const
     return m_gpuId;
 }
 
-tl::expected<Ort::Value, std::string> NN::OrtNeuralNet::tensorToOrtValue(const Tensor& tensor, std::optional<std::vector<int64_t>> shapeOverride) const {
-    return std::visit([&](const auto& data) -> tl::expected<Ort::Value, std::string> {
+tl::expected<Ort::Value, NN::NeuralError> NN::OrtNeuralNet::tensorToOrtValue(const Tensor& tensor, std::optional<std::vector<int64_t>> shapeOverride) const {
+    return std::visit([&](const auto& data) -> tl::expected<Ort::Value, NN::NeuralError> {
         using T = typename std::decay<decltype(data)>::type::value_type;
 
         Ort::MemoryInfo memoryInfo = Ort::MemoryInfo::CreateCpu(OrtArenaAllocator, OrtMemTypeDefault);
@@ -116,11 +124,11 @@ tl::expected<Ort::Value, std::string> NN::OrtNeuralNet::tensorToOrtValue(const T
         std::vector<int64_t> shape = shapeOverride.has_value() ? *shapeOverride : tensor.shape();
 
         if (tensor.numElements() != shapeNumElements(shape)) {
-            return tl::unexpected("Shape override doesn't match total element count.");
+            return tl::unexpected(NeuralError(ErrorCode::InvalidArgument, "Shape override doesn't match total element count."));
         }
 
         if (shape.empty()) {
-            return tl::unexpected("Tensor shape is empty");
+            return tl::unexpected(NeuralError(ErrorCode::InvalidArgument, "Tensor shape is empty"));
         }
 
         return Ort::Value::CreateTensor<T>(
@@ -133,8 +141,8 @@ tl::expected<Ort::Value, std::string> NN::OrtNeuralNet::tensorToOrtValue(const T
     }, tensor.m_data);
 }
 
-tl::expected<NN::Tensor, std::string> NN::OrtNeuralNet::ortValueToTensor(const Ort::Value& value) const {
-    if (!value.IsTensor()) return tl::unexpected("Returned OrtValue is not a tensor");
+tl::expected<NN::Tensor, NN::NeuralError> NN::OrtNeuralNet::ortValueToTensor(const Ort::Value& value) const {
+    if (!value.IsTensor()) return tl::unexpected(NeuralError(ErrorCode::RuntimeError, "OrtValue is not a tensor"));
 
     auto typeInfo = value.GetTensorTypeAndShapeInfo();
     auto shape = typeInfo.GetShape();
@@ -157,6 +165,6 @@ tl::expected<NN::Tensor, std::string> NN::OrtNeuralNet::ortValueToTensor(const O
             return Tensor::fromData(std::vector<int64_t>(data, data + totalSize), shape);
         }
         default:
-            return tl::unexpected("Unsupported output tensor type");
+            return tl::unexpected(NeuralError(ErrorCode::RuntimeError, "Unsupported output tensor type"));
     }
 }

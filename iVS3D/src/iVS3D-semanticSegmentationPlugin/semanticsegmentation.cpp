@@ -145,7 +145,7 @@ ImageList SemanticSegmentation::transform(uint idx, const cv::Mat &img, const Re
 
         auto modelResult = NN::NeuralNetFactory::create(modelPath.toStdString(), m_useCuda);
         if(!modelResult) {
-            showErrorMessage(tr("Failed to load model: %1 \n %2").arg(modelPath, QString::fromStdString(modelResult.error())));
+            showErrorMessage(tr("Failed to load model: %1 \n %2").arg(modelPath, QString::fromStdString(modelResult.error().message())));
             return ImageList();
         }
         m_model = std::move(modelResult.value());
@@ -165,16 +165,14 @@ ImageList SemanticSegmentation::transform(uint idx, const cv::Mat &img, const Re
     std::cout << "Running inference for semseg..." << std::endl;
     auto result = NN::Tensor::fromCvMat(m_image, m_model->inputShape(), 1.0f, m_modelInfo.mean, m_modelInfo.std)
         .and_then(NN::Util::bind_inference(m_model))
-        .and_then([](NN::Tensor&& tensor) -> tl::expected<NN::Tensor, std::string> {
+        .and_then([](NN::Tensor&& tensor) -> tl::expected<NN::Tensor, NN::NeuralError> {
             // squeeze the tensor to remove leading dimensions of size 1
             if(tensor.dtype() == NN::TensorType::Float) {
                 return tensor.reduceWithIndex(NN::ReduceArgMax{}, 1);
             }
-            return tl::expected<NN::Tensor, std::string>(std::move(tensor));
+            return tl::expected<NN::Tensor, NN::NeuralError>(std::move(tensor));
         })
         .and_then(NN::Util::bind_squeeze());
-
-    std::cout << "Tensor after inference: " << result.value().toString() << std::endl;
 
     std::cout << "...done!" << std::endl;
     auto end = std::chrono::high_resolution_clock::now();   // stop clock
@@ -182,11 +180,16 @@ ImageList SemanticSegmentation::transform(uint idx, const cv::Mat &img, const Re
 
     if(!result) {
         emit sig_message(HW_NAME(m_useCuda), tr("Failed to compute segmentation!"), false);
-        showErrorMessage(tr("Failed to compute segmentation: %1").arg(QString::fromStdString(result.error())));
-        std::cout << "With error: " << result.error() << std::endl;
+        if (result.error().code() == NN::ErrorCode::OutOfMemory) {
+            showErrorMessage(tr("Ran out of memory during segmentation! Lower the working resolution to reduce memory usage."));
+        } else {
+            showErrorMessage(tr("Failed to compute segmentation: %1").arg(QString::fromStdString(result.error().message())));
+        }
         m_model = nullptr;
         return ImageList();
     }
+
+    std::cout << "Tensor after inference: " << result.value().toString() << std::endl;
 
     emit sig_message(HW_NAME(m_useCuda), tr("Finished preview in ") + QString::number(durationMs) + tr("ms"), false);
 
@@ -201,10 +204,6 @@ ImageList SemanticSegmentation::transform(uint idx, const cv::Mat &img, const Re
     auto print_mat = [](const cv::Mat& mat) {
         std::cout << "cv::Mat(size=" << mat.size() << ", channels=" << mat.channels() << ", type=" << mat.type() << ", dims=" << mat.dims << ")" << std::endl;
     };
-    
-    print_mat(m_segmentationColorized);
-    print_mat(m_segmentationMask);
-    print_mat(m_image);
 
     m_guiUpToDate = false;
     sendGuiPreview();          // visualize result on gui
@@ -262,6 +261,12 @@ QMap<QString, QVariant> SemanticSegmentation::getSettings()
     settings.insert(SELECTED_CLASSES, selectedClasses);
     return settings;
 
+}
+
+void SemanticSegmentation::deactivate()
+{
+    std::cout << "Deactivating SemanticSegmentation plugin..." << std::endl;
+    m_model = nullptr;
 }
 
 void SemanticSegmentation::slot_ONNXindexChanged(int n)
@@ -453,7 +458,7 @@ bool SemanticSegmentation::computeColorization()
         .and_then(NN::Util::bind_toCvMat());
 
     if(!colorResult) {
-        showErrorMessage(tr("Failed to compute colorized segmentation: %1").arg(QString::fromStdString(colorResult.error())));
+        showErrorMessage(tr("Failed to compute colorized segmentation: %1").arg(QString::fromStdString(colorResult.error().message())));
         m_model = nullptr;
         return false;
     }
@@ -477,7 +482,7 @@ bool SemanticSegmentation::computeMask()
         .and_then(NN::Util::bind_toCvMat());
 
     if(!maskResult) {
-        showErrorMessage(tr("Failed to compute binary mask: %1").arg(QString::fromStdString(maskResult.error())));
+        showErrorMessage(tr("Failed to compute binary mask: %1").arg(QString::fromStdString(maskResult.error().message())));
         m_model = nullptr;
         return false;
     }

@@ -139,6 +139,19 @@ public:
      */
     virtual QMap<QString, QVariant> getSettings() = 0;
 
+    /**
+     * @brief activate will be called before the plugin is used, 
+     * i.e. when the user selects it in the seampling window or when exporting.
+     */
+    virtual void activate() {}
+
+    /**
+     * @brief deactivate will be called when the plugin is no longer used,
+     * i.e. when the user deselects it in the sampling window or when exporting finishes.
+     * This should be used to free resources such as gpu memory.
+     */
+    virtual void deactivate() {}
+
 
 signals:
     /**

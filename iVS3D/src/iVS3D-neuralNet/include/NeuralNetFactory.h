@@ -8,6 +8,7 @@
  */
 
 #include "NeuralNet.h"
+#include "NeuralError.h"
 
 #include <memory>
 #include <string>
@@ -30,12 +31,12 @@ namespace NN
          * @param modelPath The path to the model file (e.g., ONNX model).
          * @param useGpu Whether to use CUDA for inference (default: false).
          * @param gpuId The GPU ID to use if CUDA is enabled (default: 0).
-         * @return tl::expected<NeuralNetPtr, std::string> A pointer to the created NeuralNet or an error message.
+         * @return tl::expected<NeuralNetPtr, NeuralError> A pointer to the created NeuralNet or an error object.
          * 
          * @details
          * This method loads the model from the specified path and creates an instance of NeuralNet.
-         * If the model cannot be loaded or the creation fails, an error message is returned.
+         * If the model cannot be loaded or the creation fails, an error object is returned.
          */
-        static tl::expected<NeuralNetPtr, std::string> create(const std::string& modelPath, bool useGpu = false, int gpuId = 0);
+        static tl::expected<NeuralNetPtr, NeuralError> create(const std::string& modelPath, bool useGpu = false, int gpuId = 0);
     };
 }

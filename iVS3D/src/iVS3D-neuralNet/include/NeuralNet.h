@@ -8,6 +8,7 @@
  */
 
 #include "Tensor.h"
+#include "NeuralError.h"
 
 #include <tl/expected.hpp>
 #include <string>
@@ -35,24 +36,24 @@ namespace NN
          * @brief Perform inference on the given input tensor.
          * 
          * @param input The input tensor to the neural network. This tensor must have the correct shape and data type expected by the model.
-         * @return tl::expected<Tensor, std::string> The output tensor or an error message.
+         * @return tl::expected<Tensor, NeuralError> The output tensor or an error object.
          * 
          * @details
          * This method takes an input tensor, processes it through the neural network, and returns the output tensor.
          * The input tensor must match the expected input shape of the model.
-         * If the input tensor is invalid or the inference fails, an error message is returned.
+         * If the input tensor is invalid or the inference fails, an error object is returned.
          */
-        virtual tl::expected<Tensor, std::string> infer(const Tensor& input) = 0;
+        virtual tl::expected<Tensor, NeuralError> infer(const Tensor& input) = 0;
 
         /**
          * @brief Call the infer method with the given input tensor.
          * 
          * @param input The input tensor to the neural network.
-         * @return tl::expected<Tensor, std::string> The output tensor or an error message.
+         * @return tl::expected<Tensor, NeuralError> The output tensor or an error object.
          * 
          * @see infer(const Tensor& input) for more details.
          */
-        tl::expected<Tensor, std::string> operator()(const Tensor& input) {
+        tl::expected<Tensor, NeuralError> operator()(const Tensor& input) {
             return infer(input);
         }
 

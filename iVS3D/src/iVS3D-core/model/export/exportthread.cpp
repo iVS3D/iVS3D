@@ -89,8 +89,9 @@ void ExportThread::run(){
             if (ctx.image.empty()) continue; // broken input image (happens with some codecs)
             if (!processor.process(ctx)) {
                 // something went wrong during export!
-                // handle gracefully, but maybe display a message?
-                continue;
+                // abort here! 
+                // TODO: Maybe show an error message to the user
+                return;
             }
             // successfully exported the image
             *num_imgs += 1;

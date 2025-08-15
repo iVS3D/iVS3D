@@ -67,6 +67,8 @@ public:
      */
     void selectTransform(uint id);
 
+    void deactivateTransform(uint id);
+
     /**
      * @brief setTransformationEnabled signals that the user wants to activate the transformation preview on the gui
      * this has to be activated extra because calculating the transformaiton is usually expensive

@@ -35,6 +35,8 @@
 
 #include <ReduceOps.h>
 
+#include "NeuralError.h"
+
 /**
  * @brief NN Neural Network Library containing Tensor and NeuralNet classes for inference.
  *
@@ -208,9 +210,9 @@ namespace NN
          * In this case the N -dimsension is NOT created as it would be 1!
          *
          * @param mat The cv::Mat containing the data in HWC layout for the Tensor.
-         * @return tl::expected<Tensor, std::string> A Tensor in CHW layout or an error message.
+         * @return tl::expected<Tensor, NeuralError> A Tensor in CHW layout or an error object.
          */
-        static tl::expected<Tensor, std::string> fromCvMat(const cv::Mat &mat);
+        static tl::expected<Tensor, NeuralError> fromCvMat(const cv::Mat &mat);
 
         /**
          * @brief Create a new Tensor object from a cv::Mat with a specific shape, optional scaling, and per-channel mean-subtraction.
@@ -220,7 +222,7 @@ namespace NN
          * @param scale The scale factor to apply to the input data (default: 1.0).
          * @param mean The mean values to subtract from each channel (default: empty vector).
          * @param std The standard deviation values to divide each channel by (default: empty vector).
-         * @return tl::expected<Tensor, std::string> A Tensor in CHW layout or an error message.
+         * @return tl::expected<Tensor, NeuralError> A Tensor in CHW layout or an error object.
          *
          * @details
          * This function creates a Tensor from a cv::Mat with the specified shape.
@@ -241,13 +243,13 @@ namespace NN
          * The resulting Tensor will be of type float32. Its shape will be squeezed, i.e. leading dimensions of size 1 and dynamic dimensions will be removed.
          *
          */
-        static tl::expected<Tensor, std::string> fromCvMat(const cv::Mat &mat, const Shape &shape, float scale = 1.0f, std::vector<float> mean = {}, std::vector<float> std = {});
+        static tl::expected<Tensor, NeuralError> fromCvMat(const cv::Mat &mat, const Shape &shape, float scale = 1.0f, std::vector<float> mean = {}, std::vector<float> std = {});
 
         /**
          * @brief Create a new Tensor object from a vector of cv::Mat objects. The cv::Mat objects must have the same size and type.
          *
          * @param mats The vector of cv::Mat objects to convert.
-         * @return tl::expected<Tensor, std::string> A Tensor object containing the stacked cv::Mat data in NCHW layout or an error message.
+         * @return tl::expected<Tensor, NeuralError> A Tensor object containing the stacked cv::Mat data in NCHW layout or an error object.
          *
          * @details The function stacks the cv::Mat objects along the first dimension (N) and converts them to a Tensor in NCHW layout.
          * The following requirements must be met:
@@ -263,7 +265,7 @@ namespace NN
          *
          * The datatype of the Tensor will be determined by the cv::Mat type.
          */
-        static tl::expected<Tensor, std::string> fromCvMats(const std::vector<cv::Mat> &mats);
+        static tl::expected<Tensor, NeuralError> fromCvMats(const std::vector<cv::Mat> &mats);
 
         /**
          * @brief Create a new Tensor object from a vector of cv::Mat objects with a specific shape, optional scaling, and per-channel mean-subtraction.
@@ -272,7 +274,7 @@ namespace NN
          * @param shape The desired shape of the Tensor.
          * @param scale The scale factor to apply to the input data (default: 1.0).
          * @param mean The mean values to subtract from each channel (default: empty vector).
-         * @return tl::expected<Tensor, std::string> A Tensor object containing the stacked cv::Mat data in NCHW layout or an error message.
+         * @return tl::expected<Tensor, NeuralError> A Tensor object containing the stacked cv::Mat data in NCHW layout or an error object.
          *
          * @details
          * This function creates a Tensor from a vector of cv::Mat objects with the specified shape. The shape must match the following requirements:
@@ -288,7 +290,7 @@ namespace NN
          * 4. If a mean vector is provided, it will be subtracted per-channel.
          * 5. If a std vector is provided, each channel will be divided by the corresponding std value.
          */
-        static tl::expected<Tensor, std::string> fromCvMats(const std::vector<cv::Mat> &mats, const Shape &shape, float scale = 1.0f, std::vector<float> mean = {}, std::vector<float> std = {});
+        static tl::expected<Tensor, NeuralError> fromCvMats(const std::vector<cv::Mat> &mats, const Shape &shape, float scale = 1.0f, std::vector<float> mean = {}, std::vector<float> std = {});
 
         /**
          * @brief Create a new Tensor object from a given data vector and shape. The number of elements in the vector must match shapeNumElements(shape).
@@ -296,7 +298,7 @@ namespace NN
          * @tparam T The datatype, this must be on of the following: uint8_t, int64_t, float.
          * @param data The data vector. This will be copied!
          * @param shape The shape of the new Tensor.
-         * @return tl::expected<Tensor, std::string> A Tensor object containing the data and shape or an error message.
+         * @return tl::expected<Tensor, NeuralError> A Tensor object containing the data and shape or an error object.
          *
          * @details
          * This function creates a Tensor from a vector of data. The data will be copied!
@@ -305,7 +307,7 @@ namespace NN
          * @see reduce.cpp for an example of using this function.
          */
         template <typename T>
-        static tl::expected<Tensor, std::string> fromData(const std::vector<T> &data, const Shape &shape)
+        static tl::expected<Tensor, NeuralError> fromData(const std::vector<T> &data, const Shape &shape)
         {
             return fromData(std::vector<T>(data), shape); // delegates to move overload
         }
@@ -316,7 +318,7 @@ namespace NN
          * @tparam T The datatype, this must be on of the following: uint8_t, int64_t, float.
          * @param data The data vector. The new Tensor takes ownership of the data!
          * @param shape The shape of the new Tensor.
-         * @return tl::expected<Tensor, std::string> A Tensor object containing the data and shape or an error message.
+         * @return tl::expected<Tensor, NeuralError> A Tensor object containing the data and shape or an error object.
          *
          * @details
          * This function creates a Tensor from a vector of data. The data will be moved into the Tensor!
@@ -335,11 +337,11 @@ namespace NN
          * @see reduce.cpp for an example of using this function.
          */
         template <typename T>
-        static tl::expected<Tensor, std::string> fromData(std::vector<T> &&data, const Shape &shape)
+        static tl::expected<Tensor, NeuralError> fromData(std::vector<T> &&data, const Shape &shape)
         {
             if (static_cast<size_t>(shapeNumElements(shape)) != data.size())
             {
-                return tl::unexpected("Data size does not match shape");
+                return tl::unexpected(NeuralError(ErrorCode::InvalidArgument, "Data size does not match shape"));
             }
 
             Tensor t;
@@ -352,11 +354,11 @@ namespace NN
          * @brief Create a vector containing the data from the Tensor.
          *
          * @tparam T The datatype of the vector. This must match the Tensors current type!
-         * @return tl::expected<std::vector<T>, std::string>  Retruns the data vector or an error message if the Tensor does not contain the requested data type.
+         * @return tl::expected<std::vector<T>, NeuralError>  Returns the data vector or an error object if the Tensor does not contain the requested data type.
          *
          * @details
          * This function extracts the data from the Tensor and returns it as a vector of the specified type.
-         * If the Tensor does not contain the requested data type, an error message is returned.
+         * If the Tensor does not contain the requested data type, an error object is returned.
          *
          * @code{.cpp}
          * // Create a Tensor with float data
@@ -378,22 +380,22 @@ namespace NN
          * @endcode
          */
         template <typename T>
-        tl::expected<std::vector<T>, std::string> toVector() const
+        tl::expected<std::vector<T>, NeuralError> toVector() const
         {
             if (std::holds_alternative<std::vector<T>>(m_data))
             {
                 return std::get<std::vector<T>>(m_data);
             }
-            return tl::unexpected("Tensor does not hold requested data type");
+            return tl::unexpected(NeuralError(ErrorCode::InvalidArgument, "Tensor does not hold requested data type"));
         }
 
         /**
          * @brief Create a cv::Mat from a Tensor. In case of 2/3 dimensions this will convert back to CVs HWC layout.
          * Returns an error for dimensions other than 2 or 3.
          *
-         * @return tl::expected<cv::Mat, std::string> A cv::Mat object with the data in HWC format or an error message.
+         * @return tl::expected<cv::Mat, NeuralError> A cv::Mat object with the data in HWC format or an error object.
          */
-        tl::expected<cv::Mat, std::string> toCvMat() const;
+        tl::expected<cv::Mat, NeuralError> toCvMat() const;
 
         /**
          * @brief Readonly access to the shape of the tensor. Valid tensors ensure the shape is static, so no dimension is -1.
@@ -413,9 +415,9 @@ namespace NN
          * @brief Reshape will interprete the data elements contained in the Tensor as a different shape. This does not move any elements!
          *
          * @param newShape The new shape, it must match the Tensors number of elements.
-         * @return tl::expected<void, std::string> Returns an error message only if the new shape is invalid.
+         * @return tl::expected<void, NeuralError> Returns an error object only if the new shape is invalid.
          */
-        tl::expected<void, std::string> reshape(const Shape &newShape);
+        tl::expected<void, NeuralError> reshape(const Shape &newShape);
 
         /**
          * @brief Returns the number of elements contained in the Tensor.
@@ -463,7 +465,7 @@ namespace NN
          * @tparam Op Templated to work with different data types.
          * @param op An accumulative operation like ReduceMin/ReduceMax/ReduceSum.
          * @param axis The axis in which we apply the operation, in the output this axis will have size 1.
-         * @return tl::expected<Tensor, std::string> Returns a reduced Tensor or an error message.
+         * @return tl::expected<Tensor, NeuralError> Returns a reduced Tensor or an error object.
          *
          * @details This function applies the specified reduction operation along the given axis.
          * The output tensor will have the same shape as the input tensor, except for the reduced axis,
@@ -478,14 +480,14 @@ namespace NN
          * @see reduce.cpp for an example of using this function.
          */
         template <typename Op>
-        tl::expected<Tensor, std::string> reduce(const Op &op, uint64_t axis) const
+        tl::expected<Tensor, NeuralError> reduce(const Op &op, uint64_t axis) const
         {
             if (axis >= m_shape.size())
             {
-                return tl::unexpected("Invalid reduction axis");
+                return tl::unexpected(NeuralError(ErrorCode::InvalidArgument, "Invalid reduction axis"));
             }
 
-            return std::visit([&](const auto &inputVec) -> tl::expected<Tensor, std::string>
+            return std::visit([&](const auto &inputVec) -> tl::expected<Tensor, NeuralError>
                               {
                 using T = typename std::decay_t<decltype(inputVec)>::value_type;
                 const int64_t D = m_shape.size();
@@ -522,7 +524,7 @@ namespace NN
          * @tparam Op Templated to work with different data types.
          * @param op An indexed reduction operation like ReduceArgMax.
          * @param axis The axis in which we apply the operation, in the output this axis will have size 1.
-         * @return tl::expected<Tensor, std::string> Returns a reduced Tensor or an error message.
+         * @return tl::expected<Tensor, NeuralError> Returns a reduced Tensor or an error object.
          *
          * @details Example usage for applying an ArgMax-Operation to a 2D-Tensor.
          * Assume the Tensor contains a batch of K-dimesnional feature vectors and batch size is N.
@@ -546,14 +548,14 @@ namespace NN
          *
          */
         template <typename Op>
-        tl::expected<Tensor, std::string> reduceWithIndex(const Op &op, uint64_t axis) const
+        tl::expected<Tensor, NeuralError> reduceWithIndex(const Op &op, uint64_t axis) const
         {
             if (axis >= m_shape.size())
             {
-                return tl::unexpected("Invalid reduction axis");
+                return tl::unexpected(NeuralError(ErrorCode::InvalidArgument, "Invalid reduction axis"));
             }
 
-            return std::visit([&](const auto &inputVec) -> tl::expected<Tensor, std::string>
+            return std::visit([&](const auto &inputVec) -> tl::expected<Tensor, NeuralError>
                               {
                 using T = typename std::decay_t<decltype(inputVec)>::value_type;
 
@@ -587,7 +589,7 @@ namespace NN
          *
          * @tparam Func Templated function type (T->V) where T matches the current data type and V is a valid new data type.
          * @param f The mapping function which is applied to each element.
-         * @return tl::expected<Tensor, std::string> Returns a new Tensor or an error message.
+         * @return tl::expected<Tensor, NeuralError> Returns a new Tensor or an error object.
          *
          * @details
          * This function applies the given function to each element of the Tensor and returns a new Tensor with the mapped values.
@@ -610,9 +612,9 @@ namespace NN
          * @see Tensor::map(Func&& f, int axis) for a version that adds a new dimension.
          */
         template <typename Func>
-        tl::expected<Tensor, std::string> map(Func &&f) const
+        tl::expected<Tensor, NeuralError> map(Func &&f) const
         {
-            return std::visit([&](const auto &inputVec) -> tl::expected<Tensor, std::string>
+            return std::visit([&](const auto &inputVec) -> tl::expected<Tensor, NeuralError>
                               {
                                   using T = typename std::decay_t<decltype(inputVec)>::value_type;
                                   using V = std::decay_t<decltype(f(std::declval<T>()))>;
@@ -637,7 +639,7 @@ namespace NN
          * @tparam Func Templated function type (T->std::array<N,U>) where T matches the current data type and U is a valid new data type.
          * @param func The mapping function which is applied to each element.
          * @param axis The axis to insert the new dimension.
-         * @return tl::expected<Tensor, std::string> Returns a new Tensor or an error message.
+         * @return tl::expected<Tensor, NeuralError> Returns a new Tensor or an error object.
          *
          * @details Example usage: Map a 2D-Tensor of class-indices to a 3D-Tensor with RGB colors assigned to each class.
          * The mapping function therefore maps a class index (int64_t) to a RGB color (std::array<3,uint8_t>).
@@ -661,15 +663,15 @@ namespace NN
          * @see map.cpp for an example of using this function.
          */
         template <typename Func>
-        tl::expected<Tensor, std::string> map(Func &&func, int axis) const
+        tl::expected<Tensor, NeuralError> map(Func &&func, int axis) const
         {
             // Sanity check axis
             if (axis < 0 || axis > static_cast<int>(m_shape.size()))
             {
-                return tl::unexpected("Invalid axis to insert new dimension.");
+                return tl::unexpected(NeuralError(ErrorCode::InvalidArgument, "Invalid axis to insert new dimension."));
             }
 
-            return std::visit([&](const auto &input) -> tl::expected<Tensor, std::string>
+            return std::visit([&](const auto &input) -> tl::expected<Tensor, NeuralError>
                               {
                 using T = typename std::decay_t<decltype(input)>::value_type;
                 using Traits = map_array_traits<Func, T>;
@@ -677,7 +679,7 @@ namespace NN
                 constexpr size_t N = Traits::size;
             
                 if (input.empty()) {
-                    return tl::unexpected("Tensor data is empty.");
+                    return tl::unexpected(NeuralError(ErrorCode::InvalidArgument, "Tensor data is empty."));
                 }
             
                 // Compute the original and new shapes
@@ -717,23 +719,23 @@ namespace NN
         /**
          * @brief Squeeze the Tensor by removing dimensions of size 1. This operation is performed inplace.
          *
-         * @return tl::expected<void, std::string> This should never fail.
+         * @return tl::expected<void, NeuralError> This should never fail.
          */
-        tl::expected<void, std::string> squeeze();
+        tl::expected<void, NeuralError> squeeze();
 
         /**
          * @brief Squeeze the Tensor by removing a specific dimension of size 1.
          * @param axis The axis to remove. This must be in range [0,shape.size()-1] and the dimension at this axis must be 1.
-         * @return tl::expected<void, std::string> Returns an error message if the axis is invalid or the dimension is not 1.
+         * @return tl::expected<void, NeuralError> Returns an error object if the axis is invalid or the dimension is not 1.
          */
-        tl::expected<void, std::string> squeeze(int64_t axis);
+        tl::expected<void, NeuralError> squeeze(int64_t axis);
 
         /**
          * @brief Add a new dimension of size 1 at the specified axis.
          * @param axis The axis to insert the new dimension. This must be in range [0,shape.size()].
-         * @return tl::expected<void, std::string> Returns an error message if the axis is invalid.
+         * @return tl::expected<void, NeuralError> Returns an error object if the axis is invalid.
          */
-        tl::expected<void, std::string> unsqueeze(int64_t axis);
+        tl::expected<void, NeuralError> unsqueeze(int64_t axis);
 
     private:
         TensorData m_data;
@@ -772,14 +774,14 @@ namespace NN
          * @param mats The vector of cv::Mat objects to convert.
          * @tparam T The datatype of the cv::Mat objects, must be one of the following: uint8_t, float.
          * @tparam CV_TYPE The OpenCV type of the cv::Mat objects, must be one of the following: CV_8U, CV_32F.
-         * @return tl::expected<Tensor, std::string> A Tensor object containing the stacked cv::Mat data in NCHW layout or an error message.
+         * @return tl::expected<Tensor, NeuralError> A Tensor object containing the stacked cv::Mat data in NCHW layout or an error object.
          */
         template <typename T, int CV_TYPE>
-        static tl::expected<Tensor, std::string> fromCvMatsTyped(const std::vector<cv::Mat> &mats)
+        static tl::expected<Tensor, NeuralError> fromCvMatsTyped(const std::vector<cv::Mat> &mats)
         {
             if (mats.empty())
             {
-                return tl::unexpected("Input vector of cv::Mat is empty");
+                return tl::unexpected(NeuralError(ErrorCode::InvalidArgument, "Input vector of cv::Mat is empty"));
             }
 
             int channels = mats[0].channels();
@@ -796,12 +798,12 @@ namespace NN
             {
                 if (mat.depth() != CV_TYPE)
                 {
-                    return tl::unexpected("All cv::Mat must have the same data type");
+                    return tl::unexpected(NeuralError(ErrorCode::InvalidArgument, "All cv::Mat must have the same data type"));
                 }
 
                 if (mat.channels() != channels || mat.rows != height || mat.cols != width)
                 {
-                    return tl::unexpected("All cv::Mat must have the same size and number of channels");
+                    return tl::unexpected(NeuralError(ErrorCode::InvalidArgument, "All cv::Mat must have the same size and number of channels"));
                 }
 
                 std::vector<cv::Mat> splitted;

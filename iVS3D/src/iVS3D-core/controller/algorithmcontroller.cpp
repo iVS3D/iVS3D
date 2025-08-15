@@ -36,7 +36,9 @@ AlgorithmController::~AlgorithmController()
 
 void AlgorithmController::slot_selectAlgorithm(int idx)
 {
-
+    if (m_pluginType == PluginType::Transform) {
+        TransformManager::instance().deactivateTransform(m_pluginIdx);
+    }
     m_pluginIdx = idx;
     m_pluginType = PluginType::Algorithm;
 
@@ -52,6 +54,9 @@ void AlgorithmController::slot_selectAlgorithm(int idx)
 
 void AlgorithmController::slot_selectTransform(int idx)
 {
+    if (m_pluginType == PluginType::Transform) {
+        TransformManager::instance().deactivateTransform(m_pluginIdx);
+    }
 
     m_pluginIdx = idx;
     m_pluginType = PluginType::Transform;
