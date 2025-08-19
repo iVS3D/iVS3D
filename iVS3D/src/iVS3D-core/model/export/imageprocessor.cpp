@@ -5,13 +5,13 @@ void ImageProcessor::addCommand(std::unique_ptr<ImageCommand> cmd)
     commands.push_back(std::move(cmd));
 }
 
-bool ImageProcessor::process(ImageContext &context)
+std::optional<QString> ImageProcessor::process(ImageContext &context)
 {
     for (auto& cmd : commands) {
         if(auto err = cmd->execute(context)) {
             qDebug() << *err;
-            return false;
+            return *err;
         }
     }
-    return true;
+    return std::nullopt;
 }

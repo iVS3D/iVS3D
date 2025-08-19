@@ -88,12 +88,6 @@ public:
     QString getName() const override;
 
     /**
-     * @brief getOutputNames returns a list of folder names containing @a masks to export the output to.
-     * @return The output folder names in a QStringList
-     */
-    QStringList getOutputNames() override;
-
-    /**
      * @brief copy creates a new SemanticSegmentation instance and copies the attributes from this.
      * @return A pointer to the new instance.
      */
@@ -111,7 +105,7 @@ public:
      *
      * @see ITransform::sendToGui
      */
-    ImageList transform(uint idx, const cv::Mat &img, const Resolution &resolution, const ROI &roi) override;
+    TransformResult transform(uint idx, const cv::Mat &img, const Resolution &resolution, const ROI &roi) override;
 
     /**
      * @brief enableCuda is called if the user toggles the use CUDA flag in the core application.
@@ -150,6 +144,8 @@ signals:
      */
     void sig_message(QString processor, QString message = "", bool active = true);
 
+    void sig_error(QString message);
+
 private slots:
     // --- slots for signals from SettingsWidget ---
     void slot_ONNXindexChanged(int n);
@@ -176,7 +172,6 @@ private:
     float m_blendAlpha;                 // alpha for semantic map overlay
     bool m_guiUpToDate;                 // is true if gui is up to date, used to avoid unnessecary updates
     void sendGuiPreview();
-    void showErrorMessage(const QString &message);
 
     // --- ONNX model data ---
     QStringList m_ONNXmodelList;    // model names
@@ -203,6 +198,8 @@ private:
 
     bool computeColorization();
     bool computeMask();
+
+    Error createError(const QString &message);
     QMutex m_mutex;
 };
 

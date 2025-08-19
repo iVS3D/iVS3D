@@ -29,7 +29,7 @@ target_include_directories(${TARGET_NAME}
 )
 
 target_link_libraries(${TARGET_NAME}
-    PUBLIC ${OpenCV_LIBRARIES} Onnxruntime
+    PUBLIC ${OpenCV_LIBRARIES} Onnxruntime tl-expected
 )
 
 # only build examples if Build_Examples is enabled

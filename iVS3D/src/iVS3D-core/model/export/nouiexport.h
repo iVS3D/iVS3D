@@ -46,7 +46,7 @@ public slots:
     /**
      * @brief slot_exportFinished Connected to the ExportExecutor, called when the export is finished
      */
-    void slot_exportFinished(int result);
+    void slot_exportFinished(ExportResult result);
     /**
      * @brief slot_displayMessage Connected to the ExportExecutor, called to display a message
      */

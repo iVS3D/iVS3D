@@ -80,6 +80,7 @@ QWidget* SemanticSegmentation::getSettingsWidget(QWidget *parent)
     connect(m_settingsWidget, &SettingsWidget::sig_blendAlphaChanged, this, &SemanticSegmentation::slot_blendAlphaChanged);
     connect(this, &SemanticSegmentation::sig_classesAndColorsChanged, m_settingsWidget, &SettingsWidget::slot_classesAndColorsChanged);
     connect(this, &SemanticSegmentation::sig_message, m_settingsWidget, &SettingsWidget::slot_showTask);
+    connect(this, &SemanticSegmentation::sig_error, m_settingsWidget, &SettingsWidget::slot_showError);
 
     return m_settingsWidget;
 }
@@ -88,11 +89,6 @@ QWidget* SemanticSegmentation::getSettingsWidget(QWidget *parent)
 QString SemanticSegmentation::getName() const
 {
     return tr("Semantic Segmentation");
-}
-
-QStringList SemanticSegmentation::getOutputNames()
-{
-    return QStringList("masks");
 }
 
 ITransform *SemanticSegmentation::copy()
@@ -109,7 +105,7 @@ ITransform *SemanticSegmentation::copy()
     return copy;
 }
 
-ImageList SemanticSegmentation::transform(uint idx, const cv::Mat &img, const Resolution &resolution, const ROI &roi)
+TransformResult SemanticSegmentation::transform(uint idx, const cv::Mat &img, const Resolution &resolution, const ROI &roi)
 {
     QMutexLocker lock(&m_mutex);
 
@@ -134,8 +130,7 @@ ImageList SemanticSegmentation::transform(uint idx, const cv::Mat &img, const Re
 
     // only start calculation if models found
     if(m_ONNXmodelList.size() == 0){
-        showErrorMessage(tr("Failed to load model: No model found in %1").arg(QCoreApplication::applicationDirPath() + MODEL_PATH));
-        return ImageList();
+        return tl::unexpected<Error>(createError(tr("No models found in %1").arg(QCoreApplication::applicationDirPath() + MODEL_PATH)));
     }
 
     // load selected model
@@ -145,8 +140,7 @@ ImageList SemanticSegmentation::transform(uint idx, const cv::Mat &img, const Re
 
         auto modelResult = NN::NeuralNetFactory::create(modelPath.toStdString(), m_useCuda);
         if(!modelResult) {
-            showErrorMessage(tr("Failed to load model: %1 \n %2").arg(modelPath, QString::fromStdString(modelResult.error().message())));
-            return ImageList();
+            return tl::unexpected<Error>(createError(tr("Failed to load model: %1 \n %2").arg(modelPath, QString::fromStdString(modelResult.error().message()))));
         }
         m_model = std::move(modelResult.value());
     }
@@ -154,9 +148,8 @@ ImageList SemanticSegmentation::transform(uint idx, const cv::Mat &img, const Re
     // get last two dimensions of the input shape
     auto shape = m_model->inputShape();
     if(shape.size() < 2) {
-        showErrorMessage(tr("Failed to load model: Invalid input shape %1").arg(QString::fromStdString(NN::shapeToString(shape))));
         m_model = nullptr;
-        return ImageList();
+        return tl::unexpected<Error>(createError(tr("Failed to load model: Invalid input shape %1").arg(QString::fromStdString(NN::shapeToString(shape)))));
     }
 
     emit sig_message(HW_NAME(m_useCuda) , tr("Computing preview..."), true);
@@ -179,14 +172,12 @@ ImageList SemanticSegmentation::transform(uint idx, const cv::Mat &img, const Re
     auto durationMs = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
 
     if(!result) {
-        emit sig_message(HW_NAME(m_useCuda), tr("Failed to compute segmentation!"), false);
-        if (result.error().code() == NN::ErrorCode::OutOfMemory) {
-            showErrorMessage(tr("Ran out of memory during segmentation! Lower the working resolution to reduce memory usage."));
-        } else {
-            showErrorMessage(tr("Failed to compute segmentation: %1").arg(QString::fromStdString(result.error().message())));
-        }
         m_model = nullptr;
-        return ImageList();
+        if (result.error().code() == NN::ErrorCode::OutOfMemory) {
+            return tl::unexpected<Error>(createError(tr("Ran out of memory during segmentation! Lower the working resolution to reduce memory usage.")));
+        } else {
+            return tl::unexpected<Error>(createError(tr("Failed to compute segmentation: %1").arg(QString::fromStdString(result.error().message()))));
+        }
     }
 
     std::cout << "Tensor after inference: " << result.value().toString() << std::endl;
@@ -198,7 +189,7 @@ ImageList SemanticSegmentation::transform(uint idx, const cv::Mat &img, const Re
 
     if (!computeColorization() || !computeMask()) {
         m_model = nullptr;
-        return ImageList();
+        return tl::unexpected<Error>(createError(tr("Failed to compute colorization or mask!")));
     }
     std::cout << "Colorization and mask done!" << std::endl;
     auto print_mat = [](const cv::Mat& mat) {
@@ -207,7 +198,7 @@ ImageList SemanticSegmentation::transform(uint idx, const cv::Mat &img, const Re
 
     m_guiUpToDate = false;
     sendGuiPreview();          // visualize result on gui
-    return ImageList({m_segmentationMask}); // return the result
+    return m_segmentationMask; // return the result
 }
 
 void SemanticSegmentation::enableCuda(bool enabled)
@@ -278,7 +269,7 @@ void SemanticSegmentation::slot_ONNXindexChanged(int n)
 
     // update class checkboxes on gui
     if(!loadModelInfo()){
-        showErrorMessage(tr("Failed to load config file for model: %1").arg(m_ONNXmodelList[m_ONNXmodelIdx]));
+        createError(tr("Failed to load config file for model: %1").arg(m_ONNXmodelList[m_ONNXmodelIdx]));
         return;
     }
 
@@ -303,7 +294,9 @@ void SemanticSegmentation::slot_ONNXindexChanged(int n)
     if(m_imageIdx == UINT_MAX){
         return;
     }
-    QTimer::singleShot(0,this,[=](){transform(m_imageIdx, m_image, m_resolution, m_roi);});
+    QTimer::singleShot(0,this,[=](){
+        transform(m_imageIdx, m_image, m_resolution, m_roi);
+    });
 }
 
 void SemanticSegmentation::slot_selectedClassesChanged(QBoolList classes)
@@ -354,7 +347,8 @@ bool SemanticSegmentation::loadModelInfo()
     QJsonParseError err;
     QJsonDocument doc = QJsonDocument::fromJson(data, &err);
     if (err.error != QJsonParseError::NoError) {
-        throw std::runtime_error(("JSON parse error: " + err.errorString()).toStdString());
+        qDebug() << "JSON parse error: " << err.errorString();
+        return false;
     }
 
     QJsonObject obj = doc.object();
@@ -428,17 +422,6 @@ void SemanticSegmentation::sendGuiPreview()
     m_guiUpToDate = true;
 }
 
-void SemanticSegmentation::showErrorMessage(const QString &message)
-{
-    QMetaObject::invokeMethod(
-        QApplication::instance(),  // Any QObject living in the GUI thread works
-        [message]() {
-            QMessageBox::critical(nullptr, QObject::tr("Error"), message);
-        },
-        Qt::QueuedConnection
-    );
-}
-
 void SemanticSegmentation::alphaBlend(const cv::Mat &foreground, const cv::Mat &background, cv::Mat &destionation, float alpha)
 {
     destionation = alpha * foreground + (1.0f - alpha) * background;
@@ -458,7 +441,8 @@ bool SemanticSegmentation::computeColorization()
         .and_then(NN::Util::bind_toCvMat());
 
     if(!colorResult) {
-        showErrorMessage(tr("Failed to compute colorized segmentation: %1").arg(QString::fromStdString(colorResult.error().message())));
+        //TODO: display something!
+        createError(tr("Failed to compute colorized segmentation: %1").arg(QString::fromStdString(colorResult.error().message())));
         m_model = nullptr;
         return false;
     }
@@ -482,7 +466,8 @@ bool SemanticSegmentation::computeMask()
         .and_then(NN::Util::bind_toCvMat());
 
     if(!maskResult) {
-        showErrorMessage(tr("Failed to compute binary mask: %1").arg(QString::fromStdString(maskResult.error().message())));
+        // TODO: Display something
+        createError(tr("Failed to compute binary mask: %1").arg(QString::fromStdString(maskResult.error().message())));
         m_model = nullptr;
         return false;
     }
@@ -494,4 +479,11 @@ bool SemanticSegmentation::computeMask()
 
     cv::cvtColor(m_segmentationMask, m_segmentationMask, cv::COLOR_GRAY2RGB);
     return true;
+}
+
+Error SemanticSegmentation::createError(const QString &message)
+{
+    emit sendToGui(m_imageIdx, m_image);
+    emit sig_error(message);
+    return Error(ErrorCode::RuntimeError, message);
 }

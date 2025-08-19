@@ -31,12 +31,51 @@
 
 #define JPEG_COMPRESSION_PARAMS {cv::IMWRITE_JPEG_QUALITY, 100}
 
-struct ExportConfig {
+struct ExportConfig
+{
     QString name;
     QString destination;
     QString format;
     ReaderParams readerParams;
-    std::vector<ITransform*> transformations;
+    std::vector<ITransform *> transformations;
+};
+
+/**
+ * @brief ExportResultType enumerates possible export outcomes.
+ */
+enum class ExportResultType
+{
+    Success,        // all images were exported
+    PartialSuccess, // some images were broken and needed to be skipped
+    Aborted,        // export was aborted by the user
+    Failed          // export failed due to a runtime error
+};
+
+/**
+ * @brief ExportResult holds the result of an export operation.
+ */
+struct ExportResult
+{
+    ExportResultType type;
+    int brokenImages = 0; // Only relevant for PartialSuccess
+    QString errorMessage; // Only relevant for Failed
+
+    static ExportResult success()
+    {
+        return {ExportResultType::Success, 0, ""};
+    }
+    static ExportResult partialSuccess(int broken)
+    {
+        return {ExportResultType::PartialSuccess, broken, ""};
+    }
+    static ExportResult aborted()
+    {
+        return {ExportResultType::Aborted, 0, ""};
+    }
+    static ExportResult failed(const QString &msg)
+    {
+        return {ExportResultType::Failed, 0, msg};
+    }
 };
 
 /**
@@ -68,32 +107,32 @@ public:
      * @param roi The region of interest
      * @param iTransformCopies The ITransform instances to run fro creating additional images
      */
-    explicit ExportThread(Progressable* receiver, ModelInputPictures* mip, const ExportConfig& config, volatile bool* stopped, LogFile *logFile);
+    explicit ExportThread(Progressable *receiver, ModelInputPictures *mip, const ExportConfig &config, volatile bool *stopped, LogFile *logFile);
     ~ExportThread();
 
     /**
-     * @brief getResult returns @a 0 if export was sucesfull, @a -1 export failed and @a positiv is the amount of broken images
-     * @return The result
+     * @brief getResult returns the result of the export operation.
+     * @return The ExportResult struct describing the outcome.
      */
-    int getResult();
-
+    ExportResult getResult() const;
 
 private:
-    Progressable* m_receiver;
-    Reader* m_reader;
+    Progressable *m_receiver;
+    Reader *m_reader;
     std::vector<uint> m_keyframes;
-    volatile bool* m_stopped;
+    volatile bool *m_stopped;
     ExportConfig m_config;
-    int m_result = 0;
+    ExportResult m_result = ExportResult::success();
     LogFile *m_logFile;
     int m_progress = 0;
-    ExportExif* m_exportExif;
+    ExportExif *m_exportExif;
 
     void reportProgress();
 
     volatile int m_exportProgress = 0;
     QMutex m_mutex;
     bool currentOperation(uint n);
+
 protected:
     /**
      * @brief run implements the export logic and is executed in a worker thread.

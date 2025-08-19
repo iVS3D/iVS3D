@@ -52,12 +52,6 @@ public:
     QString getName() const override;
 
     /**
-     * @brief getOutputNames returns a list of folder names created on export.
-     * @return The names for each folder
-     */
-    QStringList getOutputNames() override;
-
-    /**
      * @brief copy creates a new ITransformRequestDequeue instance which is a deep copy.
      * @return The copy
      */
@@ -70,7 +64,7 @@ public:
      * @param img The image to transform
      * @return Pointers to the transformed images
      */
-    ImageList transform(uint idx, const cv::Mat &img, const Resolution &resolution, const ROI &roi) override;
+    TransformResult transform(uint idx, const cv::Mat &img, const Resolution &resolution, const ROI &roi) override;
 
     /**
      * @brief enableCuda enables use of the CUDA api to accelerate computations.
@@ -104,9 +98,9 @@ signals:
     /**
      * @brief [signal] sig_transformFinished is emitted after ITransform::transform ran.
      * @param idx The index of the transformed image
-     * @param images The resulting images of ITransform::transform
+     * @param result The resulting images of ITransform::transform or an error object
      */
-    void sig_transformFinished(uint idx, ImageList images);
+    void sig_transformFinished(uint idx, TransformResult result);
 
 public slots:
     /**

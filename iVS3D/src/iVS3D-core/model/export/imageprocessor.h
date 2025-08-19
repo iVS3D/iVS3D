@@ -40,7 +40,7 @@ class ImageProcessor {
 
 public:
     void addCommand(std::unique_ptr<ImageCommand> cmd);
-    bool process(ImageContext &context);
+    std::optional<QString> process(ImageContext &context);
 };
 
 #endif //IMAGEPROCESSOR_H

@@ -30,9 +30,9 @@ ExportThread::~ExportThread()
 }
 
 
-int ExportThread::getResult(){
+ExportResult ExportThread::getResult() const {
     return m_result;
-}
+} 
 
 void ExportThread::run(){
     m_receiver->slot_makeProgress(0, tr("Exporting images"));
@@ -79,18 +79,29 @@ void ExportThread::run(){
     // run the processor to export images
     SequentialReader *seq_reader = m_reader->createSequentialReader(m_keyframes, Reader::APPLY_ALL);
 
-    std::function<void(int*)> writeToDrive = [seq_reader, &processor, this](int *num_imgs) {
+    // Shared variables for error handling
+    std::atomic<bool> errorOccurred(false);
+    std::mutex errorMutex;
+    std::optional<QString> firstError;
+
+    std::function<void(int*)> writeToDrive = [seq_reader, &processor, this, &errorOccurred, &errorMutex, &firstError](int *num_imgs) {
         ImageContext ctx;
         *num_imgs = 0;
         while (seq_reader->getNext(ctx.image, ctx.index)) {
-            if (*m_stopped) {
-                return; // user stopped the computation -> return
+            if (*m_stopped || errorOccurred.load()) {
+                return; // user stopped the computation or error occurred -> return
             }
             if (ctx.image.empty()) continue; // broken input image (happens with some codecs)
-            if (!processor.process(ctx)) {
+            auto res = processor.process(ctx);
+            if (res) {
                 // something went wrong during export!
                 // abort here! 
-                // TODO: Maybe show an error message to the user
+                // Store the first error message
+                std::lock_guard<std::mutex> lock(errorMutex);
+                if (!errorOccurred.exchange(true)) {
+                    firstError = res;
+                    m_receiver->slot_makeProgress(0, tr("Encountered an error! Aborting..."));
+                }
                 return;
             }
             // successfully exported the image
@@ -109,6 +120,19 @@ void ExportThread::run(){
         synchronizer.addFuture(QtConcurrent::run(writeToDrive, &n_imgs_exported[i]));
     }
     synchronizer.waitForFinished();
+    delete seq_reader;
+
+    // Check for error after threads finish
+    if (firstError) {
+        m_receiver->slot_displayMessage(*firstError);
+        m_result = ExportResult::failed(*firstError);
+        return;
+    }
+
+    if (*m_stopped) {
+        m_result = ExportResult::aborted();
+        return;
+    }
 
     int total_images_exported = 0;
     for(int i=0; i<n_threads; i++){
@@ -117,14 +141,12 @@ void ExportThread::run(){
 
     // report broken frames
     if (total_images_exported < int(m_keyframes.size())){
-        m_result = int(m_keyframes.size())-total_images_exported;
-        m_receiver->slot_displayMessage(QString::number(m_result) + tr(" images where skipped."));
+        m_result = ExportResult::partialSuccess(int(m_keyframes.size())-total_images_exported);
+        m_receiver->slot_displayMessage(QString::number(m_result.brokenImages) + tr(" images where skipped."));
     } else {
-        m_result = 0;
+        m_result = ExportResult::success();
         m_receiver->slot_displayMessage(tr("All images exported successfully."));
     }
-    if (*m_stopped) m_result = 1;
-    delete seq_reader;
 }
 
 void ExportThread::reportProgress() {

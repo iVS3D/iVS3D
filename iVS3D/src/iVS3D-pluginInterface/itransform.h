@@ -2,11 +2,16 @@
 #define ITRANSFORM_H
 
 #include <QObject>
+#include <tl/expected.hpp>
 #include "opencv2/core.hpp"
 #include "cvmat_qmetadata.h"
 #include "resolution.h"
 #include "roi.h"
 #include "iVS3D-pluginInterface_global.h"
+#include "ierror.h"
+
+using TransformResult = tl::expected<cv::Mat, Error>;
+Q_DECLARE_METATYPE(TransformResult)
 
 /**
  * @interface ITransform
@@ -84,6 +89,7 @@ class IVS3DPLUGININTERFACE_EXPORT ITransform : public QObject
     Q_OBJECT
 
 public:
+
     virtual ~ITransform() {}
     /**
      * @brief getSettingsWidget is provides an QWidget to display plugin specific settings to the user. Keep in mind that the widget
@@ -101,12 +107,6 @@ public:
     virtual QString getName() const = 0;
 
     /**
-     * @brief getOutputNames returns a list of folder names created on export.
-     * @return The names for each folder
-     */
-    virtual QStringList getOutputNames() = 0;
-
-    /**
      * @brief copy creates a new ITransform instance which is a deep copy.
      * @return The copy
      */
@@ -119,7 +119,7 @@ public:
      * @param img The image to transform
      * @return Pointers to the transformed images
      */
-    virtual ImageList transform(uint idx, const cv::Mat &img, const Resolution &resolution, const ROI &roi) = 0;
+    virtual TransformResult transform(uint idx, const cv::Mat &img, const Resolution &resolution, const ROI &roi) = 0;
 
     /**
      * @brief enableCuda enables use of the CUDA api to accelerate computations.

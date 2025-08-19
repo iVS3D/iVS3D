@@ -123,6 +123,8 @@ void StackController::slot_keyframesChangedByPlugin(QString pluginName)
 
 void StackController::slot_exportFinished(QMap<QString, QVariant> settings)
 {
+    if (settings.empty()) return; // nothing to display
+
     //In case of the export, the history is updated BEFORE the stack is updated --> the m_history index has to be reduced by 1
     deleteInvalidFuture(1);
     QString name = tr("Export");

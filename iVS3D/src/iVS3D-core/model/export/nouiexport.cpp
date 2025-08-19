@@ -118,10 +118,10 @@ void noUIExport::runExport()
     m_exportExec->startExport(config, m_logFile);
 }
 
-void noUIExport::slot_exportFinished(int result)
+void noUIExport::slot_exportFinished(ExportResult result)
 {
-    if (result == -1) {
-        m_receiver->slot_displayMessage(tr("Export failed. Maybe the path is invalid"));
+    if (result.type == ExportResultType::Failed) {
+        m_receiver->slot_displayMessage(tr("Export failed: \n%1").arg(result.errorMessage));
     }
     disconnect(m_exportExec,&ExportExecutor::sig_progress, this, &noUIExport::slot_displayProgress);
     disconnect(m_exportExec, &ExportExecutor::sig_message, this, &noUIExport::slot_displayMessage);

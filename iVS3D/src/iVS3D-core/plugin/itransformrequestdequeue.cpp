@@ -22,17 +22,12 @@ QString ITransformRequestDequeue::getName() const
     return m_transform->getName();
 }
 
-QStringList ITransformRequestDequeue::getOutputNames()
-{
-    return m_transform->getOutputNames();
-}
-
 ITransformRequestDequeue *ITransformRequestDequeue::copy()
 {
     return new ITransformRequestDequeue(m_transform->copy());
 }
 
-ImageList ITransformRequestDequeue::transform(uint idx, const cv::Mat &img, const Resolution &resolution, const ROI &roi)
+TransformResult ITransformRequestDequeue::transform(uint idx, const cv::Mat &img, const Resolution &resolution, const ROI &roi)
 {
     return m_transform->transform(idx, img, resolution, roi);
 }

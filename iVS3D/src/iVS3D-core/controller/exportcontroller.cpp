@@ -255,11 +255,6 @@ void ExportController::slot_export()
             continue;
         }
         iTransformCopies.push_back(TransformManager::instance().getTransform(i)->copy());
-        QString iTransformDir = pathWOimages;
-        iTransformDir.append("/").append(iTransformCopies[i]->getName());
-        if (!QDir(iTransformDir).exists()) {
-            QDir().mkdir(iTransformDir);
-        }
     }
 
 
@@ -314,8 +309,9 @@ void ExportController::slot_exportAborted()
     emit sig_exportAborted();
 }
 
-void ExportController::slot_exportFinished(int result)
+void ExportController::slot_exportFinished(ExportResult result)
 {
+    
     // disconnect GUI to export executor
     disconnect(m_exportExec, &ExportExecutor::sig_exportAborted, this, &ExportController::slot_exportAborted);
     disconnect(m_exportExec, &ExportExecutor::sig_exportFinished, this, &ExportController::slot_exportFinished);
@@ -323,15 +319,26 @@ void ExportController::slot_exportFinished(int result)
     disconnect(m_outputWidget, &OutputWidget::sig_abort, m_exportExec, &ExportExecutor::slot_abort);
     m_outputWidget->showExportOptions(); // swap OutputWidget to display result
 
-    if (result == -1) {
-        emit sig_hasStatusMessage(tr("Export failed. Maybe the path is invalid"));
-        emit sig_exportFinished(getOutputSettings());
+    if (result.type == ExportResultType::Aborted) {
+        emit sig_exportFinished(QVariantMap());
+        emit sig_hasStatusMessage(tr("Export aborted by the user."));
+        return;
+    }
+
+    if (result.type == ExportResultType::Failed) {
+        emit sig_exportFinished(QVariantMap());
+        QMessageBox::critical(nullptr, tr("Error during export"), tr("Export failed: %1").arg(result.errorMessage));
         return;
     }
 
     auto duration_ms = m_timer.elapsed();
-    emit sig_hasStatusMessage(tr("Export finished after ") + QString::number(duration_ms) + tr("ms")
-                              + tr(" with ") + QString::number(result) + (result == 1 ? tr(" broken image.") : tr(" broken images.")));
+    if (result.type == ExportResultType::PartialSuccess) {
+        emit sig_hasStatusMessage(tr("Export finished after ") + QString::number(duration_ms) + tr("ms")
+                                  + tr(" with ") + QString::number(result.brokenImages) + (result.brokenImages == 1 ? tr(" broken image.") : tr(" broken images.")));
+    }
+    if (result.type == ExportResultType::Success) {
+        emit sig_hasStatusMessage(tr("Export finished after ") + QString::number(duration_ms) + tr("ms"));
+    }
 
     // now we have an export, so enable reconstruct
     m_outputWidget->enableReconstruct(true);
@@ -380,23 +387,9 @@ bool ExportController::startReconstruct()
         //this shouldn't happen
         qDebug () << "start reconstruct failed, because .getTransformList() and getSelectedITransformMasks() didn't return Lists with the same size";
     }
-    for (uint i = 0; i < unsigned(iTransformNames.length()); ++i) {
-        if (!iTransformUsed[i]) {
-            continue;
-        }
-        iTransformCopies.push_back(TransformManager::instance().getTransform(i)->copy());
-        maskPath = exportPath;
-        maskPath.append("/").append(iTransformCopies[i]->getName());
-        QStringList iTransformOutputNames = iTransformCopies[i]->getOutputNames();
-        for (int j = 0; j < iTransformOutputNames.length(); ++j) {
-            QString maskCheck = iTransformOutputNames[j];
-            if (!maskPathIsSet && maskCheck.replace("masks", "").isEmpty()) {
-                maskPath.append("/").append(iTransformOutputNames[j]);
-                maskPathIsSet = true;
-                break;
-            }
-        }
-    }
+
+    maskPath.append("/masks");
+    maskPathIsSet = QDir(maskPath).exists();
 
     //boolean for whether it starts colmap gui or explorer
     bool colmapGUI = false;

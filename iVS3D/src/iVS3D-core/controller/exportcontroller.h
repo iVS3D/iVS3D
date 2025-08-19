@@ -125,7 +125,7 @@ public slots:
      * Disconnects ExportExecutor, removes progress bar and shows export results
      * @param result unused (error code 0=OK, 1=stopped, -1=export failed)
      */
-    void slot_exportFinished(int result);
+    void slot_exportFinished(ExportResult result);
     /**
     * @brief slot_showExportSettings triggered by AutomaticExecSettings shows the given settings and
     * saves the internal

@@ -80,7 +80,7 @@ signals:
      * @brief [signal] sig_exportFinished is emitted after an export finished.
      * @param result Is @a 0 if export finished without problems, greater @a 0 otherwise
      */
-    void sig_exportFinished(int result);
+    void sig_exportFinished(ExportResult result);
 
 private:
     void closeThread();

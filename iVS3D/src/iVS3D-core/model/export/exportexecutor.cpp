@@ -37,7 +37,7 @@ void ExportExecutor::slot_abort(){
 }
 
 void ExportExecutor::slot_finished(){
-    int result = m_exportThread->getResult();
+    auto result = m_exportThread->getResult();
     closeThread();
     emit sig_exportFinished(result);
 }
