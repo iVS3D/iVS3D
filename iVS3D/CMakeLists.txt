@@ -12,7 +12,10 @@ if(Build_Tests)
     find_package(QT NAMES Qt5 REQUIRED COMPONENTS Test)
     find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Test)
 
-    enable_testing()
+    if (PROJECT_IS_TOP_LEVEL)
+        include(CTest)
+        enable_testing()
+    endif()
 
     add_subdirectory(tests/)
     add_component_summary("iVS3D-Tests" TRUE)

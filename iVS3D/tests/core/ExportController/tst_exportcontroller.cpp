@@ -38,7 +38,7 @@ private:
 
 tst_exportcontroller::tst_exportcontroller()
 {
-
+    qRegisterMetaType<ExportResult>("ExportResult");
 }
 
 tst_exportcontroller::~tst_exportcontroller()

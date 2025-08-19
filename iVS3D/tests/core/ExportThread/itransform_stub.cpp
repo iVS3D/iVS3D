@@ -9,14 +9,9 @@ QString ITransform_stub::getName() const
     return "testITransform";
 }
 
-QStringList ITransform_stub::getOutputNames()
-{
-    return {"masks", "masksfancy"};
-}
-
-ImageList ITransform_stub::transform(uint, const cv::Mat &img, const Resolution &resolution, const ROI &roi)
+TransformResult ITransform_stub::transform(uint, const cv::Mat &img, const Resolution &resolution, const ROI &roi)
 {
     cv::Mat gray;
     cv::cvtColor(img, gray, cv::COLOR_BGR2GRAY);
-    return ImageList({gray, gray});
+    return gray;
 }

@@ -54,6 +54,8 @@ int main(int argc, char *argv[])
     qRegisterMetaType<std::vector<uint>>("vectorUint");
     qRegisterMetaType<Resolution>("Resolution");
     qRegisterMetaType<ROI>("ROI");
+    qRegisterMetaType<ExportResult>("ExportResult");
+    qRegisterMetaType<TransformResult>("TransformResult");
     
     QCommandLineParser parser;
     QCommandLineOption noGUI("nogui", "Executes in terminal mode without the GUI. In this case auto settings file (-a), input (-i) and output (-o) need to be provided.");

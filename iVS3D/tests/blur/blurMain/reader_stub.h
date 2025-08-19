@@ -26,7 +26,7 @@ public:
     double getFPS() { throw "not implemented"; };
     double getVideoDuration() { throw "not implemented"; };
     virtual bool isDir() { throw "not implemented"; };
-    virtual Reader *copy() { throw "not implemented"; };
+    virtual Reader *copy(std::shared_ptr<ReaderParams> params = nullptr) { throw "not implemented"; };
     virtual bool isValid() { throw "not implemented"; };
     virtual std::vector<std::string> getFileVector() { throw "not implemented"; };
     virtual void addMetaData(MetaData*) { throw "not implemented"; };

@@ -78,6 +78,8 @@ struct ExportResult
     }
 };
 
+Q_DECLARE_METATYPE(ExportResult)
+
 /**
  * @class ExportThread
  *
