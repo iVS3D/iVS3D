@@ -119,3 +119,5 @@ if(Update_Translations)
         DEPENDS ${HEADER_FILES} ${SRC_FILES}
     )
 endif()
+
+add_plugin_summary("${TARGET_NAME}" TRUE)
