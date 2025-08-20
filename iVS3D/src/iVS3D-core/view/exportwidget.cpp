@@ -172,8 +172,9 @@ void ExportWidget::setAltitudeVisible(bool visible)
     if (visible && !m_altitudeSpinBox) {
         // altitude spinbox has not been created yet
         m_altitudeSpinBox = new QDoubleSpinBox(this);
+        m_altitudeSpinBox->setRange(-430.5, 8848.86);
         
-        ui->formLayout->insertRow(1,tr("Altitude of the first image"), m_altitudeSpinBox);
+        ui->formLayout->insertRow(1,tr("Altitude above sea-level"), m_altitudeSpinBox);
         connect(m_altitudeSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &ExportWidget::on_spinBox_altitude_valueChanged);
         return;
     }
