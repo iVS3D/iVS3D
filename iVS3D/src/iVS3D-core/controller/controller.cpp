@@ -606,6 +606,10 @@ uint Controller::loadMetaDataFromPath(QString path)
 
 bool Controller::loadInputDataFromPath(QString path)
 {
+    if (m_videoPlayerController) {
+        m_videoPlayerController->slot_stopPlay();
+    }
+    
     bool validDatasetPath =
             path.endsWith(".mp4", Qt::CaseInsensitive) ||
             path.endsWith(".mov", Qt::CaseInsensitive) ||
