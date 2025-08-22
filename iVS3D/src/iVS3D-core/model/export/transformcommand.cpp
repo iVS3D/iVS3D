@@ -18,7 +18,9 @@ std::optional<QString> TransformCommand::execute(ImageContext &ctx)
 
     QString base_path = folder + "/masks";
     QString imagename = ctx.filename.split("/").last();
-
+    // masks are always exported as png
+    imagename.replace(QRegularExpression("\\.\\w+$"), ".png");
+    
     if (!initialized) {
         QString destination = QDir::cleanPath(base_path);
         if(!QDir().exists(destination) && !QDir().mkpath(destination)) {
@@ -29,7 +31,7 @@ std::optional<QString> TransformCommand::execute(ImageContext &ctx)
 
     QString destination = QDir::cleanPath(base_path + "/" + imagename);
     //write image on disk
-    if (!cv::imwrite(destination.toStdString(), mask, {cv::IMWRITE_JPEG_QUALITY, 100})) {
+    if (!cv::imwrite(destination.toStdString(), mask)) {
         return "ERROR: failed to write image: " + destination;
     }
 
