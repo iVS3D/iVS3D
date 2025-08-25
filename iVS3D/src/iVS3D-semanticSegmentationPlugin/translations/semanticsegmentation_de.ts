@@ -4,39 +4,75 @@
 <context>
     <name>SemanticSegmentation</name>
     <message>
-        <location filename="../semanticsegmentation.cpp" line="81"/>
+        <location filename="../semanticsegmentation.cpp" line="100"/>
         <source>Semantic Segmentation</source>
         <translation>Semantische Segmentierung</translation>
     </message>
     <message>
-        <location filename="../semanticsegmentation.cpp" line="149"/>
-        <location filename="../semanticsegmentation.cpp" line="498"/>
-        <source>Loaded model (cuda)</source>
-        <translation>Modell geladen (cuda)</translation>
+        <location filename="../semanticsegmentation.cpp" line="126"/>
+        <location filename="../semanticsegmentation.cpp" line="153"/>
+        <source>No models found in %1</source>
+        <translation>Keine Modelle gefunden in %1</translation>
     </message>
     <message>
-        <location filename="../semanticsegmentation.cpp" line="154"/>
-        <location filename="../semanticsegmentation.cpp" line="502"/>
-        <source>Loaded model</source>
-        <translation>Modell geladen</translation>
+        <location filename="../semanticsegmentation.cpp" line="167"/>
+        <source>Failed to load model: %1 
+ %2</source>
+        <translation>Laden des Modells fehlgeschlagen: %1 
+ %2</translation>
     </message>
     <message>
-        <location filename="../semanticsegmentation.cpp" line="285"/>
+        <location filename="../semanticsegmentation.cpp" line="179"/>
+        <source>Failed to load model: Invalid input shape %1</source>
+        <translation>Laden des Modells fehlgeschlagen: Ungültiges Eingabeformat %1</translation>
+    </message>
+    <message>
+        <location filename="../semanticsegmentation.cpp" line="183"/>
         <source>Computing preview...</source>
         <translation>Berechne Vorschau...</translation>
     </message>
     <message>
-        <location filename="../semanticsegmentation.cpp" line="295"/>
+        <location filename="../semanticsegmentation.cpp" line="212"/>
+        <source>Ran out of memory during segmentation! Lower the working resolution to reduce memory usage.</source>
+        <translation>Nicht genug Arbeitsspeicher für die Segmentierung! Arbeitsauflösung verringern um Speicherverbrauch zu rerduzieren.</translation>
+    </message>
+    <message>
+        <location filename="../semanticsegmentation.cpp" line="216"/>
+        <source>Failed to compute segmentation: %1</source>
+        <translation>Segmentierung fehlgeschlagen: %1</translation>
+    </message>
+    <message>
+        <location filename="../semanticsegmentation.cpp" line="226"/>
         <source>Finished preview in </source>
         <translation>Vorschau berechnet in </translation>
     </message>
     <message>
-        <location filename="../semanticsegmentation.cpp" line="295"/>
+        <location filename="../semanticsegmentation.cpp" line="226"/>
         <source>ms</source>
         <translation>ms</translation>
     </message>
     <message>
-        <location filename="../semanticsegmentation.cpp" line="485"/>
+        <location filename="../semanticsegmentation.cpp" line="235"/>
+        <source>Failed to compute colorization or mask!</source>
+        <translation>Berechnen der Segmentierung oder Maske fehlgeschlagen!</translation>
+    </message>
+    <message>
+        <location filename="../semanticsegmentation.cpp" line="311"/>
+        <source>Failed to load config file for model: %1</source>
+        <translation>Laden der Konfigurationsdatei fehlgeschlagen für: %1</translation>
+    </message>
+    <message>
+        <location filename="../semanticsegmentation.cpp" line="488"/>
+        <source>Failed to compute colorized segmentation: %1</source>
+        <translation>Berechnen der farbigen Segmentierung fehlgeschlagen: %1</translation>
+    </message>
+    <message>
+        <location filename="../semanticsegmentation.cpp" line="519"/>
+        <source>Failed to compute binary mask: %1</source>
+        <translation>Berechnen der Binärmaske fehlgeschlagen: %1</translation>
+    </message>
+    <message>
+        <location filename="../semanticsegmentation.cpp" line="161"/>
         <source>Loading model...</source>
         <translation>Lade Modell...</translation>
     </message>
@@ -97,6 +133,11 @@
         <location filename="../settingswidget.cpp" line="89"/>
         <source>Invert class selection</source>
         <translation>Klassenauswahl invertieren</translation>
+    </message>
+    <message>
+        <location filename="../settingswidget.cpp" line="149"/>
+        <source>Error:</source>
+        <translation>Fehler:</translation>
     </message>
 </context>
 </TS>
