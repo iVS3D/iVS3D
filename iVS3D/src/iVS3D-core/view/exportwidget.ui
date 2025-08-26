@@ -109,7 +109,7 @@
        </item>
        <item>
         <property name="text">
-         <string>jpeg</string>
+         <string>jpg</string>
         </property>
        </item>
       </widget>
