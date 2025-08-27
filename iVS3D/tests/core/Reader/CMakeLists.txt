@@ -19,12 +19,6 @@ set(UI_FILES
     ${CORE_UI_FILES}
 )
 
-# remove ots files on windows
-if(WIN32)
-    list(FILTER HEADER_FILES EXCLUDE REGEX "ots(.)*h")
-    list(FILTER SRC_FILES EXCLUDE REGEX "ots(.)*cpp")
-    list(FILTER UI_FILES EXCLUDE REGEX "ots(.)*ui")
-endif()
 
 # set include directories
 include_directories(SYSTEM
@@ -65,7 +59,3 @@ add_dependencies(${TARGET_NAME}
 install(TARGETS ${TARGET_NAME} 
     DESTINATION tests
 )
-
-# TODO: Windows Build
-#   - Deploy DLLs
-#   - Check if lrelease-pro is needed
