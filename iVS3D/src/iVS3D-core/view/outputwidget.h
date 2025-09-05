@@ -100,6 +100,9 @@ public:
      */
     void setAltitude(double altitude);
 
+    double getAltitude();
+    void enableFormat(QString format, bool enable);
+
 signals:
     /**
      * @brief sig_pathChanged gets emitted once the export path has been altered
@@ -133,6 +136,8 @@ signals:
      * @brief [signal] sig_altitudeChanged() is emitted when the altitude is changed by the user.
      */
     void sig_altitudeChanged(double altitude);
+
+
 
 public slots:
     /**

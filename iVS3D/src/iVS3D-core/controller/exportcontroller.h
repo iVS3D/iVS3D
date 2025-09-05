@@ -73,6 +73,8 @@ public:
      */
     void setOutputSettings(QMap<QString, QVariant> settings);
 
+    void setOriginalAltitude(double altitude);
+
 
 signals:
     /**
@@ -144,6 +146,10 @@ public slots:
     void slot_nextImageOnPlayer(uint idx);
 
     void slot_exportResolutionChanged(QString resolution);
+
+    void slot_altitudeChanged(double altitude);
+
+    void slot_roiChanged(std::optional<ROI> roi);
 private:
     /**
      * @brief startReconstruct handles starting reconstruct software, preparing its start-arguments, creating batch-files and project-file
@@ -160,6 +166,8 @@ private:
     bool createDatabaseFile(QString defaultpath, QString targetpath);
     bool createProjectFile(QString defaultpath, QString targetpath, QMap<QString, QString> projectsettings);
     bool createShortcutplusBatch(QString reconstructDir, QString startargs, QString exportDir);
+    void updateFormatOptions();
+    bool canCopyImages();
 
     LogFile *m_lfExport;
     DataManager *m_dataManager;
@@ -180,6 +188,9 @@ private:
     uint m_imageOnPlayerId = 0;
 
     lib3d::ots::ColmapWrapper *m_colmap;
+
+    double m_altitude_original = 0.0;
+    double m_altitude_current = 0.0;
 
 };
 

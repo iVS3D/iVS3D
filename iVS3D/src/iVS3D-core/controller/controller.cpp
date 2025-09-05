@@ -435,6 +435,9 @@ void Controller::slot_editCrop()
                 m_mainWindow->getVideoPlayer()->setCropStatus(valid);
                 m_videoPlayerController->slot_mipChanged();
             }
+            if (m_exportController) {
+                m_exportController->slot_roiChanged(params->getUseRoi() ? std::optional<ROI>(params->getRoi()) : std::nullopt);
+            }
         }
     }
 }
@@ -445,6 +448,9 @@ void Controller::slot_useCropChanged(int checkstate)
         std::shared_ptr<ReaderParams> params = m_dataManager->getModelInputPictures()->getReaderParams();
         params->setUseRoi(checkstate != Qt::Unchecked);
         m_videoPlayerController->slot_mipChanged();
+        if (m_exportController) {
+            m_exportController->slot_roiChanged(params->getUseRoi() ? std::optional<ROI>(params->getRoi()) : std::nullopt);
+        }
     }
 }
 
@@ -656,10 +662,12 @@ void Controller::setAltitude()
             double altitude_abs = gpsHash.find("GPSAltitude").value().toDouble();
             double altitude = (gpsHash.find("GPSAltitudeRef").value().toString() == "0") ? altitude_abs : altitude_abs * -1;
             m_mainWindow->getOutputWidget()->setAltitude(altitude);
+            m_exportController->setOriginalAltitude(altitude);
             return;
         }
     }
     m_mainWindow->getOutputWidget()->setAltitudeVisible(false);
+    
 }
 
 void Controller::onSuccessfulOpen()

@@ -41,6 +41,7 @@ struct ExportConfig
     Resolution working_resolution;
     Resolution export_resolution;
     std::vector<ITransform *> transformations;
+    bool copy_images = false;
 };
 
 /**

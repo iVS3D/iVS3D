@@ -11,6 +11,9 @@ ExportController::ExportController(OutputWidget *outputWidget,
     m_dataManager = dataManager;
     m_colmap = colmap;
 
+    m_altitude_original = 0.0;
+    m_altitude_current = 0.0;
+
     connect(m_outputWidget, &OutputWidget::sig_reconstruct, this,
             &ExportController::slot_reconstruct);
     connect(m_outputWidget, &OutputWidget::sig_export, this,
@@ -19,6 +22,8 @@ ExportController::ExportController(OutputWidget *outputWidget,
             &ExportController::slot_outputPathChanged);
     connect(m_outputWidget, &OutputWidget::sig_resChanged, this,
             &ExportController::slot_exportResolutionChanged);
+    connect(m_outputWidget, &OutputWidget::sig_altitudeChanged, this,
+            &ExportController::slot_altitudeChanged);
 
     connect(m_dataManager->getModelInputPictures(),
             &ModelInputPictures::sig_mipChanged, this,
@@ -46,6 +51,16 @@ ExportController::ExportController(OutputWidget *outputWidget,
                               ->getWorkingResolution();
     m_exportResolution = m_originalResolution;  // default export resolution is
                                                 // original resolution
+
+    // set the default output format depending on the input type (images /
+    // video)
+    if (m_dataManager->getModelInputPictures()->getReader()->isDir()) {
+        m_outputWidget->enableFormat(EXPORT_FORMAT_SAME_AS_INPUT, true);
+        m_outputWidget->setOutputFormat(EXPORT_FORMAT_SAME_AS_INPUT);
+    } else {
+        m_outputWidget->enableFormat(EXPORT_FORMAT_SAME_AS_INPUT, false);
+        m_outputWidget->setOutputFormat("png");
+    }
 }
 
 ExportController::~ExportController() {
@@ -139,6 +154,17 @@ void ExportController::setOutputSettings(QMap<QString, QVariant> settings) {
         TransformManager::instance().setSettings(iTransformSettings, idx);
         idx++;
     }
+    updateFormatOptions();
+}
+
+void ExportController::setOriginalAltitude(double altitude) {
+    m_altitude_original = altitude;
+    m_altitude_current = m_altitude_original;
+    updateFormatOptions();
+    m_outputWidget->setOutputFormat(
+        m_dataManager->getModelInputPictures()->getReader()->isDir()
+            ? EXPORT_FORMAT_SAME_AS_INPUT
+            : "png");
 }
 
 void ExportController::slot_reconstruct() {
@@ -171,13 +197,14 @@ void ExportController::slot_reconstruct() {
 }
 
 void ExportController::slot_export() {
-    // use Working res, ROI, etc from MIP reader, but do not modify the export resolution!
-    auto readerParams = m_dataManager->getModelInputPictures()->getReaderParams();
+    // use Working res, ROI, etc from MIP reader, but do not modify the export
+    // resolution!
+    auto readerParams =
+        m_dataManager->getModelInputPictures()->getReaderParams();
     m_originalResolution = readerParams->getOriginalResolution();
     m_workingResolution = readerParams->getWorkingResolution();
     m_roi = std::nullopt;
-    if (readerParams->getUseRoi() &&
-        !readerParams->getRoi().isDefault()) {
+    if (readerParams->getUseRoi() && !readerParams->getRoi().isDefault()) {
         m_roi = readerParams->getRoi();
     }
 
@@ -320,6 +347,9 @@ void ExportController::slot_export() {
     config.export_resolution = m_exportResolution;
     config.roi = m_roi;
     config.transformations = iTransformCopies;
+    config.copy_images =
+        canCopyImages() &&
+        (m_outputWidget->getExportFormat() == EXPORT_FORMAT_SAME_AS_INPUT);
 
     // start export
     m_exportExec->startExport(config, m_lfExport);
@@ -592,6 +622,30 @@ bool ExportController::createProjectFile(
     return false;
 }
 
+void ExportController::slot_altitudeChanged(double altitude) {
+    m_altitude_current = altitude;
+    updateFormatOptions();
+}
+
+void ExportController::slot_roiChanged(std::optional<ROI> roi) {
+    m_roi = roi;
+    updateFormatOptions();
+}
+
+bool ExportController::canCopyImages() {
+    if (!m_dataManager->getModelInputPictures()->getReader()->isDir())
+        return false;
+    if (abs(m_altitude_current - m_altitude_original) > 1e-2)
+        return false;  // check if altitude has changed within two digits
+    if (!(m_originalResolution == m_exportResolution)) return false;
+    if (m_roi.has_value() && !m_roi->isDefault()) return false;
+    return true;
+}
+
+void ExportController::updateFormatOptions() {
+    m_outputWidget->enableFormat(EXPORT_FORMAT_SAME_AS_INPUT, canCopyImages());
+}
+
 bool ExportController::createShortcutplusBatch(QString reconstructDir,
                                                QString startargs,
                                                QString exportDir) {
@@ -694,7 +748,8 @@ void ExportController::slot_exportResolutionChanged(QString resolution) {
     // check if given string is a valid resolution
     Resolution res;
     if (res.fromString(resolution)) {
-        // check if the resolution is valid (not larger than original resolution)
+        // check if the resolution is valid (not larger than original
+        // resolution)
         ReaderParams rp;
         rp.initialize(m_originalResolution);
         bool valid = rp.setWorkingResolution(res);
@@ -704,4 +759,5 @@ void ExportController::slot_exportResolutionChanged(QString resolution) {
         m_outputWidget->setResolutionValid(valid);
         m_outputWidget->enableExport(valid);
     }
+    updateFormatOptions();
 }

@@ -104,6 +104,11 @@ bool OutputWidget::setOutputFormat(QString format)
     return m_exportW->setOutputFormat(format);
 }
 
+void OutputWidget::enableFormat(QString format, bool enable)
+{
+    m_exportW->enableFormat(format, enable);
+}
+
 void OutputWidget::setAltitudeVisible(bool visible)
 {
     m_exportW->setAltitudeVisible(visible);
@@ -112,6 +117,11 @@ void OutputWidget::setAltitudeVisible(bool visible)
 void OutputWidget::setAltitude(double altitude)
 {
     m_exportW->setAltitude(altitude);
+}
+
+double OutputWidget::getAltitude()
+{
+    return m_exportW->getAltitude();
 }
 
 void OutputWidget::slot_displayProgress(int progress, QString currentOperation)

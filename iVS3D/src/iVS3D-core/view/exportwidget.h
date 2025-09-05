@@ -9,6 +9,8 @@
 
 #include "applicationsettings.h" // used to determin text color depending on GUI style
 
+#define EXPORT_FORMAT_SAME_AS_INPUT "same as input"
+
 namespace Ui {
 class ExportWidget;
 }
@@ -102,6 +104,10 @@ public:
      * @param altitude
      */
     void setAltitude(double altitude);
+
+    double getAltitude();
+
+    void enableFormat(QString format, bool enable);
 
 signals:
 

@@ -55,11 +55,6 @@ void ExportThread::run() {
     bool usesResize = !(m_config.original_resolution ==
                         m_config.export_resolution);
 
-    // if input is an image and we do not modify it in any way (i.e. resizing)
-    // we do not need to load the image and write it back, instead we copy the
-    // input file including all metadata
-    bool useCopy = m_reader->isDir() && !usesResize && !usesRoi;
-
     // We need to export gps meta data if available
     bool useExif = false;
     MetaDataReader* gpsReader = nullptr;
@@ -87,7 +82,7 @@ void ExportThread::run() {
 
     // exporting from cv::Mat or copying input image
     QString imagePath = m_config.destination + QString("/images");
-    if (useCopy)
+    if (m_config.copy_images)
         processor.addCommand(std::make_unique<CopyFileCommand>(
             m_reader->getFileVector(), imagePath));
     else
@@ -95,7 +90,7 @@ void ExportThread::run() {
             imagePath, "", m_config.format));
     // adding an exif tag only if we have gps data available, we don't need to
     // do this if we copied the image before
-    if (!useCopy && useExif)
+    if (!m_config.copy_images && useExif)
         processor.addCommand(std::make_unique<ExifTagCommand>(gpsReader));
     // export itransform plugin output
     for (auto plugin : m_config.transformations)
