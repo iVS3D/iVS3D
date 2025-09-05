@@ -164,6 +164,7 @@ class VideoReader : public Reader
     void selectVideoStream();
     void openCodec();
     void createSWS();
+    int decodeNextPkg();
 };
 
 REGISTER_READER("VideoReader", VideoReader)

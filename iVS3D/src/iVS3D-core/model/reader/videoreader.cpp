@@ -11,7 +11,7 @@ VideoReader::VideoReader(const QString &path,
 
     m_formatContext = avformat_alloc_context();
     assert(m_formatContext);
-        avformat_open_input(&m_formatContext, m_path.c_str(), NULL, NULL);
+    avformat_open_input(&m_formatContext, m_path.c_str(), NULL, NULL);
     printf("Format %s, duration %ld us\n", m_formatContext->iformat->long_name,
            m_formatContext->duration);
     avformat_find_stream_info(m_formatContext, NULL);
@@ -101,38 +101,30 @@ cv::Mat VideoReader::getPic(unsigned int index, PictureProcessingFlags flags) {
 
     // sequential read until index is reached
     assert(index < m_frameCount);
-    AVPacket *packet = nullptr;
-    packet = av_packet_alloc();
+
     while (iter == m_buffer.end()) {
         if (m_buffer.size() > m_avgVideoFPS.num / m_avgVideoFPS.den) {
-            for (auto d_iter : m_buffer) {
-                AVFrame *av_frame = d_iter.second;
-                av_frame_free(&av_frame);
-                d_iter.second = nullptr;
+            for (auto &d_iter : m_buffer) {
+                av_frame_free(&d_iter.second);
             }
             m_buffer.clear();
         }
 
-        av_read_frame(m_formatContext, packet);
-        int send_res = avcodec_send_packet(m_codecContext, packet);
-        if (send_res == AVERROR(EINVAL) && m_codecContext->codec) {
-            avcodec_send_packet(m_codecContext, NULL);  // send flush packet
+        int decode_res = decodeNextPkg();
+        switch (decode_res) {
+            case 0:  // more frames to decode
+                break;
+            case AVERROR(EAGAIN):  // pkg fully decoded
+                continue;
+            case AVERROR_EOF:  // reset cause we reached end of file
+                avcodec_flush_buffers(m_codecContext);
+                break;
+            default:  // res < 0 (some error)
+                return cv::Mat();
         }
-        int receive_res = 0;
-        while (receive_res == 0) {
-            AVFrame *av_frame = nullptr;
-            av_frame = av_frame_alloc();
-            receive_res = avcodec_receive_frame(m_codecContext, av_frame);
-            if (receive_res != 0) break;
-            int64_t idx =
-                av_rescale_q(av_frame->pts, m_streamTimeBase,
-                             AVRational{m_avgVideoFPS.den, m_avgVideoFPS.num});
-            m_buffer[idx] = av_frame;
-            m_lastFrameIdx = idx;
-        }
+
         iter = m_buffer.find(index);
     }
-    av_packet_free(&packet);
     cv::Mat img = avFrame2CvMat(iter->second);
 
     // apply processing
@@ -146,17 +138,58 @@ cv::Mat VideoReader::getPic(unsigned int index, PictureProcessingFlags flags) {
     return img;
 }
 
+int VideoReader::decodeNextPkg() {
+    AVPacket *packet = av_packet_alloc();
+    int read_res = av_read_frame(m_formatContext, packet);
+    if (read_res == AVERROR_EOF) {
+        av_packet_free(&packet);
+        avcodec_send_packet(m_codecContext, NULL);  // send flush packet
+    } else if (read_res < 0) {
+        av_packet_free(&packet);
+        return read_res;
+    } else {
+        int send_res = avcodec_send_packet(m_codecContext, packet);
+    }
+
+    int receive_res = 0;
+    while (receive_res == 0) {
+        AVFrame *av_frame = nullptr;
+        av_frame = av_frame_alloc();
+        receive_res = avcodec_receive_frame(m_codecContext, av_frame);
+        if (receive_res == AVERROR(EAGAIN)) {
+            av_frame_free(&av_frame);
+            break;  // pkg fully decoded
+        } else if (receive_res < 0) {
+            av_frame_free(&av_frame);
+            av_packet_free(&packet);
+            return receive_res;
+        }
+        int64_t idx =
+            av_rescale_q(av_frame->pts, m_streamTimeBase,
+                         AVRational{m_avgVideoFPS.den, m_avgVideoFPS.num});
+        m_buffer[idx] = av_frame;
+        m_lastFrameIdx = idx;
+    }
+
+    av_packet_free(&packet);
+    return 0;
+}
+
 unsigned int VideoReader::getPicCount() { return m_frameCount; }
 
 QString VideoReader::getInputPath() { return QString::fromStdString(m_path); }
 
-double VideoReader::getFPS() { return av_q2d(m_avgVideoFPS); }
+double VideoReader::getFPS() {
+    AVRational r = m_avgVideoFPS.num ? m_avgVideoFPS : AVRational{0, 1};
+    return r.num && r.den ? av_q2d(r) : 0.0;
+}
 
 double VideoReader::getVideoDuration() {
     int64_t d_streamTime = m_formatContext->duration;
+    if (d_streamTime <= 0) return 0.0;
     int64_t d_sec =
-        av_rescale_q(d_streamTime, m_streamTimeBase, AVRational({1, 1}));
-    return d_sec;
+        av_rescale_q(d_streamTime, AV_TIME_BASE_Q, AVRational({1, 1}));
+    return (double)d_sec;
 }
 
 bool VideoReader::isDir() { return false; }
