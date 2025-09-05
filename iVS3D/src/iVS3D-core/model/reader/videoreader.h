@@ -1,10 +1,10 @@
 #ifndef VIDEOREADER_H
 #define VIDEOREADER_H
 
-#include <iostream>
 #include <QMutex>
 #include <QMutexLocker>
 #include <QObject>
+#include <iostream>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/videoio.hpp>

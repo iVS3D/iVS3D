@@ -9,52 +9,12 @@ VideoReader::VideoReader(const QString &path,
         return;
     }
 
-    m_formatContext = avformat_alloc_context();
-    assert(m_formatContext);
-    avformat_open_input(&m_formatContext, m_path.c_str(), NULL, NULL);
-    printf("Format %s, duration %ld us\n", m_formatContext->iformat->long_name,
-           m_formatContext->duration);
-    avformat_find_stream_info(m_formatContext, NULL);
-
-    // Select Video Stream
-    const AVCodec *codec = NULL;
-    AVCodecParameters *codecParams = nullptr;
-    for (m_streamId = 0; m_streamId < m_formatContext->nb_streams;
-         m_streamId++) {
-        AVStream *stream = m_formatContext->streams[m_streamId];
-        codecParams = stream->codecpar;
-        codec = avcodec_find_decoder(codecParams->codec_id);
-        assert(codec);
-        AVMediaType codecType = codecParams->codec_type;
-        if (codecType == AVMEDIA_TYPE_VIDEO) {
-            m_frameCount = stream->nb_frames;
-            m_avgVideoFPS = stream->avg_frame_rate;
-            m_startTimestamp = stream->start_time;
-            m_streamTimeBase = stream->time_base;
-            break;
-        }
-    }
-
-    // Open CODEC
-    m_codecContext = avcodec_alloc_context3(codec);
-    assert(m_codecContext);
-    printf("Codec: %s\n", codec->name);
-    avcodec_parameters_to_context(m_codecContext, codecParams);
-    AVDictionary *notFoundOptions = nullptr;
-    avcodec_open2(m_codecContext, codec, &notFoundOptions);
-    // TODO: display not found options
+    openFormatContext();
+    selectVideoStream();
+    openCodec();
+    createSWS();
 
     // Create SwsContext for conversion
-    AVPixelFormat pixFormat = m_codecContext->pix_fmt;
-    // replaceDeprecatedPixFmt(pixFormat);
-    int m_outW = m_codecContext->width;
-    int m_outH = m_codecContext->height;
-    m_swsContext =
-        sws_getContext(m_codecContext->width, m_codecContext->height, pixFormat,
-                       m_outW, m_outH, AVPixelFormat::AV_PIX_FMT_BGR24,
-                       SWS_BILINEAR, NULL, NULL, NULL);
-    assert(m_swsContext);
-
     // validate the given readerParams, initialize if necessary!
     uint w = m_codecContext->width;
     uint h = m_codecContext->height;
@@ -72,6 +32,57 @@ VideoReader::VideoReader(const QString &path,
 VideoReader::~VideoReader() {
     sws_freeContext(m_swsContext);
     avformat_free_context(m_formatContext);
+}
+
+void VideoReader::openFormatContext() {
+    m_formatContext = avformat_alloc_context();
+    assert(m_formatContext);
+    avformat_open_input(&m_formatContext, m_path.c_str(), NULL, NULL);
+    printf("Format %s, duration %ld us\n", m_formatContext->iformat->long_name,
+           m_formatContext->duration);
+    avformat_find_stream_info(m_formatContext, NULL);
+}
+
+void VideoReader::selectVideoStream() {
+    for (m_streamId = 0; m_streamId < m_formatContext->nb_streams;
+         m_streamId++) {
+        AVStream *stream = m_formatContext->streams[m_streamId];
+        AVCodecParameters *codecParams = stream->codecpar;
+        const AVCodec *codec = avcodec_find_decoder(codecParams->codec_id);
+        AVMediaType codecType = codecParams->codec_type;
+        if (codecType == AVMEDIA_TYPE_VIDEO) {
+            m_frameCount = stream->nb_frames;
+            m_avgVideoFPS = stream->avg_frame_rate;
+            m_startTimestamp = stream->start_time;
+            m_streamTimeBase = stream->time_base;
+            break;
+        }
+    }
+}
+
+void VideoReader::openCodec() {
+    AVCodecParameters *codecParams =
+        m_formatContext->streams[m_streamId]->codecpar;
+    const AVCodec *codec = avcodec_find_decoder(codecParams->codec_id);
+    m_codecContext = avcodec_alloc_context3(codec);
+    assert(m_codecContext);
+    printf("Codec: %s\n", codec->name);
+    avcodec_parameters_to_context(m_codecContext, codecParams);
+    AVDictionary *notFoundOptions = nullptr;
+    avcodec_open2(m_codecContext, codec, &notFoundOptions);
+    // TODO: display not found options
+}
+
+void VideoReader::createSWS() {
+    AVPixelFormat pixFormat = m_codecContext->pix_fmt;
+    // replaceDeprecatedPixFmt(pixFormat);
+    int m_outW = m_codecContext->width;
+    int m_outH = m_codecContext->height;
+    m_swsContext =
+        sws_getContext(m_codecContext->width, m_codecContext->height, pixFormat,
+                       m_outW, m_outH, AVPixelFormat::AV_PIX_FMT_BGR24,
+                       SWS_BILINEAR, NULL, NULL, NULL);
+    assert(m_swsContext);
 }
 
 void VideoReader::addMetaData(MetaData *md) { m_md = md; }
