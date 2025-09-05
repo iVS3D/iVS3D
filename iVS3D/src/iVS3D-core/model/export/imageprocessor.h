@@ -21,7 +21,8 @@
  */
 class ImageContext {
 public:
-    cv::Mat image;
+    cv::Mat image;         // processed image, i.e. resized, cropped, ...
+    cv::Mat originalImage; // original image before any processing
     uint index;
     QString filename;
 };

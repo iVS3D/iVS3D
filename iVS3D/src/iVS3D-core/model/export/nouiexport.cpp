@@ -17,7 +17,7 @@ noUIExport::noUIExport(Progressable * receiver, QMap<QString, QVariant> exportSe
     QString resolution = exportSettings.find(stringContainer::Resolution).value().toString();
     Resolution output_res;
     if(output_res.fromString(resolution)){
-        dm->getModelInputPictures()->getReaderParams()->setWorkingResolution(output_res);
+        m_exportResolution = output_res;
     }
 
 
@@ -113,7 +113,13 @@ void noUIExport::runExport()
     config.destination = m_path;
     config.transformations = iTransformCopies;
     config.format = "png";
-    config.readerParams = *m_dataManager->getModelInputPictures()->getReaderParams();
+    auto readerParams = m_dataManager->getModelInputPictures()->getReaderParams();
+    config.original_resolution = readerParams->getOriginalResolution();
+    config.working_resolution = readerParams->getWorkingResolution();
+    config.export_resolution = m_exportResolution;
+    if(readerParams->getUseRoi() && !readerParams->getRoi().isDefault()){
+        config.roi = readerParams->getRoi();
+    }
 
     m_exportExec->startExport(config, m_logFile);
 }

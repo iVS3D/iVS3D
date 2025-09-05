@@ -70,6 +70,7 @@ private:
     ExportExecutor* m_exportExec = nullptr;
     LogFile *m_logFile;
     Progressable* m_receiver;
+    Resolution m_exportResolution;
 };
 
 #endif // NOUIEXPORT_H

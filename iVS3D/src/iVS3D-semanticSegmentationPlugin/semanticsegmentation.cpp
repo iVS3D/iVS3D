@@ -132,7 +132,7 @@ TransformResult SemanticSegmentation::transform(uint idx, const cv::Mat &img,
     m_roi = roi;
     m_imageIdx = idx;
 
-    // update the original image
+    // resize to working resolution for processing in NN
     resolution.resize(img, m_originalImage);
 
     if (!m_useCuda) {
@@ -144,7 +144,7 @@ TransformResult SemanticSegmentation::transform(uint idx, const cv::Mat &img,
         emit sendToGui(idx, preview);
     }
 
-    // resize and crop before processing
+    // crop before processing
     m_roi.crop(m_originalImage, m_image);
 
     // only start calculation if models found

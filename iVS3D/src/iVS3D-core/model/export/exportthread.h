@@ -36,7 +36,10 @@ struct ExportConfig
     QString name;
     QString destination;
     QString format;
-    ReaderParams readerParams;
+    std::optional<ROI> roi = std::nullopt;
+    Resolution original_resolution;
+    Resolution working_resolution;
+    Resolution export_resolution;
     std::vector<ITransform *> transformations;
 };
 

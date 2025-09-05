@@ -143,7 +143,7 @@ public slots:
      */
     void slot_nextImageOnPlayer(uint idx);
 
-    void slot_workingResolutionChanged(QString resolution);
+    void slot_exportResolutionChanged(QString resolution);
 private:
     /**
      * @brief startReconstruct handles starting reconstruct software, preparing its start-arguments, creating batch-files and project-file
@@ -163,7 +163,12 @@ private:
 
     LogFile *m_lfExport;
     DataManager *m_dataManager;
-    ReaderParams m_exportReaderParams;
+
+    Resolution m_originalResolution;
+    Resolution m_exportResolution;
+    Resolution m_workingResolution;
+    std::optional<ROI> m_roi = std::nullopt;
+
     ExportExecutor *m_exportExec;
     OutputWidget *m_outputWidget;
     ReconstructDialog *m_reconstructDialog;
