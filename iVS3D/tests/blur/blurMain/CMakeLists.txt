@@ -15,6 +15,7 @@ set(HEADER_FILES
     "${IVS_SRC_PATH}/iVS3D-blurPlugin/BlurAlgorithm.h"
     "${IVS_SRC_PATH}/iVS3D-blurPlugin/blursobel.h"
     "${IVS_SRC_PATH}/iVS3D-blurPlugin/blurlaplacian.h"
+    "${IVS_SRC_PATH}/iVS3D-blurPlugin/blurtenengrad.h"
 )
 set(SRC_FILES 
     ${CORE_SRC_FILES}
@@ -26,6 +27,7 @@ set(SRC_FILES
     "${IVS_SRC_PATH}/iVS3D-blurPlugin/BlurAlgorithm.cpp"
     "${IVS_SRC_PATH}/iVS3D-blurPlugin/blursobel.cpp"
     "${IVS_SRC_PATH}/iVS3D-blurPlugin/blurlaplacian.cpp"
+    "${IVS_SRC_PATH}/iVS3D-blurPlugin/blurtenengrad.cpp"
 )
 set(UI_FILES
     ${CORE_UI_FILES}

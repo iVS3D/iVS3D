@@ -118,7 +118,10 @@ void tst_exportThread::test_exportVideo() {
     cfg.destination = m_exportPath;
     cfg.format = "png";
     cfg.name = "MyTestExport";
-    cfg.readerParams = *m_mip->getReaderParams();
+    cfg.original_resolution = m_mip->getReaderParams()->getOriginalResolution();
+    cfg.working_resolution = m_mip->getReaderParams()->getWorkingResolution();
+    cfg.export_resolution = m_mip->getReaderParams()->getWorkingResolution();
+    cfg.roi = std::nullopt;
     cfg.transformations = transforms;
     ExportThread t(prog, m_mip, cfg, &stopped, new LogFile("test", false));
     t.start();
@@ -146,7 +149,10 @@ void tst_exportThread::test_abortExportImmediately() {
     cfg.destination = m_exportPath;
     cfg.format = "png";
     cfg.name = "MyTestExport";
-    cfg.readerParams = *m_mip->getReaderParams();
+    cfg.original_resolution = m_mip->getReaderParams()->getOriginalResolution();
+    cfg.working_resolution = m_mip->getReaderParams()->getWorkingResolution();
+    cfg.export_resolution = m_mip->getReaderParams()->getWorkingResolution();
+    cfg.roi = std::nullopt;
     cfg.transformations = transforms;
     ExportThread exportThread(prog, m_mip, cfg, &stopped, new LogFile("test", false));
     exportThread.start();
@@ -180,7 +186,10 @@ void tst_exportThread::test_exportCorrectImages() {
     cfg.destination = m_exportPath;
     cfg.format = "png";
     cfg.name = "MyTestExport";
-    cfg.readerParams = *m_mip->getReaderParams();
+    cfg.original_resolution = m_mip->getReaderParams()->getOriginalResolution();
+    cfg.working_resolution = m_mip->getReaderParams()->getWorkingResolution();
+    cfg.export_resolution = m_mip->getReaderParams()->getWorkingResolution();
+    cfg.roi = m_mip->getReaderParams()->getUseRoi() ? std::optional<ROI>(m_mip->getReaderParams()->getRoi()) : std::nullopt;
     cfg.transformations = transforms;
     ExportThread exportThread(prog, m_mip, cfg, &stopped, new LogFile("test", false));
     exportThread.start();
@@ -267,7 +276,10 @@ void tst_exportThread::test_exportResolutionAndCrop() {
     cfg.destination = m_exportPath;
     cfg.format = "png";
     cfg.name = "MyTestExport";
-    cfg.readerParams = *m_mip->getReaderParams();
+    cfg.original_resolution = m_mip->getReaderParams()->getOriginalResolution();
+    cfg.working_resolution = m_mip->getReaderParams()->getWorkingResolution();
+    cfg.export_resolution = m_mip->getReaderParams()->getWorkingResolution();
+    cfg.roi = m_mip->getReaderParams()->getUseRoi() ? std::optional<ROI>(m_mip->getReaderParams()->getRoi()) : std::nullopt;
     cfg.transformations = transforms;
 
     ExportThread t(prog, m_mip, cfg, &stopped, new LogFile("test", false));
