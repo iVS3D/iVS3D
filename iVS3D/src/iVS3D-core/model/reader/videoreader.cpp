@@ -27,6 +27,13 @@ VideoReader::VideoReader(const QString &path,
         m_readerParams->initialize(res);
     }
     m_isValid = true;
+
+    // reduce framecount when frames are corrupted at the end
+    for (uint idx = m_frameCount-1; idx > 0; --idx) {
+        cv::Mat img = getPic(idx, APPLY_NONE);
+        if (!img.empty()) break; // found functional frame
+        m_frameCount--;
+    }
 }
 
 VideoReader::~VideoReader() {
@@ -94,6 +101,9 @@ bool VideoReader::isValid() { return m_isValid; }
 cv::Mat VideoReader::getPic(unsigned int index, PictureProcessingFlags flags) {
     QMutexLocker locker(&m_mutex);
 
+    if (index >= m_frameCount)
+        return cv::Mat();
+
     std::map<uint, AVFrame *>::iterator iter = m_buffer.find(index);
     const bool backwardsSeek = index < m_lastFrameIdx;
     const bool inBuffer = iter != m_buffer.end();
@@ -111,8 +121,6 @@ cv::Mat VideoReader::getPic(unsigned int index, PictureProcessingFlags flags) {
     }
 
     // sequential read until index is reached
-    assert(index < m_frameCount);
-
     while (iter == m_buffer.end()) {
         if (m_buffer.size() > m_avgVideoFPS.num / m_avgVideoFPS.den) {
             for (auto &d_iter : m_buffer) {
@@ -135,6 +143,9 @@ cv::Mat VideoReader::getPic(unsigned int index, PictureProcessingFlags flags) {
         }
 
         iter = m_buffer.find(index);
+        if (decode_res == AVERROR_EOF && iter == m_buffer.end()) {
+            return cv::Mat();
+        }
     }
     cv::Mat img = avFrame2CvMat(iter->second);
 
@@ -154,13 +165,12 @@ int VideoReader::decodeNextPkg() {
     int read_res = av_read_frame(m_formatContext, packet);
     if (read_res == AVERROR_EOF) {
         av_packet_free(&packet);
-        avcodec_send_packet(m_codecContext, NULL);  // send flush packet
+        packet = NULL;  // send flush packet
     } else if (read_res < 0) {
         av_packet_free(&packet);
         return read_res;
-    } else {
-        int send_res = avcodec_send_packet(m_codecContext, packet);
     }
+    avcodec_send_packet(m_codecContext, packet);
 
     int receive_res = 0;
     while (receive_res == 0) {
@@ -176,7 +186,7 @@ int VideoReader::decodeNextPkg() {
             return receive_res;
         }
         int64_t idx =
-            av_rescale_q(av_frame->pts, m_streamTimeBase,
+            av_rescale_q(av_frame->pts - m_startTimestamp, m_streamTimeBase,
                          AVRational{m_avgVideoFPS.den, m_avgVideoFPS.num});
         m_buffer[idx] = av_frame;
         m_lastFrameIdx = idx;
