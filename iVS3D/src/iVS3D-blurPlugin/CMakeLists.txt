@@ -80,31 +80,34 @@ target_link_libraries(${TARGET_NAME}
     ${OpenCV_LIBRARIES}
 )
 
-# Optionally link CUDA OpenCV modules if they exist (no user flags; fully automatic)
-set(_cuda_modules opencv_cudafilters opencv_cudaimgproc opencv_cudaarithm)
+# CUDA (if applicable)
+if(WITH_CUDA)
+    # Optionally link CUDA OpenCV modules if they exist (no user flags; fully automatic)
+    set(_cuda_modules opencv_cudafilters opencv_cudaimgproc opencv_cudaarithm)
 
-set(_linked_any_cuda FALSE)
-foreach(mod IN LISTS _cuda_modules)
-    if (TARGET ${mod})
-        target_link_libraries(${TARGET_NAME} ${mod})
-        set(_linked_any_cuda TRUE)
-    endif()
-endforeach()
-
-# Older OpenCV exports might not provide imported targets; fall back to library-name scan
-if (NOT _linked_any_cuda)
-    foreach(s IN ITEMS cudafilters cudaimgproc cudaarithm)
-        if ("${OpenCV_LIBRARIES}" MATCHES "opencv_${s}")
-            target_link_libraries(${TARGET_NAME} opencv_${s})
+    set(_linked_any_cuda FALSE)
+    foreach(mod IN LISTS _cuda_modules)
+        if (TARGET ${mod})
+            target_link_libraries(${TARGET_NAME} ${mod})
             set(_linked_any_cuda TRUE)
         endif()
     endforeach()
-endif()
 
-# Define a compile-time switch ONLY if we actually linked at least one CUDA module.
-# This is not a user flag; it’s set automatically if the libs are available.
-if (_linked_any_cuda)
-    target_compile_definitions(${TARGET_NAME} PRIVATE BLUR_PLUGIN_OPENCV_HAS_CUDA_LINK=1)
+    # Older OpenCV exports might not provide imported targets; fall back to library-name scan
+    if (NOT _linked_any_cuda)
+        foreach(s IN ITEMS cudafilters cudaimgproc cudaarithm)
+            if ("${OpenCV_LIBRARIES}" MATCHES "opencv_${s}")
+                target_link_libraries(${TARGET_NAME} opencv_${s})
+                set(_linked_any_cuda TRUE)
+            endif()
+        endforeach()
+    endif()
+
+    # Define a compile-time switch ONLY if we actually linked at least one CUDA module.
+    # This is not a user flag; it’s set automatically if the libs are available.
+    if (_linked_any_cuda)
+        target_compile_definitions(${TARGET_NAME} PRIVATE BLUR_PLUGIN_OPENCV_HAS_CUDA_LINK=1)
+    endif()
 endif()
 
 # Helpful: let rpath include linker search paths so the loader can find OpenCV libs
