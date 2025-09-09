@@ -296,112 +296,112 @@
         <translation>Das ausgewählte Bild ist beschädigt und kann nicht zugeschnitten werden. Bitte anderes Bild zum Zuschneiden auswählen.</translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="461"/>
+        <location filename="../controller/controller.cpp" line="467"/>
         <source>No images imported after </source>
         <translation>Keine Bilder geladen nach </translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="501"/>
+        <location filename="../controller/controller.cpp" line="507"/>
         <source>General</source>
         <translation>Details</translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="502"/>
+        <location filename="../controller/controller.cpp" line="508"/>
         <source> pixels</source>
         <translation> Pixel</translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="503"/>
+        <location filename="../controller/controller.cpp" line="509"/>
         <source> images</source>
         <translation> Bilder</translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="508"/>
+        <location filename="../controller/controller.cpp" line="514"/>
         <source>Video</source>
         <translation>Video</translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="509"/>
+        <location filename="../controller/controller.cpp" line="515"/>
         <source> seconds</source>
         <translation> Sekunden</translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="510"/>
+        <location filename="../controller/controller.cpp" line="516"/>
         <source> fps</source>
         <translation> FPS</translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="515"/>
+        <location filename="../controller/controller.cpp" line="521"/>
         <source>Metadata</source>
         <translation>Metadaten</translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="597"/>
+        <location filename="../controller/controller.cpp" line="603"/>
         <source>Loaded </source>
         <translation>Laden von </translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="474"/>
-        <location filename="../controller/controller.cpp" line="597"/>
+        <location filename="../controller/controller.cpp" line="480"/>
+        <location filename="../controller/controller.cpp" line="603"/>
         <source> meta data feature</source>
         <translation> Meta Daten Eigenschaft</translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="474"/>
-        <location filename="../controller/controller.cpp" line="597"/>
+        <location filename="../controller/controller.cpp" line="480"/>
+        <location filename="../controller/controller.cpp" line="603"/>
         <source>s</source>
         <translation>en</translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="461"/>
-        <location filename="../controller/controller.cpp" line="475"/>
-        <location filename="../controller/controller.cpp" line="478"/>
+        <location filename="../controller/controller.cpp" line="467"/>
+        <location filename="../controller/controller.cpp" line="481"/>
+        <location filename="../controller/controller.cpp" line="484"/>
         <source>ms</source>
         <translation>ms</translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="473"/>
-        <location filename="../controller/controller.cpp" line="478"/>
+        <location filename="../controller/controller.cpp" line="479"/>
+        <location filename="../controller/controller.cpp" line="484"/>
         <source>Import of </source>
         <translation>Import von </translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="473"/>
+        <location filename="../controller/controller.cpp" line="479"/>
         <source> images and </source>
         <translation> Bildern und </translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="475"/>
+        <location filename="../controller/controller.cpp" line="481"/>
         <source> finished after </source>
         <translation> abgeschlossen nach </translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="478"/>
+        <location filename="../controller/controller.cpp" line="484"/>
         <source> images finished after </source>
         <translation> Bildern abgeschlossen nach </translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="601"/>
+        <location filename="../controller/controller.cpp" line="607"/>
         <source>No meta data features were detected</source>
         <translation>Es wurden keine Metadaten gefunden</translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="633"/>
+        <location filename="../controller/controller.cpp" line="639"/>
         <source>Importing dataset and metadata.</source>
         <translation>Lade Bilder und Metadaten.</translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="674"/>
+        <location filename="../controller/controller.cpp" line="682"/>
         <source>Project </source>
         <translation>Projekt </translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="674"/>
+        <location filename="../controller/controller.cpp" line="682"/>
         <source> with </source>
         <translation> mit </translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="675"/>
+        <location filename="../controller/controller.cpp" line="683"/>
         <source> images loaded</source>
         <translation> Bildern geladen</translation>
     </message>
@@ -455,55 +455,55 @@
 <context>
     <name>ExportController</name>
     <message>
-        <location filename="../controller/exportcontroller.cpp" line="166"/>
+        <location filename="../controller/exportcontroller.cpp" line="225"/>
         <source>Couldn&apos;t create Export Directory: %1</source>
         <translation>Exportordner %1 konnte nicht erstellt werden</translation>
     </message>
     <message>
-        <location filename="../controller/exportcontroller.cpp" line="302"/>
+        <location filename="../controller/exportcontroller.cpp" line="371"/>
         <source>Export aborted after </source>
         <translation>Export abgerochen nach </translation>
     </message>
     <message>
-        <location filename="../controller/exportcontroller.cpp" line="302"/>
-        <location filename="../controller/exportcontroller.cpp" line="336"/>
-        <location filename="../controller/exportcontroller.cpp" line="340"/>
+        <location filename="../controller/exportcontroller.cpp" line="372"/>
+        <location filename="../controller/exportcontroller.cpp" line="415"/>
+        <location filename="../controller/exportcontroller.cpp" line="421"/>
         <source>ms</source>
         <translation>ms</translation>
     </message>
     <message>
-        <location filename="../controller/exportcontroller.cpp" line="324"/>
+        <location filename="../controller/exportcontroller.cpp" line="400"/>
         <source>Export aborted by the user.</source>
         <translation>Export vom Nutzer abgebrochen.</translation>
     </message>
     <message>
-        <location filename="../controller/exportcontroller.cpp" line="330"/>
+        <location filename="../controller/exportcontroller.cpp" line="406"/>
         <source>Error during export</source>
         <translation>Fehler beim Exportien</translation>
     </message>
     <message>
-        <location filename="../controller/exportcontroller.cpp" line="330"/>
+        <location filename="../controller/exportcontroller.cpp" line="407"/>
         <source>Export failed: %1</source>
         <translation>Export fehlgeschlagen: %1</translation>
     </message>
     <message>
-        <location filename="../controller/exportcontroller.cpp" line="336"/>
-        <location filename="../controller/exportcontroller.cpp" line="340"/>
+        <location filename="../controller/exportcontroller.cpp" line="414"/>
+        <location filename="../controller/exportcontroller.cpp" line="420"/>
         <source>Export finished after </source>
         <translation>Export beendet nach </translation>
     </message>
     <message>
-        <location filename="../controller/exportcontroller.cpp" line="337"/>
+        <location filename="../controller/exportcontroller.cpp" line="415"/>
         <source> with </source>
         <translation> mit </translation>
     </message>
     <message>
-        <location filename="../controller/exportcontroller.cpp" line="337"/>
+        <location filename="../controller/exportcontroller.cpp" line="416"/>
         <source> broken image.</source>
         <translation> beschädigtem Bild.</translation>
     </message>
     <message>
-        <location filename="../controller/exportcontroller.cpp" line="337"/>
+        <location filename="../controller/exportcontroller.cpp" line="417"/>
         <source> broken images.</source>
         <translation> beschädigten Bildern.</translation>
     </message>
@@ -511,23 +511,23 @@
 <context>
     <name>ExportThread</name>
     <message>
-        <location filename="../model/export/exportthread.cpp" line="38"/>
-        <location filename="../model/export/exportthread.cpp" line="156"/>
+        <location filename="../model/export/exportthread.cpp" line="43"/>
+        <location filename="../model/export/exportthread.cpp" line="190"/>
         <source>Exporting images</source>
         <translation>Bilder exportieren</translation>
     </message>
     <message>
-        <location filename="../model/export/exportthread.cpp" line="103"/>
+        <location filename="../model/export/exportthread.cpp" line="133"/>
         <source>Encountered an error! Aborting...</source>
         <translation>Fehler! Wird abgebrochen...</translation>
     </message>
     <message>
-        <location filename="../model/export/exportthread.cpp" line="145"/>
+        <location filename="../model/export/exportthread.cpp" line="178"/>
         <source> images where skipped.</source>
         <translation> Bilder wurden übersprungen.</translation>
     </message>
     <message>
-        <location filename="../model/export/exportthread.cpp" line="148"/>
+        <location filename="../model/export/exportthread.cpp" line="182"/>
         <source>All images exported successfully.</source>
         <translation>Alle Bilder wurden erfolgreich exportiert.</translation>
     </message>
@@ -566,53 +566,58 @@
     </message>
     <message>
         <location filename="../view/exportwidget.ui" line="107"/>
+        <source>same as input</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../view/exportwidget.ui" line="112"/>
         <source>png</source>
         <translation>png</translation>
     </message>
     <message>
-        <location filename="../view/exportwidget.ui" line="112"/>
-        <source>jpeg</source>
-        <translation>jpeg</translation>
+        <location filename="../view/exportwidget.ui" line="117"/>
+        <source>jpg</source>
+        <translation>jpg</translation>
     </message>
     <message>
-        <location filename="../view/exportwidget.ui" line="120"/>
+        <location filename="../view/exportwidget.ui" line="125"/>
         <source>Output format</source>
         <translation>Ausgabeformat</translation>
     </message>
     <message>
-        <location filename="../view/exportwidget.ui" line="127"/>
+        <location filename="../view/exportwidget.ui" line="132"/>
         <source>Create files for</source>
         <translation>Erstelle Masken für</translation>
     </message>
     <message>
-        <location filename="../view/exportwidget.ui" line="163"/>
+        <location filename="../view/exportwidget.ui" line="168"/>
         <source>Export images to directory</source>
         <translation>Bilder in den Ordner exportieren</translation>
     </message>
     <message>
-        <location filename="../view/exportwidget.ui" line="160"/>
+        <location filename="../view/exportwidget.ui" line="165"/>
         <source>Export keyframes to output folder</source>
         <translation>Keyframes in den Ausgabeordner exportieren</translation>
     </message>
     <message>
+        <location filename="../view/exportwidget.cpp" line="37"/>
         <location filename="../view/exportwidget.cpp" line="42"/>
-        <location filename="../view/exportwidget.cpp" line="44"/>
         <source>location to export keyframes to.</source>
         <translation>Ordner in den die Keyframes exportiert werden.</translation>
     </message>
     <message>
-        <location filename="../view/exportwidget.cpp" line="42"/>
-        <location filename="../view/exportwidget.cpp" line="44"/>
+        <location filename="../view/exportwidget.cpp" line="38"/>
+        <location filename="../view/exportwidget.cpp" line="43"/>
         <source>export location ha been passed as a start argument. Thus it can not be changed!</source>
         <translation>Ausgabeordner wurde als Startargument übergeben und kann daher nicht verändert werden!</translation>
     </message>
     <message>
-        <location filename="../view/exportwidget.cpp" line="65"/>
+        <location filename="../view/exportwidget.cpp" line="59"/>
         <source>choose output folder</source>
         <translation>Ausgabeordner auswählen</translation>
     </message>
     <message>
-        <location filename="../view/exportwidget.cpp" line="177"/>
+        <location filename="../view/exportwidget.cpp" line="150"/>
         <source>Altitude above sea-level</source>
         <translation>Höhe über Meeresspiegel</translation>
     </message>
@@ -2039,7 +2044,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
 <context>
     <name>noUIExport</name>
     <message>
-        <location filename="../model/export/nouiexport.cpp" line="124"/>
+        <location filename="../model/export/nouiexport.cpp" line="130"/>
         <source>Export failed: 
 %1</source>
         <translation>Export fehlgeschlagen: 
