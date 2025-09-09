@@ -768,8 +768,9 @@ void Controller::onSuccessfulOpen()
     m_mainWindow->getVideoPlayer()->updateRoi(params->getUseRoi()? roi : QRect());
 
     // default working resolution: 720p if input is larger
-    if (params->getOriginalResolution().getHeight() > 720) {
+    #define DEFAULT_WORKING_RESOLUTION_HEIGHT 720
+    if (params->getOriginalResolution().getHeight() > DEFAULT_WORKING_RESOLUTION_HEIGHT) {
         float aspect_ratio = static_cast<float>(params->getOriginalResolution().getWidth()) / params->getOriginalResolution().getHeight();
-        m_mainWindow->getSamplingWidget()->setResolution(Resolution(1280, static_cast<int>(1280 / aspect_ratio)).toString());
+        m_mainWindow->getSamplingWidget()->setResolution(Resolution(static_cast<int>(DEFAULT_WORKING_RESOLUTION_HEIGHT * aspect_ratio), DEFAULT_WORKING_RESOLUTION_HEIGHT).toString());
     }
 }
