@@ -46,3 +46,5 @@ endif() # With_CUDA
 # Add your cmake/ folder to the module search path
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}")
 find_package(Onnxruntime 1.18.0)
+
+find_package(Ffmpeg REQUIRED)

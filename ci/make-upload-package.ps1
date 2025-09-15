@@ -72,6 +72,19 @@ If($CUDA_VERSION){
   Copy-Item -Path "${CUDNN_BIN_PATH}\*.dll" -Destination "."
 }
 
+# add Onnxruntime dependencies
+If($env:Onnxruntime_ROOT_DIR){
+  Write-Host "`nCopying Onnxruntime ${env:ORT_VERSION} runtime dlls"
+  Copy-Item -Path "$env:Onnxruntime_ROOT_DIR\lib\*.dll" -Destination "."
+}
+
+# add Ffmpeg dependencies
+If($env:Ffmpeg_ROOT_DIR){
+  Write-Host "`nCopying Ffmpeg runtime dlls"
+  Copy-Item -Path "$env:Ffmpeg_ROOT_DIR\bin\*.dll" -Destination "."
+}
+
+
 Set-Content -Path qt.conf -Value "[Paths]
 Prefix = ./
 Plugins = plugins
