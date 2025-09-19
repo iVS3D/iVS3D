@@ -37,10 +37,11 @@ set(Update_Translations OFF CACHE BOOL "Enable rescanning sources to update .ts 
 if(PROJECT_IS_TOP_LEVEL)
     include(iVS3D/cmake/Summary.cmake)
     define_summary_property()
+    # 3rd_party
+    include(iVS3D/cmake/ExternalDependencies.cmake)
 endif()
 
-# 3rd_party
-include(iVS3D/cmake/ExternalDependencies.cmake)
+
 
 if(Update_Translations)
     # Qt Linguist

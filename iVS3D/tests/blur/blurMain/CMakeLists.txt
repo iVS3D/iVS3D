@@ -54,6 +54,7 @@ add_executable(${TARGET_NAME}
 add_test(${TARGET_NAME} ${TARGET_NAME})
 target_link_libraries(${TARGET_NAME}
     iVS3D-pluginInterface
+    iVS3D::Ffmpeg
     ${OpenCV_LIBRARIES} 
     Qt${QT_VERSION_MAJOR}::Test
     Qt${QT_VERSION_MAJOR}::Widgets

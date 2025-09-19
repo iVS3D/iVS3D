@@ -4,9 +4,6 @@ if(WIN32)
     set(app_icon_resource_windows "${CMAKE_CURRENT_SOURCE_DIR}/resources/ivs3dIcon.ico")
 endif()
 
-# FFMPEG libs
-find_package(Ffmpeg REQUIRED)
-
 # set header, source and form files
 file(GLOB_RECURSE HEADER_FILES
     "${CMAKE_CURRENT_LIST_DIR}/*.h"
@@ -27,7 +24,6 @@ include_directories(SYSTEM
 )
 
 include_directories(${OpenCV_INCLUDE_DIRS})
-include_directories(${Ffmpeg_INCLUDE_DIRS})
 
 include_directories(
     "${CMAKE_CURRENT_LIST_DIR}/../iVS3D-pluginInterface"
@@ -78,7 +74,7 @@ add_executable(${TARGET_NAME}
 target_link_libraries(${TARGET_NAME}
     iVS3D-pluginInterface
     ${OpenCV_LIBRARIES}
-    ${Ffmpeg_LIBRARIES}
+    iVS3D::Ffmpeg
     Qt${QT_VERSION_MAJOR}::Core
     Qt${QT_VERSION_MAJOR}::Widgets
     Qt${QT_VERSION_MAJOR}::Gui

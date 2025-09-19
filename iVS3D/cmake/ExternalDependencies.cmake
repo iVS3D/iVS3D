@@ -47,4 +47,11 @@ endif() # With_CUDA
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}")
 find_package(Onnxruntime 1.18.0)
 
+# Ffmpeg interface
 find_package(Ffmpeg REQUIRED)
+if(NOT Ffmpeg_FOUND)
+    message(FATAL_ERROR "Ffmpeg not found. Ffmpeg is required.")
+endif()
+add_library(iVS3D_Ffmpeg INTERFACE)
+add_library(iVS3D::Ffmpeg ALIAS iVS3D_Ffmpeg)
+target_link_libraries(iVS3D_Ffmpeg INTERFACE ${Ffmpeg_LIBRARIES})
