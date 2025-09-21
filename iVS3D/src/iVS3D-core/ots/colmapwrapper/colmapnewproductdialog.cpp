@@ -219,6 +219,71 @@ void NewProductDialog::onAccepted()
         return newJob;
     };
 
+    // Helper lambda to copy files from a source directory to a destination directory
+    auto copyFilesToWorkspace = [this](const QString& srcDirPath, const QString& destDirPath, QWidget* parent) -> bool {
+        if (srcDirPath.isEmpty())
+            return false;
+
+        QDir srcDir(srcDirPath);
+
+        // List all image files in directory
+        QStringList imgFiles = srcDir.entryList(QStringList() << "*.jpg"
+                                                              << "*.JPG"
+                                                              << "*.jpeg"
+                                                              << "*.JPEG"
+                                                              << "*.png"
+                                                              << "*.PNG"
+                                                              << "*.bmp"
+                                                              << "*.BMP"
+                                                              << "*.tiff"
+                                                              << "*.TIFF",
+                                                QDir::Files);
+
+        // Create destination directory if not exists
+        QDir destDir(destDirPath);
+        if (destDir.exists()) {
+            destDir.removeRecursively();
+        }
+        destDir.mkpath(".");
+
+        // Copy files
+        if (imgFiles.size() > 0) {
+            QProgressDialog progress(tr("Copying files..."),
+                                     tr("Abort Copy"),
+                                     0,
+                                     imgFiles.size(),
+                                     parent);
+            progress.setWindowModality(Qt::WindowModal);
+            progress.show();
+            bool isCanceled = false;
+            for (int i = 0; i < imgFiles.size(); i++) {
+                progress.setValue(i);
+
+                // If progress was canceled
+                if (progress.wasCanceled()) {
+                    // Remove already copied files
+                    for (int j = i - 1; j >= 0; --j)
+                        QFile::remove(QDir::toNativeSeparators(destDirPath + QDir::separator() + imgFiles[j]));
+
+                    isCanceled = true;
+                    break;
+                }
+                QFile::copy(QDir::toNativeSeparators(srcDirPath + QDir::separator() + imgFiles[i]),
+                            QDir::toNativeSeparators(destDirPath + QDir::separator() + imgFiles[i]));
+            }
+            progress.setValue(imgFiles.size());
+
+            return !isCanceled;
+        } else {
+            QMessageBox msgWarning;
+            msgWarning.setText("WARNING!\n No images found.");
+            msgWarning.setIcon(QMessageBox::Warning);
+            msgWarning.setWindowTitle("Caution");
+            msgWarning.exec();
+            return false;
+        }
+    };
+
     //--- compute image path from sequence name
     QString genericDirPath = "%1/" + ui->le_sequenceName->text() + ".images";
     QString displayDirPath, importDirPath;
@@ -233,75 +298,37 @@ void NewProductDialog::onAccepted()
         importDirPath = displayDirPath;
     }
 
-    bool successful = false;
-
     QString srcDirPath = ui->le_imagePath->text();
 
-    if (!srcDirPath.isEmpty()) {
-        QDir srcDir(srcDirPath);
+    // Copy images
+    bool successful = copyFilesToWorkspace(srcDirPath, importDirPath, this);
 
-        //--- list all image files in directory
-        QStringList imgFiles = srcDir.entryList(QStringList() << "*.jpg"
-                                                              << "*.JPG"
-                                                              << "*.jepg"
-                                                              << "*.JEPG"
-                                                              << "*.png"
-                                                              << "*.PNG"
-                                                              << "*.bmp"
-                                                              << "*.BMP"
-                                                              << "*.tiff"
-                                                              << "*.tiff",
-                                                QDir::Files);
+    if (!successful) {
+        return;
+    }
+    ui->le_imagePath->setText(displayDirPath);
 
-        //--- create destination directory if not exists
-        QDir destDir(importDirPath);
-        if (destDir.exists()) {
-            destDir.removeRecursively();
-        }
-        destDir.mkpath(".");
-
-        //--- copy files
-        if (imgFiles.size() > 0) {
-            QProgressDialog progress(tr("Copying files..."),
-                                     tr("Abort Copy"),
-                                     0,
-                                     imgFiles.size(),
-                                     this);
-            progress.setWindowModality(Qt::WindowModal);
-            progress.show();
-            bool isCanceled = false;
-            for (int i = 0; i < imgFiles.size(); i++) {
-                progress.setValue(i);
-
-                //--- if progress was canceled
-                if (progress.wasCanceled()) {
-                    //--- remove already copied files
-                    for (int j = i - 1; j >= 0; --j)
-                        QFile::remove(QDir::toNativeSeparators(importDirPath + QDir::separator() + imgFiles[j]));
-
-                    isCanceled = true;
-                    break;
-                }
-                // copy does not overwrite existing, so should be very perfomant if files already exist
-                QFile::copy(QDir::toNativeSeparators(srcDirPath + QDir::separator() + imgFiles[i]),
-                            QDir::toNativeSeparators(importDirPath + QDir::separator() + imgFiles[i]));
-            }
-            progress.setValue(imgFiles.size());
-
-            successful = !isCanceled;
+    // Try to copy masks if mask folder exists
+    QString srcMaskDirPath = srcDirPath;
+    srcMaskDirPath.replace(QRegExp("images$"), "masks");
+    bool hasMasks = false;
+    QString mask_path;
+    if (srcMaskDirPath != srcDirPath && QDir(srcMaskDirPath).exists()) {
+        QString genericMaskDirPath = "%1/" + ui->le_sequenceName->text() + ".masks";
+        QString importMaskDirPath;
+        if (mpColmapWrapper->connectionType() == ColmapWrapper::SSH) {
+            importMaskDirPath = QDir::toNativeSeparators(genericMaskDirPath.arg(
+                mpColmapWrapper->mntPntRemoteWorkspacePath()));
         } else {
-            QMessageBox msgWarning;
-            msgWarning.setText("WARNING!\n No images found.");
-            msgWarning.setIcon(QMessageBox::Warning);
-            msgWarning.setWindowTitle("Caution");
-            msgWarning.exec();
-            successful = false;
+            importMaskDirPath = QDir::toNativeSeparators(genericMaskDirPath.arg(
+                mpColmapWrapper->localWorkspacePath()));
         }
-
-        if (!successful) {
-            return;
+        copyFilesToWorkspace(srcMaskDirPath, importMaskDirPath, this);
+        hasMasks = true;
+        mask_path = importMaskDirPath;
+        if (mpColmapWrapper->connectionType() == ColmapWrapper::SSH) {
+            mask_path = QDir::fromNativeSeparators(mask_path);
         }
-        ui->le_imagePath->setText(displayDirPath);
     }
 
     //--- create job to estimate camera poses if applicable
@@ -318,6 +345,11 @@ void NewProductDialog::onAccepted()
         camParamsJob.parameters.insert(
             std::pair<std::string, std::string>("image_path",
                                                 image_path.toStdString()));
+        if (hasMasks) {
+            camParamsJob.parameters.insert(
+                std::pair<std::string, std::string>("mask_path",
+                                                    mask_path.toStdString()));
+        }
         camParamsJob.parameters.insert(
             std::pair<std::string, std::string>("camera_model",
                                                 COLMAP_CAM_MODELS[ui->cb_camModel->currentIndex()]));
@@ -387,6 +419,7 @@ void NewProductDialog::onAccepted()
     }
 
 
+
     if(ui->cb_customCommand->isChecked()){
         ColmapWrapper::SJob customCommandJob = createJob(ColmapWrapper::CUSTOM_COMMAND);
 
@@ -405,6 +438,11 @@ void NewProductDialog::onAccepted()
         customCommandJob.parameters.insert(
             std::pair<std::string, std::string>("image_path",
                                                 image_path.toStdString()));
+        if (hasMasks) {
+            customCommandJob.parameters.insert(
+                std::pair<std::string, std::string>("mask_path",
+                                                    mask_path.toStdString()));
+        }
         customCommandJob.parameters.insert(
             std::pair<std::string, std::string>("camera_model",
                                                 COLMAP_CAM_MODELS[ui->cb_camModel->currentIndex()]));
