@@ -28,6 +28,9 @@ NewProductDialog::NewProductDialog(ColmapWrapper *ipWrapper, QWidget *parent)
     ui->l_warningNoImages->setVisible(false);
     ui->l_warningNoImages->setStyleSheet("QLabel { color: red; }");
 
+    ui->l_warningNoMasks->setVisible(false);
+    ui->l_warningNoMasks->setStyleSheet("QLabel { color: red; }");
+
     ui->l_warningSequenceName->setVisible(false);
     ui->l_warningSequenceName->setStyleSheet("QLabel { color: red; }");
 
@@ -37,6 +40,15 @@ NewProductDialog::NewProductDialog(ColmapWrapper *ipWrapper, QWidget *parent)
             this,
             &NewProductDialog::onPbSelectImageDirectoryClicked);
 
+    connect(ui->pb_selectMaskPath,
+            &QPushButton::clicked,
+            this,
+            &NewProductDialog::onPbSelectMaskDirectoryClicked);
+
+    connect(ui->le_maskPath,
+            &QLineEdit::editingFinished,
+            this,
+            &NewProductDialog::validateMaskPath);
 
     connect(ui->cb_customCommand,
             &QCheckBox::clicked,
@@ -193,6 +205,87 @@ void NewProductDialog::onPbSelectImageDirectoryClicked()
 }
 
 //==================================================================================================
+void NewProductDialog::onPbSelectMaskDirectoryClicked()
+{
+    QString dirPath = ui->le_maskPath->text();
+
+    dirPath = QFileDialog::getExistingDirectory(this,
+                                                tr("Select mask directory"),
+                                                dirPath.isEmpty()
+                                                    ? QApplication::applicationDirPath()
+                                                    : dirPath);
+
+    if (!dirPath.isEmpty()) {
+        ui->le_maskPath->setText(dirPath);
+        validateMaskPath();
+    }
+}
+
+void NewProductDialog::validateMaskPath()
+{
+    QString maskDirPath = ui->le_maskPath->text().trimmed();
+
+    // If empty, that's fine (optional)
+    if (maskDirPath.isEmpty()) {
+        ui->le_maskPath->setStyleSheet("");
+        ui->l_warningNoMasks->setVisible(false);
+        return;
+    }
+
+    QDir maskDir(maskDirPath);
+    if (!maskDir.exists()) {
+        ui->le_maskPath->setStyleSheet("QLineEdit { border: 1px solid red; }");
+        ui->l_warningNoMasks->setText(tr("Mask directory does not exist."));
+        ui->l_warningNoMasks->setVisible(true);
+        return;
+    }
+
+    // List mask files
+    QStringList maskFiles = maskDir.entryList(QStringList() << "*.png"
+                                                            << "*.PNG"
+                                                            << "*.bmp"
+                                                            << "*.BMP"
+                                                            << "*.tiff"
+                                                            << "*.TIFF"
+                                                            << "*.jpg"
+                                                            << "*.JPG"
+                                                            << "*.jpeg"
+                                                            << "*.JPEG",
+                                              QDir::Files);
+
+    // Get image count for comparison
+    QString imageDirPath = ui->le_imagePath->text().trimmed();
+    int imageCount = 0;
+    if (!imageDirPath.isEmpty()) {
+        QDir imageDir(imageDirPath);
+        QStringList imgFiles = imageDir.entryList(QStringList() << "*.jpg"
+                                                                << "*.JPG"
+                                                                << "*.jpeg"
+                                                                << "*.JPEG"
+                                                                << "*.png"
+                                                                << "*.PNG"
+                                                                << "*.bmp"
+                                                                << "*.BMP"
+                                                                << "*.tiff"
+                                                                << "*.TIFF",
+                                                  QDir::Files);
+        imageCount = imgFiles.size();
+    }
+
+    if (imageCount > 0 && maskFiles.size() != imageCount) {
+        ui->le_maskPath->setStyleSheet("QLineEdit { border: 1px solid orange; }");
+        ui->l_warningNoMasks->setText(tr("Warning: Number of masks (%1) does not match number of images (%2).")
+                                     .arg(maskFiles.size()).arg(imageCount));
+        ui->l_warningNoMasks->setVisible(true);
+        return;
+    }
+
+    // Valid
+    ui->le_maskPath->setStyleSheet("");
+    ui->l_warningNoMasks->setVisible(false);
+}
+
+//==================================================================================================
 void NewProductDialog::updateSettingsVisibility()
 {
     ui->gb_settingsCamPoses->setVisible(ui->cb_prodCameraPoses->isChecked() || ui->cb_customCommand->isChecked());
@@ -308,26 +401,32 @@ void NewProductDialog::onAccepted()
     }
     ui->le_imagePath->setText(displayDirPath);
 
-    // Try to copy masks if mask folder exists
-    QString srcMaskDirPath = srcDirPath;
-    srcMaskDirPath.replace(QRegExp("images$"), "masks");
-    bool hasMasks = false;
+    // --- Copy masks only if a valid folder is selected in the UI ---
     QString mask_path;
-    if (srcMaskDirPath != srcDirPath && QDir(srcMaskDirPath).exists()) {
-        QString genericMaskDirPath = "%1/" + ui->le_sequenceName->text() + ".masks";
-        QString importMaskDirPath;
-        if (mpColmapWrapper->connectionType() == ColmapWrapper::SSH) {
-            importMaskDirPath = QDir::toNativeSeparators(genericMaskDirPath.arg(
-                mpColmapWrapper->mntPntRemoteWorkspacePath()));
-        } else {
-            importMaskDirPath = QDir::toNativeSeparators(genericMaskDirPath.arg(
-                mpColmapWrapper->localWorkspacePath()));
-        }
-        copyFilesToWorkspace(srcMaskDirPath, importMaskDirPath, this);
-        hasMasks = true;
-        mask_path = importMaskDirPath;
-        if (mpColmapWrapper->connectionType() == ColmapWrapper::SSH) {
-            mask_path = QDir::fromNativeSeparators(mask_path);
+    QString maskDirPath = ui->le_maskPath->text().trimmed();
+    bool hasMasks = false;
+    if (!maskDirPath.isEmpty()) {
+        QDir maskDir(maskDirPath);
+        if (maskDir.exists()) {
+            // Prepare destination path in workspace
+            QString genericMaskDirPath = "%1/" + ui->le_sequenceName->text() + ".masks";
+            QString importMaskDirPath;
+            if (mpColmapWrapper->connectionType() == ColmapWrapper::SSH) {
+                importMaskDirPath = QDir::toNativeSeparators(genericMaskDirPath.arg(
+                    mpColmapWrapper->mntPntRemoteWorkspacePath()));
+            } else {
+                importMaskDirPath = QDir::toNativeSeparators(genericMaskDirPath.arg(
+                    mpColmapWrapper->localWorkspacePath()));
+            }
+            // Copy mask files
+            bool maskCopySuccess = copyFilesToWorkspace(maskDirPath, importMaskDirPath, this);
+            if (maskCopySuccess) {
+                hasMasks = true;
+                mask_path = importMaskDirPath;
+                if (mpColmapWrapper->connectionType() == ColmapWrapper::SSH) {
+                    mask_path = QDir::fromNativeSeparators(mask_path);
+                }
+            }
         }
     }
 
@@ -486,12 +585,14 @@ void NewProductDialog::onAccepted()
 void NewProductDialog::onUpdateToDarkTheme()
 {
     ui->pb_selectImagePath->setIcon(QIcon(":/assets/icons/glyphicons-145-folder-open-dark.png"));
+    ui->pb_selectMaskPath->setIcon(QIcon(":/assets/icons/glyphicons-145-folder-open-dark.png"));
 }
 
 //==================================================================================================
 void NewProductDialog::onUpdateToLightTheme()
 {
     ui->pb_selectImagePath->setIcon(QIcon(":/assets/icons/glyphicons-145-folder-open.png"));
+    ui->pb_selectMaskPath->setIcon(QIcon(":/assets/icons/glyphicons-145-folder-open.png"));
 }
 
 //==================================================================================================
@@ -598,6 +699,16 @@ void NewProductDialog::validateImagePath()
             enableSaveButtonState();
             ui->l_warningNoImages->setVisible(false);
             enableSaveButtonState();
+
+            // --- Auto-select sibling masks folder if it exists and mask path is empty or invalid
+            QDir imageDir(srcDirPath);
+            QString maskDirPath = imageDir.filePath("../masks");
+            QDir maskDir(maskDirPath);
+            if (maskDir.exists() && (ui->le_maskPath->text().isEmpty() || !maskDir.exists(ui->le_maskPath->text()))) {
+                ui->le_maskPath->setText(maskDir.absolutePath());
+                validateMaskPath();
+            }
+
             return;
         }
     }

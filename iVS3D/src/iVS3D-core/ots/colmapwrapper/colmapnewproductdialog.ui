@@ -81,81 +81,186 @@
          <item>
           <widget class="QLabel" name="l_imagePath">
            <property name="text">
-            <string>Images:</string>
+        <string>Images:</string>
            </property>
           </widget>
          </item>
          <item>
           <spacer name="horizontalSpacer_2">
            <property name="orientation">
-            <enum>Qt::Horizontal</enum>
+        <enum>Qt::Horizontal</enum>
            </property>
            <property name="sizeHint" stdset="0">
-            <size>
-             <width>40</width>
-             <height>20</height>
-            </size>
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
            </property>
           </spacer>
          </item>
          <item>
           <widget class="QLabel" name="l_warningNoImages">
            <property name="text">
-            <string>No images found in directory</string>
+        <string>No images found in directory</string>
            </property>
           </widget>
          </item>
          <item>
           <widget class="QLineEdit" name="le_imagePath">
            <property name="enabled">
-            <bool>true</bool>
+        <bool>true</bool>
            </property>
            <property name="minimumSize">
-            <size>
-             <width>388</width>
-             <height>0</height>
-            </size>
+        <size>
+         <width>388</width>
+         <height>0</height>
+        </size>
            </property>
            <property name="dragEnabled">
-            <bool>true</bool>
+        <bool>true</bool>
            </property>
            <property name="readOnly">
-            <bool>false</bool>
+        <bool>false</bool>
            </property>
            <property name="clearButtonEnabled">
-            <bool>false</bool>
+        <bool>false</bool>
            </property>
           </widget>
          </item>
          <item>
           <widget class="QPushButton" name="pb_selectImagePath">
            <property name="sizePolicy">
-            <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
+        <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
            </property>
            <property name="minimumSize">
-            <size>
-             <width>25</width>
-             <height>0</height>
-            </size>
+        <size>
+         <width>25</width>
+         <height>0</height>
+        </size>
            </property>
            <property name="maximumSize">
-            <size>
-             <width>25</width>
-             <height>16777215</height>
-            </size>
+        <size>
+         <width>25</width>
+         <height>16777215</height>
+        </size>
            </property>
            <property name="toolTip">
-            <string>Select image path...</string>
+        <string>Select image path...</string>
            </property>
            <property name="text">
-            <string/>
+        <string/>
            </property>
            <property name="icon">
-            <iconset resource="../../lib3D_ots.qrc">
-             <normaloff>:/assets/icons/glyphicons-145-folder-open.png</normaloff>:/assets/icons/glyphicons-145-folder-open.png</iconset>
+        <iconset resource="../../lib3D_ots.qrc">
+         <normaloff>:/assets/icons/glyphicons-145-folder-open.png</normaloff>:/assets/icons/glyphicons-145-folder-open.png</iconset>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QFrame" name="f_maskPath">
+        <property name="frameShape">
+         <enum>QFrame::NoFrame</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Plain</enum>
+        </property>
+        <layout class="QHBoxLayout" name="horizontalLayout_maskPath">
+         <property name="leftMargin">
+          <number>0</number>
+         </property>
+         <property name="topMargin">
+          <number>0</number>
+         </property>
+         <property name="rightMargin">
+          <number>0</number>
+         </property>
+         <property name="bottomMargin">
+          <number>0</number>
+         </property>
+         <item>
+          <widget class="QLabel" name="l_maskPath">
+           <property name="text">
+        <string>Masks:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer_maskPath">
+           <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QLabel" name="l_warningNoMasks">
+           <property name="text">
+        <string>No masks found in directory</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="le_maskPath">
+           <property name="enabled">
+        <bool>true</bool>
+           </property>
+           <property name="minimumSize">
+        <size>
+         <width>388</width>
+         <height>0</height>
+        </size>
+           </property>
+           <property name="dragEnabled">
+        <bool>true</bool>
+           </property>
+           <property name="readOnly">
+        <bool>false</bool>
+           </property>
+           <property name="clearButtonEnabled">
+        <bool>false</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pb_selectMaskPath">
+           <property name="sizePolicy">
+        <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+           </property>
+           <property name="minimumSize">
+        <size>
+         <width>25</width>
+         <height>0</height>
+        </size>
+           </property>
+           <property name="maximumSize">
+        <size>
+         <width>25</width>
+         <height>16777215</height>
+        </size>
+           </property>
+           <property name="toolTip">
+        <string>Select mask path...</string>
+           </property>
+           <property name="text">
+        <string/>
+           </property>
+           <property name="icon">
+        <iconset resource="../../lib3D_ots.qrc">
+         <normaloff>:/assets/icons/glyphicons-145-folder-open.png</normaloff>:/assets/icons/glyphicons-145-folder-open.png</iconset>
            </property>
           </widget>
          </item>

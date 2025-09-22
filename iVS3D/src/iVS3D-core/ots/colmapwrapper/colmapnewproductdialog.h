@@ -48,12 +48,14 @@ class NewProductDialog : public QDialog
     void onProdMeshClicked();
 
     void onPbSelectImageDirectoryClicked();
+    void onPbSelectMaskDirectoryClicked();
 
     void updateSettingsVisibility();
 
     void onAccepted();
 
     void validateImagePath();
+    void validateMaskPath();
 
     void validateSequenceName();
 
