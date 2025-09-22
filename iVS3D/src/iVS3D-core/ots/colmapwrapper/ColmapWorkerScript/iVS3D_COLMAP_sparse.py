@@ -27,7 +27,7 @@ def poll_process_output(p):
     if p.returncode != 0:
         raise Exception("Command failed")
 
-def create_sparse_with_COLMAP(input_dir, work_dir, output_dir, camera_model, quality, gpus):
+def create_sparse_with_COLMAP(input_dir, work_dir, output_dir, camera_model, quality, gpus, mask_path):
 
     # path to colmap binary
     COLMAP_BIN = "colmap"
@@ -46,6 +46,10 @@ def create_sparse_with_COLMAP(input_dir, work_dir, output_dir, camera_model, qua
     if quality >= 2:
         args.append("--SiftExtraction.max_num_features")
         args.append("20000")
+
+    if mask_path != "" and os.path.exists(mask_path):
+        args.append("--ImageReader.mask_path")
+        args.append(mask_path)
 
     p = subprocess.Popen(args, stdout=subprocess.PIPE)  
     poll_process_output(p)
@@ -121,8 +125,46 @@ def parseArguments():
     parser.add_argument('--quality', default="0" , help="Quality vs Speed (0-3)")
     parser.add_argument('--gpus', default="0" , help="List of gpu indices to use")
     parser.add_argument('--camera_model', default="RADIAL" , help="Camera model to use")
+    parser.add_argument('--mask_path', default="" , help="Optional path to image masks")
 
     return parser.parse_args()
+
+def rename_masks(mask_path, input_dir):
+    if mask_path != "" and os.path.exists(mask_path):
+        # Colmap requires specific naming of the masks:
+        # - mask image must have the same name as the image name including file extension
+        # - mask image must be in png format which is appended to the image name
+        # i.e. image name: img_0001.jpg -> mask name: img_0001.jpg.png
+
+        # Validate and rename masks if necessary
+        image_files = [f for f in os.listdir(input_dir) if f.lower().endswith(('.jpg', '.jpeg', '.png', '.bmp'))]
+
+        # Build a mapping from image base name (without extension) to image file name
+        image_base_to_name = {}
+        for img in image_files:
+            base, _ = os.path.splitext(img)
+            image_base_to_name[base] = img
+
+        for img_base, img_name in image_base_to_name.items():
+            # The required mask name is: <image_name> + ".png"
+            required_mask_name = img_name + ".png"
+            required_mask_path = os.path.join(mask_path, required_mask_name)
+
+            # Check if mask already exists with required name
+            if os.path.exists(required_mask_path):
+                continue
+
+            # Otherwise, look for a mask with the same base name and .png extension (common case)
+            candidate_mask_name = img_base + ".png"
+            candidate_mask_path = os.path.join(mask_path, candidate_mask_name)
+
+            if os.path.exists(candidate_mask_path):
+                # Rename to required naming convention
+                os.rename(candidate_mask_path, required_mask_path)
+                continue
+
+            print(f"Warning: No mask found for image {img_name}. Expected mask name: {required_mask_name}")
+
 
 if __name__ == "__main__":
 
@@ -134,7 +176,6 @@ if __name__ == "__main__":
     work_dir = Path(args.work_dir)
     output_dir = Path(args.output_dir)
 
-    create_sparse_with_COLMAP(input_dir, work_dir, output_dir, args.camera_model, quality=args.quality, gpus=args.gpus)
+    rename_masks(args.mask_path, input_dir)
 
-
-
+    create_sparse_with_COLMAP(input_dir, work_dir, output_dir, args.camera_model, quality=args.quality, gpus=args.gpus, mask_path=args.mask_path)

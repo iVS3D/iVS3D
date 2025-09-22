@@ -50,7 +50,7 @@ def poll_process_output(p):
         raise Exception("Command failed")
 
 
-def run_odm(input_dir, work_dir, output_dir, camera_model, quality, gpus):
+def run_odm(input_dir, work_dir, output_dir, camera_model, quality, gpus, mask_path):
 
     quality = int(quality)
     gpus = gpus.replace("-1","all")
@@ -105,8 +105,20 @@ def parseArguments():
     parser.add_argument('--quality', default="0" , help="Quality vs Speed (0-3)")
     parser.add_argument('--gpus', default="0" , help="List of gpu indices to use")
     parser.add_argument('--camera_model', default="RADIAL" , help="Camera model to use")
+    parser.add_argument('--mask_path', default="" , help="Optional path to image masks")
 
     return parser.parse_args()
+
+def copy_masks(mask_path, input_dir):
+    # ODM requires masks to be in the same folder as images and have _mask appended to the filename
+    if mask_path != "" and os.path.exists(mask_path):
+        mask_files = glob.glob(os.path.join(mask_path, "*"))
+        for mask_file in mask_files:
+            base_name = os.path.basename(mask_file)
+            name, ext = os.path.splitext(base_name)
+            new_name = name + "_mask" + ext
+            shutil.copy(mask_file, os.path.join(input_dir, new_name))
+    
 
 if __name__ == "__main__":
 
@@ -118,7 +130,6 @@ if __name__ == "__main__":
     work_dir = Path(args.work_dir)
     output_dir = Path(args.output_dir)
 
-    run_odm(input_dir, work_dir, output_dir, args.camera_model, quality=args.quality, gpus=args.gpus)
+    copy_masks(args.mask_path, input_dir)
 
-
-
+    run_odm(input_dir, work_dir, output_dir, args.camera_model, quality=args.quality, gpus=args.gpus, mask_path=args.mask_path)

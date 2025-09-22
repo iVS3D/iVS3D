@@ -305,6 +305,7 @@ def computeCustomCommandJob(colmapDatabaseFilePath: str, projectImageDir: str, c
         # quality 0 - 3 lower is faster
         quality = parameterList['quality']
         camModel = parameterList['camera_model']
+        mask_path = parameterList.get('mask_path', "")
 
         def scan_function(line):
             # Scanning custom command stdout for progress
@@ -318,8 +319,9 @@ def computeCustomCommandJob(colmapDatabaseFilePath: str, projectImageDir: str, c
             projectOutputDirPath,
             "--quality", quality,
             "--gpus", gpus,
-            "--camera_model", camModel]  
-        
+            "--camera_model", camModel,
+            "--mask_path", mask_path]
+
         args = " ".join(args)
         print(args)
     
@@ -355,6 +357,44 @@ def computeCameraPoses(colmapDatabaseFilePath: str, projectImageDir: str, colmap
     robust_mode = parameterList['robust_mode']
     robust_mode = bool(int(robust_mode))
 
+    # optional mask_path
+    mask_path = parameterList.get('mask_path', "")
+    if mask_path != "" and os.path.exists(mask_path):
+        # Colmap requires specific naming of the masks:
+        # - mask image must have the same name as the image name including file extension
+        # - mask image must be in png format which is appended to the image name
+        # i.e. image name: img_0001.jpg -> mask name: img_0001.jpg.png
+
+        # Validate and rename masks if necessary
+        image_files = [f for f in os.listdir(projectImageDir) if f.lower().endswith(('.jpg', '.jpeg', '.png', '.bmp'))]
+
+        # Build a mapping from image base name (without extension) to image file name
+        image_base_to_name = {}
+        for img in image_files:
+            base, _ = os.path.splitext(img)
+            image_base_to_name[base] = img
+
+        for img_base, img_name in image_base_to_name.items():
+            # The required mask name is: <image_name> + ".png"
+            required_mask_name = img_name + ".png"
+            required_mask_path = os.path.join(mask_path, required_mask_name)
+
+            # Check if mask already exists with required name
+            if os.path.exists(required_mask_path):
+                continue
+
+            # Otherwise, look for a mask with the same base name and .png extension (common case)
+            candidate_mask_name = img_base + ".png"
+            candidate_mask_path = os.path.join(mask_path, candidate_mask_name)
+
+            if os.path.exists(candidate_mask_path):
+                # Rename to required naming convention
+                os.rename(candidate_mask_path, required_mask_path)
+                continue
+
+            print(f"Warning: No mask found for image {img_name}. Expected mask name: {required_mask_name}")
+        
+
     # run feature extraction
     print('\t> Running feature extractor...')
     args = [COLMAP_BIN, 
@@ -367,6 +407,9 @@ def computeCameraPoses(colmapDatabaseFilePath: str, projectImageDir: str, colmap
     
     if camera_params != "" and "," in camera_params:
         args.extend(["--ImageReader.camera_params", camera_params])
+
+    if mask_path != "" and os.path.exists(mask_path):
+        args.extend(["--ImageReader.mask_path", mask_path])
     
     p = subprocess.Popen(args, stdout=subprocess.PIPE)     
 
@@ -1371,6 +1414,7 @@ def cleanAfterFailedJob(workspacePath: str, currentJob: Job) -> bool:
     projectImageDir = os.path.join(workspacePath, currentJob.sequenceName + ".images")
     colmapProjectDirPath = os.path.join(workspacePath , currentJob.sequenceName + ".files")
     projectOutputDirPath = os.path.join(workspacePath , currentJob.sequenceName + ".output")
+    projectMaskDir = os.path.join(workspacePath , currentJob.sequenceName + ".masks")
 
     if os.path.exists(colmapDatabaseFilePath):
         os.remove(colmapDatabaseFilePath) 
@@ -1383,6 +1427,9 @@ def cleanAfterFailedJob(workspacePath: str, currentJob: Job) -> bool:
 
     if os.path.exists(projectOutputDirPath):
         shutil.rmtree(projectOutputDirPath)
+
+    if os.path.exists(projectMaskDir):
+        shutil.rmtree(projectMaskDir)
 
 ######################################################################################################################
 if __name__ == "__main__":
@@ -1483,6 +1530,7 @@ if __name__ == "__main__":
         colmapDatabaseFilePath = os.path.join(workspacePath , "*.db")
         projectImageDir = os.path.join(workspacePath,  "*.images")
         colmapProjectDirPath = os.path.join(workspacePath , "*.files")
+        projectMaskDir = os.path.join(workspacePath , "*.masks")
 
         for f in glob.glob(colmapDatabaseFilePath):
             os.remove(f)
@@ -1492,6 +1540,9 @@ if __name__ == "__main__":
         
         for f in glob.glob(colmapProjectDirPath):
             shutil.rmtree(f) 
+
+        for f in glob.glob(projectMaskDir):
+            shutil.rmtree(f)
    
 
     print("---------------------------------------------------------")
