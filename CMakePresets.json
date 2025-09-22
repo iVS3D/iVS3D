@@ -56,7 +56,8 @@
         "CMAKE_BUILD_TYPE": "Release",
         "CMAKE_INSTALL_PREFIX": "${sourceDir}/build/windows-release",
         "OpenCV_DIR": "$env{OpenCV_DIR}",
-        "Onnxruntime_ROOT_DIR": "$env{Onnxruntime_ROOT_DIR}"
+        "Onnxruntime_ROOT_DIR": "$env{Onnxruntime_ROOT_DIR}",
+        "Ffmpeg_ROOT_DIR": "$env{Ffmpeg_ROOT_DIR}"
       }
     },
     {
@@ -75,7 +76,8 @@
         "CMAKE_INSTALL_PREFIX": "${sourceDir}/build/windows-debug",
         "CMAKE_BUILD_TYPE": "Debug",
         "OpenCV_DIR": "$env{OpenCV_DIR}",
-        "Onnxruntime_ROOT_DIR": "$env{Onnxruntime_ROOT_DIR}"
+        "Onnxruntime_ROOT_DIR": "$env{Onnxruntime_ROOT_DIR}",
+        "Ffmpeg_ROOT_DIR": "$env{Ffmpeg_ROOT_DIR}"
       }
     }
   ],
