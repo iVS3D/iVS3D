@@ -38,6 +38,20 @@ static std::map<lib3d::ots::ColmapWrapper::EProductType, QString> PRODUCT_FILENA
        {lib3d::ots::ColmapWrapper::DENSE_CLOUD, "%1_dense_cloud.ply"},
        {lib3d::ots::ColmapWrapper::MESHED_MODEL, "%1_meshed_model.ply"}};
 
+// Compute SHA-256 of a file; returns empty QByteArray on failure.
+static QByteArray sha256File(const QString& path)
+{
+    QFile f(path);
+    if (!f.open(QIODevice::ReadOnly))
+        return {};
+
+    QCryptographicHash h(QCryptographicHash::Sha256);
+    if (!h.addData(&f))
+        return {};
+
+    return h.result();
+}
+
 namespace lib3d {
 namespace ots {
 
@@ -1517,6 +1531,8 @@ bool ColmapWrapper::hasScriptFilesInstalled()
     QString outputPath = (mConnectionType == LOCAL) ? mLocalWorkspacePath
                                                     : mMntPntRemoteWorkspacePath;
 
+    qDebug() << "Checking script files in " << outputPath;
+
     //--- iterate over all resource files and filter for relevant files (*.yaml and *.py in ots folder)
     QDirIterator it(":", QDirIterator::Subdirectories);
     while (it.hasNext()) {
@@ -1528,7 +1544,7 @@ bool ColmapWrapper::hasScriptFilesInstalled()
                                  + QFileInfo(res).filePath().replace(":/ots/colmapwrapper/", "");
 
             //--- copy file and set permissions
-            if (QFile::exists(outputFile))
+            if (res.endsWith(".yaml") && QFile::exists(outputFile))
                 continue;
 
             QFileInfo fileInfo(outputFile);
@@ -1538,8 +1554,30 @@ bool ColmapWrapper::hasScriptFilesInstalled()
             if(files.isEmpty())
                 return false;
 
+            const QByteArray resHash = sha256File(res);
+            if(resHash.isEmpty())
+                return false;
+
+            // Compare against all matching files; if any matches by hash, this resource is satisfied
+            bool match = false;
+            for (const QString& name : files) {
+                const QString candidatePath = dir.absoluteFilePath(name);
+                const QByteArray dstHash = sha256File(candidatePath);
+                
+                if (!dstHash.isEmpty() && dstHash == resHash) {
+                    match = true;
+                    break;
+                }
+            }
+
+            if (!match) {
+                qDebug() << "  no matching file found for " << fileInfo.fileName();
+                return false; // present but different content => not up to date
+            }
+
         }
     }
+    qDebug() << "All script files present.";
     return true;
 }
 

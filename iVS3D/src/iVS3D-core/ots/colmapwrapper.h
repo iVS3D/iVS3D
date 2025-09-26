@@ -22,6 +22,7 @@
 #include <QTemporaryDir>
 #include <QTemporaryFile>
 #include <QtConcurrent>
+#include <QCryptographicHash>
 
 // OpenCV
 #include <opencv2/core.hpp>
