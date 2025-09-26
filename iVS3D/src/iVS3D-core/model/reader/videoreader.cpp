@@ -147,6 +147,22 @@ cv::Mat VideoReader::getPic(unsigned int index, PictureProcessingFlags flags) {
             return cv::Mat();
         }
     }
+
+    // ------------------- DEBUG -------------------
+    std::stringstream ss;
+    ss << std::setfill('0') << std::setw(8) << index << ".y";
+    const std::string fullPath = "/home/dom26496/Dokumente/TestDaten/tst/" + ss.str();
+
+    FILE* f;
+    f = fopen(fullPath.c_str(), "w");
+    const int w = iter->second->width;
+    const int h = iter->second->height;
+    for (int y = 0; y < h; y++) {
+        fwrite(iter->second->data[0] + y * iter->second->linesize[0], 1, w, f);
+    }
+    fclose(f);
+    // ---------------------------------------------
+
     cv::Mat img = avFrame2CvMat(iter->second);
 
     // apply processing
