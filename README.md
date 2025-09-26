@@ -1,4 +1,28 @@
-# intelligent Video Sampler 3D ![iVS3D-Logo](doc/images/GUI_ICON_IVS3D_mini.png)
+![iVS3D-Logo](doc/images/GUI_ICON_IVS3D_mini.png)
+<div>
+<h1>iVS3D: intelligent Video Sampler 3D</h1>
+<a href="https://arxiv.org/abs/2110.11810"><img src="https://img.shields.io/badge/arXiv-22110.11810-b31b1b" alt="arXiv"></a>
+</div>
+
+```bibtex
+@article{DBLP:journals/corr/abs-2110-11810,
+  author       = {Max Hermann and
+                  Thomas Pollok and
+                  Daniel Brommer and
+                  Dominic Zahn},
+  title        = {{IVS3D:} An Open Source Framework for Intelligent Video Sampling and
+                  Preprocessing to Facilitate 3D Reconstruction},
+  journal      = {CoRR},
+  volume       = {abs/2110.11810},
+  year         = {2021},
+  url          = {https://arxiv.org/abs/2110.11810},
+  eprinttype    = {arXiv},
+  eprint       = {2110.11810},
+  timestamp    = {Thu, 28 Oct 2021 15:25:31 +0200},
+  biburl       = {https://dblp.org/rec/journals/corr/abs-2110-11810.bib},
+  bibsource    = {dblp computer science bibliography, https://dblp.org}
+}
+```
 
 ![Qt](doc/images/poweredByQt.png) ![OpenCV](doc/images/poweredByOpenCV.png)
 
