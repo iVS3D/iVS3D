@@ -1195,7 +1195,7 @@ def processJob(workspacePath: str, currentJob: Job) -> bool:
 
 
         # if image path in job description is not in project directory copy into project directory
-        if( projectImageDir != currentJob.parameterList["image_path"] ):
+        if os.path.normpath(projectImageDir) != os.path.normpath(currentJob.parameterList["image_path"]):
             print("Images are outside of project dir. Copying {} -> {}".format(currentJob.parameterList["image_path"], projectImageDir))
             
            
