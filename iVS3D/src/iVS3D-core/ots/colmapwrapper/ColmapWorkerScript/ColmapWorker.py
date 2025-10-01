@@ -1,9 +1,11 @@
 import time
 import os
 import sys
+import stat
 import argparse
 import subprocess
 import shutil
+from shutil import copystat
 import traceback
 import glob
 from pathlib import Path
@@ -11,6 +13,33 @@ from pathlib import Path
 from GpsEntry import GpsEntry, geodetic2enu
 import yaml 
 import exifread
+
+######################################################################################################################
+# Cross-platform symlink helper function
+# On Windows, falls back to copying if symlink creation fails due to privilege issues
+def create_symlink_or_copy(src, dst):
+    """Create symlink, fall back to copying on Windows if privileges are insufficient"""
+    try:
+        if os.path.exists(dst):
+            return  # Already exists, nothing to do
+        os.symlink(src, dst)
+    except (OSError, NotImplementedError):
+        # Symlink failed (likely Windows without privileges), fall back to copying
+        print(f"Symlink creation failed, copying instead: {src} -> {dst}")
+        if os.path.isdir(src):
+            shutil.copytree(src, dst, dirs_exist_ok=True)
+        else:
+            shutil.copy2(src, dst)
+
+######################################################################################################################
+# Cross-platform executable path helper
+# Adds .exe extension on Windows
+def get_executable_path(bin_folder, executable_name):
+    """Get the correct executable path for the current platform"""
+    if os.name == 'nt':  # Windows
+        return os.path.join(bin_folder, executable_name + ".exe")
+    else:  # Linux/Unix
+        return os.path.join(bin_folder, executable_name)
 
 COLMAP_BIN = ""
 OPENMVS_BIN_FOLDER = ""
@@ -754,12 +783,12 @@ def computeMeshedModel(projectImageDir: str, colmapProjectDirPath: str, projectO
 
     progressCallback(0, force_Write = True)
   
-    # TODO check Windows compatibility
+    # Cross-platform symlink with Windows fallback
     if not os.path.exists(os.path.join(colmapProjectDirPath, "03_mesh", "images")):
-        os.symlink(os.path.join(colmapProjectDirPath, "02_dense", "images"), os.path.join(colmapProjectDirPath, "03_mesh", "images"))
+        create_symlink_or_copy(os.path.join(colmapProjectDirPath, "02_dense", "images"), os.path.join(colmapProjectDirPath, "03_mesh", "images"))
 
     print(" Interface COLMAP")
-    interface_colmap_bin_path = os.path.join(OPENMVS_BIN_FOLDER, "InterfaceCOLMAP")
+    interface_colmap_bin_path = get_executable_path(OPENMVS_BIN_FOLDER, "InterfaceCOLMAP")
     if not os.path.exists(interface_colmap_bin_path):
         raise Exception("OpenMVS InterfaceCOLMAP binary does not exist")
     
@@ -799,7 +828,7 @@ def computeMeshedModel(projectImageDir: str, colmapProjectDirPath: str, projectO
     progressCallback(5, force_Write = True)
     
     print(" Reconstruct Mesh")
-    reconstruct_mesh_bin_path = os.path.join(OPENMVS_BIN_FOLDER, "ReconstructMesh")
+    reconstruct_mesh_bin_path = get_executable_path(OPENMVS_BIN_FOLDER, "ReconstructMesh")
     if not os.path.exists(reconstruct_mesh_bin_path):
         raise Exception("OpenMVS ReconstructMesh binary does not exist")
     
@@ -807,11 +836,9 @@ def computeMeshedModel(projectImageDir: str, colmapProjectDirPath: str, projectO
     if not os.path.exists(reconstruct_mesh_dir):
         os.mkdir(reconstruct_mesh_dir)
 
-    # TODO check Windows compatibility
-    if not os.path.exists(os.path.join(reconstruct_mesh_dir, "images")):
-        os.symlink(os.path.join(colmapProjectDirPath, "02_dense", "images"), os.path.join(reconstruct_mesh_dir, "images"))
-
-    # check if option "estimate-roi 1" is available    
+        # Cross-platform symlink with Windows fallback
+        if not os.path.exists(os.path.join(reconstruct_mesh_dir, "images")):
+            create_symlink_or_copy(os.path.join(colmapProjectDirPath, "02_dense", "images"), os.path.join(reconstruct_mesh_dir, "images"))    # check if option "estimate-roi 1" is available    
     output = str(subprocess.run([reconstruct_mesh_bin_path, "-h"], check=False, stdout=subprocess.PIPE).stdout)    
     
     args = [reconstruct_mesh_bin_path, 
@@ -868,7 +895,7 @@ def computeMeshedModel(projectImageDir: str, colmapProjectDirPath: str, projectO
         progressCallback(40, force_Write = True)
 
         print(" Refine Mesh")
-        refine_mesh_bin_path = os.path.join(OPENMVS_BIN_FOLDER, "RefineMesh")
+        refine_mesh_bin_path = get_executable_path(OPENMVS_BIN_FOLDER, "RefineMesh")
         if not os.path.exists(refine_mesh_bin_path):
             raise Exception("OpenMVS RefineMesh binary does not exist")
         
@@ -876,9 +903,9 @@ def computeMeshedModel(projectImageDir: str, colmapProjectDirPath: str, projectO
         if not os.path.exists(refine_mesh_dir):
             os.mkdir(refine_mesh_dir)
 
-        # TODO check Windows compatibility
+        # Cross-platform symlink with Windows fallback
         if not os.path.exists(os.path.join(refine_mesh_dir, "images")):
-            os.symlink(os.path.join(colmapProjectDirPath, "02_dense", "images"), os.path.join(refine_mesh_dir, "images"))
+            create_symlink_or_copy(os.path.join(colmapProjectDirPath, "02_dense", "images"), os.path.join(refine_mesh_dir, "images"))
 
         args = [refine_mesh_bin_path, 
             "--working-folder", refine_mesh_dir,
@@ -897,7 +924,7 @@ def computeMeshedModel(projectImageDir: str, colmapProjectDirPath: str, projectO
     progressCallback(70, force_Write = True)
 
     print(" Texture Mesh")
-    texture_mesh_bin_path = os.path.join(OPENMVS_BIN_FOLDER, "TextureMesh")
+    texture_mesh_bin_path = get_executable_path(OPENMVS_BIN_FOLDER, "TextureMesh")
     if not os.path.exists(texture_mesh_bin_path):
         raise Exception("OpenMVS TextureMesh binary not exist")
     
@@ -905,9 +932,9 @@ def computeMeshedModel(projectImageDir: str, colmapProjectDirPath: str, projectO
     if not os.path.exists(texture_mesh_dir):
         os.mkdir(texture_mesh_dir)
 
-    # TODO check Windows compatibility
+    # Cross-platform symlink with Windows fallback
     if not os.path.exists(os.path.join(texture_mesh_dir, "images")):
-        os.symlink(os.path.join(colmapProjectDirPath, "02_dense", "images"), os.path.join(texture_mesh_dir, "images"))
+        create_symlink_or_copy(os.path.join(colmapProjectDirPath, "02_dense", "images"), os.path.join(texture_mesh_dir, "images"))
 
     # check if option "import-depthmaps 0" is available    
     output = str(subprocess.run([texture_mesh_bin_path, "-h"], check=False, stdout=subprocess.PIPE).stdout)  
