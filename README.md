@@ -1,35 +1,25 @@
-![iVS3D-Logo](doc/images/GUI_ICON_IVS3D_mini.png)
-<div>
-<h1>iVS3D: intelligent Video Sampler 3D</h1>
-<a href="https://arxiv.org/abs/2110.11810"><img src="https://img.shields.io/badge/arXiv-22110.11810-b31b1b" alt="arXiv"></a>
+<div align="center">
+  <h1>🔍 iVS3D: intelligent Video Sampler 3D ✂</h1>
+  <a href="https://arxiv.org/abs/2110.11810">
+    <img src="https://img.shields.io/badge/arXiv-22110.11810-b31b1b" alt="arXiv">
+  </a>
+  <a href="https://ivs3d.github.io/iVS3D/">
+    <img src="https://img.shields.io/badge/Documentation-blue" alt="Documentation">
+  </a>
+
+  [Max Hermann](https://github.com/Max-Hermann), [Dominik Wüst](https://github.com/dom-wuest), [Dominic Zahn](https://github.com/DominicZahn), [Daniel Brommer](https://github.com/dabrommer)
+
 </div>
 
 ```bibtex
 @article{DBLP:journals/corr/abs-2110-11810,
-  author       = {Max Hermann and
-                  Thomas Pollok and
-                  Daniel Brommer and
-                  Dominic Zahn},
+  author       = {Max Hermann and Thomas Pollok and Daniel Brommer and Dominic Zahn},
   title        = {{IVS3D:} An Open Source Framework for Intelligent Video Sampling and
                   Preprocessing to Facilitate 3D Reconstruction},
   journal      = {CoRR},
-  volume       = {abs/2110.11810},
-  year         = {2021},
-  url          = {https://arxiv.org/abs/2110.11810},
-  eprinttype    = {arXiv},
-  eprint       = {2110.11810},
-  timestamp    = {Thu, 28 Oct 2021 15:25:31 +0200},
-  biburl       = {https://dblp.org/rec/journals/corr/abs-2110-11810.bib},
-  bibsource    = {dblp computer science bibliography, https://dblp.org}
+  year         = {2021}
 }
 ```
-
-![Qt](doc/images/poweredByQt.png) ![OpenCV](doc/images/poweredByOpenCV.png)
-
->iVS3D is a framework for intelligent pre-processing of image sequences. iVS3D can downsample entire videos to a specific frame rate, as well as resize and crop the individual images. Furthermore, thanks to the modular architecture, developing and integrating plugins with additional algorithms is easy. We provide three plugins as baseline methods that enable an intelligent selection of suitable images and can enrich them with additional information. To filter out images affected by motion blur, we developed a plugin that detects these frames and searches the spatial neighborhood for suitable images as replacements. The second plugin uses optical flow to detect redundant images caused by a temporarily stationary camera. In our experiments, we show how this approach leads to a more balanced image sampling if the camera speed varies, and that excluding such redundant images leads to a time saving of 8.1 % for our sequences.
-
-[Link to paper] submitted for the 16th International Symposium on Visual Computing (ISVC 2021).
-
 
 ## Features
 
@@ -60,7 +50,7 @@
 ![GUI](doc/images/GUI_overview.png)
 The graphical user interface is split into five different sections. 1. Input, 2. Sampling, 3. Export, 4. Executed steps and 5. Video player with the timeline for selected images.
 
-## Getting started
+## 🗣 UI Tour
 This tutorial will guide you through a basic workflow with iVS3D. To follow along, download one of our latest [Ready-To-Use Builds](#ready-to-use-builds-for-windows-and-linux) for Debian, Ubuntu or Windows, or [compile from source](#build-from-source) for your platform. Download a video from the [Tanks and Temples Benchmark](https://www.tanksandtemples.org/), we use the Lighthouse video.
 
 **Step 1: Import and preview**
@@ -84,21 +74,21 @@ Once the algorithm is finished, we can export the selected images. In the `Expor
 **Step 4: Reconstruct 3D scene**
 Now the images have been written to the disk. Open your file explorer and navigate to the export location you chose to see the result. We can use the images to create a 3D point cloud with Colmap. For this follow the instructions [here](#3d-reconstruction).
 
-## Plugins
+## 🔍 Plugins 🧮
 
 There are currently 8 plugins implemented:
 
 | Plugin | Description | Supports CUDA |
 | ------ | ----------- | ------------- |
-| [NthFrame](doc/plugins.md#nthframe) | Selects every N-th frame | |
-| [Blur Detection](doc/plugins.md#blur-detection) | Avoids blurry images | |
-| [GeoDistance](doc/plugins.md#geodistance) | (requires GPS) Selects images based on the distance between their GPS locations | |
-| [GeoMap](doc/plugins.md#geomap) | (requires GPS) Displays an interactive map for the user to select GPS poses manually | |
-| [Smooth Camera Movement](doc/plugins.md#smooth-camera-movement) | | :white_check_mark: |
-| [Stationary Camera Removal](doc/plugins.md#stationary-camera-removal) | Selects images based on camera movement | :white_check_mark: |
-| [Deep Visual Similarity](doc/plugins.md#deep-visual-similarity) | Find images with the lowest similarity based on their visual embeddings | :white_check_mark: |
+| [📈 NthFrame](doc/plugins.md#nthframe) | Selects every N-th frame | |
+| [👓 Blur Detection](doc/plugins.md#blur-detection) | Avoids blurry images | :white_check_mark: |
+| [🌐 GeoDistance](doc/plugins.md#geodistance) | (requires GPS) Selects images based on the distance between their GPS locations | |
+| [🌍 GeoMap](doc/plugins.md#geomap) | (requires GPS) Displays an interactive map for the user to select GPS poses manually | |
+| [🏎 Smooth Camera Movement](doc/plugins.md#smooth-camera-movement) | | :white_check_mark: |
+| [🐌 Stationary Camera Removal](doc/plugins.md#stationary-camera-removal) | Selects images based on camera movement | :white_check_mark: |
+| [🪞 Deep Visual Similarity](doc/plugins.md#deep-visual-similarity) | Find images with the lowest similarity based on their visual embeddings | :white_check_mark: |
 | | |
-| [Semantic Segmentation](doc/plugins.md#semantic-segmentation) | Creates binary masks to exclude objects such as vehicles from the reconstruction by using convolutional neural networks for semantic image segmentation | :white_check_mark: |
+| [🤖 Semantic Segmentation](doc/plugins.md#semantic-segmentation) | Creates binary masks to exclude objects such as vehicles from the reconstruction by using convolutional neural networks for semantic image segmentation | :white_check_mark: |
 
 These plugins show different approaches to enhance information from an image sequence or video by either selecting images or creating additional masks to improve the 3D reconstruction process. See [here](doc/plugins.md) for a detailed description of the above mentioned plugins.
 
