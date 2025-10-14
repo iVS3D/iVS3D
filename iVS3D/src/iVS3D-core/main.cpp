@@ -83,11 +83,6 @@ int main(int argc, char *argv[])
     }
 
     if(!arguments.contains("--nogui")){
-
-        #if defined(Q_OS_WIN)
-            FreeConsole();
-        #endif
-
         QApplication a( argc, argv );
         a.setApplicationName("iVS3D");
         a.setApplicationVersion(QString(QUOTE(IVS3D_VER)));

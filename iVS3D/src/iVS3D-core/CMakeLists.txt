@@ -62,7 +62,7 @@ add_custom_command(
 )
 
 # define executable
-add_executable(${TARGET_NAME}
+add_executable(${TARGET_NAME} WIN32
     ${HEADER_FILES}
     ${SRC_FILES}
     ${UI_FILES}
