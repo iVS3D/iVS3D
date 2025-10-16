@@ -1,3 +1,7 @@
+<p align="center">
+  <image width="200" height="200" src="doc/images/GUI_ICON_IVS3D_rounded.png" />
+</p>
+
 <div align="center">
   <h1>🔍 iVS3D: intelligent Video Sampler 3D </h1>
   <img>
