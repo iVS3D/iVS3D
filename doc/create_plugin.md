@@ -1,5 +1,3 @@
-[Documentation](../README.md) / Create a plugin
-
 # Create a plugin
 Plugins are a simple way to add functionality to iVS3D. We provide the `IAlgorithm` interface for adding new sampling strategies. In the following we are going to create a new plugin and look at the functions that need to be implemented. 
 

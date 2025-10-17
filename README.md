@@ -36,30 +36,10 @@ The resulting image and meta information are exported and can be directly used t
 ![overview](doc/images/iVS3D_overview.png)
 
 ## 🚀 Quick Start
-The graphical user interface is split into five different sections. 1. Input, 2. Sampling, 3. Export, 4. Executed steps and 5. Video player with the timeline for selected images.
-
+TODO: VIDEO HERE
 ![GUI-tutorial](doc/images/GUI_overview.png)
 
-This tutorial will guide you through a basic workflow with iVS3D. To follow along, download one of our latest [Ready-To-Use Builds](#ready-to-use-builds-for-windows-and-linux) for Debian, Ubuntu or Windows, or [compile from source](#build-from-source) for your platform. Download a video from the [Tanks and Temples Benchmark](https://www.tanksandtemples.org/), we use the Lighthouse video.
-
-**Step 1: Import and preview**
-
-Run `iVS3D-core` and import the video. This can be done using the `Open Input Video` action in the `File`-menu at the top. Alternatively, you can drag and drop the video into the application. Now you can preview the video:
-
-**Step 2: Select important images**
-
-In the timeline underneath the preview, all 8321 images are marked as selected, which is indicated by the red line. We want to reduce the number of images to speed up the reconstruction, so we use the `Nth image selection`-Plugin to sample down to one image per second. In the `Image selection` tab, select the `Nth image selection` plugin and hit `Start selection`. Now we are down to 277 selected images. To improve the quality of the images, we also run the `Blur detection` plugin. This will replace blurred images with better ones in the neighborhood. This might take a few minutes since we are processing 4K images.
-
-You can see all the steps that were performed in the `Executed steps` tab. There can revert to an older selection of images if you wish. More plugins for automated image selection are available, see [here](#plugins) for a detailed overwiew.
-
-**Step 3: Export selected images**
-
-Once the algorithm is finished, we can export the selected images. In the `Export`-tab select a fitting location and name for this set of images. We choose `export` in the example. You can also change the resolution of the images. To speed things up, we reduced the image resolution to HD and hit export:
-
-![Output-tutorial](doc/images/export_tutorial.png)
-
-**Step 4: Reconstruct 3D scene**
-Now the images have been written to the disk. Open your file explorer and navigate to the export location you chose to see the result. We can use the images to create a 3D point cloud with Colmap. For this follow the instructions [here](#3d-reconstruction).
+To get started quickly, download a [prebuilt binary](#-ready-to-use-builds) from our releases and follow our [tutorial](doc/tutorial.md).
 
 ## 🔍 Plugins 🧮
 
@@ -82,26 +62,23 @@ These plugins show different approaches to enhance information from an image seq
 iVS3D is built with an open plugin interface for adding new plugins. So feel free to add your own. See [here](doc/create_plugin.md) for creating your own plugin.
 
 ## ⛪ 3D Reconstruction
-iVS3D does prepare the data for 3D reconstruction. For now, we do not perform the reconstruction itself. On Windows, iVS3D provides functionality to configure and start [COLMAP] which performs the reconstruction on the prepared data. This saves time and simplifies the reconstruction process. Make sure to install Python 3.9 or later for the reconstruction!
-
-With the latest update, we introduce a seamless integration of [COLMAP] in our software. In the new *Reconstruction* tab you can configure and start colmap reconstructions, view the reconstruction progress, manage the queue and open the finished products.
-
-Reconstruction can be configured to be executed on the local machine or a remote machine such as a GPU server. Further information:
-- [local colmap execution](doc/local_colmap_execution.md)
+iVS3D does prepare the data for 3D reconstruction. Afterwards, commonly used tools like [COLMAP] and [OpenMVS] can be used to perform the reconstruction and meshing. We provide a seamless integration of both in our software. In the *Reconstruction* tab you can configure desired products such as a dense point cloud or a textured mesh. iVS3D starts the reconstruction with your configuration based on the exported images and masks, either locally on your machine or on a remote server. You can track the progress, view logs and manage the reconstruction jobs all within the *Reconstruction* tab. For further information see:
+- [local reconstruction](doc/local_reconstruction.md)
+- [remote reconstruction](doc/remote_reconstruction.md)
 
 ## 📤 Ready to use builds
 
 We provide builds with and without CUDA for multiple platforms and distributions:
 | OS | CPU only | CUDA enabled |
 |----|----------|--------------|
-| 🪟 Windows 10/11 | :white_check_mark: | :white_check_mark: |
+| 🪟 Windows 11 | :white_check_mark: | :white_check_mark: |
 | 🐧 Ubuntu 24.04 | :white_check_mark: | :white_check_mark: |
 | 🐧 Ubuntu 22.04 | :white_check_mark: | :white_check_mark: |
 | 🐧 Debian 12 | :white_check_mark: | :white_check_mark: |
 
 Check the latest release to get a build for your platform!
 
-Note that the CUDA builds support GTX 10xx and RTX series GPUS. Older GPUs or Laptop GPUs might require building iVS3D from sources with an OpenCV and CUDA build for that specific GPU.
+Note that the CUDA builds support RTX series GPUs. Older models or Laptop GPUs might require building iVS3D from sources with an OpenCV and CUDA build for that specific GPU.
 
 To use the included plugin for semantic segmentation you can download the models we used in our paper:
 [Link to models]
@@ -112,17 +89,21 @@ To use other models, they have to be in the `.onnx` format. In addition, the plu
 ### 🔗 Dependencies
 
 iVS3D and the baseline plugins use:
-- [OpenCV] 4.7.0 with contrib modules
+- [OpenCV] 4.11.0 with contrib modules
 - [Qt] Framework 5.15.2
+- [Ffmpeg] latest stable release
+- [Onnxruntime] 1.18.0 GPU (if using CUDA, make sure to select the version according to your CUDA version)
 
 For CUDA support:
-- [NVIDIA CUDA Toolkit API] 12.0
+- [NVIDIA CUDA Toolkit API] 12.0 (or 12.8)
+- [cuDNN] 8.9.0 (for CUDA 12.x)
 
-For Windows, we use [MSVC] compiler which is shipped with Visual Studio. On Linux, we use [GCC] 10 compiler.
+For Windows, we use [MSVC] 2022 compiler which is shipped with Visual Studio. On Linux, we use [GCC] 11 compiler.
 
-iVS3D uses the cmake build system, which is available in the terminal or in QtCreator. For detailed instructions on building from source see here:
-- Build using [linux terminal](doc/build_linux.md)
-- Build using [windows terminal](doc/build_win.md)
+iVS3D uses the cmake build system and utilizes cmake presets. For detailed instructions on building from source see here:
+- [linux](doc/build_linux.md)
+- [windows](doc/build_win.md)
+- [vscode setup](doc/build_vscode.md)
 
 ### 🧪 Tests
 
@@ -150,14 +131,11 @@ Thanks to [Boitumelo Ruf](https://github.com/boitumeloruf) for helping with the 
 
 See the [LICENSE](LICENSE) file for details about the license under which this code is made available.
 
-## 📑 Citations
-<a id="2">[2]</a> 
-Farnebäck (2003).
-Two-Frame Motion Estimation Based on Polynomial Expansion.
-Proceedings of the SCIA 2003. Lecture Notes in Computer Science, vol 2749. Springer, Berlin, Heidelberg. https://doi.org/10.1007/3-540-45103-X_50
-
   [COLMAP]: https://demuc.de/colmap/
+  [OpenMVS]: https://github.com/cdcseacave/openMVS
   [OpenCV]: https://github.com/opencv
+  [Onnxruntime]: https://github.com/microsoft/onnxruntime
+  [Ffmpeg]: https://ffmpeg.org
   [Qt]:     https://www.qt.io
   [MSVC]:   https://www.microsoft.com/de-de/download/details.aspx?id=48159
   [GCC]:    https://gcc.gnu.org

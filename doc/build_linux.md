@@ -17,7 +17,8 @@ sudo apt install -y cmake build-essential git git-lfs
 
 ### Dependencies (required)
 - [Qt] == 5.15.2
-- [OpenCV] >= 4.7 with contrib modules
+- [OpenCV] >= 4.11 with contrib modules
+- [Ffmpeg] latest stable release
 
 Install [Qt] 5.15.2 according to the instructions on their official website. Please add the Qt binary folder to your PATH variable, this is necessary for compiling translations and ui files using tools provided in the Qt installation, e.g.:
 ```sh
@@ -27,6 +28,10 @@ export PATH=$PATH:/home/username/Qt/5.15.2/gcc_64/bin
 Download prebuilt [OpenCV] packages or build it from source. Make sure you include the contrib modules as they contain algorithms required by our optical flow plugins and many more. Your OpenCV build should contain a file `OpenCVConfig.cmake`, usually it is located in `lib/cmake/opencv4`. This is your OpenCV_DIR.
 
 > To utilize GPU acceleration in iVS3D, you need an OpenCV build which supports CUDA. In this case download [NVIDIA CUDA Toolkit API] as well. See the [CUDA acceleration](#cuda-acceleration) section below for more information.
+
+Make sure to install the shared libraries of [Ffmpeg] as iVS3D dynamically links against them.
+
+For the Neural Network based plugins, you need to download [Onnxruntime] 1.18.0 or later GPU (make sure to select the version according to your CUDA version) as well.
 
 ## Clone iVS3D
 
@@ -92,7 +97,7 @@ Then, build and install your configuration:
 cmake --build build/<preset name>
 cmake --install build/<preset name>
 ```
-Your iVS3D installation will be located in the `build/<preset name>/install` folder.
+Your iVS3D installation will be located in the `build/<preset name>/bin` folder.
 
 > If you want to use a custom install location, you can specify it in the `CMAKE_INSTALL_PREFIX` option when configuring your build. For example:
 ```sh
@@ -109,6 +114,7 @@ CMake configuration options are added using the `-D` flag. Following options are
 | -------------- | ---- | ------------- | -------------
 | Build_Plugins  | BOOL | ON            | Enable compilation of plugins
 | Build_Tests    | BOOL | OFF           | Compile test suite
+| Build_Examples | BOOL | OFF | Compile example applications
 | CMAKE_BUILD_TYPE | STRING | `Release`   | Use `Debug` to include debug symbols
 | CMAKE_INSTALL_PREFIX | STRING | `build/<preset name>/install` | install location
 | Install_Models | BOOL | ON | Copy onnx models for plugins to install location
@@ -135,7 +141,9 @@ As there are many different configuration options we provide a set of CMake Pres
       "hidden": false,
       "cacheVariables": {
         "CMAKE_INSTALL_PREFIX": "/path/to/custom/install/location",
-        "WITH_CUDA": "OFF"
+        "WITH_CUDA": "OFF",
+        "Onnxruntime_ROOT_DIR": "/path/to/onnxruntime",
+        "OpenCV_DIR": "/path/to/opencv/lib/cmake/opencv4"
       }
     }
   ]

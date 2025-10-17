@@ -56,3 +56,4 @@ Note that different OpenCV_DIRs are used in the debug and release presets! Once 
 ## References
 [Documentation](../README.md)
 [Build on Linux](build_linux.md)
+[Build on Windows](build_win.md)

@@ -1,5 +1,3 @@
-[Documentation](../README.md) / Plugins
-
 # Plugins
 
 ## Image Selection Plugins
@@ -11,7 +9,7 @@ NthFrame is the easiest way to reduce the number of frames used for a 3D reconst
 In the later stages of an image selection workflow, isolated frames can emerge. This happens, for example, when selecting frames based on camera position. If the camera is static in some places, only a few frames are selected in a long duration. NthFrame, however, could remove those remaining isolated frames because of the nature of the algorithm. To prevent this from happening, we added an additional feature that always keeps those isolated frames. This feature is activated by default but can be disabled if necessary.
 
 ### Blur Detection
-Effects such as motion blur can reduce the number of features extracted from an image. Thus such images are not ideal for 3D reconstruction. The Blur Detection Plugin quantifies image sharpness and blurrieness. With this information, blurred images are detected and the plugin selects a sharper image in the neighbourhood to boost reconstruction quality. 
+Effects such as motion blur can reduce the number of features extracted from an image. Thus such images are not ideal for 3D reconstruction. The Blur Detection Plugin quantifies image sharpness and blurrieness. With this information, blurred images are detected and removed to boost reconstruction quality. 
 
 ### GeoDistance
 This plugin selects images based on their GPS location. For this to work, the GPS data needs to be available as meta data, either included in the EXIF tag of the images or as a separate metadata file. The plugin uses this data to calculate the distance between image pairs and selects images that are further apart than a specified threshold.
@@ -30,7 +28,7 @@ flowchart LR
     F -->FV;
     end
 ```
-The general algorithm consists of three major steps. First, image pairs are loaded. To estimate the camera movement, we use the dense optical flow algorithm from Farnebäck 2003 [[2]](#2) to receive a global prediction for every pixel in the scene. Afterward, this global displacement field is reduced to a single value by calculating the median length of all displacements. This value now represents the change of camera perspective between the two frames.
+The general algorithm consists of three major steps. First, image pairs are loaded. To estimate the camera movement, we use the dense optical flow algorithm from Farnebäck 2003 [[1]](#1) to receive a global prediction for every pixel in the scene. Afterward, this global displacement field is reduced to a single value by calculating the median length of all displacements. This value now represents the change of camera perspective between the two frames.
 > Note that this value is still dependent on the image's resolution and, therefore, does not have a measurement unit attached to it.
 
 During the last step, frames are selected based on the previously estimated camera movement. The following plugins currently differ in this step while utilizing identical initial steps.
@@ -73,6 +71,12 @@ Additional data about the scene content can be provided to boost 3D reconstructi
 iVS3D provides a plugin interface to enable users to use existing plugins or create their own.
 Plugins receive frames and can generate masks, which can be displayed live in a preview window or exported along with the selected RGB images.
 ### Semantic Segmentation
-In Semantic Segmentation, every pixel of an image is assigned a class or label. Our plugin uses the power of neural networks (NNs) to label every pixel in a given frame and enables users to create their own custom masks through a checkbox matrix. NNs are provided in the `.onnx` format with a text file that describes the available classes and associated colors used for illustration in the preview.
+In Semantic Segmentation, every pixel of an image is assigned a class or label. Our plugin uses the power of neural networks (NNs) to label every pixel in a given frame and enables users to create their own custom masks through a checkbox matrix. NNs are provided in the `.onnx` format with a `.json` file that describes the available classes and associated colors used for illustration in the preview. It also contains mean and standard deviation for the normalization of input images.
 
 For more information about the models used, see [here](https://github.com/iVS3D/iVS3D-models).
+
+## 📑 Citations
+<a id="1">[1]</a> 
+Farnebäck (2003).
+Two-Frame Motion Estimation Based on Polynomial Expansion.
+Proceedings of the SCIA 2003. Lecture Notes in Computer Science, vol 2749. Springer, Berlin, Heidelberg. https://doi.org/10.1007/3-540-45103-X_50
