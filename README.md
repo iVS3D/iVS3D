@@ -29,11 +29,11 @@
 ## 📜 Overview
 The **i**ntelligent **V**ideo **S**ampler **3D** serves as a preprocessing tool to select suitable images for 3D reconstructions. Its pipeline supports importing photogrammetric data in the form of image sequences or videos, which are complemented by metadata, such as GPS poses.
 
-An extensive range of[plugins](-plugins-) either selects images based on, e.g., visual similarity or sharpness, or creates masks to enhance the provided RGB information further. New algorithms can easily be added by creating new plugins, which are connected to our feature-rich interface.
+An extensive range of [plugins](-plugins-) either selects images based on, e.g., visual similarity or sharpness, or creates masks to enhance the provided RGB information further. New algorithms can easily be added by creating new plugins, which are connected to our feature-rich interface.
 
 The resulting image and meta information are exported and can be directly used to start a [3D reconstruction](#-3d-reconstruction) process through the application itself.
 
-![overview](doc/images/iVS3D_overview.svg)
+![overview](doc/images/iVS3D_overview.png)
 
 ## 🚀 Quick Start
 The graphical user interface is split into five different sections. 1. Input, 2. Sampling, 3. Export, 4. Executed steps and 5. Video player with the timeline for selected images.
