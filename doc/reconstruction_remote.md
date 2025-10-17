@@ -1,4 +1,4 @@
-# Remote colmap execution
+# Remote Reconstruction with Colmap and OpenMVS
 
 ## Overview
 In a usual workflow the sampling plugins are used to select images for the following 3D reconstruction. These plugins are optimized to use all processor cores or the GPU and usually scale linearly with the number of images and their resolution, so execution is rather quick. This is not true for the 3D reconstruction with COLMAP and the meshing and texturing with OpenMVS. Many of these steps do scale quadratic or cubic with the number of images. Because of this we rely on our sampling plugins to reduce the number of images drastically. However even on high-end hardware, the reconstruction and texturing process still takes a significant amount of time, usually from a few hours to multiple days for a high quality reconstruction. On lower-end machines and laptops, reconstructions take even more time. To make use of the fastest hardware available to you and to avoid blocking you PC for many hours, iVS3D offers functionality to run the time-consuming 3d reconstruction, meshing and texturing on a remote server. To make use of this you will need a second computer, i.e. a desktop machine or a GPU server. We refer to this as the *server*. In the following we will call your main system (e.g. your laptop/desktop) the *client*.
@@ -43,4 +43,4 @@ After you installed the required tools on the server and client, make sure you e
 
 ![Colmap remote setup](images/Colmap_remote.png)
 
-Once you entered all the required fields, apply the settings. If you did everything correct, iVS3D will accept your configuration and you can use the application as usual. However now the reconstruction, meshing and texturing will be executed on the server and do not occupy your client machine. You can follow the same workflow as shown [here](local_reconstruction.md#workflow).
+Once you entered all the required fields, apply the settings. If you did everything correct, iVS3D will accept your configuration and you can use the application as usual. However now the reconstruction, meshing and texturing will be executed on the server and do not occupy your client machine. You can follow the same workflow as shown [here](recontruction_local.md#workflow).

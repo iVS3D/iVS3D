@@ -1,6 +1,6 @@
-<p align="center">
-  <image width="200" height="200" src="doc/images/GUI_ICON_IVS3D_rounded.png" />
-</p>
+<div align="center">
+  <img width="200" height="200" src="doc/images/GUI_ICON_IVS3D_rounded.png" />
+</div>
 
 <div align="center">
   <h1>🔍 iVS3D: intelligent Video Sampler 3D </h1>
@@ -27,9 +27,9 @@
 ```
 
 ## 📜 Overview
-The **i**ntelligent **V**ideo **S**ampler **3D** serves as a preprocessing tool to select suitable images for 3D reconstructions. Its pipeline supports importing photogrammetric data in the form of image sequences or videos, which are complemented by metadata, such as GPS poses.
+The **Intelligent Video Sampler 3D** serves as a preprocessing tool to select suitable images for 3D reconstructions. Its pipeline supports importing photogrammetric data in the form of image sequences or videos, which are complemented by metadata, such as GPS poses.
 
-An extensive range of [plugins](-plugins-) either selects images based on, e.g., visual similarity or sharpness, or creates masks to enhance the provided RGB information further. New algorithms can easily be added by creating new plugins, which are connected to our feature-rich interface.
+An extensive range of [plugins](#-plugins-) either selects images based on, e.g., visual similarity or sharpness, or creates masks to enhance the provided RGB information further. New algorithms can easily be added by creating new plugins, which are connected to our feature-rich interface.
 
 The resulting image and meta information are exported and can be directly used to start a [3D reconstruction](#-3d-reconstruction) process through the application itself.
 
@@ -48,14 +48,14 @@ There are currently 8 plugins implemented:
 | Plugin | Description | Supports CUDA |
 | ------ | ----------- | ------------- |
 | [📈 NthFrame](doc/plugins.md#nthframe) | Selects every N-th frame | |
-| [👓 Blur Detection](doc/plugins.md#blur-detection) | Avoids blurry images | :white_check_mark: |
+| [👓 Blur Detection](doc/plugins.md#blur-detection) | Avoids blurry images | ✅ |
 | [🌐 GeoDistance](doc/plugins.md#geodistance) | (requires GPS) Selects images based on the distance between their GPS locations | |
 | [🌍 GeoMap](doc/plugins.md#geomap) | (requires GPS) Displays an interactive map for the user to select GPS poses manually | |
-| [🏎 Smooth Camera Movement](doc/plugins.md#smooth-camera-movement) | Images create a trajectory with constant flight speed | :white_check_mark: |
-| [🐌 Stationary Camera Removal](doc/plugins.md#stationary-camera-removal) | Removes images where camera is not moving | :white_check_mark: |
-| [🪞 Deep Visual Similarity](doc/plugins.md#deep-visual-similarity) | Find images with the lowest similarity based on their visual embeddings | :white_check_mark: |
-| | |
-| [🤖 Semantic Segmentation](doc/plugins.md#semantic-segmentation) | Creates binary masks to exclude objects such as vehicles from the reconstruction by using convolutional neural networks for semantic image segmentation | :white_check_mark: |
+| [🏎 Smooth Camera Movement](doc/plugins.md#smooth-camera-movement) | Images create a trajectory with constant flight speed | ✅ |
+| [🐌 Stationary Camera Removal](doc/plugins.md#stationary-camera-removal) | Removes images where camera is not moving | ✅ |
+| [🪞 Deep Visual Similarity](doc/plugins.md#deep-visual-similarity) | Find images with the lowest similarity based on their visual embeddings | ✅ |
+| ⠀ | ⠀ |
+| [🤖 Semantic Segmentation](doc/plugins.md#semantic-segmentation) | Creates binary masks to exclude objects such as vehicles from the reconstruction by using convolutional neural networks for semantic image segmentation | ✅ |
 
 These plugins show different approaches to enhance information from an image sequence or video by either selecting images or creating additional masks to improve the 3D reconstruction process. See [here](doc/plugins.md) for a detailed description of the above mentioned plugins.
 
@@ -63,18 +63,18 @@ iVS3D is built with an open plugin interface for adding new plugins. So feel fre
 
 ## ⛪ 3D Reconstruction
 iVS3D does prepare the data for 3D reconstruction. Afterwards, commonly used tools like [COLMAP] and [OpenMVS] can be used to perform the reconstruction and meshing. We provide a seamless integration of both in our software. In the *Reconstruction* tab you can configure desired products such as a dense point cloud or a textured mesh. iVS3D starts the reconstruction with your configuration based on the exported images and masks, either locally on your machine or on a remote server. You can track the progress, view logs and manage the reconstruction jobs all within the *Reconstruction* tab. For further information see:
-- [local reconstruction](doc/local_reconstruction.md)
-- [remote reconstruction](doc/remote_reconstruction.md)
+- [local reconstruction](doc/reconstruction_local.md)
+- [remote reconstruction](doc/reconstruction_remote.md)
 
 ## 📤 Ready to use builds
 
 We provide builds with and without CUDA for multiple platforms and distributions:
 | OS | CPU only | CUDA enabled |
 |----|----------|--------------|
-| 🪟 Windows 11 | :white_check_mark: | :white_check_mark: |
-| 🐧 Ubuntu 24.04 | :white_check_mark: | :white_check_mark: |
-| 🐧 Ubuntu 22.04 | :white_check_mark: | :white_check_mark: |
-| 🐧 Debian 12 | :white_check_mark: | :white_check_mark: |
+| 🪟 Windows 11 | ✅ | ✅ |
+| 🐧 Ubuntu 24.04 | ✅ | ✅ |
+| 🐧 Ubuntu 22.04 | ✅ | ✅ |
+| 🐧 Debian 12 | ✅ | ✅ |
 
 Check the latest release to get a build for your platform!
 
@@ -103,7 +103,7 @@ For Windows, we use [MSVC] 2022 compiler which is shipped with Visual Studio. On
 iVS3D uses the cmake build system and utilizes cmake presets. For detailed instructions on building from source see here:
 - [linux](doc/build_linux.md)
 - [windows](doc/build_win.md)
-- [vscode setup](doc/build_vscode.md)
+- [vscode setup](doc/develop_vscode.md)
 
 ### 🧪 Tests
 
@@ -116,7 +116,7 @@ Now you can run the tests within the Test Result tab in Qt Creator or use `ctest
 Thanks to everyone that helped bring iVS3D to life.
 , 
 
-iVS3D was formaly created as part of the "**P**raxis der **S**oftware **E**ntwicklung" modul at the Karlsruhe Institue of Technology in the winter term 2020/21, by Patrick Binder, Lennart Ruck, [Daniel Brommer](https://github.com/dabrommer), [Dominik Wüst](https://github.com/dom-wuest) and [Dominic Zahn](https://github.com/DominicZahn).
+iVS3D was formaly created as part of the **Praxis der Software Entwicklung** modul at the Karlsruhe Institue of Technology in the winter term 2020/21, by Patrick Binder, Lennart Ruck, [Daniel Brommer](https://github.com/dabrommer), [Dominik Wüst](https://github.com/dom-wuest) and [Dominic Zahn](https://github.com/DominicZahn).
 It was build in cooperation with Fraunhofer IOSB, Karlsruhe under supervision of [Max Hermann](https://github.com/Max-Hermann) and Thomas Pollok.
 
 Thanks to [Boitumelo Ruf](https://github.com/boitumeloruf) for helping with the transition from qmake to cmake and implementing the `expert_mode`.

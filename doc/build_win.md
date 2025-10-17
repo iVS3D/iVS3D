@@ -1,4 +1,4 @@
-# Deploy from source for windows
+# Build on Windows
 
 ## Prerequisites
 [Qt] 5.15.2 and [Visual Studio] 2019 or 2022 have to be installed. Make sure to select [MSVC] 2019 or later on both installations. Please add the Qt binary folder to your PATH variable, this is necessary for compiling translations and ui files using tools provided in the Qt installation, e.g.:
