@@ -1,5 +1,5 @@
 <div align="center">
-  <img width="200" height="200" src="doc/images/GUI_ICON_IVS3D_rounded.png" />
+  <img width="200" height="200" src="iVS3D.png" />
 </div>
 
 <div align="center">
@@ -54,7 +54,6 @@ There are currently 8 plugins implemented:
 | [🏎 Smooth Camera Movement](doc/plugins.md#smooth-camera-movement) | Images create a trajectory with constant flight speed | ✅ |
 | [🐌 Stationary Camera Removal](doc/plugins.md#stationary-camera-removal) | Removes images where camera is not moving | ✅ |
 | [🪞 Deep Visual Similarity](doc/plugins.md#deep-visual-similarity) | Find images with the lowest similarity based on their visual embeddings | ✅ |
-| ⠀ | ⠀ |
 | [🤖 Semantic Segmentation](doc/plugins.md#semantic-segmentation) | Creates binary masks to exclude objects such as vehicles from the reconstruction by using convolutional neural networks for semantic image segmentation | ✅ |
 
 These plugins show different approaches to enhance information from an image sequence or video by either selecting images or creating additional masks to improve the 3D reconstruction process. See [here](doc/plugins.md) for a detailed description of the above mentioned plugins.

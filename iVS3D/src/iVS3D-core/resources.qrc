@@ -4,7 +4,7 @@
         <file alias="trashIconB">resources/trashIconBlack.png</file>
         <file alias="settingsIconW">resources/SettingsIconWhite.png</file>
         <file alias="settingsIconB">resources/SettingsIconBlack.png</file>
-        <file alias="ivs3dIcon">resources/GUI_ICON_IVS3D_1.png</file>
+        <file alias="ivs3dIcon">resources/iVS3D.png</file>
         <file alias="openFolderIconB">resources/openfolder_black.png</file>
         <file alias="openFolderIconW">resources/openfolder_white.png</file>
         <file alias="openVideoIconB">resources/openvideo_black.png</file>

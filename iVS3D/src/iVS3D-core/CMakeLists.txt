@@ -1,8 +1,4 @@
 set(TARGET_NAME iVS3D-core)
-# if windows build, set icon 
-if(WIN32)
-    set(app_icon_resource_windows "${CMAKE_CURRENT_SOURCE_DIR}/resources/ivs3dIcon.ico")
-endif()
 
 # set header, source and form files
 file(GLOB_RECURSE HEADER_FILES
@@ -61,6 +57,10 @@ add_custom_command(
     DEPENDS ${TS_FILES}
 )
 
+if(WIN32)
+    set(APP_ICON_RESOURCE_WINDOWS "${CMAKE_CURRENT_SOURCE_DIR}/iVS3D-icon.rc")
+endif()
+
 # define executable
 add_executable(${TARGET_NAME} WIN32
     ${HEADER_FILES}
@@ -69,7 +69,7 @@ add_executable(${TARGET_NAME} WIN32
     ${QRC_SRC_FILES}
     ${QM_FILES}
     ${TS_FILES}
-    ${app_icon_resource_windows}
+    ${APP_ICON_RESOURCE_WINDOWS}
 )
 target_link_libraries(${TARGET_NAME}
     iVS3D-pluginInterface
