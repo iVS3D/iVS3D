@@ -33,7 +33,7 @@ An extensive range of [plugins](#-plugins-) either selects images based on, e.g.
 
 The resulting image and meta information are exported and can be directly used to start a [3D reconstruction](#-3d-reconstruction) process through the application itself.
 
-![overview](doc/images/iVS3D_overview.png)
+![overview](doc/images/iVS3D_overview.svg)
 
 ## 🚀 Quick Start
 TODO: VIDEO HERE
