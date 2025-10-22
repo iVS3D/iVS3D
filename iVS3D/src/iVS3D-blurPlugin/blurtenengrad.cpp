@@ -1,7 +1,8 @@
 #include "blurtenengrad.h"
+
 #include <opencv2/imgproc.hpp>
 
-#if defined(BLUR_PLUGIN_OPENCV_HAS_CUDA_LINK)
+#if defined(WITH_CUDA)
 #include <opencv2/cudaarithm.hpp>
 #include <opencv2/cudafilters.hpp>
 #endif
@@ -9,13 +10,9 @@
 extern bool g_useCuda;
 
 BlurTenengrad::BlurTenengrad() {}
-QString BlurTenengrad::getName()
-{
-    return QStringLiteral("Tenengrad");
-}
+QString BlurTenengrad::getName() { return QStringLiteral("Tenengrad"); }
 
-static inline void toGray8CPU(const cv::Mat &src, cv::Mat &gray8)
-{
+static inline void toGray8CPU(const cv::Mat &src, cv::Mat &gray8) {
     cv::Mat gray;
     if (src.channels() == 1) {
         gray = src;
@@ -34,10 +31,8 @@ static inline void toGray8CPU(const cv::Mat &src, cv::Mat &gray8)
     }
 }
 
-static double tenengradCPU(const cv::Mat &image, double edgeThreshold)
-{
-    if (image.empty())
-        return -1.0;
+static double tenengradCPU(const cv::Mat &image, double edgeThreshold) {
+    if (image.empty()) return -1.0;
     cv::Mat gray8;
     toGray8CPU(image, gray8);
 
@@ -51,21 +46,18 @@ static double tenengradCPU(const cv::Mat &image, double edgeThreshold)
     cv::Mat mask = (mag2 > t2);
 
     int strongCount = cv::countNonZero(mask);
-    if (strongCount == 0)
-        return 0.0;
+    if (strongCount == 0) return 0.0;
 
     return cv::mean(mag2, mask)[0];
 }
 
-#if defined(BLUR_PLUGIN_OPENCV_HAS_CUDA_LINK)
-static inline cv::cuda::Stream &tlsStream()
-{
+#if defined(WITH_CUDA)
+static inline cv::cuda::Stream &tlsStream() {
     thread_local cv::cuda::Stream s;
     return s;
 }
 
-static double reduceSum64(const cv::cuda::GpuMat &src)
-{
+static double reduceSum64(const cv::cuda::GpuMat &src) {
     cv::cuda::GpuMat tmp, tmp2;
     cv::cuda::reduce(src, tmp, 0, cv::REDUCE_SUM, CV_64F, tlsStream());
     cv::cuda::reduce(tmp, tmp2, 1, cv::REDUCE_SUM, CV_64F, tlsStream());
@@ -75,10 +67,8 @@ static double reduceSum64(const cv::cuda::GpuMat &src)
     return h.at<double>(0, 0);
 }
 
-static double tenengradCUDA(const cv::Mat &image, double edgeThreshold)
-{
-    if (image.empty())
-        return -1.0;
+static double tenengradCUDA(const cv::Mat &image, double edgeThreshold) {
+    if (image.empty()) return -1.0;
 
     cv::Mat gray8;
     toGray8CPU(image, gray8);
@@ -90,8 +80,8 @@ static double tenengradCUDA(const cv::Mat &image, double edgeThreshold)
     if (sobelY.empty())
         sobelY = cv::cuda::createSobelFilter(CV_32F, CV_32F, 0, 1, 3);
 
-    thread_local cv::cuda::GpuMat d_gray8, d_gray32f, d_gx, d_gy, d_gx2, d_gy2, d_mag2, d_mask,
-        d_maskF, d_masked;
+    thread_local cv::cuda::GpuMat d_gray8, d_gray32f, d_gx, d_gy, d_gx2, d_gy2,
+        d_mag2, d_mask, d_maskF, d_masked;
 
     d_gray8.upload(gray8, tlsStream());
     d_gray8.convertTo(d_gray32f, CV_32F, 1.0, 0.0, tlsStream());
@@ -104,21 +94,19 @@ static double tenengradCUDA(const cv::Mat &image, double edgeThreshold)
     cv::cuda::add(d_gx2, d_gy2, d_mag2, cv::noArray(), -1, tlsStream());
 
     const double t2 = edgeThreshold * edgeThreshold;
-    cv::cuda::compare(d_mag2, t2, d_mask, cv::CMP_GT, tlsStream()); // 0/255
+    cv::cuda::compare(d_mag2, t2, d_mask, cv::CMP_GT, tlsStream());  // 0/255
     d_mask.convertTo(d_maskF, CV_32F, 1.0 / 255.0, 0.0, tlsStream());
     cv::cuda::multiply(d_mag2, d_maskF, d_masked, 1.0, -1, tlsStream());
 
     const double sumStrong = reduceSum64(d_masked);
     const double count = reduceSum64(d_maskF);
-    if (count <= 0.0)
-        return 0.0;
+    if (count <= 0.0) return 0.0;
     return sumStrong / count;
 }
 #endif
 
-double BlurTenengrad::singleCalculation(const cv::Mat &image)
-{
-#if defined(BLUR_PLUGIN_OPENCV_HAS_CUDA_LINK)
+double BlurTenengrad::singleCalculation(const cv::Mat &image) {
+#if defined(WITH_CUDA)
     if (g_useCuda) {
         return tenengradCUDA(image, m_edgeThreshold);
     }

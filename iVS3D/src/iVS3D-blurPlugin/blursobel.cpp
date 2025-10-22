@@ -1,16 +1,16 @@
 #include "blursobel.h"
+
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
 
-#if defined(BLUR_PLUGIN_OPENCV_HAS_CUDA_LINK)
+#if defined(WITH_CUDA)
 #include <opencv2/cudaarithm.hpp>
 #include <opencv2/cudafilters.hpp>
 #endif
 
 extern bool g_useCuda;
 
-static inline void toGray8CPU(const cv::Mat &src, cv::Mat &gray8)
-{
+static inline void toGray8CPU(const cv::Mat &src, cv::Mat &gray8) {
     cv::Mat gray;
     if (src.channels() == 1) {
         gray = src;
@@ -29,10 +29,8 @@ static inline void toGray8CPU(const cv::Mat &src, cv::Mat &gray8)
     }
 }
 
-static double sobelCPU(const cv::Mat &image)
-{
-    if (image.empty())
-        return -1.0;
+static double sobelCPU(const cv::Mat &image) {
+    if (image.empty()) return -1.0;
     cv::Mat gray8;
     toGray8CPU(image, gray8);
 
@@ -43,15 +41,13 @@ static double sobelCPU(const cv::Mat &image)
     return cv::mean(FM).val[0];
 }
 
-#if defined(BLUR_PLUGIN_OPENCV_HAS_CUDA_LINK)
-static inline cv::cuda::Stream &tlsStream()
-{
+#if defined(WITH_CUDA)
+static inline cv::cuda::Stream &tlsStream() {
     thread_local cv::cuda::Stream s;
     return s;
 }
 
-static double reduceSum64(const cv::cuda::GpuMat &src)
-{
+static double reduceSum64(const cv::cuda::GpuMat &src) {
     cv::cuda::GpuMat tmp, tmp2;
     cv::cuda::reduce(src, tmp, 0, cv::REDUCE_SUM, CV_64F, tlsStream());
     cv::cuda::reduce(tmp, tmp2, 1, cv::REDUCE_SUM, CV_64F, tlsStream());
@@ -61,10 +57,8 @@ static double reduceSum64(const cv::cuda::GpuMat &src)
     return h.at<double>(0, 0);
 }
 
-static double sobelCUDA(const cv::Mat &image)
-{
-    if (image.empty())
-        return -1.0;
+static double sobelCUDA(const cv::Mat &image) {
+    if (image.empty()) return -1.0;
 
     cv::Mat gray8;
     toGray8CPU(image, gray8);
@@ -76,7 +70,8 @@ static double sobelCUDA(const cv::Mat &image)
     if (sobelY.empty())
         sobelY = cv::cuda::createSobelFilter(CV_32F, CV_32F, 0, 1, 3);
 
-    thread_local cv::cuda::GpuMat d_gray8, d_gray32f, d_gx, d_gy, d_gx2, d_gy2, d_sum;
+    thread_local cv::cuda::GpuMat d_gray8, d_gray32f, d_gx, d_gy, d_gx2, d_gy2,
+        d_sum;
 
     d_gray8.upload(gray8, tlsStream());
     d_gray8.convertTo(d_gray32f, CV_32F, 1.0, 0.0, tlsStream());
@@ -88,9 +83,9 @@ static double sobelCUDA(const cv::Mat &image)
     cv::cuda::multiply(d_gy, d_gy, d_gy2, 1.0, -1, tlsStream());
     cv::cuda::add(d_gx2, d_gy2, d_sum, cv::noArray(), -1, tlsStream());
 
-    const double N = static_cast<double>(d_sum.rows) * static_cast<double>(d_sum.cols);
-    if (N <= 0.0)
-        return 0.0;
+    const double N =
+        static_cast<double>(d_sum.rows) * static_cast<double>(d_sum.cols);
+    if (N <= 0.0) return 0.0;
 
     const double total = reduceSum64(d_sum);
     return total / N;
@@ -99,13 +94,9 @@ static double sobelCUDA(const cv::Mat &image)
 
 BlurSobel::BlurSobel() {}
 
-QString BlurSobel::getName()
-{
-    return m_name;
-}
+QString BlurSobel::getName() { return m_name; }
 
-double BlurSobel::singleCalculation(const cv::Mat &image)
-{
+double BlurSobel::singleCalculation(const cv::Mat &image) {
 #if defined(BLUR_PLUGIN_OPENCV_HAS_CUDA_LINK)
     if (g_useCuda) {
         return sobelCUDA(image);

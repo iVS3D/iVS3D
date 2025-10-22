@@ -102,12 +102,6 @@ if(WITH_CUDA)
             endif()
         endforeach()
     endif()
-
-    # Define a compile-time switch ONLY if we actually linked at least one CUDA module.
-    # This is not a user flag; it’s set automatically if the libs are available.
-    if (_linked_any_cuda)
-        target_compile_definitions(${TARGET_NAME} PRIVATE BLUR_PLUGIN_OPENCV_HAS_CUDA_LINK=1)
-    endif()
 endif()
 
 # Helpful: let rpath include linker search paths so the loader can find OpenCV libs

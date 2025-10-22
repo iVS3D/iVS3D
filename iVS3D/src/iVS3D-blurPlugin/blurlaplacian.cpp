@@ -1,19 +1,19 @@
 #include "blurlaplacian.h"
+
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
 
-#if defined(BLUR_PLUGIN_OPENCV_HAS_CUDA_LINK)
+#if defined(WITH_CUDA)
 #include <opencv2/cudaarithm.hpp>
 #include <opencv2/cudafilters.hpp>
 #endif
 
 extern bool g_useCuda;
 
-static inline void toGray8CPU(const cv::Mat &src, cv::Mat &gray8)
-{
+static inline void toGray8CPU(const cv::Mat &src, cv::Mat &gray8) {
     cv::Mat gray;
     if (src.channels() == 1) {
-        gray = src;    
+        gray = src;
     } else {
         cv::cvtColor(src, gray, cv::COLOR_BGR2GRAY);
     }
@@ -29,10 +29,8 @@ static inline void toGray8CPU(const cv::Mat &src, cv::Mat &gray8)
     }
 }
 
-static double laplacianCPU(const cv::Mat &image)
-{
-    if (image.empty())
-        return -1.0;
+static double laplacianCPU(const cv::Mat &image) {
+    if (image.empty()) return -1.0;
     cv::Mat gray8;
     toGray8CPU(image, gray8);
     cv::Mat lap;
@@ -42,27 +40,26 @@ static double laplacianCPU(const cv::Mat &image)
     return stddev[0] * stddev[0];
 }
 
-#if defined(BLUR_PLUGIN_OPENCV_HAS_CUDA_LINK)
-static inline cv::cuda::Stream &tlsStream()
-{
+#if defined(WITH_CUDA)
+static inline cv::cuda::Stream &tlsStream() {
     thread_local cv::cuda::Stream s;
     return s;
 }
 
 // Reduce to a scalar double using the provided stream
-static double reduceSum64(const cv::cuda::GpuMat &src)
-{
+static double reduceSum64(const cv::cuda::GpuMat &src) {
     cv::cuda::GpuMat tmp, tmp2, out;
-    cv::cuda::reduce(src, tmp, 0, cv::REDUCE_SUM, CV_64F, tlsStream());  // rows -> 1xW
-    cv::cuda::reduce(tmp, tmp2, 1, cv::REDUCE_SUM, CV_64F, tlsStream()); // 1xW -> 1x1
+    cv::cuda::reduce(src, tmp, 0, cv::REDUCE_SUM, CV_64F,
+                     tlsStream());  // rows -> 1xW
+    cv::cuda::reduce(tmp, tmp2, 1, cv::REDUCE_SUM, CV_64F,
+                     tlsStream());  // 1xW -> 1x1
     cv::Mat h;
     tmp2.download(h, tlsStream());
     tlsStream().waitForCompletion();
     return h.at<double>(0, 0);
 }
 
-static inline void ensureCudaThreadInit()
-{
+static inline void ensureCudaThreadInit() {
     static thread_local bool t_inited = false;
     if (!t_inited) {
         if (cv::cuda::getCudaEnabledDeviceCount() <= 0) {
@@ -73,10 +70,8 @@ static inline void ensureCudaThreadInit()
     }
 }
 
-static double laplacianCUDA(const cv::Mat &image)
-{
-    if (image.empty())
-        return -1.0;
+static double laplacianCUDA(const cv::Mat &image) {
+    if (image.empty()) return -1.0;
 
     cv::Mat gray8;
     toGray8CPU(image, gray8);
@@ -94,9 +89,9 @@ static double laplacianCUDA(const cv::Mat &image)
     lap->apply(d_gray32f, d_lap32f, tlsStream());
     cv::cuda::multiply(d_lap32f, d_lap32f, d_sq32f, 1.0, -1, tlsStream());
 
-    const double N = static_cast<double>(d_lap32f.rows) * static_cast<double>(d_lap32f.cols);
-    if (N <= 0.0)
-        return 0.0;
+    const double N =
+        static_cast<double>(d_lap32f.rows) * static_cast<double>(d_lap32f.cols);
+    if (N <= 0.0) return 0.0;
 
     const double sum = reduceSum64(d_lap32f);
     const double sumsq = reduceSum64(d_sq32f);
@@ -109,14 +104,10 @@ static double laplacianCUDA(const cv::Mat &image)
 #endif
 
 BlurLaplacian::BlurLaplacian() {}
-QString BlurLaplacian::getName()
-{
-    return m_name;
-}
+QString BlurLaplacian::getName() { return m_name; }
 
-double BlurLaplacian::singleCalculation(const cv::Mat &image)
-{
-#if defined(BLUR_PLUGIN_OPENCV_HAS_CUDA_LINK)
+double BlurLaplacian::singleCalculation(const cv::Mat &image) {
+#if defined(WITH_CUDA)
     if (g_useCuda) {
         return laplacianCUDA(image);
     }
