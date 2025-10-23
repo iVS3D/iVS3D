@@ -20,6 +20,10 @@ std::optional<QString> WriteToDiskCommand::execute(ImageContext &ctx)
     }
 
     ctx.filename = QDir::cleanPath(folder + "/" + prefix + QString::number(ctx.index, 10).rightJustified(8, '0') + "." + format);
+    if (QFile::exists(ctx.filename) && !QFile::remove(ctx.filename)) {
+        return "ERROR: failed to remove existing file '" + ctx.filename + "'!";
+    }
+    
     if (!cv::imwrite(ctx.filename.toStdString(), ctx.image, {cv::IMWRITE_JPEG_QUALITY, 100})) {
         return "ERROR: failed to export image: " + ctx.filename;
     }

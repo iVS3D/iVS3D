@@ -15,8 +15,13 @@ std::optional<QString> CopyFileCommand::execute(ImageContext &ctx)
         initialized = true;
     }
 
-    if (QFile::exists(ctx.filename)) {
-        QFile::remove(ctx.filename);
+    // check if the source file and destination file are the same
+    if (QFile::exists(ctx.filename) && QFileInfo(sourcepath) == QFileInfo(ctx.filename)) {
+        return std::nullopt; // no need to copy, source and destination are the same
+    }
+
+    if (QFile::exists(ctx.filename) && !QFile::remove(ctx.filename)) {
+        return "ERROR: failed to remove existing file '" + ctx.filename + "'!";
     }
 
     if(!QFile::copy(sourcepath, ctx.filename)) {
