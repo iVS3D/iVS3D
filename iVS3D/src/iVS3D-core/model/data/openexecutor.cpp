@@ -7,6 +7,7 @@ OpenExecutor::~OpenExecutor()
     if(m_futurePicsWatcher){
         disconnect(m_futurePicsWatcher, &QFutureWatcher<int>::finished, this, &OpenExecutor::slot_finished);
         delete m_futurePicsWatcher;
+        m_futurePicsWatcher = nullptr;
     }
 }
 
@@ -22,6 +23,7 @@ void OpenExecutor::open()
     if(m_futurePicsWatcher){
         disconnect(m_futurePicsWatcher, &QFutureWatcher<int>::finished, this, &OpenExecutor::slot_finished);
         delete m_futurePicsWatcher;
+        m_futurePicsWatcher = nullptr;
     }
     m_futurePicsWatcher = new QFutureWatcher<int>(this);
     connect(m_futurePicsWatcher, &QFutureWatcher<int>::finished, this, &OpenExecutor::slot_finished);
@@ -31,7 +33,6 @@ void OpenExecutor::open()
 void OpenExecutor::slot_abort()
 {
     m_futurePicsWatcher->cancel();
-    emit sig_finished(-1);
 }
 
 void OpenExecutor::slot_finished()

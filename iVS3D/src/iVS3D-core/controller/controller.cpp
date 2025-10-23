@@ -591,6 +591,13 @@ void Controller::onFailedOpen()
     }
     m_automaticController->disableAutoWidget();
 
+    QMessageBox msgBox;
+    msgBox.setText(tr("Failed to load input data. Possible causes are:\n"
+                      "- The selected folder does not contain any supported image or video files.\n"
+                      "- The selected project file is corrupted or incompatible.\n"
+                      "- The path or filenames contain invalid characters.\n\n"
+                      "Please check the input and try again."));
+    msgBox.exec();
 }
 
 uint Controller::loadMetaDataFromPath(QString path)

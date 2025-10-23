@@ -35,7 +35,12 @@ ImageReader::ImageReader(QString path, std::shared_ptr<ReaderParams> readerParam
     }
 
     // validate the given readerParams, initialize if necessary!
-    Resolution res(cv::imread(m_filePaths.at(0)));
+    auto img = cv::imread(m_filePaths.at(0));
+    if (img.empty()) {
+        m_isValid = false;
+        return;
+    }
+    Resolution res(img);
     if (!(m_readerParams->getOriginalResolution() == res)) {
         // The readerParams were initialized previously, but do not match the current input resolution!
         // We just override it, but this should not happen, wrong usage?
