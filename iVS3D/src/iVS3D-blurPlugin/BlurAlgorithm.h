@@ -6,7 +6,6 @@
 #include <QtConcurrent>
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc.hpp>
-#include <unistd.h>
 
 #include "progressable.h"
 #include "reader.h"
