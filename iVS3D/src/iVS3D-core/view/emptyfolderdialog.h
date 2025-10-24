@@ -32,6 +32,7 @@ public:
      * @param parent parent ui parent that holds this widget
      */
     explicit EmptyFolderDialog(QWidget *parent = 0, const QString &path = "");
+    void setDeleteButtonEnabled(bool enabled);
     ~EmptyFolderDialog();
 
 private slots:

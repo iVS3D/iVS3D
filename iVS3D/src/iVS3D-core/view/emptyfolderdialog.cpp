@@ -29,3 +29,8 @@ void EmptyFolderDialog::on_AbortButton_clicked()
 {
     done(0);
 }
+
+void EmptyFolderDialog::setDeleteButtonEnabled(bool enabled)
+{
+    ui->YesButton->setEnabled(enabled);
+}

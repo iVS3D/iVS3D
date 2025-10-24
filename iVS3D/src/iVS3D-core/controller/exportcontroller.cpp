@@ -276,6 +276,14 @@ void ExportController::slot_export() {
     if (wipeDir) {
         EmptyFolderDialog *emptyFolderD =
             new EmptyFolderDialog(m_outputWidget, pathWOimages);
+
+        // if input path is same as output path, disable delete button
+        QString inputPath = m_dataManager->getModelInputPictures()->getPath();
+        QDir inputDir(inputPath);
+        QDir outputDir(m_path);
+        if (inputDir.absolutePath() == outputDir.absolutePath()) {
+            emptyFolderD->setDeleteButtonEnabled(false);
+        }
         int result = emptyFolderD->exec();
         switch (result) {
             case 0:
