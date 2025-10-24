@@ -20,12 +20,13 @@ class WriteToDiskCommand : public ImageCommand {
     QString folder;
     QString prefix;
     QString format;
+    std::vector<std::string> files;
     bool initialized;
 
     bool ensureFolderExists();
 
 public:
-    WriteToDiskCommand(QString folderpath, QString prefix = "", QString format = "png");
+    WriteToDiskCommand(QString folderpath, QString prefix = "", QString format = "png", std::vector<std::string> files = {});
     std::optional<QString> execute(ImageContext &ctx) override;
 };
 

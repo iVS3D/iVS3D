@@ -87,7 +87,7 @@ void ExportThread::run() {
             m_reader->getFileVector(), imagePath));
     else
         processor.addCommand(std::make_unique<WriteToDiskCommand>(
-            imagePath, "", m_config.format));
+            imagePath, "", m_config.format, m_reader->getFileVector()));
     // adding an exif tag only if we have gps data available, we don't need to
     // do this if we copied the image before
     if (!m_config.copy_images && useExif)
