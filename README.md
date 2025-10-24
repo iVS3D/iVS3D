@@ -27,9 +27,9 @@
 ```
 
 ## 📜 Overview
-The **Intelligent Video Sampler 3D** serves as a preprocessing tool to select suitable images for 3D reconstructions. Its pipeline supports importing photogrammetric data in the form of image sequences or videos, which are complemented by metadata, such as GPS poses.
+The **Intelligent Video Sampler 3D** serves as a preprocessing tool to select suitable images primarily for 3D reconstruction. Its pipeline supports importing image sequences or videos, which can be synchronised with metadata, such as GPS poses from EXIF tags or .SRT and .GPX files.
 
-An extensive range of [plugins](#-plugins-) either selects images based on, e.g., visual similarity or sharpness, or creates masks to enhance the provided RGB information further. New algorithms can easily be added by creating new plugins, which are connected to our feature-rich interface.
+An extensive range of [plugins](#-plugins-) either selects images based on, e.g., visual similarity or sharpness, or creates masks to enhance the provided RGB information further. New algorithms can easily be added by creating new plugins without recompiling the core application.
 
 The resulting image and meta information are exported and can be directly used to start a [3D reconstruction](#-3d-reconstruction) process through the application itself.
 
@@ -48,13 +48,13 @@ There are currently 8 plugins implemented:
 | Plugin | Description | Supports CUDA |
 | ------ | ----------- | ------------- |
 | [📈 NthFrame](doc/plugins.md#nthframe) | Selects every N-th frame | |
-| [👓 Blur Detection](doc/plugins.md#blur-detection) | Avoids blurry images | ✅ |
-| [🌐 GeoDistance](doc/plugins.md#geodistance) | (requires GPS) Selects images based on the distance between their GPS locations | |
-| [🌍 GeoMap](doc/plugins.md#geomap) | (requires GPS) Displays an interactive map for the user to select GPS poses manually | |
-| [🏎 Smooth Camera Movement](doc/plugins.md#smooth-camera-movement) | Images create a trajectory with constant flight speed | ✅ |
-| [🐌 Stationary Camera Removal](doc/plugins.md#stationary-camera-removal) | Removes images where camera is not moving | ✅ |
-| [🪞 Deep Visual Similarity](doc/plugins.md#deep-visual-similarity) | Find images with the lowest similarity based on their visual embeddings | ✅ |
-| [🤖 Semantic Segmentation](doc/plugins.md#semantic-segmentation) | Creates binary masks to exclude objects such as vehicles from the reconstruction by using convolutional neural networks for semantic image segmentation | ✅ |
+| [👓 Blur Detection](doc/plugins.md#blur-detection) | Removes images with motion blur | ✅ |
+| [🌐 GeoDistance](doc/plugins.md#geodistance) | Selects images based on the spatial distance between their GPS locations | |
+| [🌍 GeoMap](doc/plugins.md#geomap) | Displays an interactive map based on OpenStreetMap to select images using a polygon| |
+| [🏎 Smooth Camera Movement](doc/plugins.md#smooth-camera-movement) | Tries to achieve a constant image motion rate by estimating the camera movement using optical flow | ✅ |
+| [🐌 Stationary Camera Removal](doc/plugins.md#stationary-camera-removal) | Removes redundant images if the camera is not moving | ✅ |
+| [🪞 Deep Visual Similarity](doc/plugins.md#deep-visual-similarity) | Selects the N-most dissimilar images using K-Means clustering and deep visual embeddings | ✅ |
+| [🤖 Semantic Segmentation](doc/plugins.md#semantic-segmentation) | Creates binary masks to exclude objects such as vehicles from the reconstruction by using neural networks for semantic segmentation | ✅ |
 
 These plugins show different approaches to enhance information from an image sequence or video by either selecting images or creating additional masks to improve the 3D reconstruction process. See [here](doc/plugins.md) for a detailed description of the above mentioned plugins.
 
@@ -77,10 +77,10 @@ We provide builds with and without CUDA for multiple platforms and distributions
 
 Check the latest release to get a build for your platform!
 
-Note that the CUDA builds support RTX series GPUs. Older models or Laptop GPUs might require building iVS3D from sources with an OpenCV and CUDA build for that specific GPU.
+Note that the CUDA builds support RTX series GPUs. Older models or Laptop GPUs might require building iVS3D from source with an OpenCV and CUDA build for that specific GPU.
 
-To use the included plugin for semantic segmentation you can download the models we used in our paper:
-[Link to models]
+To use the included plugin for semantic segmentation you can download our deep learning models here:
+[Link to our models]
 
 To use other models, they have to be in the `.onnx` format. In addition, the plug-in requires a file that maps the classes to specific colors.
 
@@ -90,7 +90,7 @@ To use other models, they have to be in the `.onnx` format. In addition, the plu
 iVS3D and the baseline plugins use:
 - [OpenCV] 4.11.0 with contrib modules
 - [Qt] Framework 5.15.2
-- [Ffmpeg] latest stable release
+- [FFmpeg] latest stable release
 - [Onnxruntime] 1.18.0 GPU (if using CUDA, make sure to select the version according to your CUDA version)
 
 For CUDA support:
@@ -100,9 +100,9 @@ For CUDA support:
 For Windows, we use [MSVC] 2022 compiler which is shipped with Visual Studio. On Linux, we use [GCC] 11 compiler.
 
 iVS3D uses the cmake build system and utilizes cmake presets. For detailed instructions on building from source see here:
-- [linux](doc/build_linux.md)
-- [windows](doc/build_win.md)
-- [vscode setup](doc/develop_vscode.md)
+- [Linux](doc/build_linux.md)
+- [Windows](doc/build_win.md)
+- [VSCode setup](doc/develop_vscode.md)
 
 ### 🧪 Tests
 
@@ -112,13 +112,12 @@ Now you can run the tests within the Test Result tab in Qt Creator or use `ctest
 [Link to our test data]
 
 ## 🎖️ Acknowledgements
-Thanks to everyone that helped bring iVS3D to life.
-, 
+Thanks to everyone that helped bring iVS3D to life. 
 
-iVS3D was formaly created as part of the **Praxis der Software Entwicklung** modul at the Karlsruhe Institue of Technology in the winter term 2020/21, by Patrick Binder, Lennart Ruck, [Daniel Brommer](https://github.com/dabrommer), [Dominik Wüst](https://github.com/dom-wuest) and [Dominic Zahn](https://github.com/DominicZahn).
+iVS3D was created as part of the **Praxis der Software Entwicklung** modul at the Karlsruhe Institue of Technology in the winter term 2020/21, by Patrick Binder, Lennart Ruck, [Daniel Brommer](https://github.com/dabrommer), [Dominik Wüst](https://github.com/dom-wuest) and [Dominic Zahn](https://github.com/DominicZahn).
 It was build in cooperation with Fraunhofer IOSB, Karlsruhe under supervision of [Max Hermann](https://github.com/Max-Hermann) and Thomas Pollok.
 
-Thanks to [Boitumelo Ruf](https://github.com/boitumeloruf) for helping with the transition from qmake to cmake and implementing the `expert_mode`.
+Thanks to [Boitumelo Ruf](https://github.com/boitumeloruf) for helping with the transition from qmake to cmake.
 
 ## 🔬 Future Work
 - [x] Add remote colmap execution for windows
@@ -134,13 +133,11 @@ See the [LICENSE](LICENSE) file for details about the license under which this c
   [OpenMVS]: https://github.com/cdcseacave/openMVS
   [OpenCV]: https://github.com/opencv
   [Onnxruntime]: https://github.com/microsoft/onnxruntime
-  [Ffmpeg]: https://ffmpeg.org
+  [FFmpeg]: https://ffmpeg.org
   [Qt]:     https://www.qt.io
   [MSVC]:   https://www.microsoft.com/de-de/download/details.aspx?id=48159
   [GCC]:    https://gcc.gnu.org
-  [Python]: https://www.python.org/downloads/
   [NVIDIA CUDA Toolkit API]:    https://developer.nvidia.com/cuda-zone
   [cuDNN]:  https://developer.nvidia.com/cudnn
-  [Link to paper]: https://arxiv.org/abs/2110.11810
-  [Link to models]: https://github.com/iVS3D/iVS3D-models
+  [Link to our models]: https://github.com/iVS3D/iVS3D-models
   [Link to our test data]: https://drive.google.com/drive/folders/1hPFtDqQKF9JzBpNTV016unL7awRCsxNj?usp=sharing
