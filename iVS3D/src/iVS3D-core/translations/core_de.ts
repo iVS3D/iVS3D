@@ -336,19 +336,34 @@
         <translation>Metadaten</translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="603"/>
+        <location filename="../controller/controller.cpp" line="595"/>
+        <source>Failed to load input data. Possible causes are:
+- The selected folder does not contain any supported image or video files.
+- The selected project file is corrupted or incompatible.
+- The path or filenames contain invalid characters.
+
+Please check the input and try again.</source>
+        <translation>Fehler beim Laden der Eingabedaten. Mögliche Ursachen sind:
+- Der ausgewählte Ordner enthält keine unterstützten Bild- oder Videodateien.
+- Die ausgewählte Projektdatei ist beschädigt oder nicht kompatibel.
+- Der Pfad oder die Dateinamen enthalten ungültige Zeichen.
+
+Bitte überprüfen Sie die Eingabe und versuchen Sie es erneut.</translation>
+    </message>
+    <message>
+        <location filename="../controller/controller.cpp" line="610"/>
         <source>Loaded </source>
         <translation>Laden von </translation>
     </message>
     <message>
         <location filename="../controller/controller.cpp" line="480"/>
-        <location filename="../controller/controller.cpp" line="603"/>
+        <location filename="../controller/controller.cpp" line="610"/>
         <source> meta data feature</source>
         <translation> Meta Daten Eigenschaft</translation>
     </message>
     <message>
         <location filename="../controller/controller.cpp" line="480"/>
-        <location filename="../controller/controller.cpp" line="603"/>
+        <location filename="../controller/controller.cpp" line="610"/>
         <source>s</source>
         <translation>en</translation>
     </message>
@@ -381,27 +396,27 @@
         <translation> Bildern abgeschlossen nach </translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="607"/>
+        <location filename="../controller/controller.cpp" line="614"/>
         <source>No meta data features were detected</source>
         <translation>Es wurden keine Metadaten gefunden</translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="639"/>
+        <location filename="../controller/controller.cpp" line="646"/>
         <source>Importing dataset and metadata.</source>
         <translation>Lade Bilder und Metadaten.</translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="682"/>
+        <location filename="../controller/controller.cpp" line="689"/>
         <source>Project </source>
         <translation>Projekt </translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="682"/>
+        <location filename="../controller/controller.cpp" line="689"/>
         <source> with </source>
         <translation> mit </translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="683"/>
+        <location filename="../controller/controller.cpp" line="690"/>
         <source> images loaded</source>
         <translation> Bildern geladen</translation>
     </message>
@@ -460,50 +475,50 @@
         <translation>Exportordner %1 konnte nicht erstellt werden</translation>
     </message>
     <message>
-        <location filename="../controller/exportcontroller.cpp" line="371"/>
+        <location filename="../controller/exportcontroller.cpp" line="379"/>
         <source>Export aborted after </source>
         <translation>Export abgerochen nach </translation>
     </message>
     <message>
-        <location filename="../controller/exportcontroller.cpp" line="372"/>
-        <location filename="../controller/exportcontroller.cpp" line="415"/>
-        <location filename="../controller/exportcontroller.cpp" line="421"/>
+        <location filename="../controller/exportcontroller.cpp" line="380"/>
+        <location filename="../controller/exportcontroller.cpp" line="423"/>
+        <location filename="../controller/exportcontroller.cpp" line="429"/>
         <source>ms</source>
         <translation>ms</translation>
     </message>
     <message>
-        <location filename="../controller/exportcontroller.cpp" line="400"/>
+        <location filename="../controller/exportcontroller.cpp" line="408"/>
         <source>Export aborted by the user.</source>
         <translation>Export vom Nutzer abgebrochen.</translation>
     </message>
     <message>
-        <location filename="../controller/exportcontroller.cpp" line="406"/>
+        <location filename="../controller/exportcontroller.cpp" line="414"/>
         <source>Error during export</source>
         <translation>Fehler beim Exportien</translation>
     </message>
     <message>
-        <location filename="../controller/exportcontroller.cpp" line="407"/>
+        <location filename="../controller/exportcontroller.cpp" line="415"/>
         <source>Export failed: %1</source>
         <translation>Export fehlgeschlagen: %1</translation>
     </message>
     <message>
-        <location filename="../controller/exportcontroller.cpp" line="414"/>
-        <location filename="../controller/exportcontroller.cpp" line="420"/>
+        <location filename="../controller/exportcontroller.cpp" line="422"/>
+        <location filename="../controller/exportcontroller.cpp" line="428"/>
         <source>Export finished after </source>
         <translation>Export beendet nach </translation>
     </message>
     <message>
-        <location filename="../controller/exportcontroller.cpp" line="415"/>
+        <location filename="../controller/exportcontroller.cpp" line="423"/>
         <source> with </source>
         <translation> mit </translation>
     </message>
     <message>
-        <location filename="../controller/exportcontroller.cpp" line="416"/>
+        <location filename="../controller/exportcontroller.cpp" line="424"/>
         <source> broken image.</source>
         <translation> beschädigtem Bild.</translation>
     </message>
     <message>
-        <location filename="../controller/exportcontroller.cpp" line="417"/>
+        <location filename="../controller/exportcontroller.cpp" line="425"/>
         <source> broken images.</source>
         <translation> beschädigten Bildern.</translation>
     </message>
@@ -1109,23 +1124,23 @@ li.checked::marker { content: &quot;\2612&quot;; }
 <context>
     <name>QObject</name>
     <message>
-        <location filename="../ots/colmapwrapper.cpp" line="1561"/>
+        <location filename="../ots/colmapwrapper.cpp" line="1599"/>
         <source>Start 3D-Reconstruction using COLMAP</source>
         <translation>3D-Rekonstruktion mit COLMAP starten</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper.cpp" line="1600"/>
+        <location filename="../ots/colmapwrapper.cpp" line="1638"/>
         <source>Start 3D-reconstruction using COLMAP</source>
         <translation>3D-Rekonstruktion mit COLMAP starten</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper.cpp" line="1630"/>
+        <location filename="../ots/colmapwrapper.cpp" line="1668"/>
         <source>Open COLMAP Wrapper Settings</source>
         <translation>Öffnen der Einstellungen zum ColmapWrapper</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper.cpp" line="1659"/>
-        <location filename="../ots/colmapwrapper.cpp" line="1687"/>
+        <location filename="../ots/colmapwrapper.cpp" line="1697"/>
+        <location filename="../ots/colmapwrapper.cpp" line="1725"/>
         <source>Open COLMAP settings</source>
         <translation>COLMAP Einstellungen öffnen</translation>
     </message>
@@ -1495,17 +1510,17 @@ li.checked::marker { content: &quot;\2612&quot;; }
 <context>
     <name>lib3d::ots::ui::ColmapWrapperControlsFactory</name>
     <message>
-        <location filename="../ots/colmapwrapper.cpp" line="1564"/>
+        <location filename="../ots/colmapwrapper.cpp" line="1602"/>
         <source> Start 3D-Reconstruction</source>
         <translation> 3D-Rekonstruktion starten</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper.cpp" line="1633"/>
+        <location filename="../ots/colmapwrapper.cpp" line="1671"/>
         <source>Settings</source>
         <translation>Einstellungen</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper.cpp" line="1689"/>
+        <location filename="../ots/colmapwrapper.cpp" line="1727"/>
         <source>Colmap Wrapper Settings</source>
         <translation>Colmap Wrapper - Einstellungen</translation>
     </message>
@@ -1538,78 +1553,93 @@ li.checked::marker { content: &quot;\2612&quot;; }
         <translation>Bilddaten auswählen ...</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="186"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="189"/>
+        <source>Masks:</source>
+        <translation>Masken:</translation>
+    </message>
+    <message>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="209"/>
+        <source>No masks found in directory</source>
+        <translation>Keine Masken gefunden</translation>
+    </message>
+    <message>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="256"/>
+        <source>Select mask path...</source>
+        <translation>Masken auswählen...</translation>
+    </message>
+    <message>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="291"/>
         <source>Product</source>
         <translation>Produkt(e)</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="194"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="299"/>
         <source>0. Custom command </source>
         <translation>0. Eigener Befehl </translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="234"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="339"/>
         <source>1. Camera Poses</source>
         <translation>1. Kameraposen</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="248"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="353"/>
         <source>2. Dense Point Cloud</source>
         <translation>2. Dichte Punktwolke</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="262"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="367"/>
         <source>Currently not usable, due to georegistration</source>
         <translation>Aktuell nicht verfügbar</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="566"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="671"/>
         <source>Optional intrinsic parameters (comma seperated):</source>
         <translation>Optionale Intrinsiche Parameter (kommagetrennt):</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="600"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="705"/>
         <source>GPU ids (-1 to use all):</source>
         <translation>GPU Indizes (-1 um alle zu nutzen):</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="649"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="754"/>
         <source>Images could have very high focal length:</source>
         <translation>Bilder könnten sehr hohe Brennweite haben:</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="692"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="797"/>
         <source>Cache size for dense fusion:</source>
         <translation>Cache-Größe für dichte Punktwolke:</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="757"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="862"/>
         <source>Mesh</source>
         <translation>Dreiecksnetz</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="765"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="870"/>
         <source>Max threads for mesh reconstruction (0 to use all)</source>
         <translation>Maximale Threadanzahl für Konstruktion des Dreiecksnetzes (0 um alle zu verwenden)</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="785"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="890"/>
         <source>0</source>
         <translation>0</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="485"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="590"/>
         <source>Camera Poses</source>
         <translation>Kameraposen</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="544"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="649"/>
         <source>OPENCV</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="537"/>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="549"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="642"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="654"/>
         <source>RADIAL</source>
         <translation></translation>
     </message>
@@ -1619,72 +1649,72 @@ li.checked::marker { content: &quot;\2612&quot;; }
         <translation>Start der 3D-Rekonstruktion mit COLMAP</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="268"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="373"/>
         <source>3. Meshed and textured Model</source>
         <translation>3. Dreiecksnetz und texturiertes Modell</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="280"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="385"/>
         <source>Trade-off between quality and runtime</source>
         <translation>Verhältnis von Qualität und Geschwindigkeit</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="288"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="393"/>
         <source>Fast</source>
         <translation>Schnell</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="311"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="416"/>
         <source>Medium</source>
         <translation>Ausgeglichen</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="337"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="442"/>
         <source>Quality</source>
         <translation>Qualität</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="360"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="465"/>
         <source>Best Quality</source>
         <translation>Beste Qualität</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="374"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="479"/>
         <source>Share intrinsics between images (sequence contains no camera zoom):</source>
         <translation>Gleiche Kameraparameter für alle Bilder (kein Zoom vorhanden):</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="411"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="516"/>
         <source>Robust mode (Higher probability of success for challenging scenes):</source>
         <translation>Robuster Modus (Höhere Erfolgswarscheinlichkeit bei herausfordernden Szenen):</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="443"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="548"/>
         <source>Edit advanced settings</source>
         <translation>Erweiterte Einstellungen bearbeiten</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="493"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="598"/>
         <source>Camera model:</source>
         <translation>Kameramodell:</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="554"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="659"/>
         <source>PINHOLE</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="635"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="740"/>
         <source>-1</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="727"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="832"/>
         <source> GB</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="684"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="789"/>
         <source>Dense Point Cloud</source>
         <translation>Dichte Punktwolke</translation>
     </message>
@@ -1694,17 +1724,32 @@ li.checked::marker { content: &quot;\2612&quot;; }
         <translation>Neues Produkt</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.cpp" line="184"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.cpp" line="196"/>
         <source>Select image directory</source>
         <translation>Bildverzeichnis auswählen</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.cpp" line="265"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.cpp" line="213"/>
+        <source>Select mask directory</source>
+        <translation>Maskenverzeichnis auswählen</translation>
+    </message>
+    <message>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.cpp" line="238"/>
+        <source>Mask directory does not exist.</source>
+        <translation>Maskenverzeichnis existiert nicht.</translation>
+    </message>
+    <message>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.cpp" line="277"/>
+        <source>Warning: Number of masks (%1) does not match number of images (%2).</source>
+        <translation>Warnung: Anzahl der masken (%1) stimmt nicht mit der Anzahl derBilder (%2) überein.</translation>
+    </message>
+    <message>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.cpp" line="344"/>
         <source>Copying files...</source>
         <translation>Bilddaten werden kopiert ...</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.cpp" line="266"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.cpp" line="345"/>
         <source>Abort Copy</source>
         <translation>Kopieren abbrechen</translation>
     </message>
