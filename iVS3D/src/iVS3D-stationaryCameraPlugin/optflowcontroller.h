@@ -152,7 +152,6 @@ public:
 private:
     // member variables
     double m_selectorThreshold = 0.3;
-    double m_downSampleFactor = 1.0;
     Reader *m_reader = nullptr;
     QPoint m_inputResolution = QPoint(0, 0);
     cv::SparseMat m_bufferMat;
@@ -161,17 +160,11 @@ private:
     QWidget *m_settingsWidget = nullptr;
     QDoubleSpinBox *m_selectorThresholdSpinBox = nullptr;
 
-    static constexpr double m_downSampleFactorArray[] = { 1.0, 1.5, 2.0, 2.5, 3.0, 4.0 };
-    QCheckBox *m_downSampleCheck = nullptr;
-
     // timing variables
     long m_durationFarnebackMs = 0;
     long m_durationComputationFlowMs = 0;
 
     // functions
-    bool downInputResToCheck(QPointF inputRes);
-    bool downFactorToCheck(double downFactor);
-    double downCheckToFactor(bool boxChecked, QPointF inputRes);
     void reportProgress(QString op, int progress, Progressable *receiver);
     void displayMessage(QString txt, Progressable *receiver);
     void createSettingsWidget(QWidget *parent);
@@ -191,8 +184,6 @@ private:
      */
     void stringToBufferMat(QString string);
     QVariant bufferMatToVariant(cv::SparseMat bufferMat);
-private slots:
-    void sampleCheckChanged(bool isChecked);
 signals:
     void changeUIParameter(QVariant nValue, QString paramName, QString selectorName);
 };

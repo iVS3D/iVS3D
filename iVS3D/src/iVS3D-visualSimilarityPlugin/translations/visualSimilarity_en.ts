@@ -86,5 +86,30 @@
         <source>here</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Failed to create neural network from file: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The selected neural network does not have the expected input shape. Please select a different neural network.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The selected neural network does not have the expected output shape. Please select a different neural network.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Not enough memory available to feed the neural network!
+ To resolve this you can:
+- Reduce the working resolution or
+- Select a smaller neural network or
+-Disable CUDA</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>An error occurred while feeding the neural network:
+%1</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 </TS>

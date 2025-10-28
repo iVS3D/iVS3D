@@ -1,19 +1,5 @@
 set(TARGET_NAME iVS3D-core)
 
-set(CMAKE_CXX_STANDARD 17)            # Use C++17
-if(NOT WIN32)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -std=c++17")
-endif()
-set(CMAKE_CXX_STANDARD_REQUIRED ON)   # Enforce C++17
-set(CMAKE_CXX_EXTENSIONS OFF)         # Use only standard C++ (disable compiler-specific extensions)
-
-
-# if windows build, set icon 
-if(WIN32)
-    set(app_icon_resource_windows "${CMAKE_CURRENT_SOURCE_DIR}/resources/ivs3dIcon.ico")
-endif()
-
-
 # set header, source and form files
 file(GLOB_RECURSE HEADER_FILES
     "${CMAKE_CURRENT_LIST_DIR}/*.h"
@@ -25,13 +11,6 @@ file(GLOB_RECURSE UI_FILES
     "${CMAKE_CURRENT_LIST_DIR}/*.ui"
 )
 
-# remove ots files on windows
-if(WIN32)
-    list(FILTER HEADER_FILES EXCLUDE REGEX "ots(.)*h")
-    list(FILTER SRC_FILES EXCLUDE REGEX "ots(.)*cpp")
-    list(FILTER UI_FILES EXCLUDE REGEX "ots(.)*ui")
-endif()
-
 # set include directories
 include_directories(SYSTEM
     ${Qt${QT_VERSION_MAJOR}Core_INCLUDE_DIRS}
@@ -39,6 +18,9 @@ include_directories(SYSTEM
     ${Qt${QT_VERSION_MAJOR}Widgets_INCLUDE_DIRS}
     ${OpenCV_INCLUDE_DIRS}
 )
+
+include_directories(${OpenCV_INCLUDE_DIRS})
+
 include_directories(
     "${CMAKE_CURRENT_LIST_DIR}/../iVS3D-pluginInterface"
 )
@@ -52,11 +34,9 @@ qt5_add_resources(QRC_SRC_FILES
     "${CMAKE_CURRENT_LIST_DIR}/darkstyle.qrc"
     "${CMAKE_CURRENT_LIST_DIR}/resources.qrc"
 )
-if (UNIX)
-    qt5_add_resources(QRC_SRC_FILES 
-        "${CMAKE_CURRENT_LIST_DIR}/lib3D_ots.qrc"
-    )
-endif()
+qt5_add_resources(QRC_SRC_FILES
+    "${CMAKE_CURRENT_LIST_DIR}/lib3D_ots.qrc"
+)
 
 # set compiled translation files (.qm)
 set(QM_FILES
@@ -77,19 +57,24 @@ add_custom_command(
     DEPENDS ${TS_FILES}
 )
 
+if(WIN32)
+    set(APP_ICON_RESOURCE_WINDOWS "${CMAKE_CURRENT_SOURCE_DIR}/iVS3D-icon.rc")
+endif()
+
 # define executable
-add_executable(${TARGET_NAME}
+add_executable(${TARGET_NAME} WIN32
     ${HEADER_FILES}
     ${SRC_FILES}
     ${UI_FILES}
     ${QRC_SRC_FILES}
     ${QM_FILES}
     ${TS_FILES}
-    ${app_icon_resource_windows}
+    ${APP_ICON_RESOURCE_WINDOWS}
 )
 target_link_libraries(${TARGET_NAME}
     iVS3D-pluginInterface
-    ${OpenCV_LIBRARIES} 
+    ${OpenCV_LIBRARIES}
+    iVS3D::Ffmpeg
     Qt${QT_VERSION_MAJOR}::Core
     Qt${QT_VERSION_MAJOR}::Widgets
     Qt${QT_VERSION_MAJOR}::Gui
@@ -117,12 +102,6 @@ add_dependencies(${TARGET_NAME}
 install(TARGETS ${TARGET_NAME} 
     DESTINATION bin
 )
-if(WIN32)
-    install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/copy_to_install_dir/ 
-        DESTINATION bin/colmap
-        FILES_MATCHING PATTERN "*"
-    )
-endif()
 
 if(Update_Translations)
     # if Update_Translations flag is set to ON, we want to override existing .ts files with new Strings from the src files.
@@ -136,3 +115,5 @@ if(Update_Translations)
         DEPENDS ${HEADER_FILES} ${SRC_FILES}
     )
 endif()
+
+add_component_summary("${TARGET_NAME}" TRUE "${VERSION_STR}")

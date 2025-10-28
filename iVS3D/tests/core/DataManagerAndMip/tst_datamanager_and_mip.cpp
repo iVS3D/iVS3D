@@ -51,7 +51,7 @@ void tst_datamanager_and_mip::testForAllKeyframes()
 
 void tst_datamanager_and_mip::testResolution()
 {
-    QPoint res = mip->getInputResolution();
+    QPoint res = mip->getReaderParams()->getOriginalResolution().toQPoint();
     QCOMPARE(QPoint(res), QPoint(1080,1920));
 }
 
@@ -74,7 +74,7 @@ void tst_datamanager_and_mip::initTestCase()
     requireResource(path);
     int numPics = dm->open(path);
     mip = dm->getModelInputPictures();
-    QCOMPARE(numPics, 61);  //Verify correct number of Frames imported in DataManger
+    QCOMPARE(numPics, 62);  //Verify correct number of Frames imported in DataManger
 }
 
 

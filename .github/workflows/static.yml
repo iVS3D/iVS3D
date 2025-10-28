@@ -4,7 +4,7 @@ name: Deploy static content to Pages
 on:
   # Runs on pushes targeting the default branch
   push:
-    branches: ["master"]
+    branches: ["master", "doxygen", "dev"]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -22,22 +22,40 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  # Single deploy job since we're just deploying
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout source
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0      # Fetch full history with tags for versioning
+        submodules: false   # Do not fetch submodules, as models are large and not needed for docs
+        lfs: true           # Fetch LFS files (images)  
+
+    - name: Fetch doxygen-awesome-css submodule
+      run: |
+        git submodule init
+        git submodule update --depth 1 --remote doc/doxygen-awesome-css
+
+    - name: Install Doxygen
+      run: sudo apt-get update && sudo apt-get install -y doxygen graphviz
+
+    - name: Generate Doxygen docs
+      run: tools/generateDoxygen.sh
+
+    - name: Upload artifact
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: generated_doc/html
+  
   deploy:
+    needs: build
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          # Upload entire repository
-          path: '.'
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v4

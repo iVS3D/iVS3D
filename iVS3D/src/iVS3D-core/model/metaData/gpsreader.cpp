@@ -36,20 +36,22 @@ bool GPSReader::normaliseGPS(uint imageNumber)
 
 QVariant GPSReader::getImageMetaData(uint index)
 {
+    auto gpsHash = m_GPSHashs[index];
     if (m_altitudeDiff != 0) {
-        addAltitudeDiff(index);
+        addAltitudeDiff(gpsHash);
     }
-    return m_GPSHashs[index];
+    return gpsHash;
 }
 
 QList<QVariant> GPSReader::getAllMetaData()
 {
     QList<QVariant> values;
     for (int i = 0; i < m_GPSHashs.size(); i++) {
+        auto gpsHash = m_GPSHashs[i];
         if (m_altitudeDiff != 0) {
-            addAltitudeDiff(i);
+            addAltitudeDiff(gpsHash);
         }
-        values.append(m_GPSHashs[i]);
+        values.append(gpsHash);
     }
     return values;
 }
@@ -92,18 +94,16 @@ bool GPSReader::addGPSValue(double latitude, double longitude, double altitude)
     return true;
 }
 
-void GPSReader::addAltitudeDiff(int index)
+void GPSReader::addAltitudeDiff(QHash<QString, QVariant> &gpsHash)
 {
-   QHash<QString, QVariant> GPSHash = m_GPSHashs.at(index);
-   QHash<QString, QVariant>::iterator altitudeIter = GPSHash.find(stringContainer::altitudeIdentifier);
+   QHash<QString, QVariant>::iterator altitudeIter = gpsHash.find(stringContainer::altitudeIdentifier);
    double oldAltitude = altitudeIter.value().toDouble();
-   GPSHash.erase(altitudeIter);
-   GPSHash.erase(GPSHash.find(stringContainer::altitudeIdentifier));
+   gpsHash.erase(altitudeIter);
+   gpsHash.erase(gpsHash.find(stringContainer::altitudeIdentifier));
    double altitude = m_altitudeDiff + oldAltitude;
    QString altRef = (altitude > 0) ? stringContainer::altitudeAboveSea : stringContainer::altitudeBelowSea;
-   GPSHash.insert(stringContainer::altitudeIdentifier, QVariant(abs(altitude)));
-   GPSHash.insert(stringContainer::altitudeRefIdentifier, QVariant(altRef));
-   m_GPSHashs.replace(index, GPSHash);
+   gpsHash.insert(stringContainer::altitudeIdentifier, QVariant(abs(altitude)));
+   gpsHash.insert(stringContainer::altitudeRefIdentifier, QVariant(altRef));
 }
 
 void GPSReader::interpolateMissingData(QList<int> missingMetaData)

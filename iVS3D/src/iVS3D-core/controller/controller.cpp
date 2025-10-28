@@ -1,10 +1,9 @@
 #include "controller.h"
+#include "roiselect.h"
 
 
 Controller::Controller(QString inputPath, QString settingsPath, QString outputPath, QString logPath)
-    #if defined(Q_OS_LINUX)
         : m_colmapWrapper(new lib3d::ots::ColmapWrapper)
-    #endif
 {
     m_videoPlayerController = nullptr;
     m_algorithmController = nullptr;
@@ -23,7 +22,6 @@ Controller::Controller(QString inputPath, QString settingsPath, QString outputPa
     QLocale selectedLocale = ApplicationSettings::instance().getLocale();
 
     QWidget *otsWidget = nullptr;
-#if defined(Q_OS_LINUX)
     const auto otsTheme = ApplicationSettings::instance().getColorTheme() == ColorTheme::DARK ? lib3d::ots::ui::ETheme::DARK : lib3d::ots::ui::ETheme::LIGHT;
 
     m_colmapWrapper->setChecksDisabled(ApplicationSettings::instance().getDisableChecks());
@@ -35,7 +33,6 @@ Controller::Controller(QString inputPath, QString settingsPath, QString outputPa
     m_newProductPushButton = m_colmapWrapper->getOrCreateUiControlsFactory()->createNewProductPushButton(otsTheme, nullptr);
     otsWidget->layout()->addWidget(m_newProductPushButton);
 
-#endif
     bool interpolateMetaData = ApplicationSettings::instance().getInterpolateMetaData();
     m_mainWindow = new MainWindow(
                 nullptr,
@@ -54,12 +51,10 @@ Controller::Controller(QString inputPath, QString settingsPath, QString outputPa
     m_mainWindow->enableRedo(false);
     m_mainWindow->enableTools(false);
 
-#if defined(Q_OS_LINUX)
     m_colmapWrapperSettingsAction = m_colmapWrapper->getOrCreateUiControlsFactory()->createSettingsAction(otsTheme, nullptr);
     m_mainWindow->addSettingsAction(m_colmapWrapperSettingsAction);
 
     m_colmapWrapper->getOrCreateUiControlsFactory()->updateIconTheme(otsTheme);
-#endif
 
     if(AlgorithmManager::instance().getAlgorithmCount() + TransformManager::instance().getTransformCount() >0){
         displayPluginSettings();
@@ -90,9 +85,13 @@ Controller::Controller(QString inputPath, QString settingsPath, QString outputPa
     connect(m_mainWindow, &MainWindow::sig_selectLanguage, this, &Controller::slot_selectLanguage);
     connect(m_mainWindow, &MainWindow::sig_restart, this, &Controller::slot_restart);
 
-#if defined(Q_OS_LINUX)
+    OutputWidget* outputWidget = m_mainWindow->getOutputWidget();
+    connect(m_mainWindow->getSamplingWidget(), &SamplingWidget::sig_resChanged, this, &Controller::slot_workingResolutionChanged);
+    connect(m_mainWindow->getVideoPlayer(), &VideoPlayer::sig_cropEdit, this, &Controller::slot_editCrop);
+    connect(m_mainWindow->getVideoPlayer(), &VideoPlayer::sig_useCropChanged, this, &Controller::slot_useCropChanged);
+    connect(outputWidget, &OutputWidget::sig_altitudeChanged, this, &Controller::slot_altitudeChanged);
+
     connect(m_mainWindow, &MainWindow::sig_quit, m_colmapWrapper->getOrCreateUiControlsFactory(), &lib3d::ots::ui::ColmapWrapperControlsFactory::onQuit);
-#endif
     connect(m_mainWindow, &MainWindow::sig_changeInterpolateMetaData, this, &Controller::slot_changeInterpolateMetaData);
 
     connect(this, &Controller::sig_hasStatusMessage, m_mainWindow, &MainWindow::slot_displayStatusMessage);
@@ -126,9 +125,7 @@ Controller::Controller(QString inputPath, QString settingsPath, QString outputPa
 
 Controller::~Controller()
 {
-    #if defined(Q_OS_LINUX)
-        delete m_colmapWrapper;
-    #endif
+    delete m_colmapWrapper;
     TransformManager::instance().exit();
 }
 
@@ -276,13 +273,11 @@ void Controller::slot_toggleColorTheme()
     }
     m_mainWindow->setColorTheme(ApplicationSettings::instance().getColorTheme());
 
-#ifdef Q_OS_LINUX
     const auto otsTheme = ApplicationSettings::instance().getColorTheme() == ColorTheme::DARK ? lib3d::ots::ui::ETheme::DARK : lib3d::ots::ui::ETheme::LIGHT;
     m_colmapWrapper->getOrCreateUiControlsFactory()->updateIconTheme(otsTheme);
     // update icons of settings action and new product button
     m_colmapWrapper->getOrCreateUiControlsFactory()->createSettingsAction(otsTheme, m_mainWindow, m_colmapWrapperSettingsAction);
     m_colmapWrapper->getOrCreateUiControlsFactory()->createNewProductPushButton(otsTheme, m_mainWindow, m_newProductPushButton);
-#endif
     // notify the plugins next!
 }
 
@@ -401,8 +396,72 @@ void Controller::slot_restart()
     QProcess::startDetached(qApp->arguments()[0], qApp->arguments());
 }
 
+void Controller::slot_workingResolutionChanged(QString resolution)
+{
+    if(m_dataManager->getModelInputPictures()) {
+        std::shared_ptr<ReaderParams> params = m_dataManager->getModelInputPictures()->getReaderParams();
+        Resolution res;
+        if (res.fromString(resolution)){
+            bool valid = params->setWorkingResolution(res);
+            m_mainWindow->getSamplingWidget()->setResolutionValid(valid);
+            m_videoPlayerController->slot_mipChanged();
+        }
+    }
+}
+
+void Controller::slot_editCrop()
+{
+    if(m_dataManager->getModelInputPictures()) {
+        std::shared_ptr<ReaderParams> params = m_dataManager->getModelInputPictures()->getReaderParams();
+        uint current_idx = m_videoPlayerController->getImageIndexOnScreen();
+        const cv::Mat* img = m_dataManager->getModelInputPictures()->getPic(current_idx);
+        if (img->empty()) {
+            QMessageBox *em = new QMessageBox();
+            em->setText(tr("The selected frame is broken and can´t be cropped. Please select another frame to select a new region of intrest."));
+            em->show();
+            return;
+        }
+        Resolution imgResolution(*img);
+        QRect roiRect = params->getRoi().cropAsQRect(imgResolution);
+        CropExport dialog = CropExport(m_mainWindow, img, roiRect);
+
+        if (dialog.exec() == QDialog::Accepted) {
+            roiRect = dialog.getROI();
+            //Don't update roi, if no roi has been drawn
+            if (roiRect.size() != QSize(1,1)) {
+                ROI newROI(roiRect, imgResolution);
+                bool valid = params->setRoi(newROI);
+                params->setUseRoi(valid);
+                m_mainWindow->getVideoPlayer()->setCropStatus(valid);
+                m_videoPlayerController->slot_mipChanged();
+            }
+            if (m_exportController) {
+                m_exportController->slot_roiChanged(params->getUseRoi() ? std::optional<ROI>(params->getRoi()) : std::nullopt);
+            }
+        }
+    }
+}
+
+void Controller::slot_useCropChanged(int checkstate)
+{
+    if(m_dataManager->getModelInputPictures()) {
+        std::shared_ptr<ReaderParams> params = m_dataManager->getModelInputPictures()->getReaderParams();
+        params->setUseRoi(checkstate != Qt::Unchecked);
+        m_videoPlayerController->slot_mipChanged();
+        if (m_exportController) {
+            m_exportController->slot_roiChanged(params->getUseRoi() ? std::optional<ROI>(params->getRoi()) : std::nullopt);
+        }
+    }
+}
+
+void Controller::slot_altitudeChanged(double altitude)
+{
+    m_dataManager->getModelInputPictures()->setAltitude(altitude);
+}
+
 void Controller::createOpenMessage(int numPics)
 {
+    m_mainWindow->getVideoPlayer()->updateRoi();
     auto duration_ms = m_timer.elapsed();
     if (numPics <= 0) {
         emit sig_hasStatusMessage(tr("No images imported after ") + QString::number(duration_ms) + tr("ms"));
@@ -439,26 +498,54 @@ QString Controller::getNameFromPath(QString path, QString dataFormat) {
 }
 
 void Controller::setInputWidgetInfo() {
-    QMap<QString, QString> info;
-    QString picCount = QString::number(m_dataManager->getModelInputPictures()->getPicCount());
-    info.insert(tr("Number of images  "), picCount);
-    QString x = QString::number(m_dataManager->getModelInputPictures()->getInputResolution().x());
-    QString y = QString::number(m_dataManager->getModelInputPictures()->getInputResolution().y());
-    QString resolution = x + " x " + y;
-    info.insert(tr("Resolution  "), resolution);
-    info.insert(stringContainer::inputPathIdentifier, m_dataManager->getModelInputPictures()->getPath());
+
+    auto readerParams = m_dataManager->getModelInputPictures()->getReaderParams();
+    QString resolution = readerParams->getOriginalResolution().toString();
+
+    QList<VideoPlayer::OverlayEntry> entries = {
+        {m_dataManager->getModelInputPictures()->getPath(), false, Qt::ElideMiddle},  // Filepath
+        {tr("General"), true},          // section header
+        {resolution + tr(" pixels")},   // resolution
+        {QString::number(m_dataManager->getModelInputPictures()->getPicCount()) + tr(" images")},   // image count
+    };
     Reader* currentReader = m_dataManager->getModelInputPictures()->getReader();
     if(currentReader->getFPS() != -1) {
-        info.insert(tr("FPS "), QString::number(currentReader->getFPS()));
-        info.insert(tr("Video duration "), QString::number(currentReader->getVideoDuration()) + "s");
+        entries.append({
+            {tr("Video"), true},
+            {QString::number(currentReader->getVideoDuration()) + tr(" seconds")},
+            {QString::number(currentReader->getFPS()) + tr(" fps")}
+        });
     }
     QStringList loadedMetaData = MetaDataManager::instance().availableMetaData();
     if (loadedMetaData.size() != 0) {
+        entries.push_back({tr("Metadata"), true});
         for (int i = 0; i < loadedMetaData.size(); i++) {
-            info.insert(tr("Loaded Meta Data") + " #" + QString::number(i + 1), loadedMetaData.at(i));
+            entries.push_back({" #" + QString::number(i + 1) + " " + loadedMetaData.at(i)});
         }
     }
-    m_mainWindow->getInputWidget()->setInfo(info);
+    m_mainWindow->getVideoPlayer()->updateOverlayText(entries);
+
+    // set standard (input) resolution
+    QStringList resList = QString(RESOLUTION_LIST).split("|");
+    resList.push_front(resolution + " (input res)");
+    int resolutionIdx = 0;
+    if(!(readerParams->getOriginalResolution() == readerParams->getWorkingResolution())){
+        QString wRes = readerParams->getWorkingResolution().toString();
+        auto it = std::find_if(resList.begin(), resList.end(),
+                               [&wRes](const QString& res) { return res.startsWith(wRes); });
+
+        resolutionIdx = (it != resList.end()) ? std::distance(resList.begin(), it) : -1;
+
+        if(resolutionIdx < 0) {
+            resList.push_back(wRes);
+            resolutionIdx = resList.length()-1;
+        }
+    }
+    m_mainWindow->getSamplingWidget()->setResolutionList(resList, resolutionIdx);
+    m_mainWindow->getOutputWidget()->setResolutionList(resList, resolutionIdx);
+
+    // set altitude (if available)
+    setAltitude();
 }
 
 void Controller::displayPluginSettings()
@@ -480,8 +567,8 @@ void Controller::onFailedOpen()
     m_mainWindow->enableSaveProject(false);
     m_mainWindow->enableUndo(false);
     m_mainWindow->enableRedo(false);
-    QMap<QString, QString> info;
-    m_mainWindow->getInputWidget()->setInfo(info);
+    m_mainWindow->getOutputWidget()->setAltitudeVisible(false);
+    m_mainWindow->getVideoPlayer()->updateOverlayText({});
     m_mainWindow->enableOpenMetaData(false);
     m_mainWindow->enableTools(false);
     // remove old controllers if existing
@@ -504,6 +591,13 @@ void Controller::onFailedOpen()
     }
     m_automaticController->disableAutoWidget();
 
+    QMessageBox msgBox;
+    msgBox.setText(tr("Failed to load input data. Possible causes are:\n"
+                      "- The selected folder does not contain any supported image or video files.\n"
+                      "- The selected project file is corrupted or incompatible.\n"
+                      "- The path or filenames contain invalid characters.\n\n"
+                      "Please check the input and try again."));
+    msgBox.exec();
 }
 
 uint Controller::loadMetaDataFromPath(QString path)
@@ -511,8 +605,6 @@ uint Controller::loadMetaDataFromPath(QString path)
     int n = m_dataManager->getModelInputPictures()->loadMetaData(QStringList(path));
     if (n > 0) {
         AlgorithmManager::instance().notifyNewMetaData();
-        //Show altitude in the export widget, if existing
-        m_exportController->setAltitudeInWidget();
         //Update the info widget
         setInputWidgetInfo();
         QString msg = tr("Loaded ") + QString::number(n) + tr(" meta data feature") + QString(n > 1 ? tr("s") : "");
@@ -527,6 +619,10 @@ uint Controller::loadMetaDataFromPath(QString path)
 
 bool Controller::loadInputDataFromPath(QString path)
 {
+    if (m_videoPlayerController) {
+        m_videoPlayerController->slot_stopPlay();
+    }
+    
     bool validDatasetPath =
             path.endsWith(".mp4", Qt::CaseInsensitive) ||
             path.endsWith(".mov", Qt::CaseInsensitive) ||
@@ -556,6 +652,29 @@ bool Controller::loadInputDataFromPath(QString path)
     m_openExec->open();
     m_inputProgressDialog->show();
     return true;
+}
+
+void Controller::setAltitude()
+{
+    QList<MetaDataReader*> readers = MetaDataManager::instance().loadAllMetaData();
+    for (MetaDataReader* reader : readers) {
+        if (reader->getName().startsWith("GPS")) {
+            GPSReader* gpsReader = dynamic_cast<GPSReader*>(reader);
+            if (!gpsReader->hasAltitudeData()) {
+                continue;
+            }
+            m_mainWindow->getOutputWidget()->setAltitudeVisible(true);
+            QVariant gpsData = reader->getImageMetaData(0);
+            QHash<QString, QVariant> gpsHash = gpsData.toHash();
+            double altitude_abs = gpsHash.find("GPSAltitude").value().toDouble();
+            double altitude = (gpsHash.find("GPSAltitudeRef").value().toString() == "0") ? altitude_abs : altitude_abs * -1;
+            m_mainWindow->getOutputWidget()->setAltitude(altitude);
+            m_exportController->setOriginalAltitude(altitude);
+            return;
+        }
+    }
+    m_mainWindow->getOutputWidget()->setAltitudeVisible(false);
+    
 }
 
 void Controller::onSuccessfulOpen()
@@ -618,11 +737,8 @@ void Controller::onSuccessfulOpen()
     connect(m_algorithmController, &AlgorithmController::sig_stopPlay, m_videoPlayerController, &VideoPlayerController::slot_stopPlay);
 
     // ExportController manages algorithm used widget and reconstruct widget and delegates export of images and 3d-reconstruction
-    #if defined(Q_OS_LINUX)
-        m_exportController = new ExportController(m_mainWindow->getOutputWidget(), m_dataManager, m_colmapWrapper);
-    #elif defined(Q_OS_WIN)
-        m_exportController = new ExportController(m_mainWindow->getOutputWidget(), m_dataManager);
-    #endif
+    m_exportController = new ExportController(m_mainWindow->getOutputWidget(), m_dataManager, m_colmapWrapper);
+
     connect(m_exportController, &ExportController::sig_hasStatusMessage, m_mainWindow, &MainWindow::slot_displayStatusMessage);
     connect(m_exportController, &ExportController::sig_stopPlay, m_videoPlayerController, &VideoPlayerController::slot_stopPlay);
     connect(m_exportController, &ExportController::sig_exportStarted, this, &Controller::slot_exportStarted);
@@ -651,4 +767,17 @@ void Controller::onSuccessfulOpen()
     connect(m_algorithmController, &AlgorithmController::sig_algorithmFinished, m_stackController, &StackController::slot_algorithmFinished);
     connect(m_algorithmController, &AlgorithmController::sig_keyframesChangedByPlugin, m_stackController, &StackController::slot_keyframesChangedByPlugin);
     connect(m_exportController, &ExportController::sig_exportFinished, m_stackController, &StackController::slot_exportFinished);
+
+    // update the working resolution, roi, etc
+    std::shared_ptr<ReaderParams> params = m_dataManager->getModelInputPictures()->getReaderParams();
+    m_mainWindow->getVideoPlayer()->setCropStatus(params->getUseRoi());
+    QRect roi = params->getRoi().cropAsQRect(params->getOriginalResolution());
+    m_mainWindow->getVideoPlayer()->updateRoi(params->getUseRoi()? roi : QRect());
+
+    // default working resolution: 720p if input is larger
+    #define DEFAULT_WORKING_RESOLUTION_HEIGHT 720
+    if (params->getOriginalResolution().getHeight() > DEFAULT_WORKING_RESOLUTION_HEIGHT) {
+        float aspect_ratio = static_cast<float>(params->getOriginalResolution().getWidth()) / params->getOriginalResolution().getHeight();
+        m_mainWindow->getSamplingWidget()->setResolution(Resolution(static_cast<int>(DEFAULT_WORKING_RESOLUTION_HEIGHT * aspect_ratio), DEFAULT_WORKING_RESOLUTION_HEIGHT).toString());
+    }
 }

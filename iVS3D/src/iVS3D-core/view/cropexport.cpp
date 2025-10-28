@@ -1,5 +1,6 @@
 #include "cropexport.h"
 
+#include <QTimer>
 
 CropExport::CropExport(QWidget *parent) :
     QDialog(parent),
@@ -37,7 +38,9 @@ CropExport::CropExport(QWidget *parent,const cv::Mat* img, QRect roi) :
         setSavedROI(roi);
     }
 
-
+    QTimer::singleShot(0,this, [this](){
+        triggerResize();
+    });
 
 }
 
@@ -59,7 +62,7 @@ QRect CropExport::getROI()
 {
     if(m_rect != nullptr && (start != QPointF(0,0) && end != QPointF(0,0))) {
         //Set correct borders
-        QRectF drawnROI = QRectF(start, end);
+        QRectF drawnROI = QRectF(start, end).normalized();
 
         if (!image.intersects(drawnROI.toRect())) {
             return QRect(0,0,0,0);

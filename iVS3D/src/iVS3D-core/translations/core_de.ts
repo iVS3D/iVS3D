@@ -42,43 +42,43 @@
 <context>
     <name>AlgorithmController</name>
     <message>
-        <location filename="../controller/algorithmcontroller.cpp" line="50"/>
+        <location filename="../controller/algorithmcontroller.cpp" line="51"/>
         <source>Selected algorithm: </source>
         <translation>Ausgewählter Algorithmus: </translation>
     </message>
     <message>
-        <location filename="../controller/algorithmcontroller.cpp" line="62"/>
+        <location filename="../controller/algorithmcontroller.cpp" line="66"/>
         <source>Selected transformation: </source>
         <translation>Ausgewählte Transformation: </translation>
     </message>
     <message>
-        <location filename="../controller/algorithmcontroller.cpp" line="147"/>
+        <location filename="../controller/algorithmcontroller.cpp" line="151"/>
         <source> aborted after </source>
         <translation> abgebrochen nach </translation>
     </message>
     <message>
-        <location filename="../controller/algorithmcontroller.cpp" line="147"/>
-        <location filename="../controller/algorithmcontroller.cpp" line="196"/>
+        <location filename="../controller/algorithmcontroller.cpp" line="151"/>
+        <location filename="../controller/algorithmcontroller.cpp" line="200"/>
         <source>ms</source>
         <translation>ms</translation>
     </message>
     <message>
-        <location filename="../controller/algorithmcontroller.cpp" line="156"/>
+        <location filename="../controller/algorithmcontroller.cpp" line="160"/>
         <source>Preview enabled.</source>
         <translation>Vorschau aktiviert.</translation>
     </message>
     <message>
-        <location filename="../controller/algorithmcontroller.cpp" line="156"/>
+        <location filename="../controller/algorithmcontroller.cpp" line="160"/>
         <source>Preview disabled.</source>
         <translation>Vorschau deaktiviert.</translation>
     </message>
     <message>
-        <location filename="../controller/algorithmcontroller.cpp" line="186"/>
+        <location filename="../controller/algorithmcontroller.cpp" line="190"/>
         <source>Computing preview ...</source>
         <translation>Vorschau berechnen ...</translation>
     </message>
     <message>
-        <location filename="../controller/algorithmcontroller.cpp" line="196"/>
+        <location filename="../controller/algorithmcontroller.cpp" line="200"/>
         <source> finished after </source>
         <translation> beendet nach </translation>
     </message>
@@ -104,12 +104,12 @@
 <context>
     <name>AutomaticController</name>
     <message>
-        <location filename="../controller/automaticcontroller.cpp" line="49"/>
+        <location filename="../controller/automaticcontroller.cpp" line="48"/>
         <source>Save configuration</source>
         <translation>Konfiguration speichern</translation>
     </message>
     <message>
-        <location filename="../controller/automaticcontroller.cpp" line="59"/>
+        <location filename="../controller/automaticcontroller.cpp" line="58"/>
         <source>Choose configuration</source>
         <translation>Konfiguration wählen</translation>
     </message>
@@ -163,230 +163,260 @@
 <context>
     <name>Controller</name>
     <message>
-        <location filename="../controller/controller.cpp" line="139"/>
+        <location filename="../controller/controller.cpp" line="136"/>
         <source>Wait for export to finish before importing new images.</source>
         <translation>Auf Beending des Export warten, bevor neue Bilder importiert werden.</translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="143"/>
+        <location filename="../controller/controller.cpp" line="140"/>
         <source>Choose Folder</source>
         <translation>Ordner auswählen</translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="145"/>
-        <location filename="../controller/controller.cpp" line="164"/>
-        <location filename="../controller/controller.cpp" line="218"/>
-        <location filename="../controller/controller.cpp" line="229"/>
-        <location filename="../controller/controller.cpp" line="262"/>
-        <location filename="../controller/controller.cpp" line="331"/>
+        <location filename="../controller/controller.cpp" line="142"/>
+        <location filename="../controller/controller.cpp" line="161"/>
+        <location filename="../controller/controller.cpp" line="215"/>
+        <location filename="../controller/controller.cpp" line="226"/>
+        <location filename="../controller/controller.cpp" line="259"/>
+        <location filename="../controller/controller.cpp" line="326"/>
         <source>Input canceled</source>
         <translation>Eingabe abgebrochen</translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="157"/>
+        <location filename="../controller/controller.cpp" line="154"/>
         <source>Wait for export to finish before importing a new video.</source>
         <translation>Auf Beending des Export warten, bevor ein neues Video importiert wird.</translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="162"/>
+        <location filename="../controller/controller.cpp" line="159"/>
         <source>Choose Video</source>
         <translation>Video auswählen</translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="181"/>
+        <location filename="../controller/controller.cpp" line="178"/>
         <source>Wait for export to finish before importing new files.</source>
         <translation>Auf Beending des Export warten, bevor neue Daten importiert werden.</translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="203"/>
+        <location filename="../controller/controller.cpp" line="200"/>
         <source>Unable to import file: </source>
         <translation>Datei kann nicht importiert werden: </translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="210"/>
+        <location filename="../controller/controller.cpp" line="207"/>
         <source>Wait for export to finish before importing new project.</source>
         <translation>Auf Beending des Export warten, bevor ein neues Projekt importiert wird.</translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="215"/>
+        <location filename="../controller/controller.cpp" line="212"/>
         <source>Choose project file</source>
         <translation>Projekt Datei auswählen</translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="227"/>
+        <location filename="../controller/controller.cpp" line="224"/>
         <source>Save project</source>
         <translation>Projekt speichern</translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="238"/>
-        <location filename="../controller/controller.cpp" line="245"/>
+        <location filename="../controller/controller.cpp" line="235"/>
+        <location filename="../controller/controller.cpp" line="242"/>
         <source>Project saved</source>
         <translation>Projekt gespeichert</translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="260"/>
+        <location filename="../controller/controller.cpp" line="257"/>
         <source>Choose standard input path</source>
         <translation>Standart Eingabepfad auswählen</translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="267"/>
+        <location filename="../controller/controller.cpp" line="264"/>
         <source>Standard input path changed</source>
         <translation>Standart Eingabepfad wurde geändert</translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="292"/>
+        <location filename="../controller/controller.cpp" line="287"/>
         <source>dark</source>
         <translation>dunklem</translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="292"/>
+        <location filename="../controller/controller.cpp" line="287"/>
         <source>light</source>
         <translation>hellem</translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="292"/>
+        <location filename="../controller/controller.cpp" line="287"/>
         <source>GUI color theme changed to </source>
         <translation>GUI wird in </translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="292"/>
+        <location filename="../controller/controller.cpp" line="287"/>
         <source> style</source>
         <translation> Stil dargestellt</translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="301"/>
+        <location filename="../controller/controller.cpp" line="296"/>
         <source>CUDA enabled</source>
         <translation>CUDA aktiviert</translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="301"/>
+        <location filename="../controller/controller.cpp" line="296"/>
         <source>CUDA disabled</source>
         <translation>CUDA deaktiviert</translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="307"/>
+        <location filename="../controller/controller.cpp" line="302"/>
         <source>Create log files</source>
         <translation>Erstellung von log Dateien</translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="307"/>
-        <location filename="../controller/controller.cpp" line="315"/>
+        <location filename="../controller/controller.cpp" line="302"/>
+        <location filename="../controller/controller.cpp" line="310"/>
         <source> enabled</source>
         <translation> aktiviert</translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="307"/>
-        <location filename="../controller/controller.cpp" line="315"/>
+        <location filename="../controller/controller.cpp" line="302"/>
+        <location filename="../controller/controller.cpp" line="310"/>
         <source> disabled</source>
         <translation> deaktiviert</translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="315"/>
+        <location filename="../controller/controller.cpp" line="310"/>
         <source>Interpolating missing meta data</source>
         <translation>Fehlende Metadaten interpolieren</translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="325"/>
+        <location filename="../controller/controller.cpp" line="320"/>
         <source>Choose Meta Data</source>
         <translation>Meta Daten wauswählen</translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="408"/>
+        <location filename="../controller/controller.cpp" line="420"/>
+        <source>The selected frame is broken and can´t be cropped. Please select another frame to select a new region of intrest.</source>
+        <translation>Das ausgewählte Bild ist beschädigt und kann nicht zugeschnitten werden. Bitte anderes Bild zum Zuschneiden auswählen.</translation>
+    </message>
+    <message>
+        <location filename="../controller/controller.cpp" line="467"/>
         <source>No images imported after </source>
         <translation>Keine Bilder geladen nach </translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="518"/>
+        <location filename="../controller/controller.cpp" line="507"/>
+        <source>General</source>
+        <translation>Details</translation>
+    </message>
+    <message>
+        <location filename="../controller/controller.cpp" line="508"/>
+        <source> pixels</source>
+        <translation> Pixel</translation>
+    </message>
+    <message>
+        <location filename="../controller/controller.cpp" line="509"/>
+        <source> images</source>
+        <translation> Bilder</translation>
+    </message>
+    <message>
+        <location filename="../controller/controller.cpp" line="514"/>
+        <source>Video</source>
+        <translation>Video</translation>
+    </message>
+    <message>
+        <location filename="../controller/controller.cpp" line="515"/>
+        <source> seconds</source>
+        <translation> Sekunden</translation>
+    </message>
+    <message>
+        <location filename="../controller/controller.cpp" line="516"/>
+        <source> fps</source>
+        <translation> FPS</translation>
+    </message>
+    <message>
+        <location filename="../controller/controller.cpp" line="521"/>
+        <source>Metadata</source>
+        <translation>Metadaten</translation>
+    </message>
+    <message>
+        <location filename="../controller/controller.cpp" line="595"/>
+        <source>Failed to load input data. Possible causes are:
+- The selected folder does not contain any supported image or video files.
+- The selected project file is corrupted or incompatible.
+- The path or filenames contain invalid characters.
+
+Please check the input and try again.</source>
+        <translation>Fehler beim Laden der Eingabedaten. Mögliche Ursachen sind:
+- Der ausgewählte Ordner enthält keine unterstützten Bild- oder Videodateien.
+- Die ausgewählte Projektdatei ist beschädigt oder nicht kompatibel.
+- Der Pfad oder die Dateinamen enthalten ungültige Zeichen.
+
+Bitte überprüfen Sie die Eingabe und versuchen Sie es erneut.</translation>
+    </message>
+    <message>
+        <location filename="../controller/controller.cpp" line="610"/>
         <source>Loaded </source>
         <translation>Laden von </translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="421"/>
-        <location filename="../controller/controller.cpp" line="518"/>
+        <location filename="../controller/controller.cpp" line="480"/>
+        <location filename="../controller/controller.cpp" line="610"/>
         <source> meta data feature</source>
         <translation> Meta Daten Eigenschaft</translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="421"/>
-        <location filename="../controller/controller.cpp" line="518"/>
+        <location filename="../controller/controller.cpp" line="480"/>
+        <location filename="../controller/controller.cpp" line="610"/>
         <source>s</source>
         <translation>en</translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="408"/>
-        <location filename="../controller/controller.cpp" line="422"/>
-        <location filename="../controller/controller.cpp" line="425"/>
+        <location filename="../controller/controller.cpp" line="467"/>
+        <location filename="../controller/controller.cpp" line="481"/>
+        <location filename="../controller/controller.cpp" line="484"/>
         <source>ms</source>
         <translation>ms</translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="420"/>
-        <location filename="../controller/controller.cpp" line="425"/>
+        <location filename="../controller/controller.cpp" line="479"/>
+        <location filename="../controller/controller.cpp" line="484"/>
         <source>Import of </source>
         <translation>Import von </translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="420"/>
+        <location filename="../controller/controller.cpp" line="479"/>
         <source> images and </source>
         <translation> Bildern und </translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="422"/>
+        <location filename="../controller/controller.cpp" line="481"/>
         <source> finished after </source>
         <translation> abgeschlossen nach </translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="425"/>
+        <location filename="../controller/controller.cpp" line="484"/>
         <source> images finished after </source>
         <translation> Bildern abgeschlossen nach </translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="444"/>
-        <source>Number of images  </source>
-        <translation>Anzahl der Bilder  </translation>
-    </message>
-    <message>
-        <location filename="../controller/controller.cpp" line="448"/>
-        <source>Resolution  </source>
-        <translation>Auflösung  </translation>
-    </message>
-    <message>
-        <location filename="../controller/controller.cpp" line="452"/>
-        <source>FPS </source>
-        <translation>FPS </translation>
-    </message>
-    <message>
-        <location filename="../controller/controller.cpp" line="453"/>
-        <source>Video duration </source>
-        <translation>Videolänge </translation>
-    </message>
-    <message>
-        <location filename="../controller/controller.cpp" line="458"/>
-        <source>Loaded Meta Data</source>
-        <translation>Geladene Metadaten</translation>
-    </message>
-    <message>
-        <location filename="../controller/controller.cpp" line="522"/>
+        <location filename="../controller/controller.cpp" line="614"/>
         <source>No meta data features were detected</source>
         <translation>Es wurden keine Metadaten gefunden</translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="550"/>
+        <location filename="../controller/controller.cpp" line="646"/>
         <source>Importing dataset and metadata.</source>
         <translation>Lade Bilder und Metadaten.</translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="570"/>
+        <location filename="../controller/controller.cpp" line="689"/>
         <source>Project </source>
         <translation>Projekt </translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="570"/>
+        <location filename="../controller/controller.cpp" line="689"/>
         <source> with </source>
         <translation> mit </translation>
     </message>
     <message>
-        <location filename="../controller/controller.cpp" line="571"/>
+        <location filename="../controller/controller.cpp" line="690"/>
         <source> images loaded</source>
         <translation> Bildern geladen</translation>
     </message>
@@ -440,77 +470,79 @@
 <context>
     <name>ExportController</name>
     <message>
-        <location filename="../controller/exportcontroller.cpp" line="242"/>
+        <location filename="../controller/exportcontroller.cpp" line="225"/>
         <source>Couldn&apos;t create Export Directory: %1</source>
         <translation>Exportordner %1 konnte nicht erstellt werden</translation>
     </message>
     <message>
         <location filename="../controller/exportcontroller.cpp" line="379"/>
-        <source>The selected frame is broken and can´t be cropped. Please select another frame to select a new region of intrest.</source>
-        <translation>Das ausgewählte Bild ist beschädigt und kann nicht zugeschnitten werden. Bitte anderes Bild zum Zuschneiden auswählen.</translation>
-    </message>
-    <message>
-        <location filename="../controller/exportcontroller.cpp" line="422"/>
         <source>Export aborted after </source>
         <translation>Export abgerochen nach </translation>
     </message>
     <message>
-        <location filename="../controller/exportcontroller.cpp" line="422"/>
-        <location filename="../controller/exportcontroller.cpp" line="448"/>
+        <location filename="../controller/exportcontroller.cpp" line="380"/>
+        <location filename="../controller/exportcontroller.cpp" line="423"/>
+        <location filename="../controller/exportcontroller.cpp" line="429"/>
         <source>ms</source>
         <translation>ms</translation>
     </message>
     <message>
-        <location filename="../controller/exportcontroller.cpp" line="442"/>
-        <source>Export failed. Maybe the path is invalid</source>
-        <translation>Export gescheitert. Vielleicht ist der Pfad ungültig</translation>
+        <location filename="../controller/exportcontroller.cpp" line="408"/>
+        <source>Export aborted by the user.</source>
+        <translation>Export vom Nutzer abgebrochen.</translation>
     </message>
     <message>
-        <location filename="../controller/exportcontroller.cpp" line="448"/>
+        <location filename="../controller/exportcontroller.cpp" line="414"/>
+        <source>Error during export</source>
+        <translation>Fehler beim Exportien</translation>
+    </message>
+    <message>
+        <location filename="../controller/exportcontroller.cpp" line="415"/>
+        <source>Export failed: %1</source>
+        <translation>Export fehlgeschlagen: %1</translation>
+    </message>
+    <message>
+        <location filename="../controller/exportcontroller.cpp" line="422"/>
+        <location filename="../controller/exportcontroller.cpp" line="428"/>
         <source>Export finished after </source>
         <translation>Export beendet nach </translation>
     </message>
     <message>
-        <location filename="../controller/exportcontroller.cpp" line="449"/>
+        <location filename="../controller/exportcontroller.cpp" line="423"/>
         <source> with </source>
         <translation> mit </translation>
     </message>
     <message>
-        <location filename="../controller/exportcontroller.cpp" line="449"/>
+        <location filename="../controller/exportcontroller.cpp" line="424"/>
         <source> broken image.</source>
         <translation> beschädigtem Bild.</translation>
     </message>
     <message>
-        <location filename="../controller/exportcontroller.cpp" line="449"/>
+        <location filename="../controller/exportcontroller.cpp" line="425"/>
         <source> broken images.</source>
         <translation> beschädigten Bildern.</translation>
-    </message>
-    <message>
-        <location filename="../controller/exportcontroller.cpp" line="755"/>
-        <source>start of explorer successful</source>
-        <translation>Explorer erfolgreich gestartet</translation>
-    </message>
-    <message>
-        <location filename="../controller/exportcontroller.cpp" line="760"/>
-        <source>failed to start Reconstruction Software!</source>
-        <translation>Rekonsturktions Software konnte nicht gestartet werden!</translation>
     </message>
 </context>
 <context>
     <name>ExportThread</name>
     <message>
-        <location filename="../model/export/exportthread.cpp" line="42"/>
-        <location filename="../model/export/exportthread.cpp" line="162"/>
+        <location filename="../model/export/exportthread.cpp" line="43"/>
+        <location filename="../model/export/exportthread.cpp" line="190"/>
         <source>Exporting images</source>
         <translation>Bilder exportieren</translation>
     </message>
     <message>
-        <location filename="../model/export/exportthread.cpp" line="149"/>
+        <location filename="../model/export/exportthread.cpp" line="133"/>
+        <source>Encountered an error! Aborting...</source>
+        <translation>Fehler! Wird abgebrochen...</translation>
+    </message>
+    <message>
+        <location filename="../model/export/exportthread.cpp" line="178"/>
         <source> images where skipped.</source>
         <translation> Bilder wurden übersprungen.</translation>
     </message>
     <message>
-        <location filename="../model/export/exportthread.cpp" line="152"/>
+        <location filename="../model/export/exportthread.cpp" line="182"/>
         <source>All images exported successfully.</source>
         <translation>Alle Bilder wurden erfolgreich exportiert.</translation>
     </message>
@@ -518,134 +550,124 @@
 <context>
     <name>ExportWidget</name>
     <message>
-        <location filename="../view/exportwidget.ui" line="26"/>
+        <location filename="../view/exportwidget.ui" line="20"/>
         <source>Form</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../view/exportwidget.ui" line="49"/>
+        <location filename="../view/exportwidget.ui" line="43"/>
         <source>Output directory</source>
         <translation>Ausgabeordner</translation>
     </message>
     <message>
-        <location filename="../view/exportwidget.ui" line="56"/>
+        <location filename="../view/exportwidget.ui" line="50"/>
         <source>Browse for output folder</source>
         <translation>Ausgabeordner auswählen</translation>
     </message>
     <message>
-        <location filename="../view/exportwidget.ui" line="59"/>
+        <location filename="../view/exportwidget.ui" line="53"/>
         <source>...</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../view/exportwidget.ui" line="68"/>
+        <location filename="../view/exportwidget.ui" line="62"/>
         <source>Enter output folder path here</source>
         <translation>Ausgabepfad hier angeben</translation>
     </message>
     <message>
-        <location filename="../view/exportwidget.ui" line="77"/>
+        <location filename="../view/exportwidget.ui" line="99"/>
         <source>Output resolution</source>
         <translation>Ausgabeauflösung</translation>
     </message>
     <message>
-        <location filename="../view/exportwidget.ui" line="113"/>
-        <source>Altitude of the first image in m</source>
-        <translation>Flughöhe des ersten Bildes in m</translation>
+        <location filename="../view/exportwidget.ui" line="107"/>
+        <source>same as input</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../view/exportwidget.ui" line="206"/>
-        <source>Select ROI</source>
-        <translation>ROI auswählen</translation>
+        <location filename="../view/exportwidget.ui" line="112"/>
+        <source>png</source>
+        <translation>png</translation>
     </message>
     <message>
-        <location filename="../view/exportwidget.ui" line="213"/>
-        <source>Use ROI</source>
-        <translation>ROI benutzen</translation>
+        <location filename="../view/exportwidget.ui" line="117"/>
+        <source>jpg</source>
+        <translation>jpg</translation>
     </message>
     <message>
-        <location filename="../view/exportwidget.ui" line="233"/>
+        <location filename="../view/exportwidget.ui" line="125"/>
+        <source>Output format</source>
+        <translation>Ausgabeformat</translation>
+    </message>
+    <message>
+        <location filename="../view/exportwidget.ui" line="132"/>
+        <source>Create files for</source>
+        <translation>Erstelle Masken für</translation>
+    </message>
+    <message>
+        <location filename="../view/exportwidget.ui" line="168"/>
         <source>Export images to directory</source>
         <translation>Bilder in den Ordner exportieren</translation>
     </message>
     <message>
-        <location filename="../view/exportwidget.ui" line="135"/>
-        <source>Create files for:</source>
-        <translation>Dateien erstellen für:</translation>
-    </message>
-    <message>
-        <location filename="../view/exportwidget.ui" line="203"/>
-        <source>Define ROI for export</source>
-        <translation>ROI für die Ausgabe auswählen</translation>
-    </message>
-    <message>
-        <location filename="../view/exportwidget.ui" line="230"/>
+        <location filename="../view/exportwidget.ui" line="165"/>
         <source>Export keyframes to output folder</source>
         <translation>Keyframes in den Ausgabeordner exportieren</translation>
     </message>
     <message>
-        <location filename="../view/exportwidget.cpp" line="16"/>
-        <source>reconstruct</source>
-        <translation>3D Rekonstruktion</translation>
-    </message>
-    <message>
-        <location filename="../view/exportwidget.cpp" line="60"/>
-        <location filename="../view/exportwidget.cpp" line="62"/>
+        <location filename="../view/exportwidget.cpp" line="37"/>
+        <location filename="../view/exportwidget.cpp" line="42"/>
         <source>location to export keyframes to.</source>
         <translation>Ordner in den die Keyframes exportiert werden.</translation>
     </message>
     <message>
-        <location filename="../view/exportwidget.cpp" line="60"/>
-        <location filename="../view/exportwidget.cpp" line="62"/>
+        <location filename="../view/exportwidget.cpp" line="38"/>
+        <location filename="../view/exportwidget.cpp" line="43"/>
         <source>export location ha been passed as a start argument. Thus it can not be changed!</source>
         <translation>Ausgabeordner wurde als Startargument übergeben und kann daher nicht verändert werden!</translation>
     </message>
     <message>
-        <location filename="../view/exportwidget.cpp" line="124"/>
+        <location filename="../view/exportwidget.cpp" line="59"/>
         <source>choose output folder</source>
         <translation>Ausgabeordner auswählen</translation>
+    </message>
+    <message>
+        <location filename="../view/exportwidget.cpp" line="150"/>
+        <source>Altitude above sea-level</source>
+        <translation>Höhe über Meeresspiegel</translation>
     </message>
 </context>
 <context>
     <name>InfoWidget</name>
     <message>
-        <location filename="../view/infowidget.ui" line="26"/>
-        <source>Form</source>
-        <translation></translation>
+        <location filename="../view/infowidget.cpp" line="21"/>
+        <source> load images</source>
+        <translation> Bilder laden</translation>
     </message>
     <message>
-        <location filename="../view/infowidget.ui" line="84"/>
-        <source>Import meta data</source>
-        <translation>Metadaten importieren</translation>
+        <location filename="../view/infowidget.cpp" line="21"/>
+        <source> images</source>
+        <translation> Bilder</translation>
     </message>
     <message>
-        <location filename="../view/infowidget.ui" line="87"/>
-        <source>M</source>
-        <translation></translation>
+        <location filename="../view/infowidget.cpp" line="28"/>
+        <source> load video</source>
+        <translation> Video laden</translation>
     </message>
     <message>
-        <location filename="../view/infowidget.ui" line="106"/>
-        <source>Import images from folder</source>
-        <translation>Bilder aus einem Ordner importieren</translation>
+        <location filename="../view/infowidget.cpp" line="28"/>
+        <source> video</source>
+        <translation> Video</translation>
     </message>
     <message>
-        <location filename="../view/infowidget.ui" line="109"/>
-        <source>F</source>
-        <translation></translation>
+        <location filename="../view/infowidget.cpp" line="35"/>
+        <source> load meta data</source>
+        <translation> Metadaten laden</translation>
     </message>
     <message>
-        <location filename="../view/infowidget.ui" line="128"/>
-        <source>Import video</source>
-        <translation>Video importieren</translation>
-    </message>
-    <message>
-        <location filename="../view/infowidget.ui" line="131"/>
-        <source>V</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../view/infowidget.ui" line="194"/>
-        <source>TextLabel</source>
-        <translation></translation>
+        <location filename="../view/infowidget.cpp" line="35"/>
+        <source> meta data</source>
+        <translation> Metadaten</translation>
     </message>
 </context>
 <context>
@@ -950,82 +972,82 @@ li.checked::marker { content: &quot;\2612&quot;; }
         <translation></translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.cpp" line="50"/>
+        <location filename="../view/mainwindow.cpp" line="46"/>
         <source>Input</source>
         <translation>Eingabe</translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.cpp" line="83"/>
+        <location filename="../view/mainwindow.cpp" line="79"/>
         <source>Image selection</source>
         <translation>Bildauswahl</translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.cpp" line="94"/>
+        <location filename="../view/mainwindow.cpp" line="90"/>
         <source>Export</source>
         <translation>Exportieren</translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.cpp" line="181"/>
+        <location filename="../view/mainwindow.cpp" line="177"/>
         <source>Language</source>
         <translation>Sprache</translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.cpp" line="324"/>
+        <location filename="../view/mainwindow.cpp" line="320"/>
         <source>3D-Reconstruction</source>
         <translation>3D-Rekonstruktion</translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.cpp" line="114"/>
+        <location filename="../view/mainwindow.cpp" line="110"/>
         <source>Reset Layout</source>
         <translation>Layout zurücksetzten</translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.cpp" line="155"/>
+        <location filename="../view/mainwindow.cpp" line="151"/>
         <source>No GPU found</source>
         <translation>Keine GPU gefunden</translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.cpp" line="156"/>
+        <location filename="../view/mainwindow.cpp" line="152"/>
         <source>Compute Capability not supported</source>
         <translation>Compute Capability wird nicht unterstützt</translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.cpp" line="157"/>
+        <location filename="../view/mainwindow.cpp" line="153"/>
         <source>Built without CUDA</source>
         <translation>Kompiliert ohne CUDA</translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.cpp" line="159"/>
+        <location filename="../view/mainwindow.cpp" line="155"/>
         <source>Unknown error</source>
         <translation>Unbekannter Fehler</translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.cpp" line="161"/>
+        <location filename="../view/mainwindow.cpp" line="157"/>
         <source>CUDA not available: </source>
         <translation>CUDA nicht verfügbar: </translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.cpp" line="346"/>
+        <location filename="../view/mainwindow.cpp" line="342"/>
         <source>input has been passed as a start argument. Thus it can not be changed!</source>
         <translation>Eingabe wurde als Startargument übergeben und kann daher nicht geändert werden!</translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.cpp" line="557"/>
+        <location filename="../view/mainwindow.cpp" line="553"/>
         <source>Language Change</source>
         <translation>Änderung der Sprache</translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.cpp" line="558"/>
+        <location filename="../view/mainwindow.cpp" line="554"/>
         <source>The application needs to be restarted for the language change to take effect. Make sure to save your project before restarting!</source>
         <translation>Damit die Sprachänderung wirksam wird, muss die Anwendung neu gestartet werden. Stellen Sie sicher, dass Sie Ihr Projekt vor dem Neustart speichern!</translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.cpp" line="561"/>
+        <location filename="../view/mainwindow.cpp" line="557"/>
         <source>Restart Now</source>
         <translation>Jetzt neu starten</translation>
     </message>
     <message>
-        <location filename="../view/mainwindow.cpp" line="563"/>
+        <location filename="../view/mainwindow.cpp" line="559"/>
         <source>Restart Later</source>
         <translation>Später neu starten</translation>
     </message>
@@ -1102,23 +1124,23 @@ li.checked::marker { content: &quot;\2612&quot;; }
 <context>
     <name>QObject</name>
     <message>
-        <location filename="../ots/colmapwrapper.cpp" line="1651"/>
+        <location filename="../ots/colmapwrapper.cpp" line="1599"/>
         <source>Start 3D-Reconstruction using COLMAP</source>
         <translation>3D-Rekonstruktion mit COLMAP starten</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper.cpp" line="1690"/>
+        <location filename="../ots/colmapwrapper.cpp" line="1638"/>
         <source>Start 3D-reconstruction using COLMAP</source>
         <translation>3D-Rekonstruktion mit COLMAP starten</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper.cpp" line="1720"/>
+        <location filename="../ots/colmapwrapper.cpp" line="1668"/>
         <source>Open COLMAP Wrapper Settings</source>
         <translation>Öffnen der Einstellungen zum ColmapWrapper</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper.cpp" line="1749"/>
-        <location filename="../ots/colmapwrapper.cpp" line="1777"/>
+        <location filename="../ots/colmapwrapper.cpp" line="1697"/>
+        <location filename="../ots/colmapwrapper.cpp" line="1725"/>
         <source>Open COLMAP settings</source>
         <translation>COLMAP Einstellungen öffnen</translation>
     </message>
@@ -1261,32 +1283,22 @@ li.checked::marker { content: &quot;\2612&quot;; }
         <translation>Algorithmus für Keyframe Auswahl wählen...</translation>
     </message>
     <message>
-        <location filename="../view/samplingwidget.ui" line="114"/>
-        <source>Add to processing</source>
-        <translation>Zur automatischen Ausführung hinzufügen</translation>
+        <location filename="../view/samplingwidget.ui" line="73"/>
+        <source>Working Resolution</source>
+        <translation>Verarbeitungsauflösung</translation>
     </message>
     <message>
-        <location filename="../view/samplingwidget.ui" line="143"/>
+        <location filename="../view/samplingwidget.ui" line="145"/>
         <source>Start selection</source>
         <translation>Auswahl starten</translation>
     </message>
     <message>
-        <location filename="../view/samplingwidget.ui" line="100"/>
-        <source> Generate settings</source>
-        <translation> Einstellungen generieren</translation>
-    </message>
-    <message>
-        <location filename="../view/samplingwidget.ui" line="140"/>
+        <location filename="../view/samplingwidget.ui" line="142"/>
         <source>Start the selected sampling algorithm</source>
         <translation>Den ausgewählten Algorithmus starten</translation>
     </message>
     <message>
-        <location filename="../view/samplingwidget.ui" line="93"/>
-        <source>Generate settings</source>
-        <translation>Einstellungen generieren</translation>
-    </message>
-    <message>
-        <location filename="../view/samplingwidget.ui" line="107"/>
+        <location filename="../view/samplingwidget.ui" line="129"/>
         <source>Sampling</source>
         <translation>Ausführung</translation>
     </message>
@@ -1330,7 +1342,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
         <translation>Bildauswahl durch Plugin %1 geändert</translation>
     </message>
     <message>
-        <location filename="../controller/stackcontroller.cpp" line="128"/>
+        <location filename="../controller/stackcontroller.cpp" line="130"/>
         <source>Export</source>
         <translation>Exportieren</translation>
     </message>
@@ -1417,7 +1429,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
     </message>
     <message>
         <location filename="../view/videoplayer.ui" line="282"/>
-        <location filename="../view/videoplayer.cpp" line="136"/>
+        <location filename="../view/videoplayer.cpp" line="179"/>
         <source> Select current image </source>
         <translation> Aktuelles Bild auswählen </translation>
     </message>
@@ -1427,12 +1439,22 @@ li.checked::marker { content: &quot;\2612&quot;; }
         <translation>Auswahl zurücksetzen</translation>
     </message>
     <message>
-        <location filename="../view/videoplayer.cpp" line="41"/>
+        <location filename="../view/videoplayer.ui" line="363"/>
+        <source>ROI</source>
+        <translation>ROI</translation>
+    </message>
+    <message>
+        <location filename="../view/videoplayer.ui" line="370"/>
+        <source>Edit</source>
+        <translation>Bearbeiten</translation>
+    </message>
+    <message>
+        <location filename="../view/videoplayer.cpp" line="42"/>
         <source>Drag and drop images, videos, or project files here to open</source>
         <translation>Bilder, Videos oder Projekte per Drag &amp; Drop öffnen</translation>
     </message>
     <message>
-        <location filename="../view/videoplayer.cpp" line="135"/>
+        <location filename="../view/videoplayer.cpp" line="178"/>
         <source>Deselect current image</source>
         <translation>Aktuelles Bild entfernen</translation>
     </message>
@@ -1440,12 +1462,12 @@ li.checked::marker { content: &quot;\2612&quot;; }
 <context>
     <name>VideoPlayerController</name>
     <message>
-        <location filename="../controller/videoplayercontroller.cpp" line="319"/>
+        <location filename="../controller/videoplayercontroller.cpp" line="322"/>
         <source>Frames %1 are corrupted. They won´t be considered when selecting keyframes or exported at the end of the process.</source>
         <translation>Die Bilder %1 sind beschädigt. Sie werden bei der Auswahl für die 3D Rekonstruktion und beim Abspeichern nicht beachtet.</translation>
     </message>
     <message>
-        <location filename="../controller/videoplayercontroller.cpp" line="320"/>
+        <location filename="../controller/videoplayercontroller.cpp" line="323"/>
         <source>Frame %1 is corrupted. It won´t be considered when selecting keyframes or exported at the end of the process.</source>
         <translation>Das Bild %1 ist beschädigt. Es wird bei der Auswahl für die 3D Rekonstruktion und beim Abspeichern nicht beachtet.</translation>
     </message>
@@ -1488,17 +1510,17 @@ li.checked::marker { content: &quot;\2612&quot;; }
 <context>
     <name>lib3d::ots::ui::ColmapWrapperControlsFactory</name>
     <message>
-        <location filename="../ots/colmapwrapper.cpp" line="1654"/>
+        <location filename="../ots/colmapwrapper.cpp" line="1602"/>
         <source> Start 3D-Reconstruction</source>
-        <translation>3D-Rekonstruktion starten</translation>
+        <translation> 3D-Rekonstruktion starten</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper.cpp" line="1723"/>
+        <location filename="../ots/colmapwrapper.cpp" line="1671"/>
         <source>Settings</source>
         <translation>Einstellungen</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper.cpp" line="1779"/>
+        <location filename="../ots/colmapwrapper.cpp" line="1727"/>
         <source>Colmap Wrapper Settings</source>
         <translation>Colmap Wrapper - Einstellungen</translation>
     </message>
@@ -1531,73 +1553,93 @@ li.checked::marker { content: &quot;\2612&quot;; }
         <translation>Bilddaten auswählen ...</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="186"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="189"/>
+        <source>Masks:</source>
+        <translation>Masken:</translation>
+    </message>
+    <message>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="209"/>
+        <source>No masks found in directory</source>
+        <translation>Keine Masken gefunden</translation>
+    </message>
+    <message>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="256"/>
+        <source>Select mask path...</source>
+        <translation>Masken auswählen...</translation>
+    </message>
+    <message>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="291"/>
         <source>Product</source>
         <translation>Produkt(e)</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="197"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="299"/>
+        <source>0. Custom command </source>
+        <translation>0. Eigener Befehl </translation>
+    </message>
+    <message>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="339"/>
         <source>1. Camera Poses</source>
         <translation>1. Kameraposen</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="211"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="353"/>
         <source>2. Dense Point Cloud</source>
         <translation>2. Dichte Punktwolke</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="225"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="367"/>
         <source>Currently not usable, due to georegistration</source>
         <translation>Aktuell nicht verfügbar</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="529"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="671"/>
         <source>Optional intrinsic parameters (comma seperated):</source>
         <translation>Optionale Intrinsiche Parameter (kommagetrennt):</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="563"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="705"/>
         <source>GPU ids (-1 to use all):</source>
         <translation>GPU Indizes (-1 um alle zu nutzen):</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="612"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="754"/>
         <source>Images could have very high focal length:</source>
         <translation>Bilder könnten sehr hohe Brennweite haben:</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="655"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="797"/>
         <source>Cache size for dense fusion:</source>
         <translation>Cache-Größe für dichte Punktwolke:</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="720"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="862"/>
         <source>Mesh</source>
         <translation>Dreiecksnetz</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="728"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="870"/>
         <source>Max threads for mesh reconstruction (0 to use all)</source>
-        <translation>Maximale Threadanzahl für Konstruktion des Dreiecksnetzes (0 um alle zu verwenden):</translation>
+        <translation>Maximale Threadanzahl für Konstruktion des Dreiecksnetzes (0 um alle zu verwenden)</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="748"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="890"/>
         <source>0</source>
         <translation>0</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="448"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="590"/>
         <source>Camera Poses</source>
         <translation>Kameraposen</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="507"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="649"/>
         <source>OPENCV</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="500"/>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="512"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="642"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="654"/>
         <source>RADIAL</source>
         <translation></translation>
     </message>
@@ -1607,72 +1649,72 @@ li.checked::marker { content: &quot;\2612&quot;; }
         <translation>Start der 3D-Rekonstruktion mit COLMAP</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="231"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="373"/>
         <source>3. Meshed and textured Model</source>
         <translation>3. Dreiecksnetz und texturiertes Modell</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="243"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="385"/>
         <source>Trade-off between quality and runtime</source>
         <translation>Verhältnis von Qualität und Geschwindigkeit</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="251"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="393"/>
         <source>Fast</source>
         <translation>Schnell</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="274"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="416"/>
         <source>Medium</source>
         <translation>Ausgeglichen</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="300"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="442"/>
         <source>Quality</source>
         <translation>Qualität</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="323"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="465"/>
         <source>Best Quality</source>
         <translation>Beste Qualität</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="337"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="479"/>
         <source>Share intrinsics between images (sequence contains no camera zoom):</source>
-        <translation>Gleiche Kameraparameter für alle Bilder (kein Zoom vorhanden)</translation>
+        <translation>Gleiche Kameraparameter für alle Bilder (kein Zoom vorhanden):</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="374"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="516"/>
         <source>Robust mode (Higher probability of success for challenging scenes):</source>
-        <translation>Robuster Modus (Höhere Erfolgswarscheinlichkeit bei herausfordernden Szenen)</translation>
+        <translation>Robuster Modus (Höhere Erfolgswarscheinlichkeit bei herausfordernden Szenen):</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="406"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="548"/>
         <source>Edit advanced settings</source>
         <translation>Erweiterte Einstellungen bearbeiten</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="456"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="598"/>
         <source>Camera model:</source>
         <translation>Kameramodell:</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="517"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="659"/>
         <source>PINHOLE</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="598"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="740"/>
         <source>-1</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="690"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="832"/>
         <source> GB</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="647"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.ui" line="789"/>
         <source>Dense Point Cloud</source>
         <translation>Dichte Punktwolke</translation>
     </message>
@@ -1682,17 +1724,32 @@ li.checked::marker { content: &quot;\2612&quot;; }
         <translation>Neues Produkt</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.cpp" line="152"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.cpp" line="196"/>
         <source>Select image directory</source>
         <translation>Bildverzeichnis auswählen</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.cpp" line="235"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.cpp" line="213"/>
+        <source>Select mask directory</source>
+        <translation>Maskenverzeichnis auswählen</translation>
+    </message>
+    <message>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.cpp" line="238"/>
+        <source>Mask directory does not exist.</source>
+        <translation>Maskenverzeichnis existiert nicht.</translation>
+    </message>
+    <message>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.cpp" line="277"/>
+        <source>Warning: Number of masks (%1) does not match number of images (%2).</source>
+        <translation>Warnung: Anzahl der masken (%1) stimmt nicht mit der Anzahl derBilder (%2) überein.</translation>
+    </message>
+    <message>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.cpp" line="344"/>
         <source>Copying files...</source>
         <translation>Bilddaten werden kopiert ...</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapnewproductdialog.cpp" line="236"/>
+        <location filename="../ots/colmapwrapper/colmapnewproductdialog.cpp" line="345"/>
         <source>Abort Copy</source>
         <translation>Kopieren abbrechen</translation>
     </message>
@@ -1822,6 +1879,21 @@ li.checked::marker { content: &quot;\2612&quot;; }
         <translation>OpenMVS Ordner (Server):</translation>
     </message>
     <message>
+        <location filename="../ots/colmapwrapper/colmapsettingsdialog.ui" line="636"/>
+        <source>Experimental</source>
+        <translation>Experimentell</translation>
+    </message>
+    <message>
+        <location filename="../ots/colmapwrapper/colmapsettingsdialog.ui" line="648"/>
+        <source>Custom Commands:</source>
+        <translation>Eigene Befehle:</translation>
+    </message>
+    <message>
+        <location filename="../ots/colmapwrapper/colmapsettingsdialog.ui" line="668"/>
+        <source>Add row</source>
+        <translation>Zeile hinzufügen</translation>
+    </message>
+    <message>
         <location filename="../ots/colmapwrapper/colmapsettingsdialog.ui" line="98"/>
         <source> seconds</source>
         <translation> Sekunden</translation>
@@ -1865,32 +1937,32 @@ li.checked::marker { content: &quot;\2612&quot;; }
         <translation>Einhängepunkt des Arbeitsordner (lokal):</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapsettingsdialog.cpp" line="107"/>
+        <location filename="../ots/colmapwrapper/colmapsettingsdialog.cpp" line="199"/>
         <source>Select COLMAP binary</source>
         <translation>COLMAP Exe auswählen</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapsettingsdialog.cpp" line="124"/>
+        <location filename="../ots/colmapwrapper/colmapsettingsdialog.cpp" line="216"/>
         <source>Select OpenMVS binary folder</source>
         <translation>OpenMVS Ordner auswählen</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapsettingsdialog.cpp" line="142"/>
+        <location filename="../ots/colmapwrapper/colmapsettingsdialog.cpp" line="234"/>
         <source>Select workspace directory</source>
         <translation>Arbeitsordner auswählen</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapsettingsdialog.cpp" line="160"/>
+        <location filename="../ots/colmapwrapper/colmapsettingsdialog.cpp" line="252"/>
         <source>Select mountpoint of remote  workspace directory</source>
         <translation>Einhängepunkt des entfernten Arbeitsordner wählen</translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapsettingsdialog.cpp" line="332"/>
+        <location filename="../ots/colmapwrapper/colmapsettingsdialog.cpp" line="396"/>
         <source>Setup failed: </source>
         <translation>Setup fehlgeschlagen: </translation>
     </message>
     <message>
-        <location filename="../ots/colmapwrapper/colmapsettingsdialog.cpp" line="245"/>
+        <location filename="../ots/colmapwrapper/colmapsettingsdialog.cpp" line="344"/>
         <source>Setup successfull</source>
         <translation>Setup erfolgreich</translation>
     </message>
@@ -2017,9 +2089,11 @@ li.checked::marker { content: &quot;\2612&quot;; }
 <context>
     <name>noUIExport</name>
     <message>
-        <location filename="../model/export/nouiexport.cpp" line="128"/>
-        <source>Export failed. Maybe the path is invalid</source>
-        <translation>Export gescheitert. Vielleicht ist der Pfad ungültig</translation>
+        <location filename="../model/export/nouiexport.cpp" line="130"/>
+        <source>Export failed: 
+%1</source>
+        <translation>Export fehlgeschlagen: 
+%1</translation>
     </message>
 </context>
 </TS>

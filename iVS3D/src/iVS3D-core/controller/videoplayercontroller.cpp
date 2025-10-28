@@ -300,6 +300,9 @@ void VideoPlayerController::slot_imageProcessed(cv::Mat *preview, int id)
 {
     if((uint)id == m_imageIndex){
         m_videoPlayer->showImage(preview);
+        std::shared_ptr<ReaderParams> params = m_dataManager->getModelInputPictures()->getReaderParams();
+        QRect roi = params->getRoi().cropAsQRect(params->getWorkingResolution());
+        m_videoPlayer->updateRoi(params->getUseRoi()? roi : QRect());
     }
 }
 
@@ -335,11 +338,17 @@ void VideoPlayerController::slot_receiveImage(uint idx, const cv::Mat &img)
         return;
     }
 
+    std::shared_ptr<ReaderParams> params = m_dataManager->getModelInputPictures()->getReaderParams();
     if(TransformManager::instance().isTransformEnabled()){
-        emit sig_sendToITransform(idx,img);
+        ROI roi;
+        if(params->getUseRoi()) roi = params->getRoi();
+        emit sig_sendToITransform(idx,img, params->getWorkingResolution(), roi);
     } else {
-        cv::Mat image = img;
-        m_videoPlayer->showImage(&image);
+        cv::Mat preview;
+        params->getWorkingResolution().resize(img, preview);
+        m_videoPlayer->showImage(&preview);
+        QRect roi = params->getRoi().cropAsQRect(params->getWorkingResolution());
+        m_videoPlayer->updateRoi(params->getUseRoi()? roi : QRect());
     }
 }
 
@@ -349,6 +358,9 @@ void VideoPlayerController::slot_displayImage(uint idx, const cv::Mat &img)
     if(TransformManager::instance().isTransformEnabled()){
         cv::Mat image = img;
         m_videoPlayer->showImage(&image);
+        std::shared_ptr<ReaderParams> params = m_dataManager->getModelInputPictures()->getReaderParams();
+        QRect roi = params->getRoi().cropAsQRect(params->getWorkingResolution());
+        m_videoPlayer->updateRoi(params->getUseRoi()? roi : QRect());
     }
 }
 

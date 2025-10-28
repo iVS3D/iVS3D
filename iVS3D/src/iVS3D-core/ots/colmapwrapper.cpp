@@ -29,20 +29,28 @@ static QString WORK_QUEUE_FILE_NAME = "colmap_work_queue.yaml";
 static QString WORKER_STATE_FILE_NAME = "colmap_worker_state.yaml";
 static QString IS_RUNNING_FILE_NAME = "_colmapRunning";
 
-static QString SYNC_CMD = "rsync";
-static QString SYNC_BASE_ARGS = "-avzuh";
-
-static QString MNT_CMD = "sshfs";
-static QString UMNT_CMD = "fusermount";
-
 //--- List of strings representing product type name
-static std::vector<QString> PRODUCT_TYPE_STR_LIST = {"CAMERA_POSES", "DENSE_CLOUD", "MESHED_MODEL"};
+static std::vector<QString> PRODUCT_TYPE_STR_LIST = {"CAMERA_POSES", "DENSE_CLOUD", "MESHED_MODEL", "CUSTOM_COMMAND"};
 
 //--- Map between product type and filenames
 static std::map<lib3d::ots::ColmapWrapper::EProductType, QString> PRODUCT_FILENAME_MAP
     = {{lib3d::ots::ColmapWrapper::CAMERA_POSES, "%1_images.bin"},
        {lib3d::ots::ColmapWrapper::DENSE_CLOUD, "%1_dense_cloud.ply"},
        {lib3d::ots::ColmapWrapper::MESHED_MODEL, "%1_meshed_model.ply"}};
+
+// Compute SHA-256 of a file; returns empty QByteArray on failure.
+static QByteArray sha256File(const QString& path)
+{
+    QFile f(path);
+    if (!f.open(QIODevice::ReadOnly))
+        return {};
+
+    QCryptographicHash h(QCryptographicHash::Sha256);
+    if (!h.addData(&f))
+        return {};
+
+    return h.result();
+}
 
 namespace lib3d {
 namespace ots {
@@ -55,7 +63,6 @@ ColmapWrapper::ColmapWrapper(const QString iSettingsFile, const bool iSettingsOn
                            iSettingsFile),
       mpTempDir(nullptr),
       mpPyWorkerProcess(new QProcess()), mpMountProcess(new QProcess()),
-      mpSyncProcess(new QProcess()), mCheckWorkerTimer(), mWorkspaceStatus(IN_SYNC),
       mpUiControls(nullptr)
 {
     this->readSettings();
@@ -93,6 +100,7 @@ void ColmapWrapper::init()
             mConnectionType,
             mRemoteAddr,
             mRemoteUsr,
+            mCustomCommands,
             mSyncInterval
         };
         SSetupResults *result = new SSetupResults;
@@ -118,11 +126,6 @@ void ColmapWrapper::init()
     //--- check worker state file
     //--- initial sync and import of sequence is done at the end of checkRunningJobs
     bool runningJobChanged = checkWorkerState();
-
-    //--- if running job has not changed, i.e. currently no running job in state file, sync
-    //--- workspace from server.
-    if (!runningJobChanged && mConnectionType != LOCAL)
-        syncWorkspaceFromServer();
 
     mCheckWorkerTimer.start();
 }
@@ -350,6 +353,7 @@ void ColmapWrapper::restoreDefaultSettings()
         mConnectionType,
         mRemoteAddr,
         mRemoteUsr,
+        mCustomCommands,
         mSyncInterval
     };
     SSetupResults *result = new SSetupResults;
@@ -389,10 +393,6 @@ void ColmapWrapper::loadDefaultSettings()
 //==================================================================================================
 void ColmapWrapper::readSettings()
 {
-    qDebug()
-        << "==================================================================================";
-    qDebug() << "Time: " << QDateTime::currentDateTime().toString();
-    qDebug() << __PRETTY_FUNCTION__;
 
     this->loadDefaultSettings();
 
@@ -409,6 +409,17 @@ void ColmapWrapper::readSettings()
     setRemoteUsr(mSettings.value("RemoteUsr", QVariant(mRemoteUsr)).toString());
     setSyncInterval(mSettings.value("SyncInterval", QVariant(mSyncInterval)).toInt());
     setUseRobustMode(mSettings.value("useRobustMode", QVariant(mUseRobustMode)).toBool());
+
+    mSettings.beginGroup("CustomCommands");
+    QStringList keys = mSettings.childKeys();
+
+    mCustomCommands.clear();
+    for (const QString &key : keys) {
+        QString value = mSettings.value(key).toString();
+        mCustomCommands.append(QPair(key, value));
+    }
+
+    mSettings.endGroup();
 
     mSettings.endGroup();
 
@@ -427,10 +438,6 @@ void ColmapWrapper::readSettings()
 //==================================================================================================
 void ColmapWrapper::writeSettings()
 {
-    qDebug()
-        << "==================================================================================";
-    qDebug() << "Time: " << QDateTime::currentDateTime().toString();
-    qDebug() << __PRETTY_FUNCTION__;
 
     mSettings.beginGroup("ColmapWrapper");
     mSettings.setValue("LocalColmapBinPath", mLocalColmapBinPath);
@@ -446,16 +453,20 @@ void ColmapWrapper::writeSettings()
     mSettings.setValue("SyncInterval", mSyncInterval);
     mSettings.setValue("useRobustMode", mUseRobustMode);
 
+    mSettings.beginGroup("CustomCommands");
+    mSettings.remove(""); // Clear previous commands
+
+    for (auto it = mCustomCommands.begin(); it != mCustomCommands.end(); ++it) {
+        mSettings.setValue(it->first, it->second);
+    }
+    mSettings.endGroup();
+
     mSettings.endGroup();
 }
 
 //==================================================================================================
 void ColmapWrapper::clearWorkerStateFile()
 {
-    qDebug()
-        << "==================================================================================";
-    qDebug() << "Time: " << QDateTime::currentDateTime().toString();
-    qDebug() << __PRETTY_FUNCTION__;
 
     //--- if remote connection use mounting point
     QDir outputDir;
@@ -472,7 +483,7 @@ void ColmapWrapper::clearWorkerStateFile()
     }
 
     //--- initialize file storage and export jobs
-    QString outputFile = outputDir.absolutePath() + QDir::separator() + WORKER_STATE_FILE_NAME;
+    QString outputFile = getFirstMatchingFileNameWithWildcard(QDir::toNativeSeparators(outputDir.absolutePath()), WORKER_STATE_FILE_NAME);
 
     // TODO find better way to prevent application from crashing if both c++ and python read/write at the same time
     try {
@@ -508,10 +519,7 @@ void ColmapWrapper::clearWorkerStateFile()
 //==================================================================================================
 void ColmapWrapper::writeWorkQueueToFile()
 {
-    qDebug()
-        << "==================================================================================";
-    qDebug() << "Time: " << QDateTime::currentDateTime().toString();
-    qDebug() << __PRETTY_FUNCTION__;
+
 
     //--- if remote connection use mounting point
     QDir outputDir;
@@ -528,8 +536,12 @@ void ColmapWrapper::writeWorkQueueToFile()
     }
 
     //--- initialize file storage and export jobs
-    QString outputFile = outputDir.absolutePath() + QDir::separator() + WORK_QUEUE_FILE_NAME;
-
+    QString outputFile = getFirstMatchingFileNameWithWildcard(QDir::toNativeSeparators(outputDir.absolutePath()), WORK_QUEUE_FILE_NAME);
+    if(outputFile==""){
+        qDebug() << "Info: "
+                    "Failed to open worke queue file.";
+        return;
+    }
     // TODO find better way to prevent application from crashing if both c++ and python read/write at the same time
     try {
         if (QFile(outputFile + ".lock_iVS3D").exists()) {
@@ -571,12 +583,43 @@ void ColmapWrapper::writeWorkQueueToFile()
 }
 
 //==================================================================================================
+QString ColmapWrapper::getFirstMatchingFileNameWithWildcard(const QString& path, QString baseName) const {
+    QDir dir(path);
+
+    QStringList patterns;
+    patterns << baseName;
+    patterns << baseName + "*";
+
+    dir.setNameFilters(patterns);
+    QStringList fileList = dir.entryList(QDir::Files, QDir::Name);
+
+    // Remove files containing "lock_"
+    fileList.erase(std::remove_if(fileList.begin(), fileList.end(), [](const QString &fileName) {
+        return fileName.contains("lock_worker") || fileName.contains("lock_iVS3D");
+    }), fileList.end());
+
+    if (!fileList.isEmpty()) {
+        QString firstFileName = fileList.first();
+        QString fullFilePath = dir.absoluteFilePath(firstFileName);
+
+        if (QFile::exists(fullFilePath)) {
+            return fullFilePath;
+        } else {
+            // File does not exist
+            qDebug() << "File does not exist:" << fullFilePath;
+            return QString();
+        }
+    } else {
+        // No files matched the pattern
+        qDebug() << "No files found matching pattern:";
+        return QString();
+    }
+}
+
+
+//==================================================================================================
 void ColmapWrapper::readWorkQueueFromFile()
 {
-    qDebug()
-        << "==================================================================================";
-    qDebug() << "Time: " << QDateTime::currentDateTime().toString();
-    qDebug() << __PRETTY_FUNCTION__;
 
     //--- if remote connection use mounting point
     QDir inputDir;
@@ -596,7 +639,12 @@ void ColmapWrapper::readWorkQueueFromFile()
     }
 
     //--- initialize file storage and import jobs
-    QString inputFile = inputDir.absolutePath() + QDir::separator() + WORK_QUEUE_FILE_NAME;
+    QString inputFile = getFirstMatchingFileNameWithWildcard(QDir::toNativeSeparators(inputDir.absolutePath()), WORK_QUEUE_FILE_NAME);
+    if(inputFile==""){
+        qDebug() << "Info: "
+                    "Failed to open worke queue file.";
+        return;
+    }
     int elementsInQueue;
     // TODO find better way to prevent application from crashing if both c++ and python read/write at the same time
     try {
@@ -627,10 +675,6 @@ void ColmapWrapper::readWorkQueueFromFile()
 //==================================================================================================
 void ColmapWrapper::readWorkerStateFromFile()
 {
-    qDebug()
-        << "==================================================================================";
-    qDebug() << "Time: " << QDateTime::currentDateTime().toString();
-    qDebug() << __PRETTY_FUNCTION__;
 
     //--- if remote connection use mounting point
     QDir inputDir;
@@ -650,7 +694,12 @@ void ColmapWrapper::readWorkerStateFromFile()
     }
 
     //--- initialize file storage and import jobs
-    QString inputFile = inputDir.absolutePath() + QDir::separator() + WORKER_STATE_FILE_NAME;
+    QString inputFile = getFirstMatchingFileNameWithWildcard(QDir::toNativeSeparators(inputDir.absolutePath()), WORKER_STATE_FILE_NAME);
+    if(inputFile==""){
+        qDebug() << "Info: "
+                    "Failed to open worker state file.";
+        return;
+    }
 
     //--- if input file does not exist return
     if (!QFileInfo(inputFile).exists()) {
@@ -660,7 +709,6 @@ void ColmapWrapper::readWorkerStateFromFile()
 
     /*
    * This reading access is needed to prevent opencv from crashing.
-   * Seems to be an error related to syncing lokal and remote workspace.
    */
     QFile f(inputFile);
     f.open(QIODevice::ReadOnly);
@@ -711,7 +759,7 @@ void ColmapWrapper::readWorkerStateFromFile()
 
     //--- compute worker state
     bool isRunningFileExists
-        = QFileInfo(inputDir.absolutePath() + QDir::separator() + IS_RUNNING_FILE_NAME).exists();
+        = QFileInfo(QDir::toNativeSeparators(inputDir.absolutePath()) + QDir::separator() + IS_RUNNING_FILE_NAME).exists();
     if (mPyWorker.currentlyRunningJob == nullptr && !isRunningFileExists)
         mPyWorker.state = WORKER_IDLE;
     else if (mPyWorker.currentlyRunningJob != nullptr && isRunningFileExists)
@@ -727,11 +775,6 @@ void ColmapWrapper::afterSettingsChanged()
     //--- check worker state file
     //--- initial sync and import of sequence is done at the end of checkRunningJobs
     bool runningJobChanged = checkWorkerState();
-
-    //--- if running job has not changed, i.e. currently no running job in state file, sync
-    //--- workspace from server.
-    if (!runningJobChanged && mConnectionType != LOCAL)
-        syncWorkspaceFromServer();
 }
 
 //==================================================================================================
@@ -749,6 +792,8 @@ void ColmapWrapper::exportJob(cv::FileStorage &ioFileStorage, const ColmapWrappe
 {
     ioFileStorage << "{";
     ioFileStorage << "sequenceName" << iJob.sequenceName;
+    ioFileStorage << "displayName" << iJob.displayName;
+
     ioFileStorage << "productType" << std::to_string(static_cast<int>(iJob.product));
     ioFileStorage << "jobState" << std::to_string(static_cast<int>(iJob.state));
     ioFileStorage << "progress" << std::to_string(static_cast<int>(iJob.progress));
@@ -767,6 +812,7 @@ void ColmapWrapper::exportJob(cv::FileStorage &ioFileStorage, const ColmapWrappe
 void ColmapWrapper::importJob(const cv::FileNode &iFileNode, ColmapWrapper::SJob &oJob) const
 {
     oJob.sequenceName = std::string(iFileNode["sequenceName"]);
+    oJob.displayName = std::string(iFileNode["displayName"]);
 
     oJob.product = static_cast<EProductType>(
         QString().fromStdString(iFileNode["productType"]).toUInt());
@@ -891,15 +937,15 @@ void ColmapWrapper::setUseRobustMode(const bool iUseRobustMode)
 }
 
 //==================================================================================================
-bool ColmapWrapper::useRobustMode()
+void ColmapWrapper::setCustomCommands(QList<QPair<QString, QString>> iCustomCommands)
 {
-    return mUseRobustMode;
+    mCustomCommands = iCustomCommands;
 }
 
 //==================================================================================================
-ColmapWrapper::EWorkspaceStatus ColmapWrapper::getWorkspaceStatus() const
+bool ColmapWrapper::useRobustMode()
 {
-    return mWorkspaceStatus;
+    return mUseRobustMode;
 }
 
 //==================================================================================================
@@ -929,6 +975,12 @@ ColmapWrapper::EWorkerState ColmapWrapper::getWorkerState() const
 QString ColmapWrapper::mntPntRemoteWorkspacePath() const
 {
     return mMntPntRemoteWorkspacePath;
+}
+
+//==================================================================================================
+QList<QPair<QString, QString>> ColmapWrapper::customCommands() const
+{
+    return mCustomCommands;
 }
 
 //==================================================================================================
@@ -966,138 +1018,16 @@ void ColmapWrapper::setSyncInterval(int syncInterval)
 //==================================================================================================
 bool ColmapWrapper::isRemoteWorkspaceMounted(QString iRemoteWorkspacePathMntPath) const
 {
+    QString filePath = getFirstMatchingFileNameWithWildcard(QDir::toNativeSeparators(iRemoteWorkspacePathMntPath), WORKER_STATE_FILE_NAME);
     //--- workspace is mounted if mount point is not empty and worker state file exists
     return (!iRemoteWorkspacePathMntPath.isEmpty()
-            && QFileInfo(iRemoteWorkspacePathMntPath + QDir::separator() + WORKER_STATE_FILE_NAME)
+            && QFileInfo(filePath)
                    .exists());
-}
-
-//==================================================================================================
-int ColmapWrapper::mountRemoteWorkspace()
-{
-    qDebug()
-        << "==================================================================================";
-    qDebug() << "Time: " << QDateTime::currentDateTime().toString();
-    qDebug() << __PRETTY_FUNCTION__;
-
-    //--- if already mounted or path not set, return
-    if (isRemoteWorkspaceMounted(mMntPntRemoteWorkspacePath)
-        || mMntPntRemoteWorkspacePath.isEmpty()) {
-        qDebug() << "Info: Remote Workspace already mounted!";
-        return 0;
-    }
-
-    //--- construct temporary mount directory
-    QDir dir;
-    dir.mkpath(mMntPntRemoteWorkspacePath);
-
-    //--- construct arguments to synchronize from server to local workspace
-    QStringList args;
-    args << QString(mRemoteUsr + "@" + mRemoteAddr + ":" + mRemoteWorkspacePath)
-         << mMntPntRemoteWorkspacePath;
-
-    //--- write info to log file
-    qDebug() << "Cmd: " << MNT_CMD << args;
-
-    //--- call sync cmd
-    /*mpMountProcess->start(MNT_CMD, args);
-  mpMountProcess->waitForFinished();
-  qDebug() << mpMountProcess->exitCode();
-  QString stdOut = mpSyncProcess->readAllStandardOutput();
-  QString stdErr = mpSyncProcess->readAllStandardError();
-  if(!stdOut.isEmpty()) qDebug() << stdOut;
-  if(!stdErr.isEmpty()) qDebug() << stdErr;*/
-    int exitCode = QProcess::execute(MNT_CMD, args);
-    qDebug() << "Mount exit code: " << exitCode;
-    // if mounted successfully, install scripts if missing
-    if (exitCode == 0 && !hasScriptFilesInstalled()) {
-        qDebug() << "Installing script files";
-        installScriptFilesIntoWorkspace();
-    }
-    return exitCode;
-}
-
-//==================================================================================================
-void ColmapWrapper::unmountRemoteWorkspace()
-{
-    qDebug()
-        << "==================================================================================";
-    qDebug() << "Time: " << QDateTime::currentDateTime().toString();
-    qDebug() << __PRETTY_FUNCTION__;
-
-    //--- if not mounted or path not set, return
-    if (!isRemoteWorkspaceMounted(mMntPntRemoteWorkspacePath)
-        || mMntPntRemoteWorkspacePath.isEmpty()) {
-        qDebug() << "Info: Remote Workspace is not mounted!";
-        return;
-    }
-
-    //--- construct arguments to synchronize from server to local workspace
-    QStringList args;
-    args << "-u" << mMntPntRemoteWorkspacePath
-        /*<< QString("&>> " + mSshLogFilePath)*/;
-
-    //--- write info to log file
-    qDebug() << "Cmd: " << UMNT_CMD << args;
-
-    //--- call sync cmd
-    mpMountProcess->start(UMNT_CMD, args);
-    mpMountProcess->waitForFinished();
-
-    QString stdOut = mpSyncProcess->readAllStandardOutput();
-    QString stdErr = mpSyncProcess->readAllStandardError();
-    if (!stdOut.isEmpty())
-        qDebug() << stdOut;
-    if (!stdErr.isEmpty())
-        qDebug() << stdErr;
-}
-
-//==================================================================================================
-void ColmapWrapper::syncWorkspaceFromServer()
-{
-    qDebug()
-        << "==================================================================================";
-    qDebug() << "Time: " << QDateTime::currentDateTime().toString();
-    qDebug() << __PRETTY_FUNCTION__;
-
-    //--- return if connection type is local
-    if (mConnectionType == LOCAL) {
-        qDebug() << "Warning: Connection type is LOCAL!";
-        return;
-    }
-
-    //--- update workspace status
-    mWorkspaceStatus = SYNCING;
-    emit workspaceStatusUpdate();
-
-    //--- construct arguments to synchronize from server to local workspace
-    QStringList args;
-    args << SYNC_BASE_ARGS << "--delete" << mMntPntRemoteWorkspacePath + QDir::separator()
-         << mLocalWorkspacePath;
-
-    //--- write info to log file
-    qDebug() << "Cmd: " << SYNC_CMD << args;
-
-    //--- call sync cmd
-    mpSyncProcess->setParent(this);
-    mpSyncProcess->start(SYNC_CMD, args);
-
-    QString stdOut = mpSyncProcess->readAllStandardOutput();
-    QString stdErr = mpSyncProcess->readAllStandardError();
-    if (!stdOut.isEmpty())
-        qDebug() << stdOut;
-    if (!stdErr.isEmpty())
-        qDebug() << stdErr;
 }
 
 //==================================================================================================
 bool ColmapWrapper::checkWorkerState()
 {
-    qDebug()
-        << "==================================================================================";
-    qDebug() << "Time: " << QDateTime::currentDateTime().toString();
-    qDebug() << __PRETTY_FUNCTION__;
-
 
     //--- store currently referenced job
     SJob* previouslyRunningJob;
@@ -1126,11 +1056,8 @@ bool ColmapWrapper::checkWorkerState()
     if (runningJobChanged) {
         qDebug() << "Info: Running Job has changed.";
 
-        if (mConnectionType != LOCAL)
-            syncWorkspaceFromServer();
     } else {
         qDebug() << "Info: Running Job unchanged.";
-        mWorkspaceStatus = IN_SYNC;
         emit workspaceStatusUpdate();
     }
 
@@ -1293,21 +1220,12 @@ void ColmapWrapper::setRemoteUsr(const QString &remoteUsr)
 //==================================================================================================
 void ColmapWrapper::addJob(const ColmapWrapper::SJob &iJob)
 {
-    qDebug()
-        << "==================================================================================";
-    qDebug() << "Time: " << QDateTime::currentDateTime().toString();
-    qDebug() << __PRETTY_FUNCTION__;
-
     mJobs.push_back(iJob);
 }
 
 //==================================================================================================
 void ColmapWrapper::addJobList(const std::vector<SJob> &iJobList)
 {
-    qDebug()
-        << "==================================================================================";
-    qDebug() << "Time: " << QDateTime::currentDateTime().toString();
-    qDebug() << __PRETTY_FUNCTION__;
 
     mJobs.insert(mJobs.end(), iJobList.begin(), iJobList.end());
 
@@ -1320,7 +1238,6 @@ bool ColmapWrapper::moveJobOneUp(const ColmapWrapper::SJob &iJob)
     qDebug()
         << "==================================================================================";
     qDebug() << "Time: " << QDateTime::currentDateTime().toString();
-    qDebug() << __PRETTY_FUNCTION__;
 
     int jobIdx = getIndexOfJob(iJob);
     if (jobIdx == -1) {
@@ -1345,10 +1262,6 @@ bool ColmapWrapper::moveJobOneUp(const ColmapWrapper::SJob &iJob)
 //==================================================================================================
 bool ColmapWrapper::moveJobOneDown(const ColmapWrapper::SJob &iJob)
 {
-    qDebug()
-        << "==================================================================================";
-    qDebug() << "Time: " << QDateTime::currentDateTime().toString();
-    qDebug() << __PRETTY_FUNCTION__;
 
     int jobIdx = getIndexOfJob(iJob);
     if (jobIdx == -1) {
@@ -1369,10 +1282,6 @@ bool ColmapWrapper::moveJobOneDown(const ColmapWrapper::SJob &iJob)
 //==================================================================================================
 bool ColmapWrapper::deleteJob(const ColmapWrapper::SJob &iJob)
 {
-    qDebug()
-        << "==================================================================================";
-    qDebug() << "Time: " << QDateTime::currentDateTime().toString();
-    qDebug() << __PRETTY_FUNCTION__;
 
     int jobIdx = getIndexOfJob(iJob);
     if (jobIdx == -1 || iJob.state == JOB_RUNNING) {
@@ -1381,11 +1290,10 @@ bool ColmapWrapper::deleteJob(const ColmapWrapper::SJob &iJob)
     mJobs.erase(mJobs.begin() + jobIdx);
 
     //--- erase all jobs of the same sequence that depend on this job
-    for (std::vector<ColmapWrapper::SJob>::iterator itr = mJobs.begin() + jobIdx;
-         itr != mJobs.end();) {
+    for (std::vector<ColmapWrapper::SJob>::iterator itr = mJobs.begin() + jobIdx; itr != mJobs.end();) {
         if (itr->sequenceName == iJob.sequenceName && itr->state != JOB_RUNNING
             && static_cast<int>(itr->product) > static_cast<int>(iJob.product)) {
-            mJobs.erase(itr);
+            itr = mJobs.erase(itr);
         } else {
             ++itr;
         }
@@ -1414,10 +1322,6 @@ int ColmapWrapper::getNumJobs() const
 //==================================================================================================
 int ColmapWrapper::removeFinishedJobs()
 {
-    qDebug()
-        << "==================================================================================";
-    qDebug() << "Time: " << QDateTime::currentDateTime().toString();
-    qDebug() << __PRETTY_FUNCTION__;
 
     int i = 0;
     for (std::vector<SJob>::iterator itr = mJobs.begin(); itr != mJobs.end();) {
@@ -1460,10 +1364,6 @@ QString ColmapWrapper::getProductFilePath(QString iSeqName,
 //==================================================================================================
 void ColmapWrapper::startProcessing()
 {
-    qDebug()
-        << "==================================================================================";
-    qDebug() << "Time: " << QDateTime::currentDateTime().toString();
-    qDebug() << __PRETTY_FUNCTION__;
 
     //--- check if worker is already running
     if (mConnectionType == LOCAL && QFile(mLocalWorkspacePath + "/_colmapRunning").exists()) {
@@ -1473,33 +1373,43 @@ void ColmapWrapper::startProcessing()
         return;
     }
 
+    QString scriptExtension =".sh";
+#if defined(Q_OS_WIN)
+    scriptExtension = ".bat";
+#endif
+
     mpTempDir = new QTemporaryDir();
 
     //--- depending on connection type copy bootstrap scrip
     if (mConnectionType == LOCAL) {
-        QFile::copy(":/ots/colmapwrapper/localBootstrapper.sh",
-                    mpTempDir->path() + "/colmapbootstrapper.sh");
+        QFile::copy(":/ots/colmapwrapper/localBootstrapper"+scriptExtension,
+                    mpTempDir->path() + "/colmapbootstrapper"+scriptExtension);
     } else {
-        QFile::copy(":/ots/colmapwrapper/remoteBootstrapper.sh",
-                    mpTempDir->path() + "/colmapbootstrapper.sh");
+        QFile::copy(":/ots/colmapwrapper/remoteBootstrapper"+scriptExtension,
+                    mpTempDir->path() + "/colmapbootstrapper"+scriptExtension);
+
     }
-    QFile::setPermissions(mpTempDir->path() + "/colmapbootstrapper.sh",
-                          QFileDevice::ReadUser | QFileDevice::WriteUser | QFileDevice::ExeUser);
+
+    QFile::setPermissions(mpTempDir->path() + "/colmapbootstrapper"+scriptExtension,
+                              QFileDevice::ReadUser | QFileDevice::WriteUser | QFileDevice::ExeUser);
 
     //--- adjust content of script
     QByteArray fileData;
-    QFile file(mpTempDir->path() + "/colmapbootstrapper.sh");
-    file.open(QIODevice::ReadWrite | QIODevice::Text); // open for read and write
+    QFile file(mpTempDir->path() + "/colmapbootstrapper"+scriptExtension);
+    bool success = file.open(QIODevice::ReadWrite | QIODevice::Text); // open for read and write
+    if (!success) {
+        qDebug() << "Error opening file:" << file.errorString();
+    }
     fileData = file.readAll();                         // read all the data into the byte array
 
     QString text(fileData); // add to text string for easy string replace
 
     // replace text in string
     if (mConnectionType == LOCAL) {
-        text.replace(QString("<+workspace+>"), mLocalWorkspacePath);
-        text.replace(QString("<+COLMAP_bin+>"), mLocalColmapBinPath);
+        text.replace(QString("<+workspace+>"), QDir::toNativeSeparators(mLocalWorkspacePath));
+        text.replace(QString("<+COLMAP_bin+>"), QDir::toNativeSeparators(mLocalColmapBinPath));
         if (mLocalOpenMVSBinPath != "") {
-            text.replace(QString("<+OPENMVS_bin+>"), "--openmvs_bin " + mLocalOpenMVSBinPath);
+            text.replace(QString("<+OPENMVS_bin+>"), "--openmvs_bin " + QDir::toNativeSeparators(mLocalOpenMVSBinPath));
         } else {
             text.replace(QString("<+OPENMVS_bin+>"), "");
         }
@@ -1520,9 +1430,9 @@ void ColmapWrapper::startProcessing()
     file.write(text.toUtf8()); // write the new text back to the file
     file.close();              // close the file handle.
 
-    //--- call sync cmd
-    //  mpPyWorkerProcess->setParent(this);
-    mpPyWorkerProcess->startDetached(mpTempDir->path() + "/colmapbootstrapper.sh");
+    QString x = QDir::toNativeSeparators(mpTempDir->path() + "/colmapbootstrapper"+scriptExtension);
+    mpPyWorkerProcess->startDetached(x);
+
     qDebug() << mpPyWorkerProcess->error();
     qDebug() << mpPyWorkerProcess->errorString();
 
@@ -1550,16 +1460,13 @@ void ColmapWrapper::openColmapLogFile()
         logFilePath = logFilePath.arg(mMntPntRemoteWorkspacePath);
     }
 
-    QDesktopServices::openUrl(QUrl(logFilePath));
+    QString x = QDir::toNativeSeparators(logFilePath);
+    QDesktopServices::openUrl(QUrl::fromLocalFile(x));
 }
 
 //==================================================================================================
-void ColmapWrapper::installScriptFilesIntoWorkspace()
-{
-    qDebug()
-        << "==================================================================================";
-    qDebug() << "Time: " << QDateTime::currentDateTime().toString();
-    qDebug() << __PRETTY_FUNCTION__;
+void ColmapWrapper::installScriptFilesIntoWorkspace(){
+
 
     QString outputPath = (mConnectionType == LOCAL) ? mLocalWorkspacePath
                                                     : mMntPntRemoteWorkspacePath;
@@ -1578,7 +1485,16 @@ void ColmapWrapper::installScriptFilesIntoWorkspace()
             if (QFile::exists(outputFile))
                 QFile::remove(outputFile);
 
-            const QString pathToContainingDir = QFileInfo(outputFile).absolutePath();
+
+            QFileInfo fileInfo(outputFile);
+            QDir dir(fileInfo.absolutePath());
+            QStringList files = dir.entryList(QStringList() << (fileInfo.fileName() + "*"), QDir::Files);
+
+            for (const QString &filePath : files)
+                QFile::remove(outputPath + QDir::separator() + filePath);
+
+
+            const QString pathToContainingDir = QDir::toNativeSeparators(QFileInfo(outputFile).absolutePath());
             if (!QFile::exists(pathToContainingDir)) {
                 const QDir dir;
                 dir.mkpath(pathToContainingDir);
@@ -1615,6 +1531,8 @@ bool ColmapWrapper::hasScriptFilesInstalled()
     QString outputPath = (mConnectionType == LOCAL) ? mLocalWorkspacePath
                                                     : mMntPntRemoteWorkspacePath;
 
+    qDebug() << "Checking script files in " << outputPath;
+
     //--- iterate over all resource files and filter for relevant files (*.yaml and *.py in ots folder)
     QDirIterator it(":", QDirIterator::Subdirectories);
     while (it.hasNext()) {
@@ -1626,10 +1544,40 @@ bool ColmapWrapper::hasScriptFilesInstalled()
                                  + QFileInfo(res).filePath().replace(":/ots/colmapwrapper/", "");
 
             //--- copy file and set permissions
-            if (!QFile::exists(outputFile))
+            if (res.endsWith(".yaml") && QFile::exists(outputFile))
+                continue;
+
+            QFileInfo fileInfo(outputFile);
+            QDir dir(fileInfo.absolutePath());
+            QStringList files = dir.entryList(QStringList() << (fileInfo.fileName() + "*"), QDir::Files);
+
+            if(files.isEmpty())
                 return false;
+
+            const QByteArray resHash = sha256File(res);
+            if(resHash.isEmpty())
+                return false;
+
+            // Compare against all matching files; if any matches by hash, this resource is satisfied
+            bool match = false;
+            for (const QString& name : files) {
+                const QString candidatePath = dir.absoluteFilePath(name);
+                const QByteArray dstHash = sha256File(candidatePath);
+                
+                if (!dstHash.isEmpty() && dstHash == resHash) {
+                    match = true;
+                    break;
+                }
+            }
+
+            if (!match) {
+                qDebug() << "  no matching file found for " << fileInfo.fileName();
+                return false; // present but different content => not up to date
+            }
+
         }
     }
+    qDebug() << "All script files present.";
     return true;
 }
 

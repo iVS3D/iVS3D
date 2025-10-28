@@ -3,12 +3,13 @@
 SpinnerIcon::SpinnerIcon(QWidget *parent)
     : QWidget{parent}
 {
-    // Create the SVG spinner
-    m_spinner = new QSvgWidget(":/icons/spinner.svg", this);
-    //m_spinner->setFixedSize(30, 30);
-
     // Create the label to display current status as text
     m_text = new QLabel(this);
+    auto line_height = m_text->height();
+
+    // Create the SVG spinner
+    m_spinner = new QSvgWidget(":/icons/spinner.svg", this);
+    m_spinner->setFixedSize(line_height/2, line_height/2);
 
     // Create a grid layout to overlay the spinner and the icons
     QHBoxLayout *layout = new QHBoxLayout(this);
@@ -18,6 +19,11 @@ SpinnerIcon::SpinnerIcon(QWidget *parent)
 
     // Set the layout for this widget
     setLayout(layout);
+
+    // set a fixed hight to avoid resizing issues
+    setFixedHeight(line_height);
+
+    // Initially hide the spinner
     setSpinning(false);
 }
 

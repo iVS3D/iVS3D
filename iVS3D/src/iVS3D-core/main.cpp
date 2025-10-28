@@ -52,7 +52,11 @@ int main(int argc, char *argv[])
     qRegisterMetaType<QColorList>("QColorList");
     qRegisterMetaType<QBoolList>("QBoolList");
     qRegisterMetaType<std::vector<uint>>("vectorUint");
-
+    qRegisterMetaType<Resolution>("Resolution");
+    qRegisterMetaType<ROI>("ROI");
+    qRegisterMetaType<ExportResult>("ExportResult");
+    qRegisterMetaType<TransformResult>("TransformResult");
+    
     QCommandLineParser parser;
     QCommandLineOption noGUI("nogui", "Executes in terminal mode without the GUI. In this case auto settings file (-a), input (-i) and output (-o) need to be provided.");
     QCommandLineOption inputPath(QStringList() << "i" << "in", "Load input from <path>.", "path");
@@ -79,11 +83,6 @@ int main(int argc, char *argv[])
     }
 
     if(!arguments.contains("--nogui")){
-
-        #if defined(Q_OS_WIN)
-            FreeConsole();
-        #endif
-
         QApplication a( argc, argv );
         a.setApplicationName("iVS3D");
         a.setApplicationVersion(QString(QUOTE(IVS3D_VER)));

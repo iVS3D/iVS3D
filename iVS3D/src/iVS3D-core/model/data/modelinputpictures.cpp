@@ -1,30 +1,21 @@
 #include "modelinputpictures.h"
 
 
-
-void ModelInputPictures::setResolution() {
-    cv::Mat reso = m_reader->getPic(0);
-    int cols = reso.cols;
-    int rows = reso.rows;
-    //inverting rows and collumns results in correct "width x height"
-    QPoint resolution(cols, rows);
-    m_inputResolution = resolution;
-}
-
-
 ModelInputPictures::ModelInputPictures(QString inputPath)
 {
     m_metaDataManager = &MetaDataManager::instance();
     m_metaDataManager->resetData();
-    m_reader = ReaderFactory::instance().createReader(inputPath);
+    m_readerParams = std::make_shared<ReaderParams>();
+    m_reader = ReaderFactory::instance().createReader(inputPath, m_readerParams);
 
     if (m_reader == nullptr) {
         return;
     }
 
     if(m_reader->getPicCount() > 0) {
-		setResolution();
         m_inputPath = inputPath;
+        cv::Mat img = m_reader->getPic(0, Reader::PictureProcessingFlags::APPLY_NONE);
+        m_readerParams->initialize(Resolution(img));
     }
 
     if (m_reader->isDir()) {
@@ -130,8 +121,8 @@ void ModelInputPictures::removeKeyframe(unsigned int index) {
 }
 
 
-const cv::Mat* ModelInputPictures::getPic(unsigned int index){
-    m_currentMat = m_reader->getPic(index);
+const cv::Mat* ModelInputPictures::getPic(unsigned int index, Reader::PictureProcessingFlags flags){
+    m_currentMat = m_reader->getPic(index, flags);
     return &m_currentMat;
 }
 
@@ -214,22 +205,58 @@ QVariant ModelInputPictures::toText()
     jsonObject.insert(stringContainer::keyframesIdentifier, QJsonValue::fromVariant(keyframes));
     jsonObject.insert(stringContainer::inputPathIdentifier, QJsonValue::fromVariant(inputPath));
     jsonObject.insert(stringContainer::boundariesIdentifier, QJsonValue::fromVariant(varBoundaries));
-    return QVariant(jsonObject);
+    jsonObject.insert("readerparams", QJsonValue::fromVariant(m_readerParams->toText()));
 
+    // if we have metadata, store related infos too!
+    {
+        QJsonObject json;
+
+        // we want to store the metadata files (if any)...
+        if (!m_metaDataManager->getPaths().empty()){
+            QJsonArray metaDataPaths;
+            for (auto path : m_metaDataManager->getPaths()) {
+               metaDataPaths.append(path);
+            }
+            json["files"] = metaDataPaths;
+        }
+
+        // ... and the gps altitude offset (if available)
+        for (MetaDataReader* reader : m_metaDataManager->loadAllMetaData()) {
+            if (reader->getName().startsWith("GPS")) {
+               json["gps_altitude"] = m_altitude;
+               break;
+            }
+        }
+
+        // only add this section if any infos to store!
+        if(!json.isEmpty()) jsonObject["metadata"] = json;
+    }
+
+    return QVariant(jsonObject);
 }
 
 void ModelInputPictures::fromText(QVariant data)
 {
+    m_metaDataManager = &MetaDataManager::instance();
+    m_metaDataManager->resetData();
+
     QJsonObject jsonData = data.toJsonObject();
     //get import part, create new reader and set resolution
     QJsonObject::Iterator inputPath = jsonData.find(stringContainer::inputPathIdentifier);
     m_inputPath = inputPath.value().toString();
-    m_reader = ReaderFactory::instance().createReader(m_inputPath);
-
+    m_readerParams = std::make_shared<ReaderParams>();
+    m_reader = ReaderFactory::instance().createReader(m_inputPath, m_readerParams);
 
     if (m_reader->getPicCount() != 0) {
-        setResolution();
         m_boundaries = QPoint(0,m_reader->getPicCount() -1);
+
+        m_readerParams->initialize(Resolution(m_reader->getPic(0, Reader::PictureProcessingFlags::APPLY_NONE)));
+
+        auto readerParams = jsonData.find("readerparams");
+
+        if(!readerParams->isNull() && !readerParams->isUndefined()){
+           m_readerParams->fromText(readerParams.value().toVariant());
+        }
     }
     //get keyframes
     QString keyframes = jsonData.find(stringContainer::keyframesIdentifier).value().toString();
@@ -242,6 +269,27 @@ void ModelInputPictures::fromText(QVariant data)
         boundaries.setX(varBoundaries.at(0).toInt());
         boundaries.setY(varBoundaries.at(1).toInt());
         setBoundaries(boundaries);
+    }
+
+    // get metadata
+    if(jsonData.contains("metadata")) {
+        QJsonObject json = jsonData["metadata"].toObject();
+
+        // metadata files
+        if (m_reader->isDir()) {
+           loadMetaDataImages();
+        } else if(json.contains("files")) {
+           QStringList files;
+           for (auto file : json["files"].toArray()) {
+               files.push_back(file.toString());
+           }
+           loadMetaData(files);
+        }
+
+        // altitude offset
+        if(json.contains("gps_altitude")) {
+           setAltitude(json["gps_altitude"].toDouble());
+        }
     }
 }
 
@@ -285,6 +333,23 @@ void ModelInputPictures::restore(ModelInputPictures::Memento *m)
     emit sig_mipChanged();
 }
 
+void ModelInputPictures::setAltitude(double altitude)
+{
+    m_altitude = altitude;
+    QList<MetaDataReader*> metaReader = m_metaDataManager->loadAllMetaData();
+    for (MetaDataReader* reader : metaReader) {
+        if (reader->getName().startsWith("GPS")) {
+           GPSReader* gps = dynamic_cast<GPSReader*>(reader);
+           gps->setAltitudeDiff(altitude);
+        }
+    }
+}
+
+double ModelInputPictures::getAltitude()
+{
+    return m_altitude;
+}
+
 std::vector<unsigned int> ModelInputPictures::getAllKeyframes(bool inBound)
 {   
     if (!inBound) {
@@ -316,9 +381,9 @@ std::vector<unsigned int> ModelInputPictures::getAllKeyframes(bool inBound)
     return croppedKeyframes;
 }
 
-QPoint ModelInputPictures::getInputResolution()
+std::shared_ptr<ReaderParams> ModelInputPictures::getReaderParams()
 {
-    return m_inputResolution;
+    return m_readerParams;
 }
 
 std::vector<unsigned int> ModelInputPictures::splitString(QString string) {

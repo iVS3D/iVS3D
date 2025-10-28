@@ -9,11 +9,16 @@ fi
 echo "Build configuration:"
 echo "--------------------"
 echo "  Qt libs:          $QT_PATH/lib"
-echo "  OpenCV libs:      $OCV_BIN"
+echo "  OpenCV libs:      $OpenCV_LIB"
 if [ -n "$CUDA_VERSION" ] 
 then
   echo "  CUDA Version:     $CUDA_VERSION"
   echo "  CUDA libs:        $CUDA_BIN"
+fi
+if [ -n "$ORT_VERSION" ] 
+then
+  echo "  ORT Version:     $ORT_VERSION"
+  echo "  ORT libs:        $Onnxruntime_LIB"
 fi
 echo "  Project version:  $APP_VERSION"
 echo "  Project date:     $APP_DATE"
@@ -23,7 +28,7 @@ echo "--------------------"
 
 # set LD_LIBRARY_PATH
 # this is necessary for ldd to find runtime libraries of Qt, OpenCV and cuda
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$CUDA_BIN:$QT_PATH/lib:$OCV_BIN
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$CUDA_BIN:$QT_PATH/lib:$OpenCV_LIB:$Onnxruntime_LIB
 
 echo "LD_LIBRARY_PATH:    "
 echo "--------------------"
@@ -145,11 +150,12 @@ deployapp() {
     addlibs $qmlfile "$INSTALL_PATH/$PACKAGE_NAME/lib"
   done
 
-  if [ -n "$CUDA_VERSION" ]
+  # copy CUDNN libs if cuda is set to 12.0
+  if [ -n "$CUDA_VERSION" ] && [ "$CUDA_VERSION" == "12.0" ]
   then
     echo " "
     echo "--------------------------------"
-    echo "-- adding cudnn libs  --"
+    echo "-- adding cudnn libs          --"
     echo "--------------------------------"
 
     CUDNN_FILES="libcudnn_ops_infer.so.8 libcudnn_cnn_infer.so.8"
@@ -164,6 +170,32 @@ deployapp() {
       fi
     done
   fi
+
+  if [ -n "$ORT_VERSION" ]; then
+    echo " "
+    echo "--------------------------------"
+    echo "-- adding onnxruntime libs    --"
+    echo "--------------------------------"
+
+    while IFS= read -r -d '' ORT_LIB; do
+      # Skip _tensorrt.so files
+      if [[ "$ORT_LIB" == *"_tensorrt.so"* ]]; then
+        continue
+      fi
+      # Skip _cuda.so files if CUDA is not set
+      if [[ "$ORT_LIB" == *"_cuda.so"* ]] && [ -z "$CUDA_VERSION" ]; then
+        continue
+      fi
+      # Copy the library to the package lib directory
+      if ! cp "$ORT_LIB" "$INSTALL_PATH/$PACKAGE_NAME/lib/" 2>/dev/null; then
+        echo "Failed to copy $ORT_LIB"
+        missing_libs+=("$ORT_LIB")
+      else
+        addlibs "$INSTALL_PATH/$PACKAGE_NAME/lib/$(basename "$ORT_LIB")" "$INSTALL_PATH/$PACKAGE_NAME/lib"
+      fi
+    done < <(find "$Onnxruntime_LIB" -name 'libonnxruntime*.so*' -print0)
+  fi
+
 
   echo " "
   echo "--------------------------------"

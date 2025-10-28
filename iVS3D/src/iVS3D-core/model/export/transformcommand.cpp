@@ -1,39 +1,66 @@
 #include "transformcommand.h"
+#include <iostream>
 
-TransformCommand::TransformCommand(ITransform *transformplugin_, QString folder_) : transformplugin(transformplugin_), folder(folder_), initialized(false) { }
+TransformCommand::TransformCommand(ITransform *transformplugin_,
+                                   Resolution working_resolution_,
+                                   Resolution export_resolution_, 
+                                   ROI roi_,
+                                   QString folder_)
+    : transformplugin(transformplugin_),
+      folder(folder_),
+      working_resolution(working_resolution_),
+      roi(roi_),
+      initialized(false) {
+        // compute cropped export resolution
+        if(!roi.isDefault()){
+            auto rect = roi.cropAsCvRect(export_resolution_);
+            export_size = rect.size();
+        } else {
+            export_size = export_resolution_.toCvSize();
+        }
 
-std::optional<QString> TransformCommand::execute(ImageContext &ctx)
-{
-    ImageList transformed_imgs = transformplugin->transform(0, ctx.image);
-    QStringList transformed_names = transformplugin->getOutputNames();
+      }
 
-    if(transformed_imgs.length() != transformed_names.length()) {
-        return "ERROR: Number of transformed images (" +
-                QString::number(transformed_imgs.length()) +
-                ") does not match expectaion (" +
-                QString::number(transformed_names.length()) +
-                ") for plugin " + transformplugin->getName();
+std::optional<QString> TransformCommand::execute(ImageContext &ctx) {
+    // transform the image
+    // we always pass the original image and the transform plugin should handle
+    // resizing and cropping to the working resolution and roi
+    auto result =
+        transformplugin->transform(0, ctx.originalImage, working_resolution, roi);
+
+    if (!result) {
+        return "ERROR: " + result.error().message;
     }
 
-    QString base_path = folder + "/" + transformplugin->getName();
+    auto mask = result.value();
+
+    if (mask.empty()) {
+        return "ERROR: transform returned an empty image";
+    }
+
+    // resize the mask to the cropped export resolution, do not interpolate!
+    if (mask.cols != export_size.width || mask.rows != export_size.height) {
+        cv::resize(mask, mask, export_size, 0, 0, cv::INTER_NEAREST);
+    }
+
+    QString base_path = folder + "/masks";
     QString imagename = ctx.filename.split("/").last();
+    // masks are always exported as png
+    imagename.replace(QRegularExpression("\\.\\w+$"), ".png");
 
     if (!initialized) {
-        for(auto name : transformed_names) {
-            QString destination = QDir::cleanPath(base_path+ "/" + name);
-            if(!QDir().exists(destination) && !QDir().mkpath(destination)) {
-                return "ERROR: failed to create output folder for plugin: " + destination;
-            }
+        QString destination = QDir::cleanPath(base_path);
+        if (!QDir().exists(destination) && !QDir().mkpath(destination)) {
+            return "ERROR: failed to create output folder for plugin: " +
+                   destination;
         }
         initialized = true;
     }
 
-    for (int i = 0; i < transformed_imgs.size(); i++) {
-        QString destination = QDir::cleanPath(base_path + "/" + transformed_names[i] + "/" + imagename);
-        //write image on disk
-        if (!cv::imwrite(destination.toStdString(), transformed_imgs[i], {cv::IMWRITE_JPEG_QUALITY, 100})) {
-            return "ERROR: failed to write image: " + destination;
-        }
+    QString destination = QDir::cleanPath(base_path + "/" + imagename);
+    // write image on disk
+    if (!cv::imwrite(destination.toStdString(), mask)) {
+        return "ERROR: failed to write image: " + destination;
     }
 
     return std::nullopt;

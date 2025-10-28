@@ -101,6 +101,8 @@ compile_commands.json
 ### doxygen files ###
 doc/html
 doc/latex
+Doxyfile
+generated_doc
 
 ### testresources ###
 *testresources/
@@ -119,6 +121,9 @@ iVS3D/src/iVS3D-core/build
 
 ### releases ###
 Releases
+
+### CMake ###
+CMakeUserPresets.json
 
 ### allowed files ###
 !*resourceloader.pri

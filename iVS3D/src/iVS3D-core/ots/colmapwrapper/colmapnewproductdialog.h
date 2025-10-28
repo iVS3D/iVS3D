@@ -42,17 +42,20 @@ class NewProductDialog : public QDialog
 
   private slots:
 
+    void onCustomCommandClicked();
     void onProdCameraPosesClicked();
     void onProdPointCloudClicked();
     void onProdMeshClicked();
 
     void onPbSelectImageDirectoryClicked();
+    void onPbSelectMaskDirectoryClicked();
 
     void updateSettingsVisibility();
 
     void onAccepted();
 
     void validateImagePath();
+    void validateMaskPath();
 
     void validateSequenceName();
 

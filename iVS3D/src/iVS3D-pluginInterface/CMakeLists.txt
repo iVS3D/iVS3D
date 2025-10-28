@@ -21,12 +21,17 @@ set(PUBLIC_HEADER_FILES
     "${CMAKE_CURRENT_LIST_DIR}/iVS3D-pluginInterface_global.h"
     "${CMAKE_CURRENT_LIST_DIR}/ialgorithm.h"
     "${CMAKE_CURRENT_LIST_DIR}/itransform.h"
+    "${CMAKE_CURRENT_LIST_DIR}/ierror.h"
     "${CMAKE_CURRENT_LIST_DIR}/../iVS3D-core/cvmat_qmetadata.h"
 )
 
 # define library
 add_library(${TARGET_NAME}  STATIC
     ${PUBLIC_HEADER_FILES}
+)
+
+target_link_libraries(${TARGET_NAME}
+    PUBLIC tl-expected
 )
 
 # definition to export the interface

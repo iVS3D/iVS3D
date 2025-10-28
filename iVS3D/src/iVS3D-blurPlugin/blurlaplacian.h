@@ -37,9 +37,6 @@ protected:
     QString m_name = "Laplacian Filter";
     double singleCalculation(const cv::Mat &image) override;
 
-
-
-
 };
 
 #endif // BLURLAPLACIAN_H

@@ -1,6 +1,6 @@
 #include "imagereader.h"
 
-ImageReader::ImageReader(QString path)
+ImageReader::ImageReader(QString path, std::shared_ptr<ReaderParams> readerParams) : m_readerParams(readerParams)
 {
     QFileInfo fileInfo(path);
     if (!fileInfo.isDir()) {
@@ -29,19 +29,43 @@ ImageReader::ImageReader(QString path)
     }
     m_numImages = static_cast<int>(m_filePaths.size());
     m_folderPath = path.toStdString();
-    if (m_numImages > 0) {
-        m_isValid = true;
+    if (m_numImages <= 0) {
+        m_isValid = false;
+        return;
     }
+
+    // validate the given readerParams, initialize if necessary!
+    auto img = cv::imread(m_filePaths.at(0));
+    if (img.empty()) {
+        m_isValid = false;
+        return;
+    }
+    Resolution res(img);
+    if (!(m_readerParams->getOriginalResolution() == res)) {
+        // The readerParams were initialized previously, but do not match the current input resolution!
+        // We just override it, but this should not happen, wrong usage?
+        Q_ASSERT(!m_readerParams->getOriginalResolution().isValid());
+        m_readerParams->initialize(res);
+    }
+
+    m_isValid = true;
 }
 
-cv::Mat ImageReader::getPic(unsigned int index)
+cv::Mat ImageReader::getPic(unsigned int index, PictureProcessingFlags flags)
 {
     if(index > getPicCount()){
         cv::Mat empty;
         return empty;
     }
 
-    return cv::imread(m_filePaths.at(index));
+    cv::Mat img = cv::imread(m_filePaths.at(index));
+    if(flags & PictureProcessingFlags::APPLY_RESIZING){
+        m_readerParams->getWorkingResolution().resize(img);
+    }
+    if(flags & PictureProcessingFlags::APPLY_CROPPING && m_readerParams->getUseRoi()) {
+        m_readerParams->getRoi().crop(img);
+    }
+    return img;
 }
 
 unsigned int ImageReader::getPicCount()
@@ -74,13 +98,14 @@ std::vector<std::string> ImageReader::getFileVector()
     return m_filePaths;
 }
 
-ImageReader *ImageReader::copy()
+ImageReader *ImageReader::copy(std::shared_ptr<ReaderParams> params)
 {
     ImageReader *ir = new ImageReader();
     ir->m_folderPath = m_folderPath;
     ir->m_numImages = m_numImages;
     ir->m_filePaths = m_filePaths;
     ir->m_isValid = m_isValid;
+    ir->m_readerParams = params ? params : std::make_shared<ReaderParams>(*m_readerParams);
     ir->addMetaData(m_md);
     return ir;
 }
@@ -100,9 +125,9 @@ bool ImageReader::isValid()
     return m_isValid;
 }
 
-SequentialReader *ImageReader::createSequentialReader(std::vector<uint> indices)
+SequentialReader *ImageReader::createSequentialReader(std::vector<uint> indices, PictureProcessingFlags flags)
 {
-    return new SequentialReaderImpl(this, indices, false);
+    return new SequentialReaderImpl(this, indices, false, flags);
 }
 
 ImageReader::ImageReader()

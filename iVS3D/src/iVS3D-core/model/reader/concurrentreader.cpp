@@ -29,7 +29,7 @@ void ConcurrentReader::slot_pull()
     if(m_next_idx==UINT_MAX){
         return;
     }
-    cv::Mat img = m_reader->getPic(m_next_idx);
+    cv::Mat img = m_reader->getPic(m_next_idx, Reader::PictureProcessingFlags::APPLY_NONE);
     emit sig_imageReady(m_next_idx, img);
     m_next_idx = UINT_MAX;
     m_timer->stop();

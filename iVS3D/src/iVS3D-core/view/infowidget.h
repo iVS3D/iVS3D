@@ -5,14 +5,17 @@
 #include "operationstack.h"
 #include "stringcontainer.h"
 #include "cvmat_qmetadata.h"
+#include "adaptivetoolbutton.h"
 
 #include <QRegExp>
 #include <QRegularExpression>
 #include <QRegularExpressionMatch>
-
-namespace Ui {
-class InfoWidget;
-}
+#include <QFormLayout>
+#include <QComboBox>
+#include <QCheckBox>
+#include <QPushButton>
+#include <QHBoxLayout>
+#include <QDoubleSpinBox>
 
 /**
  * @class InfoWidget
@@ -38,12 +41,6 @@ public:
      */
     explicit InfoWidget(QWidget *parent = nullptr, QString title = "Info", ColorTheme theme = LIGHT);
     ~InfoWidget();
-
-    /**
-     * @brief setInfo displays the given key value pairs in a table.
-     * @param info the key value pairs
-     */
-    void setInfo(QMap<QString,QString> info);
 
     /**
      * @brief enableOpenMetaData enables "Open Meta Data" button in the widget
@@ -79,6 +76,8 @@ public:
      */
     OperationStack* getOpStack();
 
+    void enableSettings(bool enabled);
+
 
 signals:
     void sig_openVideoPressed();
@@ -91,7 +90,15 @@ private slots:
     void on_toolButton_meta_clicked();
 
 protected:
-    Ui::InfoWidget *ui;
+// input buttons
+    AdaptiveToolButton *m_openMetaDataButton;
+    AdaptiveToolButton *m_openImagesButton;
+    AdaptiveToolButton *m_openVideoButton;
+    QHBoxLayout *m_inputButtonLayout;
+    
+
+// operation stack
+    OperationStack *m_opStack;
 };
 
 #endif // INFOWIDGET_H

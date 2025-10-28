@@ -15,9 +15,7 @@
 #include "stringcontainer.h"
 #include "model/metaData/gpsreader.h"
 
-#if defined(Q_OS_LINUX)
-    #include "colmapwrapper.h"
-#endif
+#include "colmapwrapper.h"
 
 #include <QObject>
 #include <QDebug>
@@ -50,7 +48,7 @@ class ExportController : public QObject
 {
     Q_OBJECT
 public:
-#if defined(Q_OS_LINUX)
+
     /**
      * @brief ExportController is created with a prepared outputWidget and dataManager pointer
      * Connects to GUI, initializes member pointers
@@ -58,15 +56,7 @@ public:
      * @param dataManager
      */
     ExportController(OutputWidget *outputWidget, DataManager *dataManager, lib3d::ots::ColmapWrapper *colmap);
-#elif defined(Q_OS_WIN)
-    /**
-     * @brief ExportController is created with a prepared outputWidget and dataManager pointer
-     * Connects to GUI, initializes member pointers
-     * @param outputWidget
-     * @param dataManager
-     */
-    ExportController(OutputWidget *outputWidget, DataManager *dataManager);
-#endif
+
 
     /**
      * @brief ExportController::~ExportController
@@ -83,10 +73,7 @@ public:
      */
     void setOutputSettings(QMap<QString, QVariant> settings);
 
-    /**
-     * @brief setAltitudeInWidget
-     */
-    void setAltitudeInWidget();
+    void setOriginalAltitude(double altitude);
 
 
 signals:
@@ -121,25 +108,10 @@ public slots:
     void slot_export();
 
     /**
-     * @brief slot_cropExport creates a cropExport-Dialog
-     */
-    void slot_cropExport();
-
-    /**
-     * @brief slot_closeCropExport cleans up remaining connection of cropExport-Dialog and saves the cropped value
-     */
-    void slot_closeCropExport(int result);
-
-    /**
      * @brief slot_reconstruct opens reconstruct dialog
      * Gathers various information needed for the dialog before it opens it.
      */
     void slot_reconstruct();
-    /**
-     * @brief slot_resolutionChange gets triggered if user alters the (output) resolution and changes it in the model accordingly
-     * @param res new resolution input by the user
-     */
-    void slot_resolutionChange(const QString &res);
     /**
      * @brief slot_outputPathChanged gets triggered if user changes the outputpath manually (without the browse function)
      * @param path new path input by the user
@@ -155,7 +127,7 @@ public slots:
      * Disconnects ExportExecutor, removes progress bar and shows export results
      * @param result unused (error code 0=OK, 1=stopped, -1=export failed)
      */
-    void slot_exportFinished(int result);
+    void slot_exportFinished(ExportResult result);
     /**
     * @brief slot_showExportSettings triggered by AutomaticExecSettings shows the given settings and
     * saves the internal
@@ -173,25 +145,12 @@ public slots:
      */
     void slot_nextImageOnPlayer(uint idx);
 
-    /**
-     * @brief slot_altitudeChanged is triggered when the altitude has been changed by the user
-     * @param altitude set altitude
-     */
+    void slot_exportResolutionChanged(QString resolution);
+
     void slot_altitudeChanged(double altitude);
 
+    void slot_roiChanged(std::optional<ROI> roi);
 private:
-    /**
-     * @brief parseResolution parses resolution QString into QPoint (width x heigt)
-     * @param resolutionString resolution to parse
-     * @return returns (width,height) of given String if QString was valid, otherwise returns (-1,-1)
-     */
-    QPoint parseResolution(QString resolutionString);
-    /**
-     * @brief validateResolution compares if resolution is smaller or equal than the input resolution
-     * @param resolution resolution to compare the input resolution to
-     * @return returns true if given resolution is smaller or equal to input resolution
-     */
-    bool validateResolution(QPoint resolution);
     /**
      * @brief startReconstruct handles starting reconstruct software, preparing its start-arguments, creating batch-files and project-file
      * for Colmap:
@@ -207,25 +166,31 @@ private:
     bool createDatabaseFile(QString defaultpath, QString targetpath);
     bool createProjectFile(QString defaultpath, QString targetpath, QMap<QString, QString> projectsettings);
     bool createShortcutplusBatch(QString reconstructDir, QString startargs, QString exportDir);
+    void updateFormatOptions();
+    bool canCopyImages();
 
     LogFile *m_lfExport;
     DataManager *m_dataManager;
+
+    Resolution m_originalResolution;
+    Resolution m_exportResolution;
+    Resolution m_workingResolution;
+    std::optional<ROI> m_roi = std::nullopt;
+
     ExportExecutor *m_exportExec;
     OutputWidget *m_outputWidget;
     ReconstructDialog *m_reconstructDialog;
-    QPoint m_resolution;
     QString m_path;
-    QRect m_roi = QRect(0,0,0,0);
-    CropExport* m_cropDialog;
     //Key is name of the project, value is path to export
     QMap<QString, QString> m_currentExports;
     // export runtime
     QElapsedTimer m_timer;
     uint m_imageOnPlayerId = 0;
 
-#if defined(Q_OS_LINUX)
     lib3d::ots::ColmapWrapper *m_colmap;
-#endif
+
+    double m_altitude_original = 0.0;
+    double m_altitude_current = 0.0;
 
 };
 

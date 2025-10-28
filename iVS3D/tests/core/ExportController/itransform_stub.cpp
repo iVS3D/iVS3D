@@ -14,9 +14,9 @@ QStringList ITransform_stub::getOutputNames()
     return {"masks", "masksfancy"};
 }
 
-ImageList ITransform_stub::transform(uint, const cv::Mat &img)
+TransformResult ITransform_stub::transform(uint, const cv::Mat &img)
 {
     cv::Mat gray;
     cv::cvtColor(img, gray, cv::COLOR_BGR2GRAY);
-    return ImageList({gray, gray});
+    return gray;
 }

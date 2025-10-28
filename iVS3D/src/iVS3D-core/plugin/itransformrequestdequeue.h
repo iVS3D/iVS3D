@@ -52,12 +52,6 @@ public:
     QString getName() const override;
 
     /**
-     * @brief getOutputNames returns a list of folder names created on export.
-     * @return The names for each folder
-     */
-    QStringList getOutputNames() override;
-
-    /**
      * @brief copy creates a new ITransformRequestDequeue instance which is a deep copy.
      * @return The copy
      */
@@ -70,13 +64,17 @@ public:
      * @param img The image to transform
      * @return Pointers to the transformed images
      */
-    ImageList transform(uint idx, const cv::Mat &img) override;
+    TransformResult transform(uint idx, const cv::Mat &img, const Resolution &resolution, const ROI &roi) override;
 
     /**
      * @brief enableCuda enables use of the CUDA api to accelerate computations.
      * @param enabled The CUDA api is used if @a true
      */
     void enableCuda(bool enabled) override;
+
+    void deactivate() override;
+
+    void activate() override;
 
     /**
      * @brief moveToThread moves this ITransformRequestDequeue with its ITransform instance to the given thread.
@@ -100,9 +98,9 @@ signals:
     /**
      * @brief [signal] sig_transformFinished is emitted after ITransform::transform ran.
      * @param idx The index of the transformed image
-     * @param images The resulting images of ITransform::transform
+     * @param result The resulting images of ITransform::transform or an error object
      */
-    void sig_transformFinished(uint idx, ImageList images);
+    void sig_transformFinished(uint idx, TransformResult result);
 
 public slots:
     /**
@@ -110,7 +108,7 @@ public slots:
      * @param idx The index of the image to transform
      * @param img The image to transform
      */
-    void slot_transform(uint idx, const cv::Mat &img);
+    void slot_transform(uint idx, const cv::Mat &img, const Resolution &resolution, const ROI &roi);
 
     /**
      * @brief [slot] slot_startTransform starts transformation with the most recent image in the waiting queue.
@@ -123,6 +121,10 @@ public slots:
      */
     void slot_enableCuda(bool enabled);
 
+    void slot_deactivate();
+
+    void slot_activate();
+
 private slots:
     void slot_sendToGui(uint idx, const cv::Mat &img);
 
@@ -130,6 +132,8 @@ private:
     ITransform *m_transform;
     cv::Mat m_imageToTransform;
     uint m_idxToTransform;
+    Resolution m_resolutionToTransform;
+    ROI m_roiToTransform;
 };
 
 #endif // ITRANSFORMREQUESTDEQUEUE_H

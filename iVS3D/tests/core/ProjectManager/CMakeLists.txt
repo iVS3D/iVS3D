@@ -19,13 +19,6 @@ set(UI_FILES
     ${CORE_UI_FILES}
 )
 
-# remove ots files on windows
-if(WIN32)
-    list(FILTER HEADER_FILES EXCLUDE REGEX "ots(.)*h")
-    list(FILTER SRC_FILES EXCLUDE REGEX "ots(.)*cpp")
-    list(FILTER UI_FILES EXCLUDE REGEX "ots(.)*ui")
-endif()
-
 # set include directories
 include_directories(SYSTEM
     ${Qt${QT_VERSION_MAJOR}test_INCLUDE_DIRS}
@@ -44,6 +37,7 @@ add_executable(${TARGET_NAME}
 add_test(${TARGET_NAME} ${TARGET_NAME})
 target_link_libraries(${TARGET_NAME}
     iVS3D-pluginInterface
+    iVS3D::Ffmpeg
     ${OpenCV_LIBRARIES} 
     Qt${QT_VERSION_MAJOR}::Test
     Qt${QT_VERSION_MAJOR}::Widgets
@@ -65,7 +59,3 @@ add_dependencies(${TARGET_NAME}
 install(TARGETS ${TARGET_NAME} 
     DESTINATION tests
 )
-
-# TODO: Windows Build
-#   - Deploy DLLs
-#   - Check if lrelease-pro is needed

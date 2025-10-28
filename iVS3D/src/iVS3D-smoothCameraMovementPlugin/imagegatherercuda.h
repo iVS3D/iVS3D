@@ -20,7 +20,7 @@
 class ImageGathererCuda : public ImageGatherer
 {
 public:
-    ImageGathererCuda(Reader *reader, double downSampleFactor, std::vector<uint> futureFrames);
+    ImageGathererCuda(Reader *reader, std::vector<uint> futureFrames);
 private:
     /**
      * @brief gatherSingleImage reads, resizes and greyscales a single frame

@@ -101,8 +101,8 @@ void tst_openExecutor::test_openVideo()
     QVERIFY2(m_dataManager->getModelInputPictures() != nullptr, "no ModelInputPictures was created");
     ModelInputPictures *mip = m_dataManager->getModelInputPictures();
 
-    QCOMPARE(mip->getPicCount(), (uint)61);
-    QCOMPARE(mip->getInputResolution(), QPoint(1080, 1920));
+    QCOMPARE(mip->getPicCount(), (uint)62);
+    QCOMPARE(mip->getReaderParams()->getOriginalResolution().toQPoint(), QPoint(1080, 1920));
 }
 
 void tst_openExecutor::test_openFolder()
@@ -126,7 +126,7 @@ void tst_openExecutor::test_openFolder()
     ModelInputPictures *mip = m_dataManager->getModelInputPictures();
 
     QCOMPARE(mip->getPicCount(), (uint)5);
-    QCOMPARE(mip->getInputResolution(), QPoint(640, 428));
+    QCOMPARE(mip->getReaderParams()->getOriginalResolution().toQPoint(), QPoint(640, 428));
 }
 
 void tst_openExecutor::test_projectFile()
@@ -147,8 +147,8 @@ void tst_openExecutor::test_projectFile()
     // check mip
     ModelInputPictures *mip = m_dataManager->getModelInputPictures();
     QCOMPARE(mip->getPicCount(), m_project_mip->getPicCount());
-    QCOMPARE(mip->getInputResolution(), m_project_mip->getInputResolution());
-    QCOMPARE(mip->getAllKeyframes(false), mip->getAllKeyframes(false));
+    QCOMPARE(mip->getReaderParams()->getOriginalResolution().toQPoint(), m_project_mip->getReaderParams()->getOriginalResolution().toQPoint());
+    QCOMPARE(mip->getAllKeyframes(false), m_project_mip->getAllKeyframes(false));
     // check ma
     QVERIFY2(m_dataManager->getModelAlgorithm() != nullptr, "no ModelAlgorithm was created");
     ModelAlgorithm *ma = m_dataManager->getModelAlgorithm();

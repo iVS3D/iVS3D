@@ -11,16 +11,10 @@
    </rect>
   </property>
   <property name="sizePolicy">
-   <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
+   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
     <horstretch>0</horstretch>
     <verstretch>0</verstretch>
    </sizepolicy>
-  </property>
-  <property name="minimumSize">
-   <size>
-    <width>200</width>
-    <height>230</height>
-   </size>
   </property>
   <property name="windowTitle">
    <string>Form</string>
@@ -70,24 +64,6 @@
     </widget>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_5">
-     <item>
-      <widget class="QLabel" name="label_2">
-       <property name="text">
-        <string>Output resolution</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QComboBox" name="comboBox">
-       <property name="editable">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </item>
-   <item>
     <widget class="QWidget" name="altitudeWidget" native="true">
      <layout class="QVBoxLayout" name="verticalLayout_2">
       <property name="spacing">
@@ -105,73 +81,62 @@
       <property name="bottomMargin">
        <number>0</number>
       </property>
-      <item>
-       <layout class="QHBoxLayout" name="altitudeLayout">
-        <item>
-         <widget class="QLabel" name="label_4">
-          <property name="text">
-           <string>Altitude of the first image in m</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QDoubleSpinBox" name="spinBox_Altitude">
-          <property name="maximum">
-           <double>999999.989999999990687</double>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
      </layout>
     </widget>
    </item>
    <item>
-    <widget class="QWidget" name="createFilesWidget" native="true">
-     <layout class="QHBoxLayout" name="createFiles_Layout">
-      <item>
-       <widget class="QLabel" name="label_3">
+    <layout class="QFormLayout" name="formLayout">
+     <item row="0" column="1">
+      <widget class="QComboBox" name="comboBox_resolution">
+       <property name="editable">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="0">
+      <widget class="QLabel" name="label_2">
+       <property name="text">
+        <string>Output resolution</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QComboBox" name="comboBox_format">
+       <item>
         <property name="text">
-         <string>Create files for:</string>
+         <string>same as input</string>
         </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QScrollArea" name="scrollArea">
-        <property name="widgetResizable">
-         <bool>true</bool>
+       </item>
+       <item>
+        <property name="text">
+         <string>png</string>
         </property>
-        <widget class="QWidget" name="scrollAreaWidgetContents">
-         <property name="geometry">
-          <rect>
-           <x>0</x>
-           <y>0</y>
-           <width>323</width>
-           <height>55</height>
-          </rect>
-         </property>
-         <layout class="QHBoxLayout" name="horizontalLayout_6">
-          <property name="leftMargin">
-           <number>0</number>
-          </property>
-          <property name="topMargin">
-           <number>0</number>
-          </property>
-          <property name="rightMargin">
-           <number>0</number>
-          </property>
-          <property name="bottomMargin">
-           <number>0</number>
-          </property>
-          <item>
-           <layout class="QVBoxLayout" name="verticalLayout_transforms"/>
-          </item>
-         </layout>
-        </widget>
-       </widget>
-      </item>
-     </layout>
-    </widget>
+       </item>
+       <item>
+        <property name="text">
+         <string>jpg</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="label_4">
+       <property name="text">
+        <string>Output format</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="label_transforms">
+       <property name="text">
+        <string>Create files for</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <layout class="QVBoxLayout" name="verticalLayout_transforms"/>
+     </item>
+    </layout>
    </item>
    <item>
     <spacer name="verticalSpacer">
@@ -185,36 +150,6 @@
       </size>
      </property>
     </spacer>
-   </item>
-   <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_7"/>
-   </item>
-   <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_3">
-     <item>
-      <widget class="QPushButton" name="pushButton_cropExport">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="toolTip">
-        <string>Define ROI for export</string>
-       </property>
-       <property name="text">
-        <string>Select ROI</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QCheckBox" name="checkBox">
-       <property name="text">
-        <string>Use ROI</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
    </item>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">

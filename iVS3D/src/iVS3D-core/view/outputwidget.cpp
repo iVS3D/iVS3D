@@ -14,26 +14,18 @@ OutputWidget::OutputWidget(QWidget *parent, QString title, QStringList transform
     setLayout(m_layout);
 
     connect(m_exportW, &ExportWidget::sig_export, this, &OutputWidget::slot_export);
-    connect(m_exportW, &ExportWidget::sig_cropExport, this, &OutputWidget::slot_cropExport);
     connect(m_exportW, &ExportWidget::sig_reconstruct, this, &OutputWidget::slot_reconstruct);
     connect(m_exportW, &ExportWidget::sig_pathChanged, this, &OutputWidget::slot_pathChanged);
-    connect(m_exportW, &ExportWidget::sig_resChanged, this, &OutputWidget::slot_resChanged);
     connect(m_exportW, &ExportWidget::sig_addAuto, this, &OutputWidget::slot_addAuto);
-    connect(m_exportW, &ExportWidget::sig_altitudeChanged, this, &OutputWidget::slot_altitudeChanged);
     connect(m_progressW, &ProgressWidget::sig_abort, this, &OutputWidget::slot_abort);
-
+    connect(m_exportW, &ExportWidget::sig_resChanged, [=](QString res) {
+        emit sig_resChanged(res);
+    });
+    connect(m_exportW, &ExportWidget::sig_altitudeChanged, [=](double altitude) {
+        emit sig_altitudeChanged(altitude);
+    });
 
     this->setMinimumSize(200,250);
-}
-
-void OutputWidget::setResolutionList(QStringList resList, int idx)
-{
-    m_exportW->setResolutionList(resList, idx);
-}
-
-void OutputWidget::setResolution(QString resolution)
-{
-    m_exportW->setResolution(resolution);
 }
 
 void OutputWidget::setOutputPath(QString path)
@@ -56,11 +48,6 @@ void OutputWidget::enableReconstruct(bool enabled)
     m_exportW->enableReconstruct(enabled);
 }
 
-void OutputWidget::setResolutionValid(bool valid)
-{
-    m_exportW->setResolutionValid(valid);
-}
-
 void OutputWidget::showProgress()
 {
     m_layout->removeWidget(m_exportW);
@@ -75,16 +62,6 @@ void OutputWidget::showExportOptions()
     m_progressW->setVisible(false);
     m_exportW->setVisible(true);
     m_layout->addWidget(m_exportW);
-}
-
-bool OutputWidget::getCropStatus()
-{
-    return m_exportW->getCropStatus();
-}
-
-void OutputWidget::setCropStatus(bool checked)
-{
-    m_exportW->setCropStatus(checked);
 }
 
 std::vector<bool> OutputWidget::getSelectedITransformMasks()
@@ -102,14 +79,49 @@ void OutputWidget::enableCreateFilesWidget(bool enable)
     m_exportW->enableCreateFilesWidget(enable);
 }
 
-void OutputWidget::enableAltitude(bool enable)
+void OutputWidget::setResolutionList(QStringList resList, int idx)
 {
-    m_exportW->enableAltitude(enable);
+    m_exportW->setResolutionList(resList,idx);
+}
+
+void OutputWidget::setResolution(QString resolution)
+{
+    m_exportW->setResolution(resolution);
+}
+
+void OutputWidget::setResolutionValid(bool valid)
+{
+    m_exportW->setResolutionValid(valid);
+}
+
+QString OutputWidget::getExportFormat()
+{
+    return m_exportW->getExportFormat();
+}
+
+bool OutputWidget::setOutputFormat(QString format)
+{
+    return m_exportW->setOutputFormat(format);
+}
+
+void OutputWidget::enableFormat(QString format, bool enable)
+{
+    m_exportW->enableFormat(format, enable);
+}
+
+void OutputWidget::setAltitudeVisible(bool visible)
+{
+    m_exportW->setAltitudeVisible(visible);
 }
 
 void OutputWidget::setAltitude(double altitude)
 {
     m_exportW->setAltitude(altitude);
+}
+
+double OutputWidget::getAltitude()
+{
+    return m_exportW->getAltitude();
 }
 
 void OutputWidget::slot_displayProgress(int progress, QString currentOperation)
@@ -120,11 +132,6 @@ void OutputWidget::slot_displayProgress(int progress, QString currentOperation)
 void OutputWidget::slot_displayMessage(QString message)
 {
     m_progressW->slot_displayMessage(message);
-}
-
-void OutputWidget::slot_resChanged(const QString &res)
-{
-    emit sig_resChanged(res);
 }
 
 void OutputWidget::slot_pathChanged(const QString &path)
@@ -150,15 +157,5 @@ void OutputWidget::slot_reconstruct()
 void OutputWidget::slot_abort()
 {
     emit sig_abort();
-}
-
-void OutputWidget::slot_cropExport()
-{
-    emit sig_cropExport();
-}
-
-void OutputWidget::slot_altitudeChanged(double altitude)
-{
-    emit sig_altitudeChanged(altitude);
 }
 

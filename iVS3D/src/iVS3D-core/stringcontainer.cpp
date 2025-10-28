@@ -12,6 +12,7 @@ const char* stringContainer::OverwriteExport = "OverwriteExport";
 // Identifier for the settings maps
 const QString stringContainer::OutputPath = "Output path";
 const QString stringContainer::Resolution = "Resolution";
+const QString stringContainer::OutputFormat = "Format";
 const QString stringContainer::ROI = "ROI";
 const QString stringContainer::UseROI = "use ROI";
 const QString stringContainer::UseITransform = "use ITransform";

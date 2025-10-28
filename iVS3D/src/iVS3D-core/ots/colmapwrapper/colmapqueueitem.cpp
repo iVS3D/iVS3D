@@ -24,7 +24,7 @@ QueueItem::QueueItem(ColmapWrapper::SJob job, QWidget *parent)
     ui->setupUi(this);
     ui->l_name->setText(QString::fromStdString(job.sequenceName)
                             .append(": ")
-                            .append(ColmapWrapper::EProductType2QString(job.product)));
+                            .append(QString::fromStdString(job.displayName)));
 
     //--- connect buttons to slots
     connect(ui->btnCancel, &QPushButton::clicked, this, &QueueItem::onBtnCancelClicked);
@@ -92,7 +92,7 @@ QueueItemActive::QueueItemActive(ColmapWrapper::SJob job, QWidget *parent)
 
     ui->l_name->setText(QString::fromStdString(job.sequenceName)
                             .append(": ")
-                            .append(ColmapWrapper::EProductType2QString(job.product))
+                            .append(QString::fromStdString(job.displayName))
                             .append(" ETA for step ")
                             .append(QString::number(job.step))
                             .append(" ")
@@ -140,7 +140,7 @@ QueueItemFinished::QueueItemFinished(ColmapWrapper::SJob job, QWidget *parent)
 
     ui->l_name->setText(QString::fromStdString(job.sequenceName)
                             .append(": ")
-                            .append(ColmapWrapper::EProductType2QString(job.product)));
+                            .append(QString::fromStdString(job.displayName)));
     connect(ui->btnDelete, &QPushButton::clicked, this, &QueueItemFinished::onBtnDeleteClicked);
 }
 
@@ -177,7 +177,7 @@ QueueItemFailed::QueueItemFailed(ColmapWrapper::SJob job, QWidget *parent)
 
     ui->l_name->setText(QString::fromStdString(job.sequenceName)
                             .append(": ")
-                            .append(ColmapWrapper::EProductType2QString(job.product)));
+                            .append(QString::fromStdString(job.displayName)));
     connect(ui->btnDelete, &QPushButton::clicked, this, &QueueItemFailed::onBtnDeleteClicked);
 }
 

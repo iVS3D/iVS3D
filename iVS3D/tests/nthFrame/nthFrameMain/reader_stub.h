@@ -8,18 +8,18 @@ class Reader_stub : public Reader
 {
 public:
     Reader_stub(unsigned int picCount, double fps);
-    cv::Mat getPic(unsigned int) { throw "not implemented"; };
+    cv::Mat getPic(unsigned int, PictureProcessingFlags flags) { throw "not implemented"; };
     unsigned int getPicCount();
     QString getInputPath() { throw "not implemented"; };
     double getFPS();
     bool isValid() { throw "not implemented"; };
     double getVideoDuration() { throw "not implemented"; };
     virtual bool isDir() { throw "not implemented"; };
-    virtual Reader *copy() { throw "not implemented"; };
+    virtual Reader *copy(std::shared_ptr<ReaderParams> params = nullptr) { throw "not implemented"; };
     virtual std::vector<std::string> getFileVector() { throw "not implemented"; };
     virtual void addMetaData(MetaData*) { throw "not implemented"; };
     virtual MetaData* getMetaData() { throw "not implemented"; };
-    virtual SequentialReader *createSequentialReader(std::vector<uint> indices)  { throw "not implemented"; };
+    virtual SequentialReader *createSequentialReader(std::vector<uint> indices, PictureProcessingFlags flags)  { throw "not implemented"; };
 
 private:
     const uint m_picCount;

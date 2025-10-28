@@ -12,7 +12,6 @@ AlgorithmController::AlgorithmController(DataManager* dataManager, SamplingWidge
     connect(m_samplingWidget, &SamplingWidget::sig_selectedAlgorithmChanged, this, &AlgorithmController::slot_selectAlgorithm);
     connect(m_samplingWidget, &SamplingWidget::sig_selectedTransformChanged, this, &AlgorithmController::slot_selectTransform);
     connect(m_samplingWidget, &SamplingWidget::sig_startSampling, this, &AlgorithmController::slot_startAlgorithm);
-    connect(m_samplingWidget, &SamplingWidget::sig_startGenerateSettings, this, &AlgorithmController::slot_startGenerateSettings);
     connect(m_samplingWidget, &SamplingWidget::sig_enablePreviewChanged, this, &AlgorithmController::slot_previewStateChanged);
     //Create new AlgorithmExecutor
     m_algExec = new AlgorithmExecutor(m_dataManager->getModelInputPictures());
@@ -37,7 +36,9 @@ AlgorithmController::~AlgorithmController()
 
 void AlgorithmController::slot_selectAlgorithm(int idx)
 {
-
+    if (m_pluginType == PluginType::Transform) {
+        TransformManager::instance().deactivateTransform(m_pluginIdx);
+    }
     m_pluginIdx = idx;
     m_pluginType = PluginType::Algorithm;
 
@@ -53,6 +54,9 @@ void AlgorithmController::slot_selectAlgorithm(int idx)
 
 void AlgorithmController::slot_selectTransform(int idx)
 {
+    if (m_pluginType == PluginType::Transform) {
+        TransformManager::instance().deactivateTransform(m_pluginIdx);
+    }
 
     m_pluginIdx = idx;
     m_pluginType = PluginType::Transform;

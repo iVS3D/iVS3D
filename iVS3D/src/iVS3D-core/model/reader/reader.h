@@ -5,6 +5,7 @@
 #include <opencv2/core.hpp>
 #include "metadata.h"
 #include "sequentialreader.h"
+#include "readerparams.h"
 
 /**
  * @interface Reader
@@ -22,6 +23,14 @@ class Reader
 {
 public:
     virtual ~Reader() {};
+
+    enum PictureProcessingFlags{
+        APPLY_CROPPING = 1<<0,
+        APPLY_RESIZING = 1<<1,
+        APPLY_ALL = APPLY_CROPPING | APPLY_RESIZING,
+        APPLY_NONE = 0
+    };
+
     /**
      * @brief Returns the frame to a given index
      *
@@ -29,7 +38,7 @@ public:
      * @param useMultipleAccess optinal paramter, if multipleAccess should be used (set to false by default)
      * @return cv::Mat of the selected frame
      */
-    virtual cv::Mat getPic(unsigned int index) = 0;
+    virtual cv::Mat getPic(unsigned int index, PictureProcessingFlags flags = APPLY_ALL) = 0;
     /**
      * @brief Returns the number of frame
      *
@@ -61,11 +70,12 @@ public:
      */
     virtual bool isDir() = 0;
     /**
-     * @brief Creates this reader again and returns it
+     * @brief Creates this reader again and returns it. Optionally, one can provide a shared ptr to a different set of parameters.
+     * @param params The new parameters to use. Uses the same as the original reader if nullptr is provided.
      *
      * @return New instance of this reader
      */
-    virtual Reader *copy() = 0;
+    virtual Reader *copy(std::shared_ptr<ReaderParams> params = nullptr) = 0;
     /**
      * @brief Returns a vector with filepaths (only valid, if the reader is a imagereader)
      *
@@ -73,7 +83,7 @@ public:
      */
     virtual std::vector<std::string> getFileVector() = 0;
 
-    virtual SequentialReader *createSequentialReader(std::vector<uint> indices) = 0;
+    virtual SequentialReader *createSequentialReader(std::vector<uint> indices, PictureProcessingFlags flags = APPLY_ALL) = 0;
 
     /**
      * @brief enableMultithreading This method has to be called once in the plugins to use the reader while multithreading
@@ -94,7 +104,6 @@ public:
      * @return @a true if the reader is valid, @a false otherwise
      */
     virtual bool isValid() = 0;
-
 };
 
 #endif // READER_H

@@ -5,8 +5,11 @@
 #include <QFileDialog>
 #include <QCheckBox>
 #include <QPushButton>
+#include <QDoubleSpinBox>
 
 #include "applicationsettings.h" // used to determin text color depending on GUI style
+
+#define EXPORT_FORMAT_SAME_AS_INPUT "same as input"
 
 namespace Ui {
 class ExportWidget;
@@ -41,19 +44,6 @@ public:
     ~ExportWidget();
 
     /**
-     * @brief setResolutionList displays the given resList in the resolution dropdown.
-     * @param resList the resolutions to display
-     * @param idx the index of the resolution to select
-     */
-    void setResolutionList(QStringList resList, int idx = 0);
-
-    /**
-     * @brief setResolution displays the given resolution
-     * @param resolution the resolution to display
-     */
-    void setResolution(QString resolution);
-
-    /**
      * @brief setOutputPath sets the text in the path text box to given path.
      * @param path the path to display
      */
@@ -78,24 +68,6 @@ public:
     void enableReconstruct(bool enabled);
 
     /**
-     * @brief setResolutionValid highlights the selected resolution if ist invalid.
-     * @param valid Highlight resolution if @a false, normal resolution otherwise
-     */
-    void setResolutionValid(bool valid);
-
-    /**
-     * @brief returns the status of the use Crop Checkbox
-     * @return @a true if the use Crop checkbox is checked, @a false otherwise
-     */
-    bool getCropStatus();
-
-    /**
-     * @brief Sets the status of the use Crop Checkbox
-     * @return @a true if the use Crop checkbox should be checked, @a false otherwise
-     */
-    void setCropStatus(bool checked);
-
-    /**
      * @brief getSelectedITransforms returns a list with @a list[i] = @a true if @a iTransform[i] is selected.
      * @return The list
      */
@@ -114,11 +86,18 @@ public:
      */
     void enableCreateFilesWidget(bool enable);
 
+    void setResolutionList(QStringList resList, int idx);
+    void setResolution(QString resolution);
+    void setResolutionValid(bool valid);
+
+    QString getExportFormat();
+    bool setOutputFormat(QString format);
+
     /**
-     * @brief enableAltitude will disable the altitude selector
-     * @param @a true shows the selector, @a false will hide it
+     * @brief setAltitudeVisible will show or hide the altitude selector
+     * @param visible @a true shows the selector, @a false will hide it
      */
-    void enableAltitude(bool enable);
+    void setAltitudeVisible(bool visible);
 
     /**
      * @brief setAltitude sets the value of the altitude selector
@@ -126,13 +105,11 @@ public:
      */
     void setAltitude(double altitude);
 
-signals:
+    double getAltitude();
 
-    /**
-     * @brief [signal] sig_resChanged(...) is emitted if the resolution changed.
-     * @param res the new resolution as string
-     */
-    void sig_resChanged(QString res);
+    void enableFormat(QString format, bool enable);
+
+signals:
 
     /**
      * @brief [signal] sig_pathChanged(...) is emitted if the selected path changed.
@@ -150,16 +127,16 @@ signals:
      */
     void sig_reconstruct();
 
-
-    /**
-     * @brief [signal] sig_cropExport() is emitted on crop export button pressed.
-     */
-    void sig_cropExport();
-
     /**
      * @brief [signal] sig_addAuto() is emitted on Add to automatic button pressed.
      */
     void sig_addAuto();
+
+    /**
+     * @brief [signal] sig_resChanged(...) is emitted if the resolution in the combo box is changed
+     * @param resolution The selected resolution as a string
+     */
+    void sig_resChanged(QString resolution);
 
     /**
      * @brief [signal] sig_altitudeChanged() is emitted when the altitude is changed by the user.
@@ -170,18 +147,16 @@ private slots:
     void on_pushButton_browse_clicked();
     void on_pushButton_export_clicked();
     void on_pushButton_reconstruct_clicked();
-    void on_pushButton_cropExport_clicked();
     void on_pushButton_addAuto_clicked();
     void on_lineEdit_textChanged(const QString &text);
-    void on_comboBox_currentTextChanged(const QString &text);
-    void on_spinBox_Altitude_valueChanged(double d);
+    void on_spinBox_altitude_valueChanged(double d);
 
 private:
     Ui::ExportWidget *ui;
     std::vector<QCheckBox*> m_checkboxes;
-#if defined(Q_OS_WIN)
-    QPushButton *m_reconstructBtn;
-#endif
+
+    QDoubleSpinBox *m_altitudeSpinBox;
+
 };
 
 #endif // EXPORTWIDGET_H

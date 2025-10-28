@@ -17,7 +17,7 @@
 class ImageGathererCpu : public ImageGatherer
 {
 public:
-    ImageGathererCpu(Reader *reader, double downSampleFactor, std::vector<uint> futureFrames);
+    ImageGathererCpu(Reader *reader, std::vector<uint> futureFrames);
 private:
     /**
      * @brief gatherSingleImage reads, resizes and greyscales a single frame

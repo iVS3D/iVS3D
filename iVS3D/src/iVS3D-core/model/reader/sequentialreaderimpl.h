@@ -7,7 +7,7 @@
 class SequentialReaderImpl : public SequentialReader
 {
 public:
-    SequentialReaderImpl(Reader *reader, std::vector<uint> indices, bool lockConcurrentAccess=true);
+    SequentialReaderImpl(Reader *reader, std::vector<uint> indices, bool lockConcurrentAccess=true, Reader::PictureProcessingFlags flags = Reader::APPLY_ALL);
     SequentialReaderImpl(SequentialReaderImpl &other);
 
     virtual bool getNext(cv::Mat &image, uint &idx, int &progress) override;
@@ -18,6 +18,7 @@ public:
 private:
     Reader *m_reader;
     std::vector<uint> m_indices;
+    Reader::PictureProcessingFlags m_flags;
     uint m_idx;
     QMutex m_mutex;
     bool m_lockConcurrentAccess;

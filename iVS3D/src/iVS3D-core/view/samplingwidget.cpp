@@ -1,4 +1,5 @@
 #include "samplingwidget.h"
+#include "applicationsettings.h"
 
 SamplingWidget::SamplingWidget(QWidget *parent, QStringList algorithmList, QStringList transformList) :
     QWidget(parent),
@@ -21,18 +22,16 @@ SamplingWidget::SamplingWidget(QWidget *parent, QStringList algorithmList, QStri
     ui->comboBoxAlgo->addItems(transformList);
     connect(ui->comboBoxAlgo, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &SamplingWidget::slot_selectedAlgoChanged);
     connect(ui->pushButton, &QPushButton::pressed, this, &SamplingWidget::slot_startSamplingPressed);
-    connect(ui->pushButton_2, &QPushButton::pressed, this, &SamplingWidget::slot_startGeneratePressed);
 
     m_cbPreviewTransform = new QCheckBox(tr("Enable preview"), parent);
     m_cbPreviewTransform->setVisible(false);
     connect(m_cbPreviewTransform, &QCheckBox::stateChanged, this, &SamplingWidget::slot_enablePreviewChanged);
 
     // disable generate Settings buttons
-    ui->pushButton_2->setVisible(false);
-    ui->radioButton->setVisible(false);
-    ui->addAuto->setVisible(false);
     ui->label_3->setVisible(false);
     //
+
+    connect(ui->comboBoxResolution, &QComboBox::currentTextChanged, [=](const QString& text) { emit sig_resChanged(text); });
 }
 
 SamplingWidget::~SamplingWidget()
@@ -97,26 +96,9 @@ void SamplingWidget::slot_startSamplingPressed()
     emit sig_startSampling();
 }
 
-void SamplingWidget::slot_startGeneratePressed()
-{
-    emit sig_startGenerateSettings();
-}
-
 void SamplingWidget::slot_enablePreviewChanged(bool enabled)
 {
     emit sig_enablePreviewChanged(enabled);
-}
-
-void SamplingWidget::on_addAuto_clicked()
-{
-    //Ignore ITransform
-    int idx = ui->comboBoxAlgo->currentIndex();
-    if(idx < m_separatorIdx){
-        bool generate = ui->radioButton->isChecked();
-        emit sig_addAuto(idx, generate);
-    } else if(idx > m_separatorIdx){
-        return;
-    }
 }
 
 void SamplingWidget::showSamplingBtns()
@@ -137,10 +119,45 @@ void SamplingWidget::showTransformBtns()
     HIDE_WIDGET(ui->pushButton);
     SHOW_WIDGET(m_cbPreviewTransform);
 //    ui->radioButton->setVisible(false);
-    ui->addAuto->setVisible(false);
 }
 
 void SamplingWidget::showNoBtns()
 {
     ui->pushButton->setEnabled(false);
+}
+
+void SamplingWidget::setResolutionList(QStringList resList, int idx)
+{
+    Q_ASSERT(!resList.empty());
+    Q_ASSERT(idx>=0);
+    Q_ASSERT(idx < resList.size());
+
+    ui->comboBoxResolution->clear();
+    ui->comboBoxResolution->addItems(resList);
+    ui->comboBoxResolution->setCurrentIndex(idx);
+}
+
+void SamplingWidget::setResolution(QString resolution)
+{
+    ui->comboBoxResolution->setEditText(resolution);
+}
+
+void SamplingWidget::setResolutionValid(bool valid)
+{
+    QPalette colorPalette = ui->comboBoxResolution->palette();
+    if (valid) {
+        ApplicationSettings as = ApplicationSettings::instance();
+        if (as.getColorTheme() == DARK) {
+            //darkstyle on
+            colorPalette.setColor(QPalette::Text, Qt::white);
+        }
+        else {
+            //darkstyle off
+            colorPalette.setColor(QPalette::Text, Qt::black);
+        }
+    }
+    else {
+        colorPalette.setColor(QPalette::Text, Qt::red);
+    }
+    ui->comboBoxResolution->setPalette(colorPalette);
 }

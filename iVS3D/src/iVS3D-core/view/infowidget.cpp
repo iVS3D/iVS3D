@@ -1,6 +1,8 @@
 #include "infowidget.h"
-#include "ui_infowidget.h"
+#include "applicationsettings.h"
 
+
+#include <QObject>
 /*!
  * \fn InfoWidget::InfoWidget(QWidget *parent, QString title)
  * \param parent
@@ -9,84 +11,77 @@
  * Creates an InfoWidget with and displays the given \a title at the top.
  */
 InfoWidget::InfoWidget(QWidget *parent, QString title, ColorTheme theme) :
-    QWidget(parent),
-    ui(new Ui::InfoWidget)
+    QWidget(parent)
 {
-    ui->setupUi(this);
-    ui->toolButton_folder->setIcon(QIcon(theme == DARK ? ":/icons/openFolderIconW" : ":/icons/openFolderIconB"));
-    ui->toolButton_video->setIcon( QIcon(theme == DARK ? ":/icons/openVideoIconW"  : ":/icons/openVideoIconB"));
-    ui->toolButton_meta->setIcon( QIcon(theme == DARK ? ":/icons/openMetaIconW"  : ":/icons/openMetaIconB"));
-    ui->toolButton_meta->setEnabled(false);
-    ui->opStackWidget->setEnabled(false);
+    this->setLayout(new QVBoxLayout(this));
+    
+    // open folder / video / meta data buttons  
+    m_inputButtonLayout = new QHBoxLayout(this);
+    
+    m_openImagesButton = new AdaptiveToolButton(tr(" load images"), tr(" images"), this);
+    m_openImagesButton->setIconForTheme(QIcon(":/icons/openFolderIconW"), DARK);
+    m_openImagesButton->setIconForTheme(QIcon(":/icons/openFolderIconB"), LIGHT);
+    m_openImagesButton->setColorTheme(theme);
+    m_inputButtonLayout->addWidget(m_openImagesButton);
+    connect(m_openImagesButton, &AdaptiveToolButton::clicked, this, &InfoWidget::on_toolButton_folder_clicked);
+
+    m_openVideoButton = new AdaptiveToolButton(tr(" load video"), tr(" video"), this);
+    m_openVideoButton->setIconForTheme(QIcon(":/icons/openVideoIconW"), DARK);
+    m_openVideoButton->setIconForTheme(QIcon(":/icons/openVideoIconB"), LIGHT);
+    m_openVideoButton->setColorTheme(theme);
+    m_inputButtonLayout->addWidget(m_openVideoButton);
+    connect(m_openVideoButton, &AdaptiveToolButton::clicked, this, &InfoWidget::on_toolButton_video_clicked);
+
+    m_openMetaDataButton = new AdaptiveToolButton(tr(" load meta data"), tr(" meta data"), this);
+    m_openMetaDataButton->setIconForTheme(QIcon(":/icons/openMetaIconW"), DARK);
+    m_openMetaDataButton->setIconForTheme(QIcon(":/icons/openMetaIconB"), LIGHT);
+    m_openMetaDataButton->setColorTheme(theme);
+    m_openMetaDataButton->setEnabled(false);
+    m_inputButtonLayout->addWidget(m_openMetaDataButton);
+    connect(m_openMetaDataButton, &AdaptiveToolButton::clicked, this, &InfoWidget::on_toolButton_meta_clicked);
+
+    this->layout()->addItem(m_inputButtonLayout);
+
+    // operation stack
+    m_opStack = new OperationStack(this);
+    m_opStack->layout()->setMargin(0);
+    this->layout()->addWidget(m_opStack);
+    //m_opStack->setEnabled(false);
 }
 
 InfoWidget::~InfoWidget()
 {
-    delete ui;
-}
-
-/*!
- * \fn void InfoWidget::setInfo(QMap<QString, QString> info)
- * \param info
- *
- * Displays the given key-value-pairs in a table.
- */
-void InfoWidget::setInfo(QMap<QString, QString> info)
-{
-    // create html skeleton for displaying infos in table
-    QString str = "";
-    // add each entry separatly to the table
-    foreach (QString key, info.keys()) {
-        if(key.compare(stringContainer::inputPathIdentifier) == 0){
-            QString input = "<tr><td style=\"word-wrap: break-word\" colspan=\"2\">" + info.value(key) + "</td></tr><tr><td></td></tr>";
-            str = input + str;
-        } else {
-            QString value = info.value(key);
-            QRegularExpression reg("(\\d*)(\\D)(.*)");
-            QRegularExpressionMatch match = reg.match(key);
-            if(match.hasMatch()){
-                key = match.captured(2) + match.captured(3);
-            }
-            str += "<tr><td>" + key + "</td><td style=\"word-wrap: break-word\">" + value + "</td></tr>";
-        }
-    }
-
-    // finish html skeleton and send to display
-    QString tableHead = "<html><style>td{padding:0 0px;} th{text-align:left}</style><body><table style=\"table-layout: fixed; width: 100%\">";
-    tableHead += str;
-    tableHead += "</table></body></html>";
-    ui->label->setText(tableHead);
-    ui->opStackWidget->setEnabled(true);
+    
 }
 
 void InfoWidget::enableOpenMetaData(bool status, QString tooltip)
 {
-    ui->toolButton_meta->setEnabled(status);
-    if (!tooltip.isEmpty()) ui->toolButton_meta->setToolTip(tooltip);
+    m_openMetaDataButton->setEnabled(status);
+    if (!tooltip.isEmpty()) m_openMetaDataButton->setToolTip(tooltip);
 }
 
 void InfoWidget::enableOpenImages(bool status, QString tooltip)
 {
-    ui->toolButton_folder->setEnabled(status);
-    if (!tooltip.isEmpty()) ui->toolButton_folder->setToolTip(tooltip);
+    m_openImagesButton->setEnabled(status);
+    if (!tooltip.isEmpty()) m_openImagesButton->setToolTip(tooltip);
 }
 
 void InfoWidget::enableOpenVideo(bool status, QString tooltip)
 {
-    ui->toolButton_video->setEnabled(status);
-    if (!tooltip.isEmpty()) ui->toolButton_video->setToolTip(tooltip);
+    m_openVideoButton->setEnabled(status);
+    if (!tooltip.isEmpty()) m_openVideoButton->setToolTip(tooltip);
 }
 
 void InfoWidget::setColorTheme(ColorTheme theme)
 {
-    ui->toolButton_folder->setIcon(QIcon(theme == DARK ? ":/icons/openFolderIconW" : ":/icons/openFolderIconB"));
-    ui->toolButton_video->setIcon( QIcon(theme == DARK ? ":/icons/openVideoIconW"  : ":/icons/openVideoIconB"));
-    ui->toolButton_meta->setIcon(  QIcon(theme == DARK ? ":/icons/openMetaIconW"  : ":/icons/openMetaIconB"));
+    for(AdaptiveToolButton *button : { m_openImagesButton, m_openVideoButton, m_openMetaDataButton }) {
+        button->setColorTheme(theme);
+    }
 }
 
 OperationStack *InfoWidget::getOpStack()
 {
-    return ui->opStackWidget;
+    return m_opStack;
 }
 
 void InfoWidget::on_toolButton_folder_clicked()

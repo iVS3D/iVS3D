@@ -61,7 +61,7 @@ void tst_projectmanager::loadTestVideo()
     requireResource(testVideoPath);
     m_testMIP = new ModelInputPictures(testVideoPath);
     QVERIFY(m_testMIP != nullptr);
-    QCOMPARE(m_testMIP->getPicCount(), (uint)61);
+    QCOMPARE(m_testMIP->getPicCount(), (uint)62);
 }
 
 void tst_projectmanager::initTestCase()
@@ -121,7 +121,7 @@ void tst_projectmanager::test_saveProject()
     QStringList projectLines = data.split("\n");
 
     QVERIFY(0 == QString::compare(projectLines[3], "            \"testBufferName\": \"testValue\"", Qt::CaseSensitive));
-    QVERIFY(0 == QString::compare(projectLines[14], "    \"Project name\": \"test_saveProject\"", Qt::CaseSensitive));
+    QVERIFY(0 == QString::compare(projectLines[25], "    \"Project name\": \"test_saveProject\"", Qt::CaseSensitive));
 }
 
 void tst_projectmanager::test_createProject()
@@ -189,9 +189,9 @@ void tst_projectmanager::test_loadProject()
     QVERIFY(0 == QString::compare(m_testPM->getProjectName(), m_projectName, Qt::CaseSensitive));
     QVERIFY(0 == QString::compare(m_testPM->getProjectPath(), m_projectPath, Qt::CaseSensitive));
 
-    QVERIFY(m_testMIP->getPicCount() == 61);
-    QVERIFY(m_testMIP->getKeyframeCount(false) == 61);
-    QVERIFY(m_testMIP->getInputResolution() == QPoint(1080, 1920));
+    QVERIFY(m_testMIP->getPicCount() == 62);
+    QVERIFY(m_testMIP->getKeyframeCount(false) == 62);
+    QVERIFY(m_testMIP->getReaderParams()->getOriginalResolution().toQPoint() == QPoint(1080, 1920));
 
     delete m_testMIP;
     m_testMIP = nullptr;

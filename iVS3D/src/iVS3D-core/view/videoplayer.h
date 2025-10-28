@@ -5,6 +5,7 @@
 #include <QShortcut>
 #include <QKeySequence>
 #include <QGraphicsTextItem>
+#include <QGraphicsOpacityEffect>
 
 #include "opencv2/core.hpp"
 #include "opencv2/imgproc.hpp"
@@ -12,6 +13,8 @@
 #include "ui_videoplayer.h"
 #include "cvmat_qmetadata.h"
 
+#define OVERLAY_PADDING 13
+#define OVERLAY_MIN_WIDTH 50
 
 namespace Ui {
 class VideoPlayer;
@@ -129,6 +132,18 @@ public:
      */
     void setColorTheme(ColorTheme theme);
 
+    void setCropStatus(bool checked);
+    bool getCropStatus();
+
+    struct OverlayEntry {
+        QString text;
+        bool isHeader = false;
+        Qt::TextElideMode elidMode = Qt::ElideRight;
+    };
+
+    void updateOverlayText(const QList<OverlayEntry> &content);
+
+    void updateRoi(const QRect& roi = QRect());
 signals:
 
     /**
@@ -178,6 +193,13 @@ signals:
      */
     void sig_deleteAllKeyframes();
 
+    /**
+     * @brief [signal] sig_cropEdit() is emitted if the crop button is pressed.
+     */
+    void sig_cropEdit();
+
+    void sig_useCropChanged(bool useCrop);
+
 protected:
     void resizeEvent(QResizeEvent *e); // used to resize displayed image
 
@@ -197,9 +219,17 @@ private:
     ColorTheme m_colorTheme;
     QShortcut *m_prevSC;
     QShortcut *m_nextSC;
+    QLabel *m_overlayLabel;
+    QGraphicsOpacityEffect *m_overlayOpacityEffect;
+    QRect m_roi;
+    QGraphicsRectItem *m_roiRect;
+    QList<OverlayEntry> m_overlayEntries;
 
     QImage qImageFromCvMat(cv::Mat* input, bool bgr = true);
     void alphaBlend(cv::Mat *foreground, cv::Mat *background, float alpha, cv::Mat &output);
+    void updateOverlay();
+    void drawRoi();
+    bool checkOverlap();
 };
 
 #endif // VIDEOPLAYER_H

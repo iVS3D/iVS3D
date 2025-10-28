@@ -30,7 +30,7 @@ class ImageGatherer : public QObject
 {
     Q_OBJECT
 public:
-    ImageGatherer(Reader *reader, double downSampleFactor, std::vector<uint> futureFrames);
+    ImageGatherer(Reader *reader, std::vector<uint> futureFrames);
     QPair<cv::Mat, cv::Mat> gatherImagePair(uint from, uint to);
 
 protected:
@@ -42,7 +42,6 @@ protected:
     virtual cv::Mat gatherSingleImage(uint frameIdx) = 0;
 
     Reader *m_reader;
-    double m_reciprocalDownSampleFactor = 0.0;
     QHash<uint, cv::Mat> m_bufferedImages;
 
 private:

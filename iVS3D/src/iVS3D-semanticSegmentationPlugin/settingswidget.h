@@ -3,6 +3,12 @@
 
 #define DESCRIPTION_STYLE "color: rgb(58, 58, 58); border-left: 6px solid  rgb(58, 58, 58); border-top-right-radius: 5px; border-bottom-right-radius: 5px; background-color: lightblue;"
 
+#define PROCESSOR_LABEL_STYLE_DEFAULT "color: green; height: 2em"
+#define PROCESSOR_LABEL_STYLE_ERROR "color: red; height: 2em"
+
+#define SPINNER_ICON_STYLE_DEFAULT "background: transparent; color: green"
+#define SPINNER_ICON_STYLE_ERROR "background: transparent; color: red"
+
 #include <QObject>
 #include <QWidget>
 #include <QLayout>
@@ -84,6 +90,8 @@ public slots:
      * @param task The task currently performed by the processor
      */
     void slot_showTask(QString processor, QString task, bool active);
+
+    void slot_showError(QString message);
 
 private slots:
     // --- slots for gui elements to process events and emit signals ---

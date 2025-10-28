@@ -83,12 +83,11 @@ public:
     void interpolateMissingMetaData(bool interpolate);
 
 private:
-    QStringList m_uniquePaths;
+    QStringList m_metaDataFiles;
     QList<MetaDataReader*> m_parsedMetaReader;
     std::map<std::string, AbstractBuilder> m_availablerReader;
     MetaDataManager();
     bool m_interpolateMissingMetaData;
-
 };
 
 template<typename Implementation>

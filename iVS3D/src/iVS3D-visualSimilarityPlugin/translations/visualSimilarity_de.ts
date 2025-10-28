@@ -86,5 +86,35 @@
         <source>here</source>
         <translation>hier</translation>
     </message>
+    <message>
+        <source>Failed to create neural network from file: %1</source>
+        <translation>Erstellen des Neuronalen Netzes fehlgeschlagen: %1</translation>
+    </message>
+    <message>
+        <source>The selected neural network does not have the expected input shape. Please select a different neural network.</source>
+        <translation>Das ausgewählte Neuronale Netz entspricht nicht dem erwarteten Eingabeformat. Bitte ein anderes Netz auswählen.</translation>
+    </message>
+    <message>
+        <source>The selected neural network does not have the expected output shape. Please select a different neural network.</source>
+        <translation>Das ausgewählte Neuronale Netz entspricht nicht dem erwarteten Ausgabeformat. Bitte ein anderes Netz auswählen.</translation>
+    </message>
+    <message>
+        <source>Not enough memory available to feed the neural network!
+ To resolve this you can:
+- Reduce the working resolution or
+- Select a smaller neural network or
+-Disable CUDA</source>
+        <translation>Nicht genügend Speicher verfügbar um das Neuronale Netz auszuwerten!
+ Lösungsvorschläge:
+- Arbeitsauflösung verringern oder
+- Kleineres Netz auswählen oder
+- CUDA deaktivieren</translation>
+    </message>
+    <message>
+        <source>An error occurred while feeding the neural network:
+%1</source>
+        <translation>Beim auswerten des Neuronalen Netzes ist ein Fehler aufgetreten:
+%1</translation>
+    </message>
 </context>
 </TS>

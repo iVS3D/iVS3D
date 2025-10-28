@@ -1,21 +1,20 @@
 #include "imagegatherer.h"
 
-ImageGatherer::ImageGatherer(Reader *reader, double downSampleFactor, std::vector<uint> futureFrames)
-{
-    m_reciprocalDownSampleFactor = 1.0 / downSampleFactor;
+ImageGatherer::ImageGatherer(Reader *reader, std::vector<uint> futureFrames) {
     m_reader = reader;
 }
 
-QPair<cv::Mat, cv::Mat> ImageGatherer::gatherImagePair(uint from, uint to)
-{
+QPair<cv::Mat, cv::Mat> ImageGatherer::gatherImagePair(uint from, uint to) {
     cv::Mat fromMat, toMat;
     std::future<cv::Mat> handleFrom, handleTo;
     // gather images from reader if they are not buffered
     if (!checkStoredImages(from, &fromMat)) {
-        handleFrom = std::async(std::launch::async, gatherSingleImageStatic, from, this);
+        handleFrom =
+            std::async(std::launch::async, gatherSingleImageStatic, from, this);
     }
     if (!checkStoredImages(to, &toMat)) {
-        handleTo = std::async(std::launch::async, gatherSingleImageStatic, to, this);
+        handleTo =
+            std::async(std::launch::async, gatherSingleImageStatic, to, this);
     }
 
     // retrieve gathered images and store them in buffer
@@ -33,8 +32,7 @@ QPair<cv::Mat, cv::Mat> ImageGatherer::gatherImagePair(uint from, uint to)
     return QPair<cv::Mat, cv::Mat>(fromMat, toMat);
 }
 
-bool ImageGatherer::checkStoredImages(uint idx, cv::Mat *out)
-{
+bool ImageGatherer::checkStoredImages(uint idx, cv::Mat *out) {
     // check if image was already computed
     if (m_bufferedImages.contains(idx)) {
         *out = m_bufferedImages.value(idx);
@@ -46,7 +44,7 @@ bool ImageGatherer::checkStoredImages(uint idx, cv::Mat *out)
     }
 }
 
-cv::Mat ImageGatherer::gatherSingleImageStatic(uint frameIdx, ImageGatherer *imgg)
-{
+cv::Mat ImageGatherer::gatherSingleImageStatic(uint frameIdx,
+                                               ImageGatherer *imgg) {
     return imgg->gatherSingleImage(frameIdx);
 }

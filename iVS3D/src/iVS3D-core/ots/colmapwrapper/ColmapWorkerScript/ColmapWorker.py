@@ -1,9 +1,11 @@
 import time
 import os
 import sys
+import stat
 import argparse
 import subprocess
 import shutil
+from shutil import copystat
 import traceback
 import glob
 from pathlib import Path
@@ -11,6 +13,33 @@ from pathlib import Path
 from GpsEntry import GpsEntry, geodetic2enu
 import yaml 
 import exifread
+
+######################################################################################################################
+# Cross-platform symlink helper function
+# On Windows, falls back to copying if symlink creation fails due to privilege issues
+def create_symlink_or_copy(src, dst):
+    """Create symlink, fall back to copying on Windows if privileges are insufficient"""
+    try:
+        if os.path.exists(dst):
+            return  # Already exists, nothing to do
+        os.symlink(src, dst)
+    except (OSError, NotImplementedError):
+        # Symlink failed (likely Windows without privileges), fall back to copying
+        print(f"Symlink creation failed, copying instead: {src} -> {dst}")
+        if os.path.isdir(src):
+            shutil.copytree(src, dst, dirs_exist_ok=True)
+        else:
+            shutil.copy2(src, dst)
+
+######################################################################################################################
+# Cross-platform executable path helper
+# Adds .exe extension on Windows
+def get_executable_path(bin_folder, executable_name):
+    """Get the correct executable path for the current platform"""
+    if os.name == 'nt':  # Windows
+        return os.path.join(bin_folder, executable_name + ".exe")
+    else:  # Linux/Unix
+        return os.path.join(bin_folder, executable_name)
 
 COLMAP_BIN = ""
 OPENMVS_BIN_FOLDER = ""
@@ -43,8 +72,9 @@ class OpenCvYamlDumper(yaml.Dumper):
 #---------------------------------------------------------------------------------------------------------------------
 # Class representing specific job
 class Job:
-    def __init__(self, sequenceName: str, productType: str, jobState: str, progress: str, parameterList: dict) -> None:
+    def __init__(self, sequenceName: str, displayName:str, productType: str, jobState: str, progress: str, parameterList: dict) -> None:
         self.sequenceName = sequenceName
+        self.displayName = displayName
         self.productType = productType
         self.jobState = jobState
         self.progress  = progress
@@ -56,7 +86,7 @@ class Job:
             self.progress, self.parameterList))
 
     def getProductTypeStr(self) -> str:
-        productNames = ['CAMERA_POSES', 'DENSE_CLOUD', 'MESHED_MODEL']
+        productNames = ['CAMERA_POSES', 'DENSE_CLOUD', 'MESHED_MODEL', 'CUSTOM_COMMAND']
         return productNames[int(self.productType)]
 
     def getJobStateStr(self) -> str:
@@ -143,14 +173,15 @@ def copytree(src, dst, symlinks=False, ignore=None, copy_function=shutil.copy2,
                      dirs_exist_ok=dirs_exist_ok)
 
 
-def poll_process_and_scan_logs(p, scan_function = None):
+def poll_process_and_scan_logs(p, scan_function = None, progress_key_word=None):
     while p.poll() is None:
         output = p.stdout.readline()
         updateHeartBeat()
         try:
             if output != b"":
                 line = output.strip().decode("utf-8")
-                print(line)
+                if progress_key_word is None or progress_key_word not in line:
+                    print(line)
                 if scan_function != None:
                     scan_function(line)
         except Exception as e:            
@@ -287,6 +318,56 @@ def init_eta_calculation():
     return get_eta_after_step
 
 
+def computeCustomCommandJob(colmapDatabaseFilePath: str, projectImageDir: str, colmapProjectDirPath: str, projectOutputDirPath: str, sequenceName: str, parameterList: dict) -> bool:
+    print("processing custom command job", str(currentJob))
+
+    try:
+        custom_command = parameterList['custom_command']
+        if custom_command is None or custom_command =="":
+            raise Exception("Empty custom command")
+
+        print(' Processing CUSTOM COMMAND '+str(custom_command)+' ...')
+
+        progressCallback(0)
+
+        gpus = parameterList['gpus'].replace("_",",")
+        # quality 0 - 3 lower is faster
+        quality = parameterList['quality']
+        camModel = parameterList['camera_model']
+        mask_path = parameterList.get('mask_path', "")
+
+        def scan_function(line):
+            # Scanning custom command stdout for progress
+            if "iVS3D_PROGRESS" in line:               
+                _, progress, step, eta = line.split(" ")                
+                progressCallback(int(progress), eta=int(eta), step=int(step), force_Write = True)
+
+        args = [custom_command, 
+            projectImageDir, 
+            colmapProjectDirPath,
+            projectOutputDirPath,
+            "--quality", quality,
+            "--gpus", gpus,
+            "--camera_model", camModel,
+            "--mask_path", mask_path]
+
+        args = " ".join(args)
+        print(args)
+    
+        p = subprocess.Popen(args, shell=True, stdout=subprocess.PIPE)             
+            
+        poll_process_and_scan_logs(p, scan_function, progress_key_word="iVS3D_PROGRESS")
+
+        # Check the return code
+        if p.returncode != 0:
+            return False
+    
+    except Exception as ex:
+        print(ex,  traceback.format_exc())
+        return False
+
+    return True
+
 ######################################################################################################################
 # Compute camera poses for given parameter list.
 # Returns: True, if successful. False otherwise
@@ -305,6 +386,44 @@ def computeCameraPoses(colmapDatabaseFilePath: str, projectImageDir: str, colmap
     robust_mode = parameterList['robust_mode']
     robust_mode = bool(int(robust_mode))
 
+    # optional mask_path
+    mask_path = parameterList.get('mask_path', "")
+    if mask_path != "" and os.path.exists(mask_path):
+        # Colmap requires specific naming of the masks:
+        # - mask image must have the same name as the image name including file extension
+        # - mask image must be in png format which is appended to the image name
+        # i.e. image name: img_0001.jpg -> mask name: img_0001.jpg.png
+
+        # Validate and rename masks if necessary
+        image_files = [f for f in os.listdir(projectImageDir) if f.lower().endswith(('.jpg', '.jpeg', '.png', '.bmp'))]
+
+        # Build a mapping from image base name (without extension) to image file name
+        image_base_to_name = {}
+        for img in image_files:
+            base, _ = os.path.splitext(img)
+            image_base_to_name[base] = img
+
+        for img_base, img_name in image_base_to_name.items():
+            # The required mask name is: <image_name> + ".png"
+            required_mask_name = img_name + ".png"
+            required_mask_path = os.path.join(mask_path, required_mask_name)
+
+            # Check if mask already exists with required name
+            if os.path.exists(required_mask_path):
+                continue
+
+            # Otherwise, look for a mask with the same base name and .png extension (common case)
+            candidate_mask_name = img_base + ".png"
+            candidate_mask_path = os.path.join(mask_path, candidate_mask_name)
+
+            if os.path.exists(candidate_mask_path):
+                # Rename to required naming convention
+                os.rename(candidate_mask_path, required_mask_path)
+                continue
+
+            print(f"Warning: No mask found for image {img_name}. Expected mask name: {required_mask_name}")
+        
+
     # run feature extraction
     print('\t> Running feature extractor...')
     args = [COLMAP_BIN, 
@@ -317,6 +436,9 @@ def computeCameraPoses(colmapDatabaseFilePath: str, projectImageDir: str, colmap
     
     if camera_params != "" and "," in camera_params:
         args.extend(["--ImageReader.camera_params", camera_params])
+
+    if mask_path != "" and os.path.exists(mask_path):
+        args.extend(["--ImageReader.mask_path", mask_path])
     
     p = subprocess.Popen(args, stdout=subprocess.PIPE)     
 
@@ -661,12 +783,12 @@ def computeMeshedModel(projectImageDir: str, colmapProjectDirPath: str, projectO
 
     progressCallback(0, force_Write = True)
   
-    # TODO check Windows compatibility
+    # Cross-platform symlink with Windows fallback
     if not os.path.exists(os.path.join(colmapProjectDirPath, "03_mesh", "images")):
-        os.symlink(os.path.join(colmapProjectDirPath, "02_dense", "images"), os.path.join(colmapProjectDirPath, "03_mesh", "images"))
+        create_symlink_or_copy(os.path.join(colmapProjectDirPath, "02_dense", "images"), os.path.join(colmapProjectDirPath, "03_mesh", "images"))
 
     print(" Interface COLMAP")
-    interface_colmap_bin_path = os.path.join(OPENMVS_BIN_FOLDER, "InterfaceCOLMAP")
+    interface_colmap_bin_path = get_executable_path(OPENMVS_BIN_FOLDER, "InterfaceCOLMAP")
     if not os.path.exists(interface_colmap_bin_path):
         raise Exception("OpenMVS InterfaceCOLMAP binary does not exist")
     
@@ -706,7 +828,7 @@ def computeMeshedModel(projectImageDir: str, colmapProjectDirPath: str, projectO
     progressCallback(5, force_Write = True)
     
     print(" Reconstruct Mesh")
-    reconstruct_mesh_bin_path = os.path.join(OPENMVS_BIN_FOLDER, "ReconstructMesh")
+    reconstruct_mesh_bin_path = get_executable_path(OPENMVS_BIN_FOLDER, "ReconstructMesh")
     if not os.path.exists(reconstruct_mesh_bin_path):
         raise Exception("OpenMVS ReconstructMesh binary does not exist")
     
@@ -714,11 +836,9 @@ def computeMeshedModel(projectImageDir: str, colmapProjectDirPath: str, projectO
     if not os.path.exists(reconstruct_mesh_dir):
         os.mkdir(reconstruct_mesh_dir)
 
-    # TODO check Windows compatibility
-    if not os.path.exists(os.path.join(reconstruct_mesh_dir, "images")):
-        os.symlink(os.path.join(colmapProjectDirPath, "02_dense", "images"), os.path.join(reconstruct_mesh_dir, "images"))
-
-    # check if option "estimate-roi 1" is available    
+        # Cross-platform symlink with Windows fallback
+        if not os.path.exists(os.path.join(reconstruct_mesh_dir, "images")):
+            create_symlink_or_copy(os.path.join(colmapProjectDirPath, "02_dense", "images"), os.path.join(reconstruct_mesh_dir, "images"))    # check if option "estimate-roi 1" is available    
     output = str(subprocess.run([reconstruct_mesh_bin_path, "-h"], check=False, stdout=subprocess.PIPE).stdout)    
     
     args = [reconstruct_mesh_bin_path, 
@@ -775,7 +895,7 @@ def computeMeshedModel(projectImageDir: str, colmapProjectDirPath: str, projectO
         progressCallback(40, force_Write = True)
 
         print(" Refine Mesh")
-        refine_mesh_bin_path = os.path.join(OPENMVS_BIN_FOLDER, "RefineMesh")
+        refine_mesh_bin_path = get_executable_path(OPENMVS_BIN_FOLDER, "RefineMesh")
         if not os.path.exists(refine_mesh_bin_path):
             raise Exception("OpenMVS RefineMesh binary does not exist")
         
@@ -783,9 +903,9 @@ def computeMeshedModel(projectImageDir: str, colmapProjectDirPath: str, projectO
         if not os.path.exists(refine_mesh_dir):
             os.mkdir(refine_mesh_dir)
 
-        # TODO check Windows compatibility
+        # Cross-platform symlink with Windows fallback
         if not os.path.exists(os.path.join(refine_mesh_dir, "images")):
-            os.symlink(os.path.join(colmapProjectDirPath, "02_dense", "images"), os.path.join(refine_mesh_dir, "images"))
+            create_symlink_or_copy(os.path.join(colmapProjectDirPath, "02_dense", "images"), os.path.join(refine_mesh_dir, "images"))
 
         args = [refine_mesh_bin_path, 
             "--working-folder", refine_mesh_dir,
@@ -804,7 +924,7 @@ def computeMeshedModel(projectImageDir: str, colmapProjectDirPath: str, projectO
     progressCallback(70, force_Write = True)
 
     print(" Texture Mesh")
-    texture_mesh_bin_path = os.path.join(OPENMVS_BIN_FOLDER, "TextureMesh")
+    texture_mesh_bin_path = get_executable_path(OPENMVS_BIN_FOLDER, "TextureMesh")
     if not os.path.exists(texture_mesh_bin_path):
         raise Exception("OpenMVS TextureMesh binary not exist")
     
@@ -812,9 +932,9 @@ def computeMeshedModel(projectImageDir: str, colmapProjectDirPath: str, projectO
     if not os.path.exists(texture_mesh_dir):
         os.mkdir(texture_mesh_dir)
 
-    # TODO check Windows compatibility
+    # Cross-platform symlink with Windows fallback
     if not os.path.exists(os.path.join(texture_mesh_dir, "images")):
-        os.symlink(os.path.join(colmapProjectDirPath, "02_dense", "images"), os.path.join(texture_mesh_dir, "images"))
+        create_symlink_or_copy(os.path.join(colmapProjectDirPath, "02_dense", "images"), os.path.join(texture_mesh_dir, "images"))
 
     # check if option "import-depthmaps 0" is available    
     output = str(subprocess.run([texture_mesh_bin_path, "-h"], check=False, stdout=subprocess.PIPE).stdout)  
@@ -946,6 +1066,21 @@ def listImgFiles(dirPath: str) -> list:
 
     return imgFileList
 
+
+######################################################################################################################
+# Get all files using the filepath and the wildcard operator
+# Return the last modified one
+def get_first_file_with_wildcard(yamlFilePath):
+    yamlFilePath_wildcard = None
+    yamlFilePath_wildcard_list = glob.glob(yamlFilePath+"*")
+    yamlFilePath_wildcard_list = [x for x in yamlFilePath_wildcard_list if not ".lock_worker" in x]
+    if len(yamlFilePath_wildcard_list) == 0:
+        yamlFilePath_wildcard = yamlFilePath
+    else:
+        yamlFilePath_wildcard = max(yamlFilePath_wildcard_list, key=os.path.getmtime)
+
+    return yamlFilePath_wildcard
+
 ######################################################################################################################
 # Load yml file
 # Returns: object of yaml file
@@ -963,7 +1098,9 @@ def loadYaml_raw(yamlFilePath: str):
     # create lock file
     Path(yamlLockFilePath).touch()
 
-    with open(yamlFilePath, 'r') as iStream:
+    yamlFilePath_wildcard = get_first_file_with_wildcard(yamlFilePath)
+
+    with open(yamlFilePath_wildcard, 'r') as iStream:
         data = iStream.read()
         try:
             yamlObj = yaml.load(data[len(OPENCV_YAML_HEADER):], Loader=yaml.BaseLoader) # handle opencv header
@@ -1002,7 +1139,15 @@ def writeYaml_raw(yamlFilePath: str, yamlObj):
     try:
         # create lock file    
         Path(yamlLockFilePath).touch()
-        with open(yamlFilePath, 'w') as oStream:
+        
+        # clear all files
+        yamlFilePath_wildcard_list = glob.glob(yamlFilePath+"*")    
+        yamlFilePath_wildcard_list = [x for x in yamlFilePath_wildcard_list if not ".lock_worker" in x]
+ 
+        for file in yamlFilePath_wildcard_list:
+            os.remove(file)
+
+        with open(yamlFilePath+str(time.time()), 'w') as oStream:
             oStream.write(OPENCV_YAML_HEADER)  # handle opencv header
             yaml.dump(yamlObj, oStream, Dumper=OpenCvYamlDumper)
     
@@ -1057,8 +1202,16 @@ def processJob(workspacePath: str, currentJob: Job) -> bool:
     projectOutputDirPath = os.path.join(workspacePath , currentJob.sequenceName + ".output")
     createFolderForSequence(colmapDatabaseFilePath, projectImageDir, colmapProjectDirPath, projectOutputDirPath)
 
+
+    if( currentJob.getProductTypeStr() == 'CUSTOM_COMMAND'):
+        # process custom job
+        success = computeCustomCommandJob(colmapDatabaseFilePath, projectImageDir, colmapProjectDirPath, projectOutputDirPath, currentJob.sequenceName, currentJob.parameterList)
+
+        if( not success ):
+            return False
+
     # if current product type of job is CAMERA_POSES handle creation of project
-    if( currentJob.getProductTypeStr() == 'CAMERA_POSES' ):
+    elif( currentJob.getProductTypeStr() == 'CAMERA_POSES' ):
 
         if os.path.exists(colmapDatabaseFilePath):
             os.remove(colmapDatabaseFilePath)          
@@ -1069,7 +1222,7 @@ def processJob(workspacePath: str, currentJob: Job) -> bool:
 
 
         # if image path in job description is not in project directory copy into project directory
-        if( projectImageDir != currentJob.parameterList["image_path"] ):
+        if os.path.normpath(projectImageDir) != os.path.normpath(currentJob.parameterList["image_path"]):
             print("Images are outside of project dir. Copying {} -> {}".format(currentJob.parameterList["image_path"], projectImageDir))
             
            
@@ -1110,8 +1263,6 @@ def processJob(workspacePath: str, currentJob: Job) -> bool:
         if( not success ):
             return False
 
-    # end if, else currentJob.getProductTypeStr == 'CAMERA_POSES'
-
     return True
 
 ######################################################################################################################
@@ -1123,12 +1274,12 @@ def popFirstJobFromQueue(yamlFilePath: str) -> Job:
     print("-- Reading job from list ...")
     yamlObj = loadYaml(yamlFilePath)
     if( yamlObj == 0 ):
-        return False, Job("",-1,-1,-1,"")
+        return False, Job("","",-1,-1,-1,"")
 
     # check if there is a job in list. Return false if not.
     if( len(yamlObj["queue"]) == 0):
         print("No job in list.")
-        return False, Job("",-1,-1,-1,"")
+        return False, Job("","",-1,-1,-1,"")
 
     yamlJobEntry = None
     # read and delete job
@@ -1144,12 +1295,12 @@ def popFirstJobFromQueue(yamlFilePath: str) -> Job:
         break
 
     if yamlJobEntry is None:
-        return False, Job("",-1,-1,-1,"")
+        return False, Job("","",-1,-1,-1,"")
 
     # write current job to state file
     writeCurrentJobToStateFile(WORKER_STATE_YAML_PATH, yamlJobEntry)
 
-    job = Job(yamlJobEntry["sequenceName"], yamlJobEntry["productType"], yamlJobEntry["jobState"], yamlJobEntry["progress"], yamlJobEntry["parameters"])
+    job = Job(yamlJobEntry["sequenceName"], yamlJobEntry["displayName"], yamlJobEntry["productType"], yamlJobEntry["jobState"], yamlJobEntry["progress"], yamlJobEntry["parameters"])
     print("Current Job: {}".format(job))
 
     # write modified yamlObj back to file
@@ -1290,6 +1441,7 @@ def cleanAfterFailedJob(workspacePath: str, currentJob: Job) -> bool:
     projectImageDir = os.path.join(workspacePath, currentJob.sequenceName + ".images")
     colmapProjectDirPath = os.path.join(workspacePath , currentJob.sequenceName + ".files")
     projectOutputDirPath = os.path.join(workspacePath , currentJob.sequenceName + ".output")
+    projectMaskDir = os.path.join(workspacePath , currentJob.sequenceName + ".masks")
 
     if os.path.exists(colmapDatabaseFilePath):
         os.remove(colmapDatabaseFilePath) 
@@ -1302,6 +1454,9 @@ def cleanAfterFailedJob(workspacePath: str, currentJob: Job) -> bool:
 
     if os.path.exists(projectOutputDirPath):
         shutil.rmtree(projectOutputDirPath)
+
+    if os.path.exists(projectMaskDir):
+        shutil.rmtree(projectMaskDir)
 
 ######################################################################################################################
 if __name__ == "__main__":
@@ -1328,11 +1483,11 @@ if __name__ == "__main__":
         print('ERROR: {} does not exist!').format(COLMAP_BIN)
         sys.exit()
 
-    if not os.path.exists(WORKER_STATE_YAML_PATH):
+    if not os.path.exists(get_first_file_with_wildcard(WORKER_STATE_YAML_PATH)):
         print('ERROR: {} does not exist!').format(WORKER_STATE_YAML_PATH)
         sys.exit()
 
-    if not os.path.exists(WORK_QUEUE_YAML_PATH):
+    if not os.path.exists(get_first_file_with_wildcard(WORK_QUEUE_YAML_PATH)):
         print('ERROR: {} does not exist!').format(WORK_QUEUE_YAML_PATH)
         sys.exit()
 
@@ -1402,6 +1557,7 @@ if __name__ == "__main__":
         colmapDatabaseFilePath = os.path.join(workspacePath , "*.db")
         projectImageDir = os.path.join(workspacePath,  "*.images")
         colmapProjectDirPath = os.path.join(workspacePath , "*.files")
+        projectMaskDir = os.path.join(workspacePath , "*.masks")
 
         for f in glob.glob(colmapDatabaseFilePath):
             os.remove(f)
@@ -1411,6 +1567,9 @@ if __name__ == "__main__":
         
         for f in glob.glob(colmapProjectDirPath):
             shutil.rmtree(f) 
+
+        for f in glob.glob(projectMaskDir):
+            shutil.rmtree(f)
    
 
     print("---------------------------------------------------------")

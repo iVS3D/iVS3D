@@ -61,11 +61,11 @@ SettingsWidget::SettingsWidget(QWidget *parent, QStringList ONNXmodelList, float
     w->addRow(tr("Overlay alpha "), m_alphaSlider);
 
     m_spinnerIcon = new SpinnerIcon(parent);
-    m_spinnerIcon->setStyleSheet("background: transparent; color: green"); // Set color
+    m_spinnerIcon->setStyleSheet(SPINNER_ICON_STYLE_DEFAULT);
     //m_spinnerIcon->resize(150, 150);
 
     m_processorLabel = new QLabel("");
-    m_processorLabel->setStyleSheet("color: green; height: 2em");
+    m_processorLabel->setStyleSheet(PROCESSOR_LABEL_STYLE_DEFAULT);
     m_processorLabel->setAlignment(Qt::AlignVCenter);
     w->addRow(m_processorLabel, m_spinnerIcon);
 
@@ -137,10 +137,21 @@ void SettingsWidget::slot_classesAndColorsChanged(QStringList classes, QColorLis
 void SettingsWidget::slot_showTask(QString processor, QString task, bool active)
 {
     m_processorLabel->setText(processor);
+    m_processorLabel->setStyleSheet(PROCESSOR_LABEL_STYLE_DEFAULT);
     m_spinnerIcon->setText(task);
     m_spinnerIcon->setSpinning(active);
+    m_spinnerIcon->setStyleSheet(SPINNER_ICON_STYLE_DEFAULT);
+
 }
 
+void SettingsWidget::slot_showError(QString message)
+{
+    m_processorLabel->setText(tr("Error:"));
+    m_processorLabel->setStyleSheet(PROCESSOR_LABEL_STYLE_ERROR);
+    m_spinnerIcon->setText(message);
+    m_spinnerIcon->setSpinning(false);
+    m_spinnerIcon->setStyleSheet(SPINNER_ICON_STYLE_ERROR);
+}
 
 void SettingsWidget::slot_comboBoxIdxChanged(int idx)
 {

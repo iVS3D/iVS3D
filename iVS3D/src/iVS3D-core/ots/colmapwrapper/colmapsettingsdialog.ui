@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>900</width>
-    <height>500</height>
+    <height>620</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -631,6 +631,53 @@
     </widget>
    </item>
    <item>
+    <widget class="QCheckBox" name="cb_experimental">
+     <property name="text">
+      <string>Experimental</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QFrame" name="f_customCommand">
+     <layout class="QVBoxLayout" name="verticalLayout_customCommands">
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_13">
+        <item>
+         <widget class="QLabel" name="l_customCommands">
+          <property name="text">
+           <string>Custom Commands:</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="horizontalSpacer_13">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QPushButton" name="pb_addRow">
+          <property name="text">
+           <string>Add row</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <widget class="QTableWidget" name="tw_customCommands"/>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
     <widget class="QLabel" name="l_error">
      <property name="text">
       <string/>
@@ -638,25 +685,12 @@
     </widget>
    </item>
    <item>
-    <spacer name="verticalSpacer">
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>20</width>
-       <height>40</height>
-      </size>
-     </property>
-    </spacer>
-   </item>
-   <item>
     <widget class="QDialogButtonBox" name="buttonBox">
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
      </property>
      <property name="standardButtons">
-      <set>QDialogButtonBox::Apply|QDialogButtonBox::Cancel|QDialogButtonBox::Ok|QDialogButtonBox::RestoreDefaults</set>
+      <set>QDialogButtonBox::Apply|QDialogButtonBox::Close|QDialogButtonBox::RestoreDefaults</set>
      </property>
     </widget>
    </item>

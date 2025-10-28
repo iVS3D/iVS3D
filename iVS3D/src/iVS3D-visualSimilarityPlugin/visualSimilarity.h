@@ -36,16 +36,18 @@
 #include <opencv2/imgproc.hpp>
 #include <opencv2/tracking/tracking_by_matching.hpp>
 
+#include <NeuralNetFactory.h>
+
 #include "ialgorithm.h"
 #include "reader.h"
 #include "progressable.h"
 #include "signalobject.h"
 
 #define RESSOURCE_PATH "/plugins/resources/neural_network_models/"
-#define MEM_THRESEHOLD 0.7f
+#define MEM_THRESEHOLD 0.8f
 #define MAX_BATCH 100
-#define NN_STD cv::Scalar({0.229, 0.224, 0.225})
-#define NN_MEAN cv::Scalar({0.485, 0.456, 0.406})
+#define NN_STD {0.229, 0.224, 0.225}
+#define NN_MEAN {0.485, 0.456, 0.406}
 
 // visuals
 #define DESCRIPTION_STYLE "color: rgb(58, 58, 58); border-left: 6px solid  rgb(58, 58, 58); border-top-right-radius: 5px; border-bottom-right-radius: 5px; background-color: lightblue;"
@@ -157,7 +159,6 @@ private:
     // functions
     static void displayProgress(Progressable *p, int progress, QString msg);
     static void displayMessage(Progressable *p, QString msg);
-    void feedImage(cv::Mat inblob, cv::Mat *totalFeatureVector, cv::dnn::Net *nn);
     bool bufferLookup(uint idx, cv::Mat *out);
     cv::Mat getFeatureVector(cv::Mat totalVector, int position);
     void sendBuffer(cv::Mat bufferMat, std::vector<uint> calculatedIdx);
@@ -173,14 +174,14 @@ private:
     signalObject *m_signalObject = nullptr;
     // parameters
     int m_frameReduction = -1;
-    int m_featureDims = -1;
-    cv::Size m_nnInputSize = cv::Size(-1,-1);
-    const QRegularExpression m_nnNameFormat = QRegularExpression("^(ImageEmbedding)\\w+_(?<featureDims>\\d+)_(?<width>\\d+)x(?<height>\\d+).onnx$");
+    const QRegularExpression m_nnNameFormat = QRegularExpression("^(ImageEmbedding)\\w+.onnx$");
     QString m_nnFileName = "ImageEmbedding_NAME_DIMENSION_WIDTHxHEIGHT.onnx";
     // widgets
     QWidget *m_settingsWidget = nullptr;
     QSpinBox *m_frameReductionInput = nullptr;
     QComboBox *m_nnNameInput = nullptr;
+
+    NN::NeuralNetPtr m_neuralNet = nullptr;
 
     void createSettingsWidget(QWidget *parent);
 };

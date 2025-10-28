@@ -21,7 +21,8 @@
  */
 class ImageContext {
 public:
-    cv::Mat image;
+    cv::Mat image;         // processed image, i.e. resized, cropped, ...
+    cv::Mat originalImage; // original image before any processing
     uint index;
     QString filename;
 };
@@ -40,7 +41,7 @@ class ImageProcessor {
 
 public:
     void addCommand(std::unique_ptr<ImageCommand> cmd);
-    bool process(ImageContext &context);
+    std::optional<QString> process(ImageContext &context);
 };
 
 #endif //IMAGEPROCESSOR_H

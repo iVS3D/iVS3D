@@ -8,7 +8,6 @@ AutomaticController::AutomaticController(OutputWidget* outputWidget, AutomaticWi
     //TODO Delete AutoExecSettings in Controller
 
     //Connect add signals
-    connect(m_samplingWidget, &SamplingWidget::sig_addAuto, m_autoExecSettings, &AutomaticExecSettings::slot_addAuto);
     connect(m_outputWidget, &OutputWidget::sig_addAuto, m_autoExecSettings, &AutomaticExecSettings::slot_addAutoOutput);
     //Connect autoWidget signals
     connect(m_autoWidget, &AutomaticWidget::sig_saveConfiguration, this, &AutomaticController::slot_saveConfiguration);

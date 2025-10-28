@@ -22,6 +22,7 @@
 #include <QTemporaryDir>
 #include <QTemporaryFile>
 #include <QtConcurrent>
+#include <QCryptographicHash>
 
 // OpenCV
 #include <opencv2/core.hpp>
@@ -85,20 +86,13 @@ class ColmapWrapper : public QObject
     };
 
     /**
-     * @brief Enum holding states of workspace.
-     */
-    enum EWorkspaceStatus {
-      IN_SYNC = 0,    /**< Workspace is synchronized. */
-      SYNCING         /**< Workspace is currently being synchronized. */
-    };
-
-    /**
      * @brief Enum holding product types that can be processed with Agisoft Metashape.
      */
     enum EProductType {
       CAMERA_POSES = 0, /**< Camera poses / Sparse point cloud */
       DENSE_CLOUD,      /**< Dense point cloud */
-      MESHED_MODEL      /**< Meshed 3D model */
+      MESHED_MODEL,      /**< Meshed 3D model */
+      CUSTOM_COMMAND  /**< Custom Command */
     };
 
     enum ESetupTestResult {
@@ -118,6 +112,8 @@ class ColmapWrapper : public QObject
 
         /// Name of sequence to which the job / product is assiciated.
         std::string sequenceName;
+
+        std::string displayName;
 
         /// Product type that is computed by this job.
         EProductType product;
@@ -209,6 +205,9 @@ class ColmapWrapper : public QObject
 
         /// User on remote server.
         QString remoteUsr;
+
+        /// Custom command for 3d reconstruction
+        QList<QPair<QString, QString>> customCommands;
 
         /// Interval of background synchronization between server and client
         int syncInterval;
@@ -316,6 +315,11 @@ class ColmapWrapper : public QObject
      * @brief Returns path to mount point of remote workspace on local machine.
      */
     QString mntPntRemoteWorkspacePath() const;
+
+    /**
+     * @brief Returns custom command
+     */
+    QList<QPair<QString, QString>> customCommands() const;
 
     /**
      * @brief Returns type of connection to COLMAP.
@@ -478,19 +482,9 @@ class ColmapWrapper : public QObject
     void setUseRobustMode(bool useRobustMode);
 
     /**
-     * @brief Mount remote workspace into path specified with setMntPntRemoteWorkspacePath().
+     * @brief Set the custom command.
      */
-    int mountRemoteWorkspace();
-
-    /**
-     * @brief Unmount remote workspace.
-     */
-    void unmountRemoteWorkspace();
-
-    /**
-     * @brief Synchronize workspace from server to local machine.
-     */
-    void syncWorkspaceFromServer();
+    void setCustomCommands(QList<QPair<QString, QString>> customCommands);
 
     /**
      * @brief Method to check worker state.
@@ -569,11 +563,6 @@ class ColmapWrapper : public QObject
     EWorkerState getWorkerState() const;
 
     /**
-     * @brief Get status of workspace.
-     */
-    EWorkspaceStatus getWorkspaceStatus() const;
-
-    /**
      * @brief Get path of file for given product in sequence.
      * @param[in] iSeqName Name of the sequence which holds the product.
      * @param[in] iProdType Product type for which the file path is to be returned.
@@ -619,6 +608,11 @@ class ColmapWrapper : public QObject
      * @brief Clear worker state file (colmap_worker_state.yaml) in workspace.
      */
     void clearWorkerStateFile();
+
+    /**
+     * @brief Return the first file with a wildcard suffix.
+     */
+    QString getFirstMatchingFileNameWithWildcard(const QString& path, QString baseName) const;
 
     /**
      * @brief Read work queue from file (colmap_work_queue.yaml) in workspace.
@@ -715,6 +709,9 @@ class ColmapWrapper : public QObject
     /// flag wether to use robust mode
     bool mUseRobustMode;
 
+    /// input field for custom commands
+    QList<QPair<QString, QString>> mCustomCommands;
+
     /// Pointer to temporary directory.
     QTemporaryDir* mpTempDir;
 
@@ -723,9 +720,6 @@ class ColmapWrapper : public QObject
 
     /// Process for mounting operations.
     QProcess* mpMountProcess;
-
-    /// Process for synchronization operations.
-    QProcess* mpSyncProcess;
 
     /// Timer object to chech worker file server and client
     QTimer mCheckWorkerTimer;
@@ -763,9 +757,6 @@ class ColmapWrapper : public QObject
 
     /// Interval of background synchronization between server and client
     int mSyncInterval;
-
-    /// Status of workspace
-    EWorkspaceStatus mWorkspaceStatus;
 
     /// List of available sequences
     std::vector<SSequence> mAvailableSequences;

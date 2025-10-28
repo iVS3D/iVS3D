@@ -20,18 +20,18 @@ class Reader_stub : public Reader
 {
 public:
     Reader_stub(std::vector<uint> picOrder, std::vector<QString> picPaths);
-    cv::Mat getPic(unsigned int);
+    cv::Mat getPic(unsigned int, PictureProcessingFlags flags);
     unsigned int getPicCount();
     QString getInputPath() { throw "not implemented"; };
     double getFPS() { throw "not implemented"; };
     double getVideoDuration() { throw "not implemented"; };
     virtual bool isDir() { throw "not implemented"; };
-    virtual Reader *copy() { throw "not implemented"; };
+    virtual Reader *copy(std::shared_ptr<ReaderParams> params = nullptr) { throw "not implemented"; };
     virtual bool isValid() { throw "not implemented"; };
     virtual std::vector<std::string> getFileVector() { throw "not implemented"; };
     virtual void addMetaData(MetaData*) { throw "not implemented"; };
     virtual MetaData* getMetaData() { throw "not implemented"; };
-    SequentialReader *createSequentialReader(std::vector<uint> indices);
+    SequentialReader *createSequentialReader(std::vector<uint> indices, PictureProcessingFlags flags);
 
 private:
     std::vector<uint> m_picOrder;

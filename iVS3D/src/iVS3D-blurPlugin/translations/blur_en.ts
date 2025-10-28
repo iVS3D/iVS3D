@@ -4,70 +4,70 @@
 <context>
     <name>Blur</name>
     <message>
-        <location filename="../blur.cpp" line="102"/>
-        <location filename="../blur.cpp" line="177"/>
+        <location filename="../blur.cpp" line="124"/>
+        <location filename="../blur.cpp" line="202"/>
         <source>not calculated</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../blur.cpp" line="103"/>
-        <location filename="../blur.cpp" line="179"/>
+        <location filename="../blur.cpp" line="126"/>
+        <location filename="../blur.cpp" line="205"/>
         <source>Blur value for the current image is </source>
-        <translation type="unfinished"></translation>
+        <translation>Sharpness value for the current image is </translation>
     </message>
     <message>
-        <location filename="../blur.cpp" line="105"/>
-        <location filename="../blur.cpp" line="257"/>
+        <location filename="../blur.cpp" line="128"/>
+        <location filename="../blur.cpp" line="289"/>
         <source>Blur value for the current image is not calculated</source>
-        <translation type="unfinished"></translation>
+        <translation>Sharpness value for the current image is not calculated</translation>
     </message>
     <message>
-        <location filename="../blur.cpp" line="207"/>
+        <location filename="../blur.cpp" line="235"/>
         <source>Blur algorithm to be used</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../blur.cpp" line="216"/>
+        <location filename="../blur.cpp" line="244"/>
         <source>Set window size</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../blur.cpp" line="73"/>
+        <location filename="../blur.cpp" line="259"/>
+        <source>Number of images used on each side for the local window</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../blur.cpp" line="268"/>
+        <source>Local threshold (%)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../blur.cpp" line="284"/>
+        <source>Keep images whose sharpness is at least this percent of the local median.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../blur.cpp" line="98"/>
         <source>Blur detection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../blur.cpp" line="196"/>
+        <location filename="../blur.cpp" line="221"/>
         <source>Select filter </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../blur.cpp" line="228"/>
-        <source>Number of images used for local window</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../blur.cpp" line="238"/>
-        <source>Set local deviation</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../blur.cpp" line="252"/>
-        <source>Deviation from the image to the window average blur</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../blur.cpp" line="433"/>
+        <location filename="../blur.cpp" line="425"/>
         <source> of </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../blur.cpp" line="433"/>
+        <location filename="../blur.cpp" line="425"/>
         <source>Calculate blur value for image </source>
-        <translation type="unfinished"></translation>
+        <translation>Calculate sharpness value for image </translation>
     </message>
     <message>
-        <location filename="../blur.cpp" line="427"/>
+        <location filename="../blur.cpp" line="419"/>
         <source>Blur progress</source>
         <translation type="unfinished"></translation>
     </message>
@@ -75,9 +75,9 @@
 <context>
     <name>BlurAlgorithm</name>
     <message>
-        <location filename="../BlurAlgorithm.cpp" line="73"/>
+        <location filename="../BlurAlgorithm.cpp" line="109"/>
         <source>Calculate blur for frame </source>
-        <translation type="unfinished"></translation>
+        <translation>Calculate sharpness for frame </translation>
     </message>
 </context>
 </TS>
