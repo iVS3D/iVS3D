@@ -31,7 +31,7 @@ The **Intelligent Video Sampler 3D** serves as a preprocessing tool to select su
 
 An extensive range of [plugins](#-plugins-) either selects images based on, e.g., visual similarity or sharpness, or creates masks to enhance the provided RGB information further. New algorithms can easily be added by creating new plugins without recompiling the core application.
 
-The resulting image and meta information are exported and can be directly used to start a [3D reconstruction](#-3d-reconstruction) process through the application itself.
+The resulting image and metadata are exported and can be directly used to start a [3D reconstruction](#-3d-reconstruction) process through the application itself.
 
 ![overview](doc/images/iVS3D_overview.svg)
 
@@ -56,12 +56,12 @@ There are currently 8 plugins implemented:
 | [🪞 Deep Visual Similarity](doc/plugins.md#deep-visual-similarity) | Selects the N-most dissimilar images using K-Means clustering and deep visual embeddings | ✅ |
 | [🤖 Semantic Segmentation](doc/plugins.md#semantic-segmentation) | Creates binary masks to exclude objects such as vehicles from the reconstruction by using neural networks for semantic segmentation | ✅ |
 
-These plugins show different approaches to enhance information from an image sequence or video by either selecting images or creating additional masks to improve the 3D reconstruction process. See [here](doc/plugins.md) for a detailed description of the above mentioned plugins.
+These plugins show different approaches to enhance information from an image sequence or video by either selecting images or creating additional masks to improve the 3D reconstruction process. See [here](doc/plugins.md) for a detailed description of the above-mentioned plugins.
 
 iVS3D is built with an open plugin interface for adding new plugins. So feel free to add your own. See [here](doc/create_plugin.md) for creating your own plugin.
 
 ## ⛪ 3D Reconstruction
-iVS3D does prepare the data for 3D reconstruction. Afterwards, commonly used tools like [COLMAP] and [OpenMVS] can be used to perform the reconstruction and meshing. We provide a seamless integration of both in our software. In the *Reconstruction* tab you can configure desired products such as a dense point cloud or a textured mesh. iVS3D starts the reconstruction with your configuration based on the exported images and masks, either locally on your machine or on a remote server. You can track the progress, view logs and manage the reconstruction jobs all within the *Reconstruction* tab. For further information see:
+iVS3D does prepare the data for 3D reconstruction. Afterwards, commonly used tools like [COLMAP] and [OpenMVS] can be used to perform the reconstruction and meshing. We provide a seamless integration of both in our software. In the *Reconstruction* tab, you can configure desired products such as a dense point cloud or a textured mesh. iVS3D starts the reconstruction with your configuration based on the exported images and masks, either locally on your machine or on a remote server. You can track the progress, view logs and manage the reconstruction jobs all within the *Reconstruction* tab. For further information, see:
 - [local reconstruction](doc/reconstruction_local.md)
 - [remote reconstruction](doc/reconstruction_remote.md)
 
@@ -79,7 +79,7 @@ Check the latest release to get a build for your platform!
 
 Note that the CUDA builds support RTX series GPUs. Older models or Laptop GPUs might require building iVS3D from source with an OpenCV and CUDA build for that specific GPU.
 
-To use the included plugin for semantic segmentation you can download our deep learning models here:
+To use the included plugin for semantic segmentation, you can download our deep learning models here:
 [Link to our models]
 
 To use other models, they have to be in the `.onnx` format. In addition, the plug-in requires a file that maps the classes to specific colors.
@@ -106,24 +106,24 @@ iVS3D uses the cmake build system and utilizes cmake presets. For detailed instr
 
 ### 🧪 Tests
 
-To create the test build add ```Build_Tests=ON``` when configuring your build with cmake. 
+To create the test build, add ```Build_Tests=ON``` when configuring your build with CMake. 
 Now you can run the tests within the Test Result tab in Qt Creator or use `ctest` to run the test suite in your terminal.
 
 [Link to our test data]
 
 ## 🎖️ Acknowledgements
-Thanks to everyone that helped bring iVS3D to life. 
+Thanks to everyone who helped bring iVS3D to life. 
 
-iVS3D was created as part of the **Praxis der Software Entwicklung** modul at the Karlsruhe Institue of Technology in the winter term 2020/21, by Patrick Binder, Lennart Ruck, [Daniel Brommer](https://github.com/dabrommer), [Dominik Wüst](https://github.com/dom-wuest) and [Dominic Zahn](https://github.com/DominicZahn).
-It was build in cooperation with Fraunhofer IOSB, Karlsruhe under supervision of [Max Hermann](https://github.com/Max-Hermann) and Thomas Pollok.
+iVS3D was created as part of the **Praxis der Software Entwicklung** module at the Karlsruhe Institute of Technology in the winter term 2020/21, by Patrick Binder, [Lennart Ruck](https://github.com/Lexinatrix), [Daniel Brommer](https://github.com/dabrommer), [Dominik Wüst](https://github.com/dom-wuest) and [Dominic Zahn](https://github.com/DominicZahn).
+It was built in cooperation with Fraunhofer IOSB, Karlsruhe, under the supervision of [Max Hermann](https://github.com/Max-Hermann) and Thomas Pollok.
 
 Thanks to [Boitumelo Ruf](https://github.com/boitumeloruf) for helping with the transition from qmake to cmake.
 
 ## 🔬 Future Work
-- [x] Add remote colmap execution for windows
-- [x] Add seemless colmap integration for windows
+- [x] Add remote colmap execution for Windows
+- [x] Add seamless colmap integration for Windows
 - [ ] Implement metadata reader for gimbal angles
-- [ ] Create plugin for FOV overlap calculation
+- [ ] Create a plugin for FOV overlap calculation
 
 ## 📃 Licence
 
