@@ -36,11 +36,8 @@ The resulting image and metadata are exported and can be directly used to start 
 ![overview](doc/images/iVS3D_overview.svg)
 
 ## 🚀 Quick Start
-<video controls>
-  <source src="iVS3D.mp4" type="video/mp4">
-  Your browser does not support the video tag.
-</video>
 
+https://github.com/user-attachments/assets/ff6c451b-9c4f-41b6-9fdc-bcca2a33aef9
 
 To get started quickly, download a [prebuilt binary](#-ready-to-use-builds) from our releases and follow our [tutorial](doc/tutorial.md).
 
