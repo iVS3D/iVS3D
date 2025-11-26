@@ -37,7 +37,7 @@ The resulting image and metadata are exported and can be directly used to start 
 
 ## 🚀 Quick Start
 
-https://github.com/user-attachments/assets/ff6c451b-9c4f-41b6-9fdc-bcca2a33aef9
+https://github.com/user-attachments/assets/1f0c93f8-5e52-4436-a95e-5b9e3b7ea11d
 
 To get started quickly, download a [prebuilt binary](#-ready-to-use-builds) from our releases and follow our [tutorial](doc/tutorial.md).
 
