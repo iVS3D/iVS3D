@@ -29,7 +29,7 @@ doxygen Doxyfile
 cd generated_doc/html
 
 # Replace video asset url with html video tag in index.html
-VIDEO_ASSET_URL="https://github.com/user-attachments/assets/ff6c451b-9c4f-41b6-9fdc-bcca2a33aef9"
+VIDEO_ASSET_URL="https://github.com/user-attachments/assets/1f0c93f8-5e52-4436-a95e-5b9e3b7ea11d"
 VIDEO_SRC="https://github.com/iVS3D/iVS3D/raw/refs/heads/video/iVS3D.mp4"
 INDEX_FILE="index.html"
 
