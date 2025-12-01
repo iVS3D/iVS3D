@@ -160,10 +160,10 @@ class VideoReader : public Reader
 
     // private helper functions
     cv::Mat avFrame2CvMat(const AVFrame* av_f);
-    void openFormatContext();
-    void selectVideoStream();
-    void openCodec();
-    void createSWS();
+    int openFormatContext();
+    int selectVideoStream();
+    int openCodec();
+    int createSWS();
     int decodeNextPkg();
 };
 
