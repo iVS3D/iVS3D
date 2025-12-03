@@ -1,4 +1,5 @@
 #include "videoreader.h"
+#include <string>
 
 VideoReader::VideoReader(const QString &path,
                          std::shared_ptr<ReaderParams> readerParams)
@@ -143,7 +144,8 @@ cv::Mat VideoReader::getPic(unsigned int index, PictureProcessingFlags flags) {
     while (iter == m_buffer.end()) {
         if (m_buffer.size() > m_avgVideoFPS.num / m_avgVideoFPS.den) {
             for (auto &d_iter : m_buffer) {
-                av_frame_free(&d_iter.second);
+                if (d_iter.second)
+                    av_frame_free(&d_iter.second);
             }
             m_buffer.clear();
         }
@@ -167,6 +169,8 @@ cv::Mat VideoReader::getPic(unsigned int index, PictureProcessingFlags flags) {
         }
     }
     cv::Mat img = avFrame2CvMat(iter->second);
+    if (img.empty())
+        return cv::Mat();
 
     // apply processing
     if (flags & PictureProcessingFlags::APPLY_RESIZING) {
@@ -209,6 +213,8 @@ int VideoReader::decodeNextPkg() {
                          AVRational{m_avgVideoFPS.den, m_avgVideoFPS.num});
         m_buffer[idx] = av_frame;
         m_lastFrameIdx = idx;
+
+        std::cout << idx << std::endl;
     }
 
     av_packet_free(&packet);
@@ -256,14 +262,13 @@ SequentialReader *VideoReader::createSequentialReader(
 }
 
 cv::Mat VideoReader::avFrame2CvMat(const AVFrame *av_f) {
-    const Resolution res = m_readerParams->getOriginalResolution();
-    const uint w = res.getWidth();
-    const uint h = res.getHeight();
-
+    const int h = m_codecContext->coded_height;
+    const int w = m_codecContext->coded_width;
     cv::Mat cv_f(h, w, CV_8UC3);
     const int cv_lineSize = cv_f.step1();
-    sws_scale(m_swsContext, av_f->data, av_f->linesize, 0,
-              m_codecContext->height, &cv_f.data, &cv_lineSize);
-
+    const int out_h = sws_scale(m_swsContext, av_f->data, av_f->linesize, 0,
+              h, &cv_f.data, &cv_lineSize);
+    if (out_h != h)
+        return cv::Mat();
     return cv_f;
 }
