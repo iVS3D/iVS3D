@@ -213,8 +213,6 @@ int VideoReader::decodeNextPkg() {
                          AVRational{m_avgVideoFPS.den, m_avgVideoFPS.num});
         m_buffer[idx] = av_frame;
         m_lastFrameIdx = idx;
-
-        std::cout << idx << std::endl;
     }
 
     av_packet_free(&packet);
