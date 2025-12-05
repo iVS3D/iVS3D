@@ -12,6 +12,7 @@
 #include "opencv2/imgcodecs.hpp"
 #include "ui_videoplayer.h"
 #include "cvmat_qmetadata.h"
+#include "visualization.h"
 
 #define OVERLAY_PADDING 13
 #define OVERLAY_MIN_WIDTH 50
@@ -60,6 +61,7 @@ public:
 
     ~VideoPlayer();
 
+    void showVisualization(const Visualization &vis, const cv::Mat &image, const QRect &viewRect);
     /**
      * @brief showImages displays the given images.
      * @param images The images as cv::Mat to display
@@ -225,7 +227,7 @@ private:
     QGraphicsRectItem *m_roiRect;
     QList<OverlayEntry> m_overlayEntries;
 
-    QImage qImageFromCvMat(cv::Mat* input, bool bgr = true);
+    QImage qImageFromCvMat(const cv::Mat &input, bool bgr = true);
     void alphaBlend(cv::Mat *foreground, cv::Mat *background, float alpha, cv::Mat &output);
     void updateOverlay();
     void drawRoi();
