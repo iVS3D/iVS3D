@@ -26,8 +26,8 @@
 
 #include "colmapwrapper.h"
 
-#include "plugin/algorithmmanager.h"
-#include "plugin/transformmanager.h"
+#include "pluginmanager.h"
+#include "plugincontroller.h"
 
 #include <QObject>
 #include <QWidget>
@@ -162,7 +162,7 @@ private slots:
 
 private:
     VideoPlayerController *m_videoPlayerController;
-    AlgorithmController* m_algorithmController;
+    PluginController* m_pluginController;
     ExportController *m_exportController;
     AutomaticController* m_automaticController;
     StackController *m_stackController;

@@ -79,16 +79,7 @@ void SamplingWidget::disablePreview()
 
 void SamplingWidget::slot_selectedAlgoChanged(int idx)
 {
-    if(idx<m_separatorIdx){
-        emit sig_selectedAlgorithmChanged(idx);
-        showSamplingBtns();
-    } else if(idx > m_separatorIdx){
-        emit sig_selectedTransformChanged(idx-m_separatorIdx-1);
-        showTransformBtns();
-    } else {
-        showAlgorithmSettings(m_placeholder);
-        showNoBtns();
-    }
+    emit sig_selectedPluginChanged(ui->comboBoxAlgo->currentText());
 }
 
 void SamplingWidget::slot_startSamplingPressed()
@@ -160,4 +151,32 @@ void SamplingWidget::setResolutionValid(bool valid)
         colorPalette.setColor(QPalette::Text, Qt::red);
     }
     ui->comboBoxResolution->setPalette(colorPalette);
+}
+
+void SamplingWidget::setPluginList(const QStringList& pluginNames) {
+    ui->comboBoxAlgo->clear();
+    ui->comboBoxAlgo->addItems(pluginNames);
+}
+
+void SamplingWidget::setSelectedPlugin(const QString& pluginName) {
+    int index = ui->comboBoxAlgo->findText(pluginName);
+    if (index != -1) {
+        ui->comboBoxAlgo->setCurrentIndex(index);
+    }
+}
+
+void SamplingWidget::setPreviewVisible(bool visible) {
+    if (visible) {
+        SHOW_WIDGET(m_cbPreviewTransform);
+    } else {
+        HIDE_WIDGET(m_cbPreviewTransform);
+    }
+}
+
+void SamplingWidget::setSelectionVisible(bool visible) {
+    if (visible) {
+        SHOW_WIDGET(ui->pushButton);
+    } else {
+        HIDE_WIDGET(ui->pushButton);
+    }
 }

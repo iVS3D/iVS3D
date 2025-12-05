@@ -12,6 +12,7 @@
 #include "opencv2/imgcodecs.hpp"
 #include "ui_videoplayer.h"
 #include "cvmat_qmetadata.h"
+#include "visualization.h"
 
 #define OVERLAY_PADDING 13
 #define OVERLAY_MIN_WIDTH 50
@@ -60,17 +61,13 @@ public:
 
     ~VideoPlayer();
 
-    /**
-     * @brief showImages displays the given images.
-     * @param images The images as cv::Mat to display
-     */
-    void showImages(std::vector<cv::Mat*> images);
+    void showVisualization(const Visualization &vis);
 
     /**
      * @brief showImage displays the given image.
      * @param image The image as cv:Mat
      */
-    void showImage(cv::Mat *image);
+    void showImage(const cv::Mat &image);
 
     /**
      * @brief setKeyframe highlights the displayed image if isKeyframe is @a true.
@@ -144,6 +141,8 @@ public:
     void updateOverlayText(const QList<OverlayEntry> &content);
 
     void updateRoi(const QRect& roi = QRect());
+    void clear();
+
 signals:
 
     /**
@@ -219,17 +218,22 @@ private:
     ColorTheme m_colorTheme;
     QShortcut *m_prevSC;
     QShortcut *m_nextSC;
+
+    // This is the image item displayed in the graphics view
+    QGraphicsItem *m_imageItem;
+    QGraphicsRectItem *m_roiItem;
+    QGraphicsItemGroup *m_visItemGroup;
+
+    // Input Info Overlay
+    QList<OverlayEntry> m_overlayEntries;
     QLabel *m_overlayLabel;
     QGraphicsOpacityEffect *m_overlayOpacityEffect;
-    QRect m_roi;
-    QGraphicsRectItem *m_roiRect;
-    QList<OverlayEntry> m_overlayEntries;
 
-    QImage qImageFromCvMat(cv::Mat* input, bool bgr = true);
+    QImage qImageFromCvMat(const cv::Mat &input, bool bgr = true);
     void alphaBlend(cv::Mat *foreground, cv::Mat *background, float alpha, cv::Mat &output);
     void updateOverlay();
-    void drawRoi();
     bool checkOverlap();
+    void displayDragNDropIcon();
 };
 
 #endif // VIDEOPLAYER_H
