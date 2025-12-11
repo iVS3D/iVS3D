@@ -24,6 +24,7 @@ set(PUBLIC_HEADER_FILES
     "${CMAKE_CURRENT_LIST_DIR}/ierror.h"
     "${CMAKE_CURRENT_LIST_DIR}/ibase.h"
     "${CMAKE_CURRENT_LIST_DIR}/ipreview.h"
+    "${CMAKE_CURRENT_LIST_DIR}/imask.h"
     "${CMAKE_CURRENT_LIST_DIR}/visualization.h"
     "${CMAKE_CURRENT_LIST_DIR}/../iVS3D-core/cvmat_qmetadata.h"
 )
