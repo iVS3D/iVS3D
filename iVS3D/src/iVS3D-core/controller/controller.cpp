@@ -6,7 +6,7 @@ Controller::Controller(QString inputPath, QString settingsPath, QString outputPa
         : m_colmapWrapper(new lib3d::ots::ColmapWrapper)
 {
     m_videoPlayerController = nullptr;
-    m_algorithmController = nullptr;
+    m_pluginController = nullptr;
     m_stackController = nullptr;
     QStringList algorithms = AlgorithmManager::instance().getAlgorithmNames();
     QStringList transforms = TransformManager::instance().getTransformList();
@@ -46,6 +46,8 @@ Controller::Controller(QString inputPath, QString settingsPath, QString outputPa
                 transforms,
                 otsWidget
                 );
+
+    m_mainWindow->getSamplingWidget()->setPluginList(PluginManager::instance().getPluginNames());
 
     m_mainWindow->enableUndo(false);
     m_mainWindow->enableRedo(false);
@@ -578,10 +580,9 @@ void Controller::onFailedOpen()
         delete m_videoPlayerController;
         m_videoPlayerController = nullptr;
     }
-    if(m_algorithmController) {
-        disconnect(m_algorithmController, &AlgorithmController::sig_hasStatusMessage, m_mainWindow, &MainWindow::slot_displayStatusMessage);
-        delete m_algorithmController;
-        m_algorithmController = nullptr;
+    if(m_pluginController) {
+        delete m_pluginController;
+        m_pluginController = nullptr;
     }
     if (m_exportController)
     {
@@ -707,9 +708,8 @@ void Controller::onSuccessfulOpen()
         disconnect(m_videoPlayerController, &VideoPlayerController::sig_hasStatusMessage, m_mainWindow, &MainWindow::slot_displayStatusMessage);
         delete m_videoPlayerController;
     }
-    if(m_algorithmController) {
-        disconnect(m_algorithmController, &AlgorithmController::sig_hasStatusMessage, m_mainWindow, &MainWindow::slot_displayStatusMessage);
-        delete m_algorithmController;
+    if(m_pluginController) {
+        delete m_pluginController;
     }
     if (m_exportController) {
         disconnect(m_exportController, &ExportController::sig_hasStatusMessage, m_mainWindow, &MainWindow::slot_displayStatusMessage);
@@ -723,18 +723,17 @@ void Controller::onSuccessfulOpen()
     // --- create new controllers for video player, export and image sampling
     // --- using the new data (in dataManager) and connect to main window
 
-    // AlgorithmController manages input widget and algorithm used widgets and delegates image sampling
-    m_algorithmController = new AlgorithmController(m_dataManager, m_mainWindow->getSamplingWidget());
-    connect(m_algorithmController, &AlgorithmController::sig_hasStatusMessage, m_mainWindow, &MainWindow::slot_displayStatusMessage);
+    
 
     // VideoPlayerControler manages video player and timeline
-    m_videoPlayerController = new VideoPlayerController(this, m_mainWindow->getVideoPlayer(), m_mainWindow->getTimeline(), m_dataManager, m_algorithmController);
+    m_videoPlayerController = new VideoPlayerController(this, m_mainWindow->getVideoPlayer(), m_mainWindow->getTimeline(), m_dataManager);
     connect(m_videoPlayerController, &VideoPlayerController::sig_hasStatusMessage, m_mainWindow, &MainWindow::slot_displayStatusMessage);
     connect(m_mainWindow, &MainWindow::sig_deleteAllKeyframes, m_videoPlayerController, &VideoPlayerController::slot_deleteAllKeyframes);
     connect(m_mainWindow, &MainWindow::sig_deleteKeyframesBoundaries, m_videoPlayerController, &VideoPlayerController::slot_deleteKeyframes);
     connect(m_mainWindow, &MainWindow::sig_resetBoundaries, m_videoPlayerController, &VideoPlayerController::slot_resetBoundaries);
 
-    connect(m_algorithmController, &AlgorithmController::sig_stopPlay, m_videoPlayerController, &VideoPlayerController::slot_stopPlay);
+    // AlgorithmController manages input widget and algorithm used widgets and delegates image sampling
+    m_pluginController = new PluginController(m_dataManager, m_mainWindow->getSamplingWidget(), m_videoPlayerController);
 
     // ExportController manages algorithm used widget and reconstruct widget and delegates export of images and 3d-reconstruction
     m_exportController = new ExportController(m_mainWindow->getOutputWidget(), m_dataManager, m_colmapWrapper);
@@ -744,7 +743,7 @@ void Controller::onSuccessfulOpen()
     connect(m_exportController, &ExportController::sig_exportStarted, this, &Controller::slot_exportStarted);
     connect(m_exportController, &ExportController::sig_exportFinished, this, &Controller::slot_exportFinished);
     connect(m_exportController, &ExportController::sig_exportAborted, this, &Controller::slot_exportFinished);
-    connect(m_videoPlayerController, &VideoPlayerController::sig_read, m_exportController, &ExportController::slot_nextImageOnPlayer);
+    //connect(m_videoPlayerController, &VideoPlayerController::sig_read, m_exportController, &ExportController::slot_nextImageOnPlayer);
 
     //AutoExecutor is used for the automatic Execution
     m_automaticController->setExporController(m_exportController);
@@ -764,8 +763,6 @@ void Controller::onSuccessfulOpen()
     connect(m_videoPlayerController, &VideoPlayerController::sig_toggleKeyframe, m_stackController, &StackController::slot_toggleKeyframe);
     connect(m_videoPlayerController, &VideoPlayerController::sig_deleteAllKeyframes, m_stackController, &StackController::slot_deleteAllKeyframes);
     connect(m_videoPlayerController, &VideoPlayerController::sig_deleteKeyframes, m_stackController, &StackController::slot_deleteKeyframes);
-    connect(m_algorithmController, &AlgorithmController::sig_algorithmFinished, m_stackController, &StackController::slot_algorithmFinished);
-    connect(m_algorithmController, &AlgorithmController::sig_keyframesChangedByPlugin, m_stackController, &StackController::slot_keyframesChangedByPlugin);
     connect(m_exportController, &ExportController::sig_exportFinished, m_stackController, &StackController::slot_exportFinished);
 
     // update the working resolution, roi, etc

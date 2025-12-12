@@ -82,9 +82,15 @@ public:
     void setResolution(QString resolution);
     void setResolutionValid(bool valid);
 
+    void setPluginList(const QStringList& pluginNames);
+    void setSelectedPlugin(const QString& pluginName);
+    void setPreviewVisible(bool visible);
+    void setSelectionVisible(bool visible);
+
 
 signals:
 
+    void sig_selectedPluginChanged(QString name);
     /**
      * @brief [signal] sig_selectedAlgorithmChanged(...) is emitted on dropdown index changed to an IAlgorithm
      * instance. @see IAlgorithm

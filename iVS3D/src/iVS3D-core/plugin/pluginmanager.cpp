@@ -12,6 +12,10 @@ QVector<PluginHandle> PluginManager::getPlugins() const {
     return m_plugins.values().toVector();
 }
 
+QStringList PluginManager::getPluginNames() const {
+    return m_plugins.keys();
+}
+
 QVector<PluginHandle> PluginManager::getMaskPlugins() const {
     QVector<PluginHandle> maskPlugins;
     for (const PluginHandle& handle : m_plugins.values()) {

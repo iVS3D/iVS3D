@@ -3,15 +3,16 @@
 #include <QObject>
 
 #include "samplingwidget.h"
-#include "datamanager.h"
+#include "DataManager.h"
 #include "pluginmanager.h"
+#include "videoplayercontroller.h"
 
 class PluginController : public QObject
 {
     Q_OBJECT
 
 public:
-    explicit PluginController(DataManager* dataManager, SamplingWidget* samplingWidget);
+    explicit PluginController(DataManager* dataManager, SamplingWidget* samplingWidget, VideoPlayerController* vpc);
     ~PluginController();
 
 private slots:
@@ -22,5 +23,6 @@ private slots:
 private:
     DataManager* m_dataManager;
     SamplingWidget* m_samplingWidget;
+    VideoPlayerController* m_vpc;
     PluginHandle m_currentPlugin;
 };

@@ -34,6 +34,7 @@ public:
     static PluginManager& instance();
 
     QVector<PluginHandle> getPlugins() const;
+    QStringList getPluginNames() const;
     QVector<PluginHandle> getMaskPlugins() const;
     std::optional<PluginHandle> getPluginByName(const QString& name) const;
 

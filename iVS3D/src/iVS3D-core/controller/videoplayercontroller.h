@@ -4,8 +4,7 @@
 #include <QObject>  // used for signals and slots
 #include <QTimer>   // used for periodic timer events to update displayed image
 #include <set>
-
-#include "plugin/algorithmmanager.h" //used to emit signal that index has changed
+#include <memory>
 
 #include "DataManager.h"  // used to access image data for displaying and manipulation
 
@@ -13,11 +12,15 @@
 #include "view/timeline.h"      // used to visualize keyframe distribution
 
 #include "controller/ModelInputIterator.h"  // used to iterate over given image data
-#include "controller/algorithmcontroller.h" // used to display transformed images
 
 #include "controller/imageiterator.h"
 #include "controller/modelinputiteratorfactory.h"
 #include "view/reallydeletedialog.h"
+
+#include "model/asyncimageloader.h"
+#include "model/asyncpreview.h"
+
+#include "ipreview.h"
 
 #include "cvmat_qmetadata.h"
 
@@ -42,7 +45,6 @@
 class VideoPlayerController : public QObject
 {
     Q_OBJECT  // used to enable signals and slots for this class
-    QThread workerThread;
 
 public:
     /**
@@ -55,7 +57,7 @@ public:
      * @param dataManager a DataManager Instance to access image data
      * @param algoController an AlgorithmController instance to transform images and preview them
      */
-    explicit VideoPlayerController(QObject *parent = nullptr, VideoPlayer *player = nullptr, Timeline *timeline = nullptr, DataManager *dataManager = nullptr, AlgorithmController *algoController = nullptr);
+    explicit VideoPlayerController(QObject *parent = nullptr, VideoPlayer *player = nullptr, Timeline *timeline = nullptr, DataManager *dataManager = nullptr);
 
     /**
      * @brief disconnects signals, deletes timer and VideoPlayerController instance.
@@ -67,6 +69,10 @@ public:
      * @return index of image currently displayed
      */
     unsigned int getImageIndexOnScreen();
+
+    void resetLayout();
+
+    void setPreviewPlugin(IPreview* previewPlugin);
 
 public slots:
     /**
@@ -150,42 +156,9 @@ public slots:
     void slot_resetBoundaries();
 
     /**
-     * @brief [slot] slot_imageProcessed(...) is invoked when image has been processed and provides additional images.
-     * @param procesedImgs The results of image processing
-     * @param id Identifier for the result
-     */
-    void slot_imageProcessed(cv::Mat *preview, int id);
-
-    /**
      * @brief [slot] slot_redraw() draws selected image again.
      */
     void slot_redraw();
-
-    /**
-     * @brief [slot] slot_receiveImage draws given image with and applies a transformable plugin if neccessary
-     * @param idx transformable plugin index
-     * @param img image which should be displayed or transformed
-     */
-    void slot_receiveImage(uint idx, const cv::Mat &img);
-
-    /**
-     * @brief [slot] slot_displayImage diplays img if transformation is enabled
-     * @param idx index if image
-     * @param img image
-     */
-    void slot_displayImage(uint idx, const cv::Mat &img);
-
-    /**
-     * @brief [slot] slot_selectedITransformChanged connects new plugin to videoplayer
-     * @param id plugin id
-     */
-    void slot_selectedITransformChanged(uint id);
-
-    /**
-     * @brief slot_transformEnabledChanged reads data with new changed enabled parameter
-     * @param enabled new enabled parameter
-     */
-    void slot_transformEnabledChanged(bool enabled);
 
 
 signals:
@@ -195,26 +168,6 @@ signals:
      * @param message the QString to display.
      */
     void sig_hasStatusMessage(QString message);
-
-    /**
-     * @brief [signal] sig_imageToProcess(...) is emitted when VideoPlayer is about to display a new image.
-     * @param image the image thats getting displayed
-     * @param id Identifier for the result
-     */
-    void sig_imageToProcess(cv::Mat *image, int id);
-
-    /**
-     * @brief [signal] sig_read sends an image request to the worker thread to read the image.
-     * @param idx The image index
-     */
-    void sig_read(uint idx);
-
-    /**
-     * @brief [signal] sig_sendToITransform sends the image for processing to the connected ITransforms.
-     * @param idx The image index
-     * @param img The image to process
-     */
-    void sig_sendToITransform(uint idx, const cv::Mat &img, const Resolution &resolution, const ROI &roi);
 
     /**
      * @brief [signal] sig_toggleKeyframe notifies about a manual keyframe change by clicking Add keyframe/Remove keyframe
@@ -236,6 +189,8 @@ signals:
 private slots:
     void slot_timerNextImage();
     void slot_boundaryStopped();
+    void slot_receiveImage(const ImageRequest &request, const ImageResult &result);
+    void slot_receiveVisualization(const PreviewRequest &request, const PreviewResult& result);
 
 private:
     VideoPlayer *m_videoPlayer;
@@ -243,20 +198,27 @@ private:
     DataManager *m_dataManager;
     QTimer *m_frametimer;
     QTimer *m_boundaryMoveTimer;
+
+    // current image data
+    cv::Mat m_currentImage;
+    QRect m_roi;
+    QRect m_sceneBoundaries;
+
     unsigned int m_imageIndex;
     unsigned int m_imageIndexOnScreen;
     unsigned int m_stepsize;
     bool m_keyframesOnly;
     bool m_playing;
     ModelInputIterator *m_iterator;
-    AlgorithmController *m_algoController;
-    ITransformRequestDequeue *m_transform;
 
     const int m_frametime = 33; //ms between frames
 
     std::set<int> m_foundCorruptedFrames = {};
 
     void showImage();
+
+    std::unique_ptr<AsyncImageLoader> m_asyncImageLoader;
+    std::unique_ptr<AsyncPreview> m_asyncVisualizer;
 
 };
 
