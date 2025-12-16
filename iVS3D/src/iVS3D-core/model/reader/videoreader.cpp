@@ -7,7 +7,6 @@ VideoReader::VideoReader(const QString &path,
     QFileInfo info(path);
     m_isValid = false;
     if (!info.isFile()) return;
-    std::printf("Creating VideoReader for file: %s\n", path.toUtf8().constData());
 
     if (openFormatContext() > 0) return;
     if (selectVideoStream() > 0) return;
@@ -41,7 +40,6 @@ VideoReader::VideoReader(const QString &path,
 }
 
 VideoReader::~VideoReader() {
-    std::printf("Destroying VideoReader\n");
 
     // 1) free buffered frames
     for (auto &kv : m_buffer) {
