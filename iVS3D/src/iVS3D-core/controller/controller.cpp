@@ -127,6 +127,7 @@ Controller::~Controller()
 {
     delete m_colmapWrapper;
     TransformManager::instance().exit();
+    delete m_dataManager;
 }
 
 void Controller::slot_openInputFolder()

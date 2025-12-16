@@ -7,6 +7,7 @@ VideoReader::VideoReader(const QString &path,
     QFileInfo info(path);
     m_isValid = false;
     if (!info.isFile()) return;
+    std::printf("Creating VideoReader for file: %s\n", path.toUtf8().constData());
 
     if (openFormatContext() > 0) return;
     if (selectVideoStream() > 0) return;
@@ -40,9 +41,35 @@ VideoReader::VideoReader(const QString &path,
 }
 
 VideoReader::~VideoReader() {
-    sws_freeContext(m_swsContext);
-    avformat_free_context(m_formatContext);
+    std::printf("Destroying VideoReader\n");
+
+    // 1) free buffered frames
+    for (auto &kv : m_buffer) {
+        if (kv.second) {
+            av_frame_free(&kv.second);
+        }
+    }
+    m_buffer.clear();
+
+    // 2) free scaler
+    if (m_swsContext) {
+        sws_freeContext(m_swsContext);
+        m_swsContext = nullptr;
+    }
+
+    // 3) free decoder
+    if (m_codecContext) {
+        avcodec_free_context(&m_codecContext); // sets to nullptr
+    }
+
+    // 4) CLOSE input (this releases the Windows file lock)
+    if (m_formatContext) {
+        avformat_close_input(&m_formatContext); // sets to nullptr
+    }
+
+    // DO NOT call avformat_free_context() after avformat_close_input().
 }
+
 
 int VideoReader::openFormatContext() {
     m_formatContext = avformat_alloc_context();
@@ -193,7 +220,9 @@ int VideoReader::decodeNextPkg() {
         av_packet_free(&packet);
         return read_res;
     }
-    avcodec_send_packet(m_codecContext, packet);
+    int send_res = avcodec_send_packet(m_codecContext, packet);
+    // TODO: handle error properly, this assert is triggered in some videos
+    //assert(send_res == 0 && "Error sending packet for decoding"); 
 
     int receive_res = 0;
     while (receive_res == 0) {
