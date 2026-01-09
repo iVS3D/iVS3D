@@ -36,7 +36,19 @@ PluginController::~PluginController() {
 }
 
 void PluginController::slot_enablePreview(bool enabled) {
-    m_vpc->setPreviewPlugin(enabled && m_currentPlugin.hasPreview() ? m_currentPlugin.preview : nullptr);
+    if (enabled && m_currentPlugin.hasPreview()) {
+        // when enabled the video player controller gets the preview plugin
+        // and needs to update the preview on requests
+        m_vpc->setPreviewPlugin(m_currentPlugin.preview);
+        connect(m_currentPlugin.base, &IBase::updatePreview, m_vpc,
+                &VideoPlayerController::slot_refreshPreview);
+    } else {
+        // when disabled the video player controller removes the preview plugin
+        // and disconnects the updatePreview signal
+        m_vpc->setPreviewPlugin(nullptr);
+        disconnect(m_currentPlugin.base, &IBase::updatePreview, m_vpc,
+                   &VideoPlayerController::slot_refreshPreview);
+    }
     m_vpc->resetLayout();
     m_vpc->slot_redraw();
 }

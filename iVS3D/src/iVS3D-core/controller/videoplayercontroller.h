@@ -160,6 +160,10 @@ public slots:
      */
     void slot_redraw();
 
+    /**
+     * @brief [slot] slot_refreshPreview() updates the visualization for the currently displayed image by requesting a new preview from the preview plugin.
+     */
+    void slot_refreshPreview();
 
 signals:
 

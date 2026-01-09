@@ -115,6 +115,26 @@ void VideoPlayer::showVisualization(const Visualization& vis) {
     int width = 0;
     int height = 0;
     for (const auto& view : vis.views) {
+        if (view.style.showTitle && !view.title.isEmpty()) {
+            auto view_root = new QGraphicsItemGroup(m_visItemGroup);
+            view_root->setZValue(3);
+            QRectF viewport_title = (m_roiItem && view.style.viewport == ViewportType::RegionOfInterest)
+                                       ? m_roiItem->rect()
+                                       : m_imageItem->boundingRect();
+            view_root->setTransform(
+                QTransform::fromTranslate(width, 0)
+                    .scale(viewport_title.width(), viewport_title.height())); // scale from [0,1] to viewport size
+            
+            TextOverlay titleOverlay;
+            titleOverlay.text = view.title;
+            titleOverlay.position = QPointF(0.5, 0.02); // top center
+            titleOverlay.anchor = TextAnchor::TopCenter;
+            titleOverlay.style.fontSize = 16;
+            titleOverlay.style.textColor = Qt::white;
+            titleOverlay.style.backgroundColor = Qt::darkGray;
+            drawOverlay(ui->graphicsView->scene(), view_root, titleOverlay);
+        }
+
         // create a root element correctly scaled and translated for this view
         auto *view_root = new QGraphicsItemGroup(m_visItemGroup);
         int x_offset = 0;
