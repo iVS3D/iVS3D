@@ -1,4 +1,4 @@
-set(TARGET_NAME MaskPlugin)
+set(TARGET_NAME SegmentationPlugin)
 
 # Can't built if iVS3D-neuralNet is not found
 if(NOT TARGET NeuralNet)
@@ -29,11 +29,16 @@ find_package(OpenCV 4.10 REQUIRED COMPONENTS
 )
 
 set(HEADER_FILES
-    "${CMAKE_CURRENT_LIST_DIR}/maskplugin.h"
+    "${CMAKE_CURRENT_LIST_DIR}/segplugin.h"
+    "${CMAKE_CURRENT_LIST_DIR}/segloader.h"
+    "${CMAKE_CURRENT_LIST_DIR}/settingswidget.h"
+    "${CMAKE_CURRENT_LIST_DIR}/segmodel.h"
 )
 
 set(SRC_FILES
-    "${CMAKE_CURRENT_LIST_DIR}/maskplugin.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/segplugin.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/segloader.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/settingswidget.cpp"
 )
 
 add_library(${TARGET_NAME} SHARED

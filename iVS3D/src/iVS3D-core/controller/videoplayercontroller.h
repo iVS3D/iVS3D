@@ -3,6 +3,8 @@
 
 #include <QObject>  // used for signals and slots
 #include <QTimer>   // used for periodic timer events to update displayed image
+#include <QMessageBox>  // used to display error messages
+
 #include <set>
 #include <memory>
 
@@ -160,6 +162,10 @@ public slots:
      */
     void slot_redraw();
 
+    /**
+     * @brief [slot] slot_refreshPreview() updates the visualization for the currently displayed image by requesting a new preview from the preview plugin.
+     */
+    void slot_refreshPreview(bool clearOldPreview);
 
 signals:
 
@@ -185,6 +191,8 @@ signals:
      * @brief [signal] sig_deleteAllKeyframes is emitted when frames are reseted to be keyframes
      */
     void sig_deleteAllKeyframes();
+
+    void sig_disablePreview();
 
 private slots:
     void slot_timerNextImage();

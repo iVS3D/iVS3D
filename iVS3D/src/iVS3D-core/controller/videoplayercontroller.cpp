@@ -404,10 +404,16 @@ void VideoPlayerController::slot_receiveImage(const ImageRequest& request,
     QRect roi = params->getRoi().cropAsQRect(params->getWorkingResolution());
     m_videoPlayer->updateRoi(params->getUseRoi() ? roi : QRect());
 
+    // crop image if ROI is enabled
+    cv::Mat croppedImage = m_currentImage;
+    if (params->getUseRoi()) {
+        params->getRoi().crop(croppedImage);
+    }
+
     // request visualization if preview plugin is available and image is still
     // the one on screen
     if (m_asyncVisualizer && (m_imageIndexOnScreen == result.idx)) {
-        m_asyncVisualizer->request({result.idx, m_currentImage});
+        m_asyncVisualizer->request({result.idx, croppedImage});
     }
 }
 
@@ -416,7 +422,33 @@ void VideoPlayerController::slot_receiveVisualization(
     if (m_imageIndexOnScreen != result.idx) {
         //return;  // discard outdated visualization
     }
-    m_videoPlayer->showVisualization(result.visualization);
+    if (!result.visualization) {
+        QMessageBox::warning(
+            m_videoPlayer, tr("Error"),
+            tr("An error occurred during preview generation.\n%1")
+                .arg(result.visualization.error().message));
+        emit sig_disablePreview();
+        return;
+    }
+    m_videoPlayer->showVisualization(result.visualization.value());
+}
+
+void VideoPlayerController::slot_refreshPreview(bool clearOldPreview) {
+    if (m_imageIndexOnScreen == UINT_MAX || m_currentImage.empty() || !m_asyncVisualizer) {
+        return;
+    }
+    if (clearOldPreview) {
+        m_videoPlayer->clearVisualization();  // clear current visualization
+    }
+    std::shared_ptr<ReaderParams> params =
+        m_dataManager->getModelInputPictures()->getReaderParams();
+    if (params->getUseRoi()) {
+        cv::Mat croppedImage = m_currentImage;
+        params->getRoi().crop(croppedImage);
+        m_asyncVisualizer->request({m_imageIndexOnScreen, croppedImage});
+    } else {
+        m_asyncVisualizer->request({m_imageIndexOnScreen, m_currentImage});
+    }
 }
 
 void VideoPlayerController::slot_timerNextImage() {

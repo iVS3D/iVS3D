@@ -20,7 +20,6 @@
 #include "view/reconstructiontoolsdialog.h"
 
 #include "controller/exportcontroller.h"
-#include "controller/algorithmcontroller.h"
 #include "controller/videoplayercontroller.h"
 #include "controller/automaticcontroller.h"
 
@@ -186,7 +185,6 @@ private:
      */
     void onSuccessfulOpen();
     void setInputWidgetInfo();
-    void displayPluginSettings();
     void onFailedOpen();
     uint loadMetaDataFromPath(QString path);
     bool loadInputDataFromPath(QString path);

@@ -55,7 +55,7 @@ public:
      * @brief showAlgorithmSettings shows the given QWidget to the user.
      * @param algoSettings the QWidget to display
      */
-    void showAlgorithmSettings(QWidget *algoSettings);
+    void showAlgorithmSettings(std::shared_ptr<QWidget> algoSettings);
 
 
     /**
@@ -129,7 +129,7 @@ private slots:
 
 private:
     Ui::SamplingWidget *ui;
-    QWidget *m_algoSettings;
+    std::shared_ptr<QWidget> m_algoSettings;
     QWidget *m_placeholder;
     QCheckBox *m_cbPreviewTransform;
     int m_separatorIdx;

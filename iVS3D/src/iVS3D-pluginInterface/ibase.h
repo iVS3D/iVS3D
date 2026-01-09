@@ -1,53 +1,162 @@
 #pragma once
 
 #include <QObject>
-#include "iVS3D-pluginInterface_global.h"
+#include <QWidget>
+#include <QMap>
+#include <QVariant>
+#include <memory>
+#include <optional>
+#include <tl/expected.hpp>
+
+#include "ierror.h"
+
+/**
+ * @typedef SettingsWidgetResult
+ * @brief Type alias for the result of a settings widget creation operation, which can be
+ * either a successful shared pointer to a QWidget or an Error indicating failure.
+ */
+using SettingsWidgetResult = tl::expected<std::shared_ptr<QWidget>, Error>;
 
 
 /**
- * @interface IBase 
- * 
+ * @interface IBase
+ *
  * @ingroup Plugin
+ *
+ * @brief The IBase interface provides a base class for all plugin interfaces in
+ * iVS3D. It inherits from QObject to enable signal-slot communication and
+ * common functionality across all plugins. All plugin signals need to be
+ * declared in this interface to ensure they are available in derived plugin
+ * classes.
  * 
- * @brief The IBase interface provides a base class for all plugin interfaces in iVS3D. It inherits from QObject
- * to enable signal-slot communication and common functionality across all plugins. All plugin signals need to be
- * declared in this interface to ensure they are available in derived plugin classes.
+ * @date 2025/12/05
+ * @author Dominik Wüst
  */
-class IBase : public QObject
-{
+class IBase : public QObject {
     Q_OBJECT
 
-public:
+   public:
     using QObject::QObject;
     virtual ~IBase() {};
 
+    /**
+     * @brief getName returns the name of the plugin which will be displayed in
+     * the iVS3D interface.
+     * @return The name of the plugin as a QString.
+     */
     virtual QString getName() const = 0;
-    virtual QWidget* getSettingsWidget(QWidget* parent) = 0;
 
-    virtual void initialize() {}
+    /**
+     * @brief getSettingsWidget returns a QWidget that contains the settings
+     * interface for the plugin. It is not used in headless mode. The plugin
+     * can keep a pointer to the created widget.
+     * @param parent The parent QWidget for the settings widget.
+     * @return A shared pointer to the settings QWidget or an Error if the widget
+     * could not be created.
+     */
+    virtual SettingsWidgetResult getSettingsWidget(QWidget* parent) = 0;
+
+    /**
+     * @brief getSettings retrieves the current settings of the plugin as a map
+     * of key-value pairs. The settings are stored in the history within iVS3D
+     * and in combination with setSettings allow for saving and restoring plugin
+     * configurations.
+     * 
+     * @see setSettings
+     * @return A QMap containing the plugin settings as key-value pairs.
+     */
+    virtual QMap<QString, QVariant> getSettings() const = 0;
+
+    /**
+     * @brief setSettings applies the provided settings to the plugin. This
+     * method is used to restore plugin configurations from the history within
+     * iVS3D.
+     * 
+     * @see getSettings
+     * @param settings A QMap containing the plugin settings as key-value pairs.
+     */
+    virtual std::optional<Error> setSettings(const QMap<QString, QVariant>& settings) = 0;
+
+    /**
+     * @brief activate is called when the plugin is activated in iVS3D.
+     * Plugins can override this method to perform any necessary setup when
+     * they become active.
+     */
     virtual void activate() {}
+
+    /**
+     * @brief deactivate is called when the plugin is deactivated in iVS3D.
+     * Plugins can override this method to perform any necessary cleanup when
+     * they are no longer active.
+     */
     virtual void deactivate() {}
 
     /**
-     * @brief onCudaChanged is called when the CUDA usage setting is changed in iVS3D.
-     * @param enabled Indicates whether CUDA is enabled (true) or disabled (false).
-     * 
-     * Plugins can override this method to adjust their behavior based on the CUDA setting.
+     * @brief onCudaChanged is called when the CUDA usage setting is changed in
+     * iVS3D.
+     * @param enabled Indicates whether CUDA is enabled (true) or disabled
+     * (false).
+     *
+     * Plugins can override this method to adjust their behavior based on the
+     * CUDA setting.
      */
     virtual void onCudaChanged(bool enabled) {}
 
-signals:
+   signals:
     /**
-     * @brief [signal] updatePreview() can be emitted when the plugin requests an update of the preview visualization.
-     * 
-     * This signal notifies the system that the preview needs to be regenerated, typically due to changes in
-     * plugin settings or data. Plugins implementing preview functionality should emit this signal whenever
-     * the preview visualization needs to be updated.
+     * @brief [signal] updatePreview(bool clearOldPreview) can be emitted when
+     * the plugin requests an update of the preview visualization.
+     *
+     * This signal notifies the system that the preview needs to be regenerated,
+     * typically due to changes in plugin settings or data. Plugins implementing
+     * preview functionality should emit this signal whenever the preview
+     * visualization needs to be updated.
+     *
+     * The optional parameter `clearOldPreview` indicates whether the existing
+     * preview should be cleared before generating a new one. If set to false,
+     * the old preview will be retained until the new preview is ready to be
+     * displayed, this can reduce flickering in some scenarios.
      */
-    void updatePreview();
-    void updateSettingsBuffer(QMap<QString, QVariant> buffer);
+    void updatePreview(bool clearOldPreview = true);
+
+    /**
+     * @brief [signal] updateSelectedFrames(std::vector<uint> selectedFrames)
+     * can be emitted when the plugin wants to update the selection of frames in
+     * the video player. iVS3D will only handle this signal if the plugin is
+     * currently active.
+     *
+     * This signal notifies the system to change the currently selected frames
+     * in the video player to the specified list of frame indices.
+     * 
+     * @see activate, deactivate
+     *
+     * @param selectedFrames A vector containing the indices of the frames to
+     * be selected in the video player.
+     */
     void updateSelectedFrames(std::vector<uint> selectedFrames);
+
+    /**
+     * @brief [signal] updateProgress(int progress, QString message) can be
+     * emitted to inform iVS3D about the progress of a long-running operation.
+     * 
+     * This signal allows the plugin to communicate its current progress to the
+     * iVS3D interface, which can then display this information to the user.
+     * The progress value should be in the range of 0 to 100, representing the
+     * percentage of completion. An optional message can provide additional
+     * context about the operation's status.
+     * 
+     * This signal is only effective when the plugin is active.
+     * 
+     * @see activate, deactivate
+     * 
+     * @param progress An integer value between 0 and 100 indicating the
+     * percentage of completion.
+     * @param message An optional QString providing additional information about
+     * the progress status.
+     */
     void updateProgress(int progress, QString message = QString());
+
+    void encounteredError(Error error);
 };
 
 Q_DECLARE_INTERFACE(IBase, "iVS3D.IBase")

@@ -33,6 +33,15 @@ std::optional<PluginHandle> PluginManager::getPluginByName(const QString& name) 
     return m_plugins.value(name);
 }
 
+void PluginManager::enableCuda(bool useCuda) {
+    for (auto& handle : m_plugins) {
+        IBase* base = handle.base;
+        if (base) {
+            base->onCudaChanged(useCuda);
+        }
+    }
+}
+
 PluginManager::PluginManager() { loadPlugins(); }
 
 void PluginManager::loadPlugins() {
@@ -78,5 +87,7 @@ void PluginManager::loadPlugins() {
         std::cout << "[INFO] Loaded plugin: " << handle.name().toStdString() << " | Supports Preview: " 
                   << (handle.hasPreview() ? "Yes" : "No") << " | Supports Mask: "
                   << (handle.hasMask() ? "Yes" : "No") << std::endl;
+
+        
     }
 }

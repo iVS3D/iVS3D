@@ -38,6 +38,8 @@ public:
     QVector<PluginHandle> getMaskPlugins() const;
     std::optional<PluginHandle> getPluginByName(const QString& name) const;
 
+    void enableCuda(bool useCuda);
+
 private:
     PluginManager();
     void loadPlugins();

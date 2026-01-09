@@ -9,6 +9,9 @@ PluginController::PluginController(DataManager* dataManager,
             &PluginController::slot_enablePreview);
     connect(m_samplingWidget, &SamplingWidget::sig_startSampling, this,
             &PluginController::slot_startSelection);
+    connect(m_vpc, &VideoPlayerController::sig_disablePreview, [=]() {
+        m_samplingWidget->disablePreview();
+    });
     
 
     m_currentPlugin = PluginHandle{nullptr, nullptr, nullptr};
@@ -36,7 +39,19 @@ PluginController::~PluginController() {
 }
 
 void PluginController::slot_enablePreview(bool enabled) {
-    m_vpc->setPreviewPlugin(enabled && m_currentPlugin.hasPreview() ? m_currentPlugin.preview : nullptr);
+    if (enabled && m_currentPlugin.hasPreview()) {
+        // when enabled the video player controller gets the preview plugin
+        // and needs to update the preview on requests
+        m_vpc->setPreviewPlugin(m_currentPlugin.preview);
+        connect(m_currentPlugin.base, &IBase::updatePreview, m_vpc,
+                &VideoPlayerController::slot_refreshPreview);
+    } else {
+        // when disabled the video player controller removes the preview plugin
+        // and disconnects the updatePreview signal
+        m_vpc->setPreviewPlugin(nullptr);
+        disconnect(m_currentPlugin.base, &IBase::updatePreview, m_vpc,
+                   &VideoPlayerController::slot_refreshPreview);
+    }
     m_vpc->resetLayout();
     m_vpc->slot_redraw();
 }
@@ -53,8 +68,17 @@ void PluginController::slot_selectPlugin(QString name) {
     m_samplingWidget->disablePreview();
 
     m_currentPlugin = *plugin_handle;
-    m_samplingWidget->showAlgorithmSettings(
-        m_currentPlugin.base->getSettingsWidget(m_samplingWidget));
+    auto result = m_currentPlugin.base->getSettingsWidget(m_samplingWidget);
+    if (!result) {
+        std::shared_ptr<QWidget> errorWidget = std::make_shared<QWidget>();
+        errorWidget->setLayout(new QVBoxLayout());
+        QLabel* errorLabel = new QLabel(
+            tr("The plugin encountered an error:\n%1").arg(result.error().message));
+        errorWidget->layout()->addWidget(errorLabel);
+        m_samplingWidget->showAlgorithmSettings(errorWidget);
+        return;
+    }
+    m_samplingWidget->showAlgorithmSettings(result.value());
 
     m_samplingWidget->setPreviewVisible(m_currentPlugin.hasPreview());
     m_samplingWidget->setSelectionVisible(m_currentPlugin.hasSelection());

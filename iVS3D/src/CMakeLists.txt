@@ -13,7 +13,7 @@ if(Build_Plugins)
     add_subdirectory(iVS3D-geoDistancePlugin)
     add_subdirectory(iVS3D-geoMapPlugin)
     add_subdirectory(iVS3D-visualSimilarityPlugin)
-    add_subdirectory(iVS3D-maskPlugin)
+    add_subdirectory(iVS3D-segmentationPlugin)
 endif()
 
 if(Install_Models)
