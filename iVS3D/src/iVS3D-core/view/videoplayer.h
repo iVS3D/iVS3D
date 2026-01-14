@@ -63,6 +63,8 @@ public:
 
     void showVisualization(const Visualization &vis);
 
+    void clearVisualization();
+
     /**
      * @brief showImage displays the given image.
      * @param image The image as cv:Mat

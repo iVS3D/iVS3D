@@ -10,10 +10,10 @@ SamplingWidget::SamplingWidget(QWidget *parent, QStringList algorithmList, QStri
     m_placeholder->setVisible(false);
 
     // setup area for algo settings widget
-    m_algoSettings = new QWidget(this);
+    m_algoSettings = std::make_shared<QWidget>(this);
     ui->scrollAreaWidgetContents->setLayout(new QVBoxLayout(this));
     ui->scrollAreaWidgetContents->layout()->setContentsMargins(0,0,0,0);
-    ui->scrollAreaWidgetContents->layout()->addWidget(m_algoSettings);
+    ui->scrollAreaWidgetContents->layout()->addWidget(m_algoSettings.get());
 
     // add algorithms
     ui->comboBoxAlgo->addItems(algorithmList);
@@ -43,9 +43,9 @@ SamplingWidget::~SamplingWidget()
     delete m_cbPreviewTransform;
 }
 
-void SamplingWidget::showAlgorithmSettings(QWidget *algoSettings)
+void SamplingWidget::showAlgorithmSettings(std::shared_ptr<QWidget> algoSettings)
 {
-    ui->scrollAreaWidgetContents->layout()->replaceWidget(m_algoSettings, algoSettings);
+    ui->scrollAreaWidgetContents->layout()->replaceWidget(m_algoSettings.get(), algoSettings.get());
     m_algoSettings->setVisible(false);
     algoSettings->setVisible(true);
     m_algoSettings = algoSettings;

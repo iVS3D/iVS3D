@@ -29,15 +29,18 @@ find_package(OpenCV 4.10 REQUIRED COMPONENTS
 )
 
 set(HEADER_FILES
-    "${CMAKE_CURRENT_LIST_DIR}/segmentationplugin.h"
-    "${CMAKE_CURRENT_LIST_DIR}/nnloader.h"
+    "${CMAKE_CURRENT_LIST_DIR}/segplugin.h"
+    "${CMAKE_CURRENT_LIST_DIR}/segloader.h"
     "${CMAKE_CURRENT_LIST_DIR}/settingswidget.h"
+    "${CMAKE_CURRENT_LIST_DIR}/segsession.h"
+    "${CMAKE_CURRENT_LIST_DIR}/segmodel.h"
 )
 
 set(SRC_FILES
-    "${CMAKE_CURRENT_LIST_DIR}/segmentationplugin.cpp"
-    "${CMAKE_CURRENT_LIST_DIR}/nnloader.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/segplugin.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/segloader.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/settingswidget.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/segsession.cpp"
 )
 
 add_library(${TARGET_NAME} SHARED

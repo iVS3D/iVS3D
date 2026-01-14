@@ -422,12 +422,23 @@ void VideoPlayerController::slot_receiveVisualization(
     if (m_imageIndexOnScreen != result.idx) {
         //return;  // discard outdated visualization
     }
-    m_videoPlayer->showVisualization(result.visualization);
+    if (!result.visualization) {
+        QMessageBox::warning(
+            m_videoPlayer, tr("Error"),
+            tr("An error occurred during preview generation.\n%1")
+                .arg(result.visualization.error().message));
+        emit sig_disablePreview();
+        return;
+    }
+    m_videoPlayer->showVisualization(result.visualization.value());
 }
 
-void VideoPlayerController::slot_refreshPreview() {
+void VideoPlayerController::slot_refreshPreview(bool clearOldPreview) {
     if (m_imageIndexOnScreen == UINT_MAX || m_currentImage.empty() || !m_asyncVisualizer) {
         return;
+    }
+    if (clearOldPreview) {
+        m_videoPlayer->clearVisualization();  // clear current visualization
     }
     std::shared_ptr<ReaderParams> params =
         m_dataManager->getModelInputPictures()->getReaderParams();

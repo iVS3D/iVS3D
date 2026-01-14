@@ -17,7 +17,7 @@ Q_DECLARE_METATYPE(PreviewRequest)
 
 struct PreviewResult {
     uint idx;
-    Visualization visualization;
+    VisualizationResult visualization;
 };
 Q_DECLARE_METATYPE(PreviewResult)
 

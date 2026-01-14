@@ -96,11 +96,7 @@ void VideoPlayer::showVisualization(const Visualization& vis) {
     
     assert(m_imageItem != nullptr); // must have an image to overlay on!
 
-    if(m_visItemGroup) {
-        ui->graphicsView->scene()->removeItem(m_visItemGroup);
-        delete m_visItemGroup;
-        m_visItemGroup = nullptr;
-    }
+    clearVisualization();
 
     QRectF viewport;
     if (m_roiItem) {
@@ -172,6 +168,14 @@ void VideoPlayer::showVisualization(const Visualization& vis) {
     ui->graphicsView->show();
 
     updateOverlay();
+}
+
+void VideoPlayer::clearVisualization() {
+    if(m_visItemGroup) {
+        ui->graphicsView->scene()->removeItem(m_visItemGroup);
+        delete m_visItemGroup;
+        m_visItemGroup = nullptr;
+    }
 }
 
 void VideoPlayer::showImage(const cv::Mat& image) {

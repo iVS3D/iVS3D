@@ -15,7 +15,7 @@
 
 #include <memory>
 
-#include "nnloader.h"
+#include "segmodel.h"
 
 namespace segmentationplugin {
 
@@ -64,8 +64,7 @@ namespace segmentationplugin {
     class SettingsWidget : public QWidget {
         Q_OBJECT
     public:
-        explicit SettingsWidget(const QString& error_msg);
-        explicit SettingsWidget(const QVector<ModelInfo>& models);
+        explicit SettingsWidget(QWidget* parent = nullptr, const QVector<ModelInfo>& models = {});
         ~SettingsWidget() override = default;
 
         void setModel(const ModelInfo& model);

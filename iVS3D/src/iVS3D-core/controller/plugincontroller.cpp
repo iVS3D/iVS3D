@@ -9,6 +9,9 @@ PluginController::PluginController(DataManager* dataManager,
             &PluginController::slot_enablePreview);
     connect(m_samplingWidget, &SamplingWidget::sig_startSampling, this,
             &PluginController::slot_startSelection);
+    connect(m_vpc, &VideoPlayerController::sig_disablePreview, [=]() {
+        m_samplingWidget->disablePreview();
+    });
     
 
     m_currentPlugin = PluginHandle{nullptr, nullptr, nullptr};

@@ -1,4 +1,4 @@
-#include "nnloader.h"
+#include "segloader.h"
 
 #include <QDir>
 #include <QFileInfoList>
@@ -11,7 +11,7 @@ using namespace segmentationplugin;
 
 
 
-NNLoader::NNLoader(const QString& modelFolder) {
+ModelLoader::ModelLoader(const QString& modelFolder) {
     // here we'll load the models from the specified folder
     if (modelFolder.isEmpty()) {
         throw std::invalid_argument("Model folder path is empty.");
@@ -33,18 +33,21 @@ NNLoader::NNLoader(const QString& modelFolder) {
         // find associated .json config file
         QString configPath = fileInfo.absolutePath() + "/" + fileInfo.baseName() + ".json";
         if (!QFile::exists(configPath)) {
-            throw std::runtime_error("Config file does not exist for model: " + model.name.toStdString());
+            printf("Config file does not exist for model: %s\n", model.name.toStdString().c_str());
+            continue;
         }
 
         QFile configFile(configPath);
         if (!configFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
-            throw std::runtime_error("Failed to open config file: " + configPath.toStdString());
+            printf("Failed to open config file: %s\n", configPath.toStdString().c_str());
+            continue;
         }
         QByteArray configData = configFile.readAll();
         QJsonParseError err;
         QJsonDocument doc = QJsonDocument::fromJson(configData, &err);
         if (err.error != QJsonParseError::NoError) {
-            throw std::runtime_error("Failed to parse config file: " + configPath.toStdString() + " Error: " + err.errorString().toStdString());
+            printf("Failed to parse config file: %s Error: %s\n", configPath.toStdString().c_str(), err.errorString().toStdString().c_str());
+            continue;
         }
 
         QJsonObject obj = doc.object();
@@ -64,7 +67,8 @@ NNLoader::NNLoader(const QString& modelFolder) {
             modelClass.name = classJson["name"].toString();
             auto colorVal = classJson["color"].toArray();
             if (colorVal.size() != 3) {
-                throw std::runtime_error("Invalid color format in config for model: " + model.name.toStdString());
+                printf("Invalid color format in config for model: %s\n", model.name.toStdString().c_str());
+                continue;
             }
             modelClass.color = QColor(colorVal[0].toInt(), colorVal[1].toInt(), colorVal[2].toInt());
             model.classes.append(modelClass);

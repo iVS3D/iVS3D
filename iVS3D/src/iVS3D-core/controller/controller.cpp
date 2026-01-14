@@ -58,10 +58,8 @@ Controller::Controller(QString inputPath, QString settingsPath, QString outputPa
 
     m_colmapWrapper->getOrCreateUiControlsFactory()->updateIconTheme(otsTheme);
 
-    if(AlgorithmManager::instance().getAlgorithmCount() + TransformManager::instance().getTransformCount() >0){
-        displayPluginSettings();
-    }
     TransformManager::instance().enableCuda(ApplicationSettings::instance().getUseCuda());
+    PluginManager::instance().enableCuda(ApplicationSettings::instance().getUseCuda());
 
     LogManager::instance().toggleLog(ApplicationSettings::instance().getCreateLogs());
 
@@ -295,6 +293,7 @@ void Controller::slot_changeUseCuda(bool useCuda)
     if(!m_exporting){
         TransformManager::instance().enableCuda(ApplicationSettings::instance().getUseCuda());
     }
+    PluginManager::instance().enableCuda(ApplicationSettings::instance().getUseCuda());
     emit sig_hasStatusMessage(useCuda ? tr("CUDA enabled") : tr("CUDA disabled"));
 }
 
@@ -548,18 +547,6 @@ void Controller::setInputWidgetInfo() {
 
     // set altitude (if available)
     setAltitude();
-}
-
-void Controller::displayPluginSettings()
-{
-    SamplingWidget *samplingW = m_mainWindow->getSamplingWidget();
-    QWidget *settingsW;
-    if(AlgorithmManager::instance().getAlgorithmCount()>0){
-        settingsW = AlgorithmManager::instance().getSettingsWidget(samplingW,0);
-    }else {
-        settingsW = TransformManager::instance().getSettingsWidget(samplingW,0);
-    }
-    samplingW->showAlgorithmSettings(settingsW);
 }
 
 void Controller::onFailedOpen()

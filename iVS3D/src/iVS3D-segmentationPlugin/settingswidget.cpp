@@ -2,18 +2,8 @@
 
 using namespace segmentationplugin;
 
-SettingsWidget::SettingsWidget(const QString& error_msg) 
-    : QWidget(nullptr), m_models()
-    , m_stackedWidget(new QStackedWidget(this))
-    , m_settingsPage(new QWidget(this))
-    , m_errorPage(new QWidget(this))
-{
-    setupUI();
-    displayError(error_msg);
-}
-
-SettingsWidget::SettingsWidget(const QVector<ModelInfo>& models) 
-    : QWidget(nullptr), m_models(models)
+SettingsWidget::SettingsWidget(QWidget* parent, const QVector<ModelInfo>& models) 
+    : QWidget(parent), m_models(models)
     , m_stackedWidget(new QStackedWidget(this))
     , m_settingsPage(new QWidget(this))
     , m_errorPage(new QWidget(this))

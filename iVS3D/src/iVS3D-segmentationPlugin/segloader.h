@@ -1,30 +1,18 @@
 #pragma once
 
-#include <QColor>
 #include <QString>
 #include <QVector>
 
 #include <exception>
 #include <optional>
 
+#include "segmodel.h"
+
 namespace segmentationplugin {
 
-    struct ModelClass {
-        QString name;
-        QColor color;
-        bool selected = false;
-    };
-
-    struct ModelInfo {
-        QString name;
-        QString path;
-        std::vector<float> mean, std;
-        QVector<ModelClass> classes;
-    };
-
-    class NNLoader {
+    class ModelLoader {
     public:
-        NNLoader(const QString& modelFolder);
+        ModelLoader(const QString& modelFolder);
 
         const QVector<ModelInfo>& getModels() const { return m_models; }
         std::optional<ModelInfo> getModelByName(const QString& name) const {
