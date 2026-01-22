@@ -27,22 +27,6 @@ struct MaskData {
 };
 
 /**
- * @interface IMaskComputeSession
- * @brief Interface for a mask computation session.
- *
- * This interface defines the method to generate a binary mask based on the
- * provided MaskData. Each session will run in its own thread, detatched from the
- * main application thread.
- *
- * @date 2025/12/28
- * @author Dominik Wüst
- */
-struct IMaskComputeSession {
-    virtual ~IMaskComputeSession() = default;
-    virtual MaskResult generateMask(const MaskData& data) = 0;
-};
-
-/**
  * @interface IMask
  * @brief Interface for mask generation plugins in iVS3D.
  *
@@ -57,13 +41,17 @@ class IMask {
    public:
     virtual ~IMask() = default;
     /**
-     * @brief Creates a new mask computation session with the given settings.
+     * @brief Generates a binary mask for the given image data.
      *
-     * @param settings A map of settings to configure the mask computation session.
-     * @return A unique pointer to the created IMaskComputeSession.
+     * This method should be implemented by the plugin to create a binary mask
+     * based on the provided MaskData. The image in MaskData is already resized
+     * to the working resolution and cropped to the region of interest.
+     *
+     * @param data The MaskData containing the image and its index.
+     * @return A MaskResult containing either the generated cv::Mat mask or an
+     * Error if the mask generation failed.
      */
-    virtual std::unique_ptr<IMaskComputeSession> createMaskComputeSession(
-        const QMap<QString, QVariant>& settings) = 0;
+    virtual MaskResult generateMask(const MaskData& data) = 0;
 };
 
 Q_DECLARE_INTERFACE(IMask, "iVS3D.IMask")

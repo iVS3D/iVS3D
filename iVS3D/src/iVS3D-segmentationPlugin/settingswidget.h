@@ -1,7 +1,6 @@
 #pragma once
 
 #include <QWidget>
-#include <QStackedWidget>
 #include <QComboBox>
 #include <QFormLayout>
 #include <QGridLayout>
@@ -69,9 +68,6 @@ namespace segmentationplugin {
 
         void setModel(const ModelInfo& model);
         void setOverlayAlpha(float alpha);
-
-        void displayError(const QString& message);
-        void displaySettings();
     
     signals:
         void modelChanged(const QString modelName);
@@ -84,19 +80,8 @@ namespace segmentationplugin {
         }
 
     private:
-        void setupUI();
-        QVector<ModelInfo> m_models;
-
-        QStackedWidget* m_stackedWidget;
-
-        // Settings page
-        QWidget *m_settingsPage;
         QComboBox *m_modelComboBox;
         QSlider *m_alphaSlider;
         std::unique_ptr<ModelClassView> m_classView;
-
-        // Error page
-        QWidget *m_errorPage;
-        QLabel *m_errorLabel;
     };
 }

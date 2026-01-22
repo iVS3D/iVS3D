@@ -68,8 +68,17 @@ void PluginController::slot_selectPlugin(QString name) {
     m_samplingWidget->disablePreview();
 
     m_currentPlugin = *plugin_handle;
-    m_samplingWidget->showAlgorithmSettings(
-        m_currentPlugin.base->getSettingsWidget(m_samplingWidget));
+    auto result = m_currentPlugin.base->getSettingsWidget(m_samplingWidget);
+    if (!result) {
+        std::shared_ptr<QWidget> errorWidget = std::make_shared<QWidget>();
+        errorWidget->setLayout(new QVBoxLayout());
+        QLabel* errorLabel = new QLabel(
+            tr("The plugin encountered an error:\n%1").arg(result.error().message));
+        errorWidget->layout()->addWidget(errorLabel);
+        m_samplingWidget->showAlgorithmSettings(errorWidget);
+        return;
+    }
+    m_samplingWidget->showAlgorithmSettings(result.value());
 
     m_samplingWidget->setPreviewVisible(m_currentPlugin.hasPreview());
     m_samplingWidget->setSelectionVisible(m_currentPlugin.hasSelection());

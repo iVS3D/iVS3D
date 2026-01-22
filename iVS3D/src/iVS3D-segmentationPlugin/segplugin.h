@@ -14,7 +14,6 @@
 #include "imask.h"
 #include "ipreview.h"
 #include "segloader.h"
-#include "segsession.h"
 #include "settingswidget.h"
 
 using namespace segmentationplugin;
@@ -33,56 +32,15 @@ class SegmentationPlugin : public IBase, public IMask, public IPreview {
         return tr("Segmentation Plugin with Preview");
     }
 
-    std::shared_ptr<QWidget> getSettingsWidget(QWidget* parent) override {
-        // Lazy load the model loader and settings widget
-        std::optional<QString> errorMsg = std::nullopt;
-        if (!m_loader) {
-            try {
-                m_loader = std::make_shared<ModelLoader>(m_modelFolder);
-                auto models =
-                    m_loader->getModels();  // Trigger loading to catch errors
-                if (models.isEmpty()) {
-                    errorMsg = tr("No models found in the specified folder.");
-                }
-                m_currentInfo = models[0];  // Select the first model by default
-            } catch (const std::exception& e) {
-                errorMsg = QString("Failed to load models: %1").arg(e.what());
-                m_loader = nullptr;
-            }
-        }
-
-        if (!m_settingsWidget) {
-            m_settingsWidget = std::make_shared<SettingsWidget>(
-                parent,
-                m_loader ? m_loader->getModels() : QVector<ModelInfo>());
-            m_settingsWidget->setOverlayAlpha(0.5f);  // default alpha
-            connect(m_settingsWidget.get(), &SettingsWidget::modelChanged, this,
-                    &SegmentationPlugin::onModelChanged);
-            connect(m_settingsWidget.get(),
-                    &SettingsWidget::overlayAlphaChanged, [this](float alpha) {
-                        m_overlayAlpha =
-                            alpha;  // does not require cache invalidation
-                        emit updatePreview(false);
-                    });
-            connect(m_settingsWidget.get(),
-                    &SettingsWidget::classSelectionChanged, this,
-                    &SegmentationPlugin::onClassSelectionChanged);
-        }
-
-        if (errorMsg) {
-            m_settingsWidget->displayError(*errorMsg);
-        }
-
-        return m_settingsWidget;
-    }
+    SettingsWidgetResult getSettingsWidget(QWidget* parent) override;
 
     QMap<QString, QVariant> getSettings() const override {
         QMap<QString, QVariant> settings;
-        if (m_currentInfo) {
-            settings["modelName"] = m_currentInfo->name;
+        if (m_currentSession) {
+            settings["modelName"] = m_currentSession->info.name;
 
             QStringList selectedClasses;
-            for (const auto& cls : m_currentInfo->classes) {
+            for (const auto& cls : m_currentSession->info.classes) {
                 if (cls.selected) {
                     selectedClasses.append(cls.name);
                 }
@@ -93,58 +51,88 @@ class SegmentationPlugin : public IBase, public IMask, public IPreview {
         return settings;
     }
 
-    void setSettings(const QMap<QString, QVariant>& settings) override {
-        if (settings.contains("modelName")) {
-            QString modelName = settings["modelName"].toString();
-            onModelChanged(modelName);
+    std::optional<Error> setSettings(
+        const QMap<QString, QVariant>& settings) override {
+        // find the model name in the given settings
+        if (!settings.contains("modelName"))
+            return Error(ErrorCode::InvalidInput,
+                         tr("modelName is required in settings."));
+        QString modelName = settings["modelName"].toString();
+
+        // make sure we can load models
+        if (!m_loader) {
+            auto initError = initializeModelLoader();
+            if (initError) {
+                return initError;
+            }
         }
-        if (settings.contains("selectedClasses") && m_currentInfo) {
+
+        // load the model
+        auto model = m_loader->getModelByName(modelName);
+        if (!model) {
+            return Error(ErrorCode::InvalidInput,
+                         tr("Model '%1' not found.").arg(modelName));
+        }
+        m_currentSession = {model.value(), nullptr};
+        m_cache = std::nullopt;  // Clear cache
+
+        // load selected classes
+        for (auto& classInfo : m_currentSession->info.classes)
+            classInfo.selected = false;
+
+        if (settings.contains("selectedClasses")) {
             QStringList selectedClasses =
                 settings["selectedClasses"].toStringList();
-            QVector<bool> selectionFlags(m_currentInfo->classes.size(), false);
-            for (int i = 0; i < m_currentInfo->classes.size(); ++i) {
-                if (selectedClasses.contains(m_currentInfo->classes[i].name)) {
-                    selectionFlags[i] = true;
+            for (auto& classInfo : m_currentSession->info.classes) {
+                if (selectedClasses.contains(classInfo.name)) {
+                    classInfo.selected = true;
                 }
             }
-            onClassSelectionChanged(selectionFlags);
         }
+
+        // load overlay alpha
         if (settings.contains("overlayAlpha")) {
             m_overlayAlpha = settings["overlayAlpha"].toFloat();
-            if (m_settingsWidget) {
-                m_settingsWidget->setOverlayAlpha(m_overlayAlpha);
-            }
         }
+
+        // update settings widget if it exists
+        if (m_settingsWidget) {
+            m_settingsWidget->setModel(m_currentSession->info);
+            m_settingsWidget->setOverlayAlpha(m_overlayAlpha);
+        }
+        return std::nullopt;
     }
 
-    std::unique_ptr<IMaskComputeSession> createMaskComputeSession(
-        const QMap<QString, QVariant>& settings) override;
+    MaskResult generateMask(const MaskData& data) override;
 
     VisualizationResult generatePreview(const PreviewData& data) override;
 
     void onCudaChanged(bool enabled) override {
         m_useCuda = enabled;
-        if (m_currentInfo) {
-            m_currentSession = nullptr;  // force reload with new cuda setting
-            m_cache = std::nullopt;      // Clear cache
+        if (m_currentSession) {
+            m_currentSession->model =
+                nullptr;             // force reload with new cuda setting
+            m_cache = std::nullopt;  // Clear cache
             emit updatePreview(true);
         }
     }
 
    private slots:
     void onModelChanged(const QString& modelName) {
-        m_currentInfo = std::nullopt;
-        m_currentSession = nullptr;  // force reload with new model
+        m_currentSession = std::nullopt;  // force reload with new model
+        m_cache = std::nullopt;           // Clear entire cache on model change
 
         if (auto modelInfo = m_loader->getModelByName(modelName)) {
-            m_settingsWidget->setModel(*modelInfo);
-            m_settingsWidget->displaySettings();
-            m_currentInfo = *modelInfo;
+            m_currentSession = ModelSession{*modelInfo, nullptr};
+            m_settingsWidget->setModel(m_currentSession->info);
             // Do something with the selected model
         } else {
-            m_settingsWidget->displayError(tr("Selected model not found."));
+            emit encounteredError(
+                Error{ErrorCode::InvalidInput,
+                      tr("Model '%1' could not be found.").arg(modelName)});
+            return;
         }
-        m_cache = std::nullopt;  // Clear entire cache on model change
+
         emit updatePreview();
     }
 
@@ -153,25 +141,36 @@ class SegmentationPlugin : public IBase, public IMask, public IPreview {
             m_cache->maskImage =
                 cv::Mat();  // Invalidate only mask image in cache
         }  // Segmentation and colorized image can remain
-        assert(selectedClasses.size() == m_currentInfo->classes.size());
+        assert(selectedClasses.size() == m_currentSession->info.classes.size());
         for (size_t i = 0; i < selectedClasses.size(); ++i)
-            m_currentInfo->classes[i].selected = selectedClasses[i];
+            m_currentSession->info.classes[i].selected = selectedClasses[i];
 
-        if (m_currentSession) m_currentSession->setModelInfo(*m_currentInfo);
         emit updatePreview(false);
     }
 
    private:
+    tl::expected<NN::Tensor, NN::NeuralError> runInference(
+        const cv::Mat& image);
+    tl::expected<cv::Mat, NN::NeuralError> runColorization(
+        const NN::Tensor& inferenceTensor);
+    tl::expected<cv::Mat, NN::NeuralError> runMasking(
+        const NN::Tensor& inferenceTensor);
+    std::optional<Error> initializeModelLoader();
+
     QString m_modelFolder = QCoreApplication::applicationDirPath() +
                             "/plugins/resources/neural_network_models";
+
     std::shared_ptr<ModelLoader> m_loader;
     std::shared_ptr<SettingsWidget> m_settingsWidget;
 
     bool m_useCuda = false;
     float m_overlayAlpha = 0.5f;
 
-    std::optional<ModelInfo> m_currentInfo;
-    std::unique_ptr<SegmentationSession> m_currentSession;
+    struct ModelSession {
+        ModelInfo info;
+        NN::NeuralNetPtr model;
+    };
+    std::optional<ModelSession> m_currentSession;
 
     // cache for the last inference result (if any and valid)
     struct SegmentationCache {

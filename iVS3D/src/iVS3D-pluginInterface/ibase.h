@@ -1,6 +1,22 @@
 #pragma once
 
 #include <QObject>
+#include <QWidget>
+#include <QMap>
+#include <QVariant>
+#include <memory>
+#include <optional>
+#include <tl/expected.hpp>
+
+#include "ierror.h"
+
+/**
+ * @typedef SettingsWidgetResult
+ * @brief Type alias for the result of a settings widget creation operation, which can be
+ * either a successful shared pointer to a QWidget or an Error indicating failure.
+ */
+using SettingsWidgetResult = tl::expected<std::shared_ptr<QWidget>, Error>;
+
 
 /**
  * @interface IBase
@@ -35,9 +51,10 @@ class IBase : public QObject {
      * interface for the plugin. It is not used in headless mode. The plugin
      * can keep a pointer to the created widget.
      * @param parent The parent QWidget for the settings widget.
-     * @return A shared pointer to the settings QWidget.
+     * @return A shared pointer to the settings QWidget or an Error if the widget
+     * could not be created.
      */
-    virtual std::shared_ptr<QWidget> getSettingsWidget(QWidget* parent) = 0;
+    virtual SettingsWidgetResult getSettingsWidget(QWidget* parent) = 0;
 
     /**
      * @brief getSettings retrieves the current settings of the plugin as a map
@@ -58,7 +75,7 @@ class IBase : public QObject {
      * @see getSettings
      * @param settings A QMap containing the plugin settings as key-value pairs.
      */
-    virtual void setSettings(const QMap<QString, QVariant>& settings) = 0;
+    virtual std::optional<Error> setSettings(const QMap<QString, QVariant>& settings) = 0;
 
     /**
      * @brief activate is called when the plugin is activated in iVS3D.
@@ -138,6 +155,8 @@ class IBase : public QObject {
      * the progress status.
      */
     void updateProgress(int progress, QString message = QString());
+
+    void encounteredError(Error error);
 };
 
 Q_DECLARE_INTERFACE(IBase, "iVS3D.IBase")

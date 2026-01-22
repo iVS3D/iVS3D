@@ -7,7 +7,11 @@
  * @brief Enumeration of error codes used in iVS3D plugin interfaces.
  */
 enum class ErrorCode {
-    RuntimeError
+    RuntimeError,
+    InvalidInput,
+    NotImplemented,
+    ResourceUnavailable,
+    GpuOutOfMemory
 };
 
 /**
