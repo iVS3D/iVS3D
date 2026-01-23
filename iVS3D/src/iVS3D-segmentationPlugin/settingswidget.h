@@ -2,7 +2,6 @@
 
 #include <QWidget>
 #include <QComboBox>
-#include <QFormLayout>
 #include <QGridLayout>
 #include <QLabel>
 #include <QPushButton>
@@ -10,7 +9,11 @@
 #include <QColor>
 #include <QVector>
 #include <QString>
-#include <QCheckBox>
+#include <QScrollArea>
+#include <QSpacerItem>
+#include <QSizePolicy>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
 
 #include <memory>
 
@@ -24,24 +27,73 @@ namespace segmentationplugin {
         explicit ModelClassView(const QVector<ModelClass>& classes, QWidget* parent = nullptr)
             : QWidget(parent)
         {
-            auto layout = new QGridLayout(this);
-            int row = 0;
+            auto* mainLayout = new QVBoxLayout(this);
+            mainLayout->setSpacing(6);
+            mainLayout->setContentsMargins(0, 0, 0, 0);
+
+            auto* gridWidget = new QWidget();
+            auto* gridLayout = new QGridLayout(gridWidget);
+            gridLayout->setSpacing(6);
+            gridLayout->setContentsMargins(0, 0, 0, 0);
+            gridWidget->setLayout(gridLayout);
+
+            int displayIdx = 0;
             for (const auto& cls : classes) {
-                auto checkBox = new QCheckBox(cls.name, this);
-                checkBox->setStyleSheet(QString("QCheckBox { color: %1 }").arg(cls.color.name()));
-                layout->addWidget(checkBox, row++, 0);
-                connect(checkBox, &QCheckBox::stateChanged, this, &ModelClassView::onCheckBoxStateChanged);
-                m_classCheckBoxes.push_back(checkBox);
+                auto* button = new QPushButton(cls.name, this);
+                button->setCheckable(true);
+                button->setMinimumHeight(36);
+                button->setCursor(Qt::PointingHandCursor);
+
+                // Style the button with color border and background
+                QColor lighterColor = cls.color.lighter(180);
+                QString styleSheet = QString(
+                    "QPushButton {"
+                    "    border: 2px solid rgb(%1,%2,%3);"
+                    "    border-radius: 4px;"
+                    "    padding: 4px;"
+                    "    background-color: transparent;"
+                    "    font-weight: 500;"
+                    "}"
+                    "QPushButton:hover {"
+                    "    background-color: rgb(%4,%5,%6);"
+                    "    background-color: rgba(%4,%5,%6,50);"
+                    "}"
+                    "QPushButton:pressed {"
+                    "    background-color: rgba(%4,%5,%6,100);"
+                    "}"
+                    "QPushButton:checked {"
+                    "    background-color: rgba(%4,%5,%6,150);"
+                    "    font-weight: bold;"
+                    "}")
+                    .arg(cls.color.red()).arg(cls.color.green()).arg(cls.color.blue())
+                    .arg(lighterColor.red()).arg(lighterColor.green()).arg(lighterColor.blue());
+                
+                button->setStyleSheet(styleSheet);
+                m_classCheckBoxes.push_back(button);
+
+                // Connect button signal
+                connect(button, &QPushButton::toggled,
+                        this, [this, displayIdx](bool) { this->onClassStateChanged(); });
+
+                // Add to grid (2 columns)
+                int row = displayIdx / 2;
+                int col = displayIdx % 2;
+                gridLayout->addWidget(button, row, col);
+                displayIdx++;
             }
-            setLayout(layout);
+
+            // Add stretch to fill remaining space
+            gridLayout->addItem(new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding),
+                                (displayIdx / 2) + 1, 0, 1, 2);
+
+            mainLayout->addWidget(gridWidget);
+            this->setLayout(mainLayout);
         }
 
         ~ModelClassView() {
-            std::printf("ModelClassView destroyed\n");
-            for (const auto& cb : m_classCheckBoxes) {
-                disconnect(cb, &QCheckBox::stateChanged, this, &ModelClassView::onCheckBoxStateChanged);
-                layout()->removeWidget(cb);
-                delete cb;
+            for (const auto& button : m_classCheckBoxes) {
+                disconnect(button, nullptr, this, nullptr);
+                delete button;
             }
         }
 
@@ -49,15 +101,15 @@ namespace segmentationplugin {
         void classSelectionChanged(const QVector<bool>& selectedClasses);
 
     private slots:
-        void onCheckBoxStateChanged(int) {
+        void onClassStateChanged() {
             QVector<bool> selectedClasses;
-            for (const auto& cb : m_classCheckBoxes) {
-                selectedClasses.push_back(cb->isChecked());
+            for (const auto& button : m_classCheckBoxes) {
+                selectedClasses.push_back(button->isChecked());
             }
             emit classSelectionChanged(selectedClasses);
         }
     private:
-        QVector<QCheckBox*> m_classCheckBoxes;
+        QVector<QPushButton*> m_classCheckBoxes;
     };
 
     class SettingsWidget : public QWidget {
@@ -82,6 +134,7 @@ namespace segmentationplugin {
     private:
         QComboBox *m_modelComboBox;
         QSlider *m_alphaSlider;
+        QLabel *m_alphaValue;
         std::unique_ptr<ModelClassView> m_classView;
     };
 }

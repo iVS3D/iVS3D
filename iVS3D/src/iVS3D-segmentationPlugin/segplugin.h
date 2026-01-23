@@ -180,6 +180,7 @@ class SegmentationPlugin : public IBase, public IMask, public IPreview {
         cv::Mat colorizedImage =
             cv::Mat();                  // optional: can be empty if invalid
         cv::Mat maskImage = cv::Mat();  // optional: can be empty if invalid
+        long inferenceDurationMs = 0;   // Time taken for inference
     };
     std::optional<SegmentationCache> m_cache;
 };

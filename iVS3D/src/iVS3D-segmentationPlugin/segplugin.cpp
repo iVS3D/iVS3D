@@ -2,6 +2,7 @@
 
 #include "NeuralUtil.h"
 #include "QMessageBox"
+#include <chrono>
 
 SettingsWidgetResult SegmentationPlugin::getSettingsWidget(QWidget* parent) {
     if (!m_loader) {
@@ -78,7 +79,12 @@ VisualizationResult SegmentationPlugin::generatePreview(
 
     if (!m_cache) {
         // Inference if we don't have a cached result
+        auto start = std::chrono::high_resolution_clock::now();
+        
         auto inferenceResult = runInference(data.image);
+        
+        auto end = std::chrono::high_resolution_clock::now();
+        auto durationMs = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
 
         if (!inferenceResult) {
             if (inferenceResult.error().code() == NN::ErrorCode::OutOfMemory) {
@@ -97,6 +103,9 @@ VisualizationResult SegmentationPlugin::generatePreview(
         }
         m_cache = SegmentationCache{data.index, data.image,
                                     std::move(inferenceResult.value())};
+        m_cache->inferenceDurationMs = durationMs;
+    } else {
+        m_cache->inferenceDurationMs = 0;  // Cached result
     }
 
     if (m_cache->colorizedImage.empty()) {
@@ -144,7 +153,11 @@ VisualizationResult SegmentationPlugin::generatePreview(
     Visualization vis;
     {
         auto& view = vis.views.emplace_back();
-        view.title = tr("Segmentation Preview");
+        if (m_cache->inferenceDurationMs > 0) {
+            view.title = tr("Segmentation Preview (inference time: %1 ms)").arg(m_cache->inferenceDurationMs);
+        } else {
+            view.title = tr("Segmentation Preview (cached)");
+        }
         view.style.backgroundColor = Qt::transparent;
         view.style.viewport = ViewportType::FullImage;
         view.style.showTitle = true;
