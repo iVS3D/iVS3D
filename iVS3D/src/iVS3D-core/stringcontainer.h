@@ -73,6 +73,7 @@ struct stringContainer
     static const QString createLogsIdentifier;
     static const QString interpolateIdentifier;
     static const QString localeIdentifier;
+    static const QString defaultPluginIdentifier;
     // Identifier for LogFile
     static const QString logNameIdentifier;
     static const QString logIsPluginIdentifier;

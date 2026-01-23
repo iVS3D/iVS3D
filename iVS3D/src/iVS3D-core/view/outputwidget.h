@@ -31,7 +31,7 @@ public:
      * @param parent (ui-)class which holds this OutputWidget
      * @param title name of the Widget on the MainWindow
      */
-    explicit OutputWidget(QWidget *parent = nullptr, QString title = "Output", QStringList transformList = QStringList());
+    explicit OutputWidget(QWidget *parent = nullptr, QString title = "Output");
 
     /**
      * @brief setOutputPath sets the path text in the output folder text field
@@ -63,19 +63,6 @@ public:
     void showExportOptions();
 
     /**
-     * @brief getSelectedITransformMasks getter for all selected masks that should be exported
-     * @return returns list of all masks to be exported
-     */
-    std::vector<bool> getSelectedITransformMasks();
-
-    /**
-     * @brief setSelectedITransformMasks setter for masks that should be exported
-     * @param selection masks to select
-     * @return @a true if set successful
-     */
-    bool setSelectedITransformMasks(std::vector<bool> selection);
-
-    /**
      * @brief disableCreateFilesWidget will disable the create files for widget on the exportWidget
      * @param @a true shows the widget, @a false will hide it
      */
@@ -102,6 +89,8 @@ public:
 
     double getAltitude();
     void enableFormat(QString format, bool enable);
+
+    std::shared_ptr<MaskStackView> getMaskStackView();
 
 signals:
     /**

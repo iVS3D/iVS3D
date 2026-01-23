@@ -158,6 +158,7 @@ private slots:
     void slot_editCrop();
     void slot_useCropChanged(int checkstate);
     void slot_altitudeChanged(double altitude);
+    void slot_restorePluginSettings(int recordId);
 
 private:
     VideoPlayerController *m_videoPlayerController;
@@ -191,6 +192,8 @@ private:
     void setAltitude();
     // plugin runtime
     QElapsedTimer m_timer;
+
+    std::shared_ptr<MaskStack> m_stack;
 
 
 };

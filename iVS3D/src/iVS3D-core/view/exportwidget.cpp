@@ -2,14 +2,11 @@
 
 #include "ui_exportwidget.h"
 
-ExportWidget::ExportWidget(QWidget *parent, QStringList transformList)
+ExportWidget::ExportWidget(QWidget *parent)
     : QWidget(parent), ui(new Ui::ExportWidget) {
     ui->setupUi(this);
-    for (const auto &t : transformList) {
-        auto *cb = new QCheckBox(t);
-        m_checkboxes.push_back(cb);
-        ui->verticalLayout_transforms->addWidget(cb);
-    }
+    m_maskStackView = std::make_shared<MaskStackView>(this);
+    ui->verticalLayout_transforms->addWidget(m_maskStackView.get());
 
     connect(ui->comboBox_resolution, &QComboBox::currentTextChanged,
             [=](const QString &text) { emit sig_resChanged(text); });
@@ -19,10 +16,11 @@ ExportWidget::ExportWidget(QWidget *parent, QStringList transformList)
 }
 
 ExportWidget::~ExportWidget() {
-    for (auto cb : m_checkboxes) {
-        delete cb;
-    }
     delete ui;
+}
+
+std::shared_ptr<MaskStackView> ExportWidget::getMaskStackView() {
+    return m_maskStackView;
 }
 
 void ExportWidget::setOutputPath(QString path) { ui->lineEdit->setText(path); }
@@ -45,14 +43,6 @@ void ExportWidget::enableExportPathEditable(bool enabled) {
 }
 
 void ExportWidget::enableReconstruct(bool enabled) { (void)enabled; }
-
-std::vector<bool> ExportWidget::getSelectedITransforms() {
-    std::vector<bool> transforms;
-    for (const auto &cb : m_checkboxes) {
-        transforms.push_back(cb->isChecked());
-    }
-    return transforms;
-}
 
 void ExportWidget::on_pushButton_browse_clicked() {
     QString newPath = QFileDialog::getExistingDirectory(
@@ -77,16 +67,6 @@ void ExportWidget::on_lineEdit_textChanged(const QString &text) {
 
 void ExportWidget::on_spinBox_altitude_valueChanged(double d) {
     emit sig_altitudeChanged(d);
-}
-
-bool ExportWidget::setSelectedITransforms(std::vector<bool> selection) {
-    if (m_checkboxes.size() != selection.size()) {
-        return false;
-    }
-    for (int i = 0; i < (int)m_checkboxes.size(); i++) {
-        m_checkboxes[i]->setChecked(selection[i]);
-    }
-    return true;
 }
 
 void ExportWidget::enableCreateFilesWidget(bool enable) {
