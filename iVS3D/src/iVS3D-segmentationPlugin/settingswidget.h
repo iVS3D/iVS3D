@@ -41,6 +41,7 @@ namespace segmentationplugin {
             for (const auto& cls : classes) {
                 auto* button = new QPushButton(cls.name, this);
                 button->setCheckable(true);
+                button->setChecked(cls.selected);
                 button->setMinimumHeight(36);
                 button->setCursor(Qt::PointingHandCursor);
 

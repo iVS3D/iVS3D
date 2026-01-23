@@ -39,7 +39,7 @@ AutomaticController::AutomaticController(OutputWidget* outputWidget, AutomaticWi
 
 void AutomaticController::slot_setAlgorithm(int index)
 {
-    m_samplingWidget->setAlgorithm(index);
+    //m_samplingWidget->setAlgorithm(index);
 }
 
 void AutomaticController::slot_saveConfiguration()

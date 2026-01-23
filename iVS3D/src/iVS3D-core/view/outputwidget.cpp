@@ -1,8 +1,8 @@
 #include "outputwidget.h"
 
-OutputWidget::OutputWidget(QWidget *parent, QString title, QStringList transformList) : QWidget(parent)
+OutputWidget::OutputWidget(QWidget *parent, QString title) : QWidget(parent)
 {
-    m_exportW = new ExportWidget(this, transformList);
+    m_exportW = new ExportWidget(this);
     m_exportW->setVisible(true);
     m_progressW = new ProgressWidget(this);
     m_progressW->setVisible(false);
@@ -64,16 +64,6 @@ void OutputWidget::showExportOptions()
     m_layout->addWidget(m_exportW);
 }
 
-std::vector<bool> OutputWidget::getSelectedITransformMasks()
-{
-    return m_exportW->getSelectedITransforms();
-}
-
-bool OutputWidget::setSelectedITransformMasks(std::vector<bool> selection)
-{
-    return m_exportW->setSelectedITransforms(selection);
-}
-
 void OutputWidget::enableCreateFilesWidget(bool enable)
 {
     m_exportW->enableCreateFilesWidget(enable);
@@ -107,6 +97,10 @@ bool OutputWidget::setOutputFormat(QString format)
 void OutputWidget::enableFormat(QString format, bool enable)
 {
     m_exportW->enableFormat(format, enable);
+}
+
+std::shared_ptr<MaskStackView> OutputWidget::getMaskStackView() {
+    return m_exportW->getMaskStackView();
 }
 
 void OutputWidget::setAltitudeVisible(bool visible)

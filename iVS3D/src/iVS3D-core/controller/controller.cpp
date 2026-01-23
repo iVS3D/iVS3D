@@ -126,6 +126,15 @@ Controller::Controller(QString inputPath, QString settingsPath, QString outputPa
 Controller::~Controller()
 {
     delete m_colmapWrapper;
+    if (m_videoPlayerController) {
+        delete m_videoPlayerController;
+    }
+    if (m_pluginController) {
+        delete m_pluginController;
+    }
+    if (m_stackController) {
+        delete m_stackController;
+    }
     TransformManager::instance().exit();
 }
 
@@ -460,6 +469,34 @@ void Controller::slot_altitudeChanged(double altitude)
     m_dataManager->getModelInputPictures()->setAltitude(altitude);
 }
 
+void Controller::slot_restorePluginSettings(int id) {
+
+    const MaskRecord *record = m_stack->getRecordById(id);
+
+    m_mainWindow->getSamplingWidget()->setResolution(record->workingResolution.toString());
+    slot_workingResolutionChanged(record->workingResolution.toString());
+    std::shared_ptr<ReaderParams> params = m_dataManager->getModelInputPictures()->getReaderParams();
+    bool valid = params->setRoi(record->roi);
+    params->setUseRoi(!record->roi.isDefault());
+    m_mainWindow->getVideoPlayer()->setCropStatus(params->getUseRoi());
+    m_videoPlayerController->slot_mipChanged();
+    if (m_exportController) {
+        m_exportController->slot_roiChanged(params->getUseRoi() ? std::optional<ROI>(params->getRoi()) : std::nullopt);
+    }
+    auto result = PluginManager::instance().getPluginByName(record->pluginName);
+    assert(result.has_value());
+    auto error = result.value().base->setSettings(record->pluginSettings);
+    if (error.has_value()) {
+        QMessageBox msgBox;
+        msgBox.setText(tr("Error restoring plugin settings for plugin '") + record->pluginName + tr("': ") + error.value().message);
+        msgBox.exec();
+    }
+    if (m_pluginController) {
+        m_mainWindow->getSamplingWidget()->setSelectedPlugin(record->pluginName);
+        m_pluginController->slot_selectPlugin(record->pluginName);
+    }
+}
+
 void Controller::createOpenMessage(int numPics)
 {
     m_mainWindow->getVideoPlayer()->updateRoi();
@@ -710,7 +747,7 @@ void Controller::onSuccessfulOpen()
     // --- create new controllers for video player, export and image sampling
     // --- using the new data (in dataManager) and connect to main window
 
-    
+    m_stack = std::make_shared<MaskStack>();
 
     // VideoPlayerControler manages video player and timeline
     m_videoPlayerController = new VideoPlayerController(this, m_mainWindow->getVideoPlayer(), m_mainWindow->getTimeline(), m_dataManager);
@@ -720,11 +757,11 @@ void Controller::onSuccessfulOpen()
     connect(m_mainWindow, &MainWindow::sig_resetBoundaries, m_videoPlayerController, &VideoPlayerController::slot_resetBoundaries);
 
     // AlgorithmController manages input widget and algorithm used widgets and delegates image sampling
-    m_pluginController = new PluginController(m_dataManager, m_mainWindow->getSamplingWidget(), m_videoPlayerController);
+    m_pluginController = new PluginController(m_dataManager, m_mainWindow->getSamplingWidget(), m_videoPlayerController, m_stack);
+    connect(m_mainWindow->getOutputWidget()->getMaskStackView().get(), &MaskStackView::sig_recordSelected, this, &Controller::slot_restorePluginSettings);
 
     // ExportController manages algorithm used widget and reconstruct widget and delegates export of images and 3d-reconstruction
-    m_exportController = new ExportController(m_mainWindow->getOutputWidget(), m_dataManager, m_colmapWrapper);
-
+    m_exportController = new ExportController(m_mainWindow->getOutputWidget(), m_dataManager, m_colmapWrapper, m_stack);
     connect(m_exportController, &ExportController::sig_hasStatusMessage, m_mainWindow, &MainWindow::slot_displayStatusMessage);
     connect(m_exportController, &ExportController::sig_stopPlay, m_videoPlayerController, &VideoPlayerController::slot_stopPlay);
     connect(m_exportController, &ExportController::sig_exportStarted, this, &Controller::slot_exportStarted);
@@ -739,7 +776,7 @@ void Controller::onSuccessfulOpen()
 
 
     setInputWidgetInfo(); // initialize input widget with information about new input data
-    m_mainWindow->getSamplingWidget()->setAlgorithm(0);
+
     if(m_mainWindow->getInputEnabled()) m_mainWindow->enableOpenMetaData(true);
     m_mainWindow->enableTools(true);
 

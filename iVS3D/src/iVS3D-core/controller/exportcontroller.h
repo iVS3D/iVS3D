@@ -16,6 +16,7 @@
 #include "model/metaData/gpsreader.h"
 
 #include "colmapwrapper.h"
+#include "maskstack.h"
 
 #include <QObject>
 #include <QDebug>
@@ -55,7 +56,7 @@ public:
      * @param outputWidget
      * @param dataManager
      */
-    ExportController(OutputWidget *outputWidget, DataManager *dataManager, lib3d::ots::ColmapWrapper *colmap);
+    ExportController(OutputWidget *outputWidget, DataManager *dataManager, lib3d::ots::ColmapWrapper *colmap, std::shared_ptr<MaskStack> maskStack = nullptr);
 
 
     /**
@@ -150,6 +151,14 @@ public slots:
     void slot_altitudeChanged(double altitude);
 
     void slot_roiChanged(std::optional<ROI> roi);
+
+private slots:
+    /**
+     * @brief slot_onMaskStackChanged is triggered when the mask stack changes
+     * It updates the export settings accordingly
+     */
+    void slot_onMaskStackChanged();
+    
 private:
     /**
      * @brief startReconstruct handles starting reconstruct software, preparing its start-arguments, creating batch-files and project-file
@@ -191,6 +200,8 @@ private:
 
     double m_altitude_original = 0.0;
     double m_altitude_current = 0.0;
+
+    std::shared_ptr<MaskStack> m_maskStack;
 
 };
 

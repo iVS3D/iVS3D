@@ -8,6 +8,7 @@
 #include <QDoubleSpinBox>
 
 #include "applicationsettings.h" // used to determin text color depending on GUI style
+#include "maskstackview.h"
 
 #define EXPORT_FORMAT_SAME_AS_INPUT "same as input"
 
@@ -40,9 +41,10 @@ public:
      * @brief Creates an ExportWidget with the given QWidget as parent.
      * @param parent The parent for displaying
      */
-    explicit ExportWidget(QWidget *parent = nullptr, QStringList transformList = QStringList());
+    explicit ExportWidget(QWidget *parent = nullptr);
     ~ExportWidget();
 
+    std::shared_ptr<MaskStackView> getMaskStackView();
     /**
      * @brief setOutputPath sets the text in the path text box to given path.
      * @param path the path to display
@@ -66,19 +68,6 @@ public:
      * @param enabled button enabled if @a true, disabled otherwise
      */
     void enableReconstruct(bool enabled);
-
-    /**
-     * @brief getSelectedITransforms returns a list with @a list[i] = @a true if @a iTransform[i] is selected.
-     * @return The list
-     */
-    std::vector<bool> getSelectedITransforms();
-
-    /**
-     * @brief setSelectedITransforms selects the @a iTransform[i] if @a selected[i] = @a true.
-     * @param selection the iTransforms selection
-     * @return @a true if selection.size matches iTransform.count
-     */
-    bool setSelectedITransforms(std::vector<bool> selection);
 
     /**
      * @brief disableCreateFilesWidget will disable the create files for widget
@@ -153,9 +142,10 @@ private slots:
 
 private:
     Ui::ExportWidget *ui;
-    std::vector<QCheckBox*> m_checkboxes;
 
     QDoubleSpinBox *m_altitudeSpinBox;
+
+    std::shared_ptr<MaskStackView> m_maskStackView;
 
 };
 

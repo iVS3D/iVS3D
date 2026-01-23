@@ -2,7 +2,8 @@
 
 ExportController::ExportController(OutputWidget *outputWidget,
                                    DataManager *dataManager,
-                                   lib3d::ots::ColmapWrapper *colmap) {
+                                   lib3d::ots::ColmapWrapper *colmap,
+                                   std::shared_ptr<MaskStack> maskStack) {
     m_exportExec = nullptr;
     m_reconstructDialog = nullptr;
     m_currentExports.clear();
@@ -10,6 +11,16 @@ ExportController::ExportController(OutputWidget *outputWidget,
     m_outputWidget = outputWidget;
     m_dataManager = dataManager;
     m_colmap = colmap;
+    m_maskStack = maskStack;
+
+    connect(m_maskStack.get(), &MaskStack::sig_stackChanged, this,
+            &ExportController::slot_onMaskStackChanged);
+
+    auto maskStackView = m_outputWidget->getMaskStackView();
+    connect(maskStackView.get(), &MaskStackView::sig_removeRecord,
+            m_maskStack.get(), &MaskStack::removeRecordById);
+    connect(maskStackView.get(), &MaskStackView::sig_clearAll,
+            m_maskStack.get(), &MaskStack::clear);
 
     m_altitude_original = 0.0;
     m_altitude_current = 0.0;
@@ -87,19 +98,6 @@ QMap<QString, QVariant> ExportController::getOutputSettings() {
 
     if (use_roi) settings.insert(stringContainer::ROI, m_roi->toQRectF());
 
-    std::vector<bool> useItransform =
-        m_outputWidget->getSelectedITransformMasks();
-    QList<QVariant> iTransformSettings;
-    QList<QVariant> useItransformVariant;
-    int idx = 0;
-    for (bool use : useItransform) {
-        useItransformVariant.append(use);
-        iTransformSettings.append(
-            TransformManager::instance().getSettings(idx));
-    }
-    settings.insert(stringContainer::UseITransform, useItransformVariant);
-    settings.insert(stringContainer::ITransformSettings, iTransformSettings);
-
     settings.insert(stringContainer::OutputFormat,
                     m_outputWidget->getExportFormat());
     return settings;
@@ -110,14 +108,6 @@ void ExportController::setOutputSettings(QMap<QString, QVariant> settings) {
         m_path = settings.find(stringContainer::OutputPath).value().toString();
         m_outputWidget->setOutputPath(m_path);
     }
-
-    QList<QVariant> useItransformVariant =
-        settings.find(stringContainer::UseITransform).value().toList();
-    std::vector<bool> selection;
-    for (QVariant useItransform : useItransformVariant) {
-        selection.push_back(useItransform.toBool());
-    }
-    m_outputWidget->setSelectedITransformMasks(selection);
 
     if (settings.contains(stringContainer::Resolution)) {
         QString resolution =
@@ -308,9 +298,13 @@ void ExportController::slot_export() {
         }
     }
 
+    printf("[ExportController] Masks to create:\n");
+    for (const auto &rec : m_maskStack->getAllRecords()) {
+        printf("%s\n",
+               rec.getDisplayName().toStdString().c_str());
+    }
     // add Itransform folders
-    std::vector<bool> iTransformUsed =
-        m_outputWidget->getSelectedITransformMasks();
+    std::vector<bool> iTransformUsed = {};
     if (iTransformNames.length() != (int)iTransformUsed.size()) {
         // this shouldn't happen!
         qDebug()
@@ -474,8 +468,7 @@ bool ExportController::startReconstruct() {
     // mask path in project.ini file (for COLMAP) is set for the first
     // iTransform that has a masks folder
     bool maskPathIsSet = false;
-    std::vector<bool> iTransformUsed =
-        m_outputWidget->getSelectedITransformMasks();
+    std::vector<bool> iTransformUsed = {};
     if (iTransformUsed.size() != iTransformNames.length()) {
         // this shouldn't happen
         qDebug() << "start reconstruct failed, because .getTransformList() and "
@@ -768,4 +761,10 @@ void ExportController::slot_exportResolutionChanged(QString resolution) {
         m_outputWidget->enableExport(valid);
     }
     updateFormatOptions();
+}
+
+void ExportController::slot_onMaskStackChanged() {
+    printf("Mask stack changed, updating UI options\n");
+    m_outputWidget->getMaskStackView()->setRecords(
+        m_maskStack->getAllRecords());
 }
