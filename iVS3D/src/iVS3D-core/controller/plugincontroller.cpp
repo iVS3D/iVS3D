@@ -1,6 +1,11 @@
 #include "plugincontroller.h"
+#include <QtConcurrent>
 
 #include "applicationsettings.h"
+#include <QProgressBar>
+#include <QLabel>
+#include <QVBoxLayout>
+
 PluginController::PluginController(DataManager* dataManager,
                                    SamplingWidget* samplingWidget,
                                    VideoPlayerController* vpc,
@@ -75,6 +80,94 @@ void PluginController::slot_enablePreview(bool enabled) {
 void PluginController::slot_startSelection() {
     printf("[PluginController] Starting selection with following plugin: %s\n",
            m_currentPlugin.name().toStdString().c_str());
+
+    if (!m_currentPlugin.hasSelection()) return;
+    
+    m_samplingWidget->setPreviewEnabled(false);
+    m_vpc->slot_stopPlay(); // stop playback if running
+
+    // Prepare selection data
+    SelectionData data;
+    data.selectedIndices = m_dataManager->getModelInputPictures()->getAllKeyframes(true);
+    data.roi = m_dataManager->getModelInputPictures()->getReaderParams()->getRoi();
+    data.workingResolution = m_dataManager->getModelInputPictures()
+                                 ->getReaderParams()
+                                 ->getWorkingResolution();
+                                    
+    // Reset cancel flag
+    m_selectionCancelFlag = false;
+    
+    // Create progress dialog
+    QDialog* progressDialog = new QDialog(m_samplingWidget);
+    progressDialog->setWindowTitle(tr("Selection in progress"));
+    progressDialog->setModal(true);
+    QVBoxLayout* layout = new QVBoxLayout(progressDialog);
+    QLabel* label = new QLabel(tr("Please wait while the selection is being processed..."));
+    QProgressBar* progressBar = new QProgressBar();
+    progressBar->setRange(0, 100);
+    layout->addWidget(label);
+    layout->addWidget(progressBar);
+    
+    // Add cancel button
+    QPushButton* cancelButton = new QPushButton(tr("Cancel"));
+    layout->addWidget(progressBar);
+    layout->addWidget(cancelButton);
+    progressDialog->setLayout(layout);
+    
+    connect(cancelButton, &QPushButton::clicked, this, [this]() {
+        m_selectionCancelFlag = true;
+    });
+    
+    // Connect progress updates (works across thread boundaries in Qt)
+    connect(m_currentPlugin.base, &IBase::updateProgress, progressBar,
+            [progressBar](int progress, QString message) {
+                progressBar->setValue(progress);
+                if (!message.isEmpty()) {
+                    progressBar->setFormat(message + " (%p%)");
+                }
+            }, Qt::QueuedConnection);
+
+    progressDialog->show();
+    
+    // Run the expensive operation in a worker thread
+    auto selectionFunction = [this, data]() {
+        return m_currentPlugin.selection->selectImages(data, m_selectionCancelFlag);
+    };
+    
+    QFuture<decltype(m_currentPlugin.selection->selectImages(data, m_selectionCancelFlag))> future = 
+        QtConcurrent::run(QThreadPool::globalInstance(), selectionFunction);
+    
+    // Monitor completion with QFutureWatcher
+    auto* watcher = new QFutureWatcher<decltype(m_currentPlugin.selection->selectImages(data, m_selectionCancelFlag))>(this);
+    
+    connect(watcher, &QFutureWatcherBase::finished, this, [this, progressDialog, watcher]() {
+        progressDialog->close();
+        progressDialog->deleteLater();
+        
+        auto result = watcher->result();
+        if (m_selectionCancelFlag) {
+            // Selection was cancelled
+            QMessageBox::information(
+                m_samplingWidget, tr("Selection Cancelled"),
+                tr("The selection process was cancelled by the user."));
+            watcher->deleteLater();
+            return;
+        }
+        
+        if (!result) {
+            QMessageBox::critical(
+                m_samplingWidget, tr("Selection Error"),
+                tr("An error occurred during selection:\n%1")
+                    .arg(result.error().message));
+        } else {
+            auto selectedIndices = result.value();
+            m_dataManager->getModelInputPictures()->updateMIP(selectedIndices);
+        }
+        
+        watcher->deleteLater();
+    });
+    
+    watcher->setFuture(future);
 }
 
 void PluginController::slot_addMask() {

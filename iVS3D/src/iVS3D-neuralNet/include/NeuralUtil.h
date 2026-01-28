@@ -251,4 +251,14 @@ auto bind_inference(NN::NeuralNetPtr model) {
     };
 }
 
+template<typename... Args>
+auto bind_selectOutput(size_t index) {
+    return [=](std::vector<NN::Tensor>&& outputs) -> tl::expected<NN::Tensor, NN::NeuralError> {
+        if (index >= outputs.size()) {
+            return tl::unexpected(NN::NeuralError(NN::ErrorCode::InvalidArgument, "Output index out of range"));
+        }
+        return std::move(outputs[index]);
+    };
+}
+
 } // namespace NN::Util

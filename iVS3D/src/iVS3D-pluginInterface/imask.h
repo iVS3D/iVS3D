@@ -5,8 +5,6 @@
 
 #include "ierror.h"
 #include "opencv2/core.hpp"
-#include "resolution.h"
-#include "roi.h"
 
 /**
  * @typedef MaskResult

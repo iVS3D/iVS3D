@@ -26,6 +26,16 @@ QVector<PluginHandle> PluginManager::getMaskPlugins() const {
     return maskPlugins;
 }
 
+QVector<PluginHandle> PluginManager::getSelectionPlugins() const {
+    QVector<PluginHandle> selectionPlugins;
+    for (const PluginHandle& handle : m_plugins.values()) {
+        if (handle.hasSelection()) {
+            selectionPlugins.append(handle);
+        }
+    }
+    return selectionPlugins;
+}
+
 std::optional<PluginHandle> PluginManager::getPluginByName(const QString& name) const {
     if (!m_plugins.contains(name)) {
         return std::nullopt;
@@ -82,6 +92,7 @@ void PluginManager::loadPlugins() {
 
         handle.preview = qobject_cast<IPreview*>(handle.qobject);
         handle.mask = qobject_cast<IMask*>(handle.qobject);
+        handle.selection = qobject_cast<ISelection*>(handle.qobject);
         m_plugins.insert(handle.name(), handle);
         // print info like name and supported interfaces
         std::cout << "[INFO] Loaded plugin: " << handle.name().toStdString() << " | Supports Preview: " 
