@@ -93,6 +93,7 @@ void PluginController::slot_startSelection() {
     data.workingResolution = m_dataManager->getModelInputPictures()
                                  ->getReaderParams()
                                  ->getWorkingResolution();
+    data.reader = m_dataManager->getModelInputPictures()->getReader();
                                     
     // Reset cancel flag
     m_selectionCancelFlag = false;

@@ -7,6 +7,7 @@
 #include "ierror.h"
 #include "resolution.h"
 #include "roi.h"
+#include "reader.h"
 #include "opencv2/core.hpp"
 
 
@@ -15,6 +16,7 @@ struct SelectionData {
     std::vector<uint> selectedIndices; // Indices of the selected images
     Resolution workingResolution;      // Working resolution of the images
     ROI roi;                           // Region of interest within the images
+    Reader* reader;                    // Pointer to the Reader instance
 };
 
 using SelectionResult = tl::expected<std::vector<uint>, Error>;
