@@ -120,20 +120,20 @@ class IBase : public QObject {
     void updatePreview(bool clearOldPreview = true);
 
     /**
-     * @brief [signal] updateSelectedFrames(std::vector<uint> selectedFrames)
-     * can be emitted when the plugin wants to update the selection of frames in
+     * @brief [signal] updateSelectedImages(std::vector<uint> selectedImages)
+     * can be emitted when the plugin wants to update the selection of images in
      * the video player. iVS3D will only handle this signal if the plugin is
      * currently active.
      *
-     * This signal notifies the system to change the currently selected frames
-     * in the video player to the specified list of frame indices.
+     * This signal notifies the system to change the currently selected images
+     * in the video player to the specified list of image indices.
      * 
      * @see activate, deactivate
      *
-     * @param selectedFrames A vector containing the indices of the frames to
+     * @param selectedImages A vector containing the indices of the images to
      * be selected in the video player.
      */
-    void updateSelectedFrames(std::vector<uint> selectedFrames);
+    void updateSelectedImages(std::vector<uint> selectedImages);
 
     /**
      * @brief [signal] updateProgress(int progress, QString message) can be

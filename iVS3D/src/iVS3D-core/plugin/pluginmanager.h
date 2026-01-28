@@ -10,6 +10,7 @@
 #include "ibase.h"
 #include "imask.h"
 #include "ipreview.h"
+#include "iselection.h"
 
 struct PluginHandle {
     QPluginLoader* loader;
@@ -17,6 +18,7 @@ struct PluginHandle {
     QObject* qobject;
     IPreview* preview = nullptr;
     IMask* mask = nullptr;
+    ISelection* selection = nullptr;
 
     QString name() const { return base ? base->getName() : QString(); }
 
@@ -24,7 +26,7 @@ struct PluginHandle {
 
     bool hasMask() const { return mask != nullptr; }
 
-    bool hasSelection() const { return false; }
+    bool hasSelection() const { return selection != nullptr; }
 };
 
 class PluginManager : public QObject {
@@ -36,6 +38,7 @@ public:
     QVector<PluginHandle> getPlugins() const;
     QStringList getPluginNames() const;
     QVector<PluginHandle> getMaskPlugins() const;
+    QVector<PluginHandle> getSelectionPlugins() const;
     std::optional<PluginHandle> getPluginByName(const QString& name) const;
 
     void enableCuda(bool useCuda);

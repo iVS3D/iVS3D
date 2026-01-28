@@ -52,7 +52,7 @@ namespace NN
         return tl::unexpected(NeuralError(ErrorCode::InvalidArgument, "Unsupported cv::Mat type (only CV_8U and CV_32F are supported)"));
     }
 
-    tl::expected<Tensor, NeuralError> Tensor::fromCvMat(const cv::Mat &mat, const Shape &shape, float scale, std::vector<float> mean, std::vector<float> std)
+    tl::expected<Tensor, NeuralError> Tensor::fromCvMat(const cv::Mat &mat, const Shape &shape, float scale, std::vector<float> mean, std::vector<float> std, int gridSize)
     {
         if (mat.empty())
         {
@@ -103,6 +103,12 @@ namespace NN
 
             // convert to float and resize if necessary
             cv::Size size(shape[shape.size() - 2], shape[shape.size() - 1]);
+            if (size == cv::Size(-1,-1) && gridSize > 1)
+            {
+                size.width = ((mat.cols + gridSize - 1) / gridSize) * gridSize;
+                size.height = ((mat.rows + gridSize - 1) / gridSize) * gridSize;
+            }
+            
             if (size != cv::Size(-1,-1) && size != mat.size())
             {
                 cv::resize(mat, tmp, size, 0, 0, cv::INTER_AREA);
@@ -148,8 +154,8 @@ namespace NN
             std.resize(mean.size(), 1.0f); // If mean is provided, std must also be provided
         }
 
-        cv::Mat tmp = mean.empty() ? preprocessCvMat(mat, shape, scale)
-                                   : preprocessCvMat(mat, shape, scale, mean, std);
+        cv::Mat tmp = mean.empty() ? preprocessCvMat(mat, shape, scale, gridSize)
+                                   : preprocessCvMat(mat, shape, scale, mean, std, gridSize);
 
         // create the tensor
         return fromCvMat(tmp);
@@ -174,7 +180,7 @@ namespace NN
         return tl::unexpected(NeuralError(ErrorCode::InvalidArgument, "Unsupported cv::Mat depth"));
     }
 
-    tl::expected<Tensor, NeuralError> Tensor::fromCvMats(const std::vector<cv::Mat> &mats, const Shape &shape, float scale, std::vector<float> mean, std::vector<float> std)
+    tl::expected<Tensor, NeuralError> Tensor::fromCvMats(const std::vector<cv::Mat> &mats, const Shape &shape, float scale, std::vector<float> mean, std::vector<float> std, int gridSize)
     {
         if (mats.empty())
         {
@@ -220,8 +226,8 @@ namespace NN
             {
                 return tl::unexpected(NeuralError(ErrorCode::InvalidArgument, "One of the input cv::Mat is empty"));
             }
-            cv::Mat preprocessed = mean.empty() ? preprocessCvMat(mat, shape, scale)
-                                                : preprocessCvMat(mat, shape, scale, mean, std);
+            cv::Mat preprocessed = mean.empty() ? preprocessCvMat(mat, shape, scale, gridSize)
+                                                : preprocessCvMat(mat, shape, scale, mean, std, gridSize);
 
             preprocessedMats.push_back(preprocessed);
         }

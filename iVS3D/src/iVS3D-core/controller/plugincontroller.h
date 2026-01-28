@@ -30,4 +30,5 @@ private:
     VideoPlayerController* m_vpc;
     PluginHandle m_currentPlugin;
     std::shared_ptr<MaskStack> m_maskStack;
+    volatile bool m_selectionCancelFlag;
 };

@@ -36,40 +36,66 @@ namespace NN
          * @brief Perform inference on the given input tensor.
          * 
          * @param input The input tensor to the neural network. This tensor must have the correct shape and data type expected by the model.
-         * @return tl::expected<Tensor, NeuralError> The output tensor or an error object.
+         * @return tl::expected<std::vector<Tensor>, NeuralError> The output tensors or an error object.
          * 
          * @details
-         * This method takes an input tensor, processes it through the neural network, and returns the output tensor.
+         * This method takes an input tensor, processes it through the neural network, and returns the output tensors.
          * The input tensor must match the expected input shape of the model.
          * If the input tensor is invalid or the inference fails, an error object is returned.
          */
-        virtual tl::expected<Tensor, NeuralError> infer(const Tensor& input) = 0;
+        virtual tl::expected<std::vector<Tensor>, NeuralError> infer(const Tensor& input) = 0;
 
         /**
          * @brief Call the infer method with the given input tensor.
          * 
          * @param input The input tensor to the neural network.
-         * @return tl::expected<Tensor, NeuralError> The output tensor or an error object.
+         * @return tl::expected<std::vector<Tensor>, NeuralError> The output tensors or an error object.
          * 
          * @see infer(const Tensor& input) for more details.
          */
-        tl::expected<Tensor, NeuralError> operator()(const Tensor& input) {
+        tl::expected<std::vector<Tensor>, NeuralError> operator()(const Tensor& input) {
             return infer(input);
         }
 
         /**
-         * @brief Get the input shape of the neural network. This might contain dynamic dimensions (e.g., -1 for batch size).
+         * @brief Get the number of inputs of the neural network.
          * 
+         * @return size_t The number of inputs.
+         */
+        virtual size_t inputCount() const = 0;
+        /**
+         * @brief Get the number of outputs of the neural network.
+         * 
+         * @return size_t The number of outputs.
+         */
+        virtual size_t outputCount() const = 0;
+        /**
+         * @brief Get the input shape of the neural network. This might contain dynamic dimensions (e.g., -1 for batch size).
+         * @param idx The index of the input to query (default is 0). Valid indices are in the range [0, inputCount()).
          * @return Shape The input shape of the neural network.
          */
-        virtual Shape inputShape() const = 0;
+        virtual Shape inputShape(size_t idx = 0) const = 0;
 
         /**
          * @brief Get the output shape of the neural network. This might contain dynamic dimensions (e.g., -1 for batch size).
-         * 
+         * @param idx The index of the output to query (default is 0). Valid indices are in the range [0, outputCount()).
          * @return Shape The output shape of the neural network.
          */
-        virtual Shape outputShape() const = 0;
+        virtual Shape outputShape(size_t idx = 0) const = 0;
+
+        /**
+         * @brief Get the name of the input tensor.
+         * @param idx The index of the input to query (default is 0). Valid indices are in the range [0, inputCount()).
+         * @return std::string The name of the input tensor.
+         */
+        virtual std::string inputName(size_t idx = 0) const = 0;
+
+        /**
+         * @brief Get the name of the output tensor.
+         * @param idx The index of the output to query (default is 0). Valid indices are in the range [0, outputCount()).
+         * @return std::string The name of the output tensor.
+         */
+        virtual std::string outputName(size_t idx = 0) const = 0;
 
         /**
          * @brief Get the GPU ID used by the neural network if it is configured to use GPU.

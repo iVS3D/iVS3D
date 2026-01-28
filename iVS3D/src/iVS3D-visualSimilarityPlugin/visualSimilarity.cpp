@@ -189,6 +189,7 @@ std::vector<uint> VisualSimilarity::sampleImages(const std::vector<unsigned int>
                 // TODO: check which mean and std are needed!
                 auto result = Tensor::fromCvMats(imgs, nnInputShape, 1.0 / 255.0, NN_MEAN, NN_STD)
                                   .and_then(Util::bind_inference(this->m_neuralNet))
+                                  .and_then(Util::bind_selectOutput(0))
                                   .and_then(Util::bind_squeeze())
                                   .and_then(Util::bind_toCvMat());
                 if (result)

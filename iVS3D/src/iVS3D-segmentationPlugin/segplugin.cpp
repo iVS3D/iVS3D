@@ -216,6 +216,7 @@ tl::expected<NN::Tensor, NN::NeuralError> SegmentationPlugin::runInference(
                                  1.0f, m_currentSession->info.mean,
                                  m_currentSession->info.std)
         .and_then(NN::Util::bind_inference(m_currentSession->model))
+        .and_then(NN::Util::bind_selectOutput(0))
         .and_then([](NN::Tensor&& tensor)
                       -> tl::expected<NN::Tensor, NN::NeuralError> {
             // squeeze the tensor to remove leading dimensions of size 1
