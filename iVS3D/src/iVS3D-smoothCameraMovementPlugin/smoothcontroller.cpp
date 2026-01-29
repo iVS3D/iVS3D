@@ -183,6 +183,8 @@ void SmoothController::initialize(Reader *reader,
 
     m_reader = reader;
     cv::Mat testPic = reader->getPic(0);
+    if (testPic.empty())
+        return;
     m_inputResolution.setX(testPic.cols);
     m_inputResolution.setY(testPic.rows);
 
