@@ -20,6 +20,7 @@ extern "C" {
 #include <libavformat/avformat.h>
 #include <libavutil/rational.h>
 #include <libswscale/swscale.h>
+#include <libavutil/pixfmt.h>
 }
 
 #define NOT_IMPLEMENTED assert(false && "Not implemtented yet.")
@@ -163,8 +164,8 @@ class VideoReader : public Reader
     int openFormatContext();
     int selectVideoStream();
     int openCodec();
-    int createSWS();
-    int decodeNextPkg();
+    int updateSWSContext(const int width, const int height, AVPixelFormat pixFormat);
+    int decodeNextPkg(std::vector<int> &decodedIdx);
 };
 
 REGISTER_READER("VideoReader", VideoReader)

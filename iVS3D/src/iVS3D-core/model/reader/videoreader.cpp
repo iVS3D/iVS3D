@@ -1,5 +1,11 @@
 #include "videoreader.h"
+#include <libavcodec/packet.h>
+#include <libavutil/error.h>
+#include <libavutil/pixfmt.h>
+#include <libswscale/swscale.h>
+#include <cstdint>
 #include <string>
+#include <vector>
 
 VideoReader::VideoReader(const QString &path,
                          std::shared_ptr<ReaderParams> readerParams)
@@ -11,7 +17,6 @@ VideoReader::VideoReader(const QString &path,
     if (openFormatContext() > 0) return;
     if (selectVideoStream() > 0) return;
     if (openCodec() > 0) return;
-    if (createSWS() > 0) return;
 
     // validate the given readerParams, initialize if necessary!
     uint w = m_codecContext->width;
@@ -121,18 +126,20 @@ int VideoReader::openCodec() {
     return 0;
 }
 
-int VideoReader::createSWS() {
-    AVPixelFormat pixFormat = m_codecContext->pix_fmt;
-    // replaceDeprecatedPixFmt(pixFormat);
-    int m_outW = m_codecContext->width;
-    int m_outH = m_codecContext->height;
-    m_swsContext =
-        sws_getContext(m_codecContext->width, m_codecContext->height, pixFormat,
-                       m_outW, m_outH, AVPixelFormat::AV_PIX_FMT_BGR24,
-                       SWS_BILINEAR, NULL, NULL, NULL);
-    if (!m_swsContext) return -1;
+int VideoReader::updateSWSContext(const int width, const int height,
+                                  AVPixelFormat pixFormat) {
+    m_swsContext = sws_getCachedContext(
+        m_swsContext,
+        width,
+        height,
+        pixFormat,
+        width,
+        height,
+        AVPixelFormat::AV_PIX_FMT_BGR24,
+        SWS_POINT,
+        NULL, NULL, NULL);
 
-    return 0;
+    return !m_swsContext;
 }
 
 void VideoReader::addMetaData(MetaData *md) { m_md = md; }
@@ -148,7 +155,7 @@ cv::Mat VideoReader::getPic(unsigned int index, PictureProcessingFlags flags) {
         return cv::Mat();
 
     std::map<uint, AVFrame *>::iterator iter = m_buffer.find(index);
-    const bool backwardsSeek = index < m_lastFrameIdx;
+    const bool backwardsSeek = (int)index < m_lastFrameIdx;
     const bool inBuffer = iter != m_buffer.end();
     const bool longRangeSeek = abs((int)(m_lastFrameIdx - index)) >
                                m_avgVideoFPS.num / m_avgVideoFPS.den;
@@ -166,6 +173,7 @@ cv::Mat VideoReader::getPic(unsigned int index, PictureProcessingFlags flags) {
     }
 
     // sequential read until index is reached
+    uint seqReadFrames = 0;
     while (iter == m_buffer.end()) {
         if (m_buffer.size() > m_avgVideoFPS.num / m_avgVideoFPS.den) {
             for (auto &d_iter : m_buffer) {
@@ -175,7 +183,8 @@ cv::Mat VideoReader::getPic(unsigned int index, PictureProcessingFlags flags) {
             m_buffer.clear();
         }
 
-        int decode_res = decodeNextPkg();
+        std::vector<int> seqDecodedIdx = {};
+        int decode_res = decodeNextPkg(seqDecodedIdx);
         switch (decode_res) {
             case 0:  // more frames to decode
                 break;
@@ -188,10 +197,22 @@ cv::Mat VideoReader::getPic(unsigned int index, PictureProcessingFlags flags) {
                 return cv::Mat();
         }
 
-        iter = m_buffer.find(index);
         if (decode_res == AVERROR_EOF && iter == m_buffer.end()) {
             return cv::Mat();
         }
+        iter = m_buffer.find(index);
+
+        bool longSeqDecode =
+            ++seqReadFrames > 2 * m_avgVideoFPS.num / m_avgVideoFPS.den;
+        bool lastSeqIdxHigher =
+            seqDecodedIdx.size() > 0 && *(seqDecodedIdx.end() - 1) > index;
+        if (longSeqDecode && lastSeqIdxHigher) {
+            // if frame was not found in 2s of sequentially read frames and the
+            // index last decoded index is lower anyways, its unlikely that the
+            // frame will be found
+            return cv::Mat();
+        }
+
     }
     cv::Mat img = avFrame2CvMat(iter->second);
     if (img.empty())
@@ -208,19 +229,23 @@ cv::Mat VideoReader::getPic(unsigned int index, PictureProcessingFlags flags) {
     return img;
 }
 
-int VideoReader::decodeNextPkg() {
+int VideoReader::decodeNextPkg(std::vector<int> &decodedIdx) {
     AVPacket *packet = av_packet_alloc();
     int read_res = av_read_frame(m_formatContext, packet);
     if (read_res == AVERROR_EOF) {
-        av_packet_free(&packet);
-        packet = NULL;  // send flush packet
+        packet = nullptr;  // send flush packet
     } else if (read_res < 0) {
         av_packet_free(&packet);
         return read_res;
     }
+    //
+    // if (packet && packet->stream_index != m_streamId) {
+    //     av_packet_free(&packet);
+    //     return 0;
+    // }
+
     int send_res = avcodec_send_packet(m_codecContext, packet);
-    // TODO: handle error properly, this assert is triggered in some videos
-    //assert(send_res == 0 && "Error sending packet for decoding"); 
+    av_packet_free(&packet);
 
     int receive_res = 0;
     while (receive_res == 0) {
@@ -232,17 +257,16 @@ int VideoReader::decodeNextPkg() {
             break;  // pkg fully decoded
         } else if (receive_res < 0) {
             av_frame_free(&av_frame);
-            av_packet_free(&packet);
             return receive_res;
         }
         int64_t idx =
             av_rescale_q(av_frame->pts - m_startTimestamp, m_streamTimeBase,
                          AVRational{m_avgVideoFPS.den, m_avgVideoFPS.num});
         m_buffer[idx] = av_frame;
+        decodedIdx.push_back(idx);
         m_lastFrameIdx = idx;
     }
 
-    av_packet_free(&packet);
     return 0;
 }
 
@@ -287,12 +311,27 @@ SequentialReader *VideoReader::createSequentialReader(
 }
 
 cv::Mat VideoReader::avFrame2CvMat(const AVFrame *av_f) {
-    const int h = m_codecContext->coded_height;
-    const int w = m_codecContext->coded_width;
+    const int h = av_f->height;
+    const int w = av_f->width;
+    if (av_f->format < 0)
+        return cv::Mat();
+    const AVPixelFormat pixFormat = static_cast<AVPixelFormat>(av_f->format);
+
+    if (updateSWSContext(w, h, pixFormat) < 0)
+        return cv::Mat();
+
     cv::Mat cv_f(h, w, CV_8UC3);
-    const int cv_lineSize = cv_f.step1();
-    const int out_h = sws_scale(m_swsContext, av_f->data, av_f->linesize, 0,
-              h, &cv_f.data, &cv_lineSize);
+    uint8_t* cv_data[4] = {cv_f.data, nullptr, nullptr, nullptr};
+    int cv_lineSize[4] = {static_cast<int>(cv_f.step[0]), 0, 0, 0};
+    const int out_h = sws_scale(
+        m_swsContext,
+        av_f->data,
+        av_f->linesize,
+        0,
+        h,
+        cv_data,
+        cv_lineSize);
+
     if (out_h != h)
         return cv::Mat();
     return cv_f;
