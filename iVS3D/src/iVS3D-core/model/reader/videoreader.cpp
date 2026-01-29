@@ -77,8 +77,8 @@ VideoReader::~VideoReader() {
 int VideoReader::openFormatContext() {
     m_formatContext = avformat_alloc_context();
     if (!m_formatContext) return -1;
-    int inout_res = avformat_open_input(&m_formatContext, m_path.c_str(), NULL, NULL);
-    if (inout_res < 0) return inout_res;
+    int input_res = avformat_open_input(&m_formatContext, m_path.c_str(), NULL, NULL);
+    if (input_res < 0) return input_res;
     printf("Format %s, duration %ld us\n", m_formatContext->iformat->long_name,
            m_formatContext->duration);
     int find_res = avformat_find_stream_info(m_formatContext, NULL);
@@ -166,8 +166,11 @@ cv::Mat VideoReader::getPic(unsigned int index, PictureProcessingFlags flags) {
             av_rescale_q(index,
                          AVRational{m_avgVideoFPS.den, m_avgVideoFPS.num},
                          m_streamTimeBase);
-        int seek_res = av_seek_frame(m_formatContext, m_streamId, timeStampInStreamTime,
-                      AVSEEK_FLAG_BACKWARD);
+        int seek_res = av_seek_frame(
+            m_formatContext,
+            m_streamId,
+            timeStampInStreamTime,
+            AVSEEK_FLAG_BACKWARD);
         if (seek_res < 0)
             return cv::Mat();
     }
@@ -238,11 +241,12 @@ int VideoReader::decodeNextPkg(std::vector<int> &decodedIdx) {
         av_packet_free(&packet);
         return read_res;
     }
-    //
-    // if (packet && packet->stream_index != m_streamId) {
-    //     av_packet_free(&packet);
-    //     return 0;
-    // }
+
+    // ignore streams that are not video
+    if (packet && packet->stream_index != m_streamId) {
+        av_packet_free(&packet);
+        return 0;
+    }
 
     int send_res = avcodec_send_packet(m_codecContext, packet);
     av_packet_free(&packet);
