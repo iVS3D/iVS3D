@@ -3,6 +3,7 @@ add_subdirectory(iVS3D-core)
 add_subdirectory(iVS3D-pluginInterface)
 
 add_subdirectory(iVS3D-neuralNet)
+add_subdirectory(iVS3D-modelConfig)
 
 if(Build_Plugins)
     add_subdirectory(iVS3D-blurPlugin)
