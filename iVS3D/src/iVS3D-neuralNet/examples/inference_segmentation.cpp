@@ -140,6 +140,7 @@ int main(int argc, char **argv)
     start = std::chrono::high_resolution_clock::now();
     auto tensor_result = Tensor::fromCvMat(image, model->inputShape(), 1.0f, mean, scale)
                              .and_then(Util::bind_inference(model))
+                             .and_then(Util::bind_selectOutput(0))
                              .and_then(Util::bind_squeeze());
 
     if (!tensor_result)

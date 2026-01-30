@@ -127,6 +127,7 @@ int main(int argc, char **argv)
         for (const auto& image : inputImages) {
             auto embedding_result = Tensor::fromCvMat(image, model->inputShape(), 1.0f)
                                      .and_then(Util::bind_inference(model))
+                                     .and_then(Util::bind_selectOutput(0))
                                      .and_then(Util::bind_squeeze())
                                      .and_then(Util::bind_toVector<float>());
 
@@ -141,6 +142,7 @@ int main(int argc, char **argv)
         // Batch inference
         auto embedding_result = Tensor::fromCvMats(inputImages, model->inputShape(), 1.0f)
                                 .and_then(Util::bind_inference(model))
+                                .and_then(Util::bind_selectOutput(0))
                                 .and_then(Util::bind_squeeze())
                                 .and_then(Util::bind_toVector<float>());
 
