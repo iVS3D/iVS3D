@@ -7,13 +7,14 @@
 #include "pluginmanager.h"
 #include "videoplayercontroller.h"
 #include "maskstack.h"
+#include "stackcontroller.h"
 
 class PluginController : public QObject
 {
     Q_OBJECT
 
 public:
-    explicit PluginController(DataManager* dataManager, SamplingWidget* samplingWidget, VideoPlayerController* vpc, std::shared_ptr<MaskStack> maskStack = nullptr);
+    explicit PluginController(DataManager* dataManager, SamplingWidget* samplingWidget, VideoPlayerController* vpc, StackController* stackController,std::shared_ptr<MaskStack> maskStack = nullptr);
     ~PluginController();
 
 public slots:
@@ -29,6 +30,7 @@ private:
     SamplingWidget* m_samplingWidget;
     VideoPlayerController* m_vpc;
     PluginHandle m_currentPlugin;
+    StackController* m_stack;
     std::shared_ptr<MaskStack> m_maskStack;
     volatile bool m_selectionCancelFlag;
 };

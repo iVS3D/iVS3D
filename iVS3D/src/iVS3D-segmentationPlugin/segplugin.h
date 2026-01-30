@@ -51,27 +51,27 @@ class SegmentationPlugin : public IBase, public IMask, public IPreview {
         return settings;
     }
 
-    std::optional<Error> setSettings(
+    ApplySettingsResult applySettings(
         const QMap<QString, QVariant>& settings) override {
         // find the model name in the given settings
         if (!settings.contains("modelName"))
-            return Error(ErrorCode::InvalidInput,
-                         tr("modelName is required in settings."));
+            return tl::make_unexpected(Error{ErrorCode::InvalidInput,
+                         tr("modelName is required in settings.")});
         QString modelName = settings["modelName"].toString();
 
         // make sure we can load models
         if (!m_loader) {
             auto initError = initializeModelLoader();
             if (initError) {
-                return initError;
+                return tl::make_unexpected(initError.value());
             }
         }
 
         // load the model
         auto model = m_loader->getModelByName(modelName);
         if (!model) {
-            return Error(ErrorCode::InvalidInput,
-                         tr("Model '%1' not found.").arg(modelName));
+            return tl::make_unexpected(Error{ErrorCode::InvalidInput,
+                         tr("Model '%1' not found.").arg(modelName)});
         }
         m_currentSession = {model.value(), nullptr};
         m_cache = std::nullopt;  // Clear cache
@@ -100,7 +100,7 @@ class SegmentationPlugin : public IBase, public IMask, public IPreview {
             m_settingsWidget->setModel(m_currentSession->info);
             m_settingsWidget->setOverlayAlpha(m_overlayAlpha);
         }
-        return std::nullopt;
+        return {};
     }
 
     MaskResult generateMask(const MaskData& data) override;

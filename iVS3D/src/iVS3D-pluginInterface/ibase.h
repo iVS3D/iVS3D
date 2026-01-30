@@ -17,6 +17,8 @@
  */
 using SettingsWidgetResult = tl::expected<std::shared_ptr<QWidget>, Error>;
 
+using ApplySettingsResult = tl::expected<void, Error>;
+
 
 /**
  * @interface IBase
@@ -59,23 +61,23 @@ class IBase : public QObject {
     /**
      * @brief getSettings retrieves the current settings of the plugin as a map
      * of key-value pairs. The settings are stored in the history within iVS3D
-     * and in combination with setSettings allow for saving and restoring plugin
+     * and in combination with applySettings allow for saving and restoring plugin
      * configurations.
      * 
-     * @see setSettings
+     * @see applySettings
      * @return A QMap containing the plugin settings as key-value pairs.
      */
     virtual QMap<QString, QVariant> getSettings() const = 0;
 
     /**
-     * @brief setSettings applies the provided settings to the plugin. This
+     * @brief applySettings applies the provided settings to the plugin. This
      * method is used to restore plugin configurations from the history within
      * iVS3D.
      * 
      * @see getSettings
      * @param settings A QMap containing the plugin settings as key-value pairs.
      */
-    virtual std::optional<Error> setSettings(const QMap<QString, QVariant>& settings) = 0;
+    virtual ApplySettingsResult applySettings(const QMap<QString, QVariant>& settings) = 0;
 
     /**
      * @brief activate is called when the plugin is activated in iVS3D.

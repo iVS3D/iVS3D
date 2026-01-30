@@ -9,10 +9,12 @@
 PluginController::PluginController(DataManager* dataManager,
                                    SamplingWidget* samplingWidget,
                                    VideoPlayerController* vpc,
+                                   StackController* stackController,
                                    std::shared_ptr<MaskStack> maskStack)
     : m_dataManager(dataManager),
       m_samplingWidget(samplingWidget),
       m_vpc(vpc),
+      m_stack(stackController),
       m_maskStack(maskStack) {
     connect(m_samplingWidget, &SamplingWidget::sig_selectedPluginChanged, this,
             &PluginController::slot_selectPlugin);
@@ -163,6 +165,8 @@ void PluginController::slot_startSelection() {
         } else {
             auto selectedIndices = result.value();
             m_dataManager->getModelInputPictures()->updateMIP(selectedIndices);
+            m_stack->addToStack(m_currentPlugin);
+            m_dataManager->getHistory()->slot_save();
         }
         
         watcher->deleteLater();
