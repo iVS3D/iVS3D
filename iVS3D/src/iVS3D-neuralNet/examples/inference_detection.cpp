@@ -105,7 +105,8 @@ int main(int argc, char** argv) {
     // Perform inference
     std::cout << "Running inference..." << std::endl;
     auto tensor_result = Tensor::fromCvMat(image, model->inputShape(), 1.0f/255.0f)
-                             .and_then(Util::bind_inference(model));
+                             .and_then(Util::bind_inference(model))
+                             .and_then(Util::bind_selectOutput(0));
 
     if (!tensor_result) {
         std::cerr << "Inference failed: " << tensor_result.error() << std::endl;
