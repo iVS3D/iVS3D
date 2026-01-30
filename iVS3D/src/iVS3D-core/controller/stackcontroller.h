@@ -6,6 +6,7 @@
 #include "operationstack.h"
 #include "samplingwidget.h"
 #include "exportcontroller.h"
+#include "pluginmanager.h"
 
 
 class StackController : public QObject
@@ -17,6 +18,7 @@ public:
     ~StackController();
     void select();
 
+    void addToStack(const PluginHandle& plugin);
 
 private:
     OperationStack* m_opStack;

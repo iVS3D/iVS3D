@@ -11,23 +11,7 @@
 #include "imask.h"
 #include "ipreview.h"
 #include "iselection.h"
-
-struct PluginHandle {
-    QPluginLoader* loader;
-    IBase* base;
-    QObject* qobject;
-    IPreview* preview = nullptr;
-    IMask* mask = nullptr;
-    ISelection* selection = nullptr;
-
-    QString name() const { return base ? base->getName() : QString(); }
-
-    bool hasPreview() const { return preview != nullptr; }
-
-    bool hasMask() const { return mask != nullptr; }
-
-    bool hasSelection() const { return selection != nullptr; }
-};
+#include "pluginhandle.h"
 
 class PluginManager : public QObject {
     Q_OBJECT

@@ -484,12 +484,12 @@ void Controller::slot_restorePluginSettings(int id) {
     if (m_exportController) {
         m_exportController->slot_roiChanged(params->getUseRoi() ? std::optional<ROI>(params->getRoi()) : std::nullopt);
     }
-    auto result = PluginManager::instance().getPluginByName(record->pluginName);
-    assert(result.has_value());
-    auto error = result.value().base->setSettings(record->pluginSettings);
-    if (error.has_value()) {
+    auto pluginHandle = PluginManager::instance().getPluginByName(record->pluginName);
+    assert(pluginHandle.has_value());
+    auto applySettingsResult = pluginHandle.value().base->applySettings(record->pluginSettings);
+    if (!applySettingsResult) {
         QMessageBox msgBox;
-        msgBox.setText(tr("Error restoring plugin settings for plugin '") + record->pluginName + tr("': ") + error.value().message);
+        msgBox.setText(tr("Error restoring plugin settings for plugin '") + record->pluginName + tr("': ") + applySettingsResult.error().message);
         msgBox.exec();
     }
     if (m_pluginController) {
@@ -757,10 +757,6 @@ void Controller::onSuccessfulOpen()
     connect(m_mainWindow, &MainWindow::sig_deleteKeyframesBoundaries, m_videoPlayerController, &VideoPlayerController::slot_deleteKeyframes);
     connect(m_mainWindow, &MainWindow::sig_resetBoundaries, m_videoPlayerController, &VideoPlayerController::slot_resetBoundaries);
 
-    // AlgorithmController manages input widget and algorithm used widgets and delegates image sampling
-    m_pluginController = new PluginController(m_dataManager, m_mainWindow->getSamplingWidget(), m_videoPlayerController, m_stack);
-    connect(m_mainWindow->getOutputWidget()->getMaskStackView().get(), &MaskStackView::sig_recordSelected, this, &Controller::slot_restorePluginSettings);
-
     // ExportController manages algorithm used widget and reconstruct widget and delegates export of images and 3d-reconstruction
     m_exportController = new ExportController(m_mainWindow->getOutputWidget(), m_dataManager, m_colmapWrapper, m_stack);
     connect(m_exportController, &ExportController::sig_hasStatusMessage, m_mainWindow, &MainWindow::slot_displayStatusMessage);
@@ -789,6 +785,10 @@ void Controller::onSuccessfulOpen()
     connect(m_videoPlayerController, &VideoPlayerController::sig_deleteAllKeyframes, m_stackController, &StackController::slot_deleteAllKeyframes);
     connect(m_videoPlayerController, &VideoPlayerController::sig_deleteKeyframes, m_stackController, &StackController::slot_deleteKeyframes);
     connect(m_exportController, &ExportController::sig_exportFinished, m_stackController, &StackController::slot_exportFinished);
+
+    // AlgorithmController manages input widget and algorithm used widgets and delegates image sampling
+    m_pluginController = new PluginController(m_dataManager, m_mainWindow->getSamplingWidget(), m_videoPlayerController, m_stackController, m_stack);
+    connect(m_mainWindow->getOutputWidget()->getMaskStackView().get(), &MaskStackView::sig_recordSelected, this, &Controller::slot_restorePluginSettings);
 
     // update the working resolution, roi, etc
     std::shared_ptr<ReaderParams> params = m_dataManager->getModelInputPictures()->getReaderParams();

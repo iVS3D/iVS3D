@@ -73,8 +73,8 @@ void StackController::slot_rowClicked(int row)
         //Regular sampling
         else if (PluginManager::instance().getPluginByName(algoData.pluginName).has_value()) {
             auto pluginHandle = PluginManager::instance().getPluginByName(algoData.pluginName).value();
-            auto result = pluginHandle.base->setSettings(algoData.pluginSettings);
-            assert(!result.has_value()); // should not fail
+            auto result = pluginHandle.base->applySettings(algoData.pluginSettings);
+            assert(result.has_value()); // should not fail
 
             m_samplingWidget->setSelectedPlugin(algoData.pluginName);
             auto settingsResult = pluginHandle.base->getSettingsWidget(m_samplingWidget);
@@ -93,6 +93,27 @@ void StackController::slot_clearClicked()
     m_history->clear();
     slot_rowClicked(0);
     select();
+}
+
+void StackController::addToStack(const PluginHandle& plugin)
+{
+    deleteInvalidFuture();
+    QMap<QString, QVariant> settings = plugin.base->getSettings();
+    QString uiText = plugin.name();
+
+    uiText.append(" - ");
+        QMapIterator<QString, QVariant> iter(settings);
+        while(iter.hasNext()) {
+           iter.next();
+           QString identifier = iter.key() + " = " + iter.value().toString() + "; ";
+           if (iter.value().toString() == "") {
+               continue;
+           }
+           uiText.append(identifier);
+        }
+        uiText.chop(2);
+    m_opStack->addEntry(uiText);
+    m_algoSettings.insert(uiText, {plugin.name(), settings});
 }
 
 void StackController::slot_pluginFinished(QString name)
