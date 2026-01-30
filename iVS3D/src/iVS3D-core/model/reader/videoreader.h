@@ -23,8 +23,6 @@ extern "C" {
 #include <libavutil/pixfmt.h>
 }
 
-#define NOT_IMPLEMENTED assert(false && "Not implemtented yet.")
-
 /**
  * @class VideoReader
  *

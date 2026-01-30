@@ -37,10 +37,10 @@ VideoReader::VideoReader(const QString &path,
     m_isValid = true;
 
     // reduce framecount when frames are corrupted at the end
-    for (uint idx = m_frameCount-1; idx > 0; --idx) {
-        cv::Mat img = getPic(idx, APPLY_NONE);
+    for (; m_frameCount > 0; m_frameCount--) {
+        cv::Mat img = getPic(m_frameCount - 1, APPLY_NONE);
         if (!img.empty()) break; // found functional frame
-        m_frameCount--;
+        std::cout << m_frameCount << std::endl;
     }
 }
 
@@ -99,6 +99,7 @@ int VideoReader::selectVideoStream() {
         AVMediaType codecType = codecParams->codec_type;
         if (codecType == AVMEDIA_TYPE_VIDEO) {
             m_frameCount = stream->nb_frames;
+            if (m_frameCount == 0) return -1;
             m_avgVideoFPS = stream->avg_frame_rate;
             m_startTimestamp = stream->start_time;
             m_streamTimeBase = stream->time_base;
@@ -136,7 +137,7 @@ int VideoReader::updateSWSContext(const int width, const int height,
         width,
         height,
         AVPixelFormat::AV_PIX_FMT_BGR24,
-        SWS_POINT,
+        SWS_BICUBIC,
         NULL, NULL, NULL);
 
     return !m_swsContext;
@@ -319,22 +320,24 @@ cv::Mat VideoReader::avFrame2CvMat(const AVFrame *av_f) {
     const int w = av_f->width;
     if (av_f->format < 0)
         return cv::Mat();
+
     const AVPixelFormat pixFormat = static_cast<AVPixelFormat>(av_f->format);
 
     if (updateSWSContext(w, h, pixFormat) < 0)
         return cv::Mat();
 
     cv::Mat cv_f(h, w, CV_8UC3);
-    uint8_t* cv_data[4] = {cv_f.data, nullptr, nullptr, nullptr};
-    int cv_lineSize[4] = {static_cast<int>(cv_f.step[0]), 0, 0, 0};
+    // uint8_t* cv_data[] = {cv_f.data};
+    // int cv_lineSize[] = {static_cast<int>(cv_f.step[0])};
+    int cv_linesizes[1] = {(int)cv_f.step1()};
     const int out_h = sws_scale(
         m_swsContext,
         av_f->data,
         av_f->linesize,
         0,
         h,
-        cv_data,
-        cv_lineSize);
+        &cv_f.data,
+        cv_linesizes);
 
     if (out_h != h)
         return cv::Mat();
