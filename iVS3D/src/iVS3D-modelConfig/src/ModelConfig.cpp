@@ -5,79 +5,68 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 
-QMap<QString, ModelConfig> loadModels(QDir modelDir) {
-    if (!modelDir.exists()) return {};
-    QMap<QString, ModelConfig> models;
-
-    // iterate all *.onnx files in the directory
-    QStringList nameFilters = {"Detection_*.onnx"};
-    QFileInfoList fileInfoList =
-        modelDir.entryInfoList(nameFilters, QDir::Files);
-    for (const QFileInfo& fileInfo : fileInfoList) {
-        QString modelName = fileInfo.baseName();
-        ModelConfig modelInfo;
-        modelInfo.modelPath = fileInfo.absoluteFilePath().toStdString();
-
-        // Check if there is a corresponding .json file for metadata
-        QString configPath =
-            fileInfo.absolutePath() + "/" + modelName + ".json";
-        if (!QFile::exists(configPath)) {
-            std::printf(
-                "[DetectionSampling] Warning: No JSON configuration found for "
-                "model %s\n",
-                modelName.toStdString().c_str());
-            continue;
-        }
-
-        QFile file(configPath);
-        if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-            std::printf(
-                "[DetectionSampling] Warning: Failed to open config file %s\n",
-                configPath.toStdString().c_str());
-            continue;
-        }
-
-        QByteArray data = file.readAll();
-        file.close();
-        QJsonParseError err;
-        QJsonDocument doc = QJsonDocument::fromJson(data, &err);
-        if (err.error != QJsonParseError::NoError) {
-            std::printf(
-                "[DetectionSampling] Warning: JSON parse error in file %s: "
-                "%s\n",
-                configPath.toStdString().c_str(),
-                err.errorString().toStdString().c_str());
-            continue;
-        }
-
-        QJsonObject obj = doc.object();
-
-        // Load normalization parameters
-        for (const auto& val : obj["mean"].toArray()) {
-            modelInfo.mean.push_back(static_cast<float>(val.toDouble()));
-        }
-        for (const auto& val : obj["std"].toArray()) {
-            modelInfo.std.push_back(static_cast<float>(val.toDouble()));
-        }
-
-        // Load class information
-        for (const auto& cls_val : obj["classes"].toArray()) {
-            QJsonObject cls_obj = cls_val.toObject();
-            ModelConfig::ClassInfo cls;
-            cls.name = cls_obj["name"].toString();
-
-            // Load color for this class
-            auto c = cls_obj["color"].toArray();
-            if (c.size() == 3) {
-                cls.color = QColor(c[0].toInt(), c[1].toInt(), c[2].toInt());
-            } else {
-                // Default color if not specified
-                cls.color = QColor(128, 128, 128);
-            }
-            modelInfo.classes.push_back(cls);
-        }
-
-        models.insert(modelName, modelInfo);
+tl::expected<ModelConfig, ModelConfig::Error> ModelConfig::loadFromFile(
+    const QString& jsonPath) {
+    QFile file(jsonPath);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        return tl::unexpected(
+            Error{ErrorCode::IoError,
+                  QString("Failed to open config file: %1").arg(jsonPath)});
     }
-    return models;
+
+    QByteArray data = file.readAll();
+    file.close();
+    QJsonParseError err;
+    QJsonDocument doc = QJsonDocument::fromJson(data, &err);
+    if (err.error != QJsonParseError::NoError) {
+        return tl::unexpected(Error{ErrorCode::ConfigParseError,
+                                    QString("JSON parse error in file %1: %2")
+                                        .arg(jsonPath)
+                                        .arg(err.errorString())});
+    }
+
+    QJsonObject obj = doc.object();
+    ModelConfig cfg;
+
+    // Load normalization parameters
+    for (const auto& val : obj["mean"].toArray()) {
+        cfg.mean.push_back(static_cast<float>(val.toDouble()));
+    }
+    for (const auto& val : obj["std"].toArray()) {
+        cfg.std.push_back(static_cast<float>(val.toDouble()));
+    }
+
+    // Load model path from config (may be empty)
+    // Validation of model file existence is done elsewhere (e.g., ObjectDetectionModelManager)
+    cfg.modelPath = obj["modelPath"].toString().toStdString();
+
+    // Load resolution alignment
+    if (obj.contains("resolutionAlignment")) {
+        cfg.resolutionAlignment = static_cast<uint>(obj["resolutionAlignment"].toInt(1));
+    }
+
+    // Load class information
+    uint id = 0;
+    for (const auto& cls_val : obj["classes"].toArray()) {
+        QJsonObject cls_obj = cls_val.toObject();
+        ModelConfig::ClassInfo cls;
+        cls.name = cls_obj["name"].toString();
+
+        // Load color for this class
+        auto c = cls_obj["color"].toArray();
+        if (c.size() == 3) {
+            cls.color = QColor(c[0].toInt(), c[1].toInt(), c[2].toInt());
+        } else {
+            // Default color if not specified
+            cls.color = QColor(128, 128, 128);
+        }
+        if (cls_obj.contains("id")) {
+            cls.id = static_cast<uint>(cls_obj["id"].toInt());
+        } else {
+            cls.id = id++;
+        }
+        cfg.classes.push_back(cls);
+    }
+
+    return cfg;
 }
