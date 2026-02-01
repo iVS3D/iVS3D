@@ -45,6 +45,13 @@ tl::expected<ModelConfig, ModelConfig::Error> ModelConfig::loadFromFile(
         cfg.resolutionAlignment = static_cast<uint>(obj["resolutionAlignment"].toInt(1));
     }
 
+    // Load input size (optional)
+    if (obj.contains("inputSize")) {
+        for (const auto& val : obj["inputSize"].toArray()) {
+            cfg.inputSize.push_back(static_cast<uint>(val.toInt()));
+        }
+    }
+
     // Load class information
     uint id = 0;
     for (const auto& cls_val : obj["classes"].toArray()) {

@@ -36,6 +36,7 @@ struct ModelConfig {
     std::string modelPath;
 
     uint resolutionAlignment = 1;
+    std::vector<uint> inputSize;  // Optional: [width, height] for models with dynamic input
 
     static tl::expected<ModelConfig, ModelConfig::Error> loadFromFile(const QString& jsonPath);
 };
