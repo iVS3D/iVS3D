@@ -45,6 +45,11 @@ class SegmentationPlugin : public IBase, public IMask, public IPreview {
         return settings;
     }
 
+    QString getSettingsString() const override {
+        return m_modelManager.modelToString(
+            m_modelManager.activeModelName());
+    }
+
     ApplySettingsResult applySettings(
         const QMap<QString, QVariant>& settings) override {
         // find the model name in the given settings

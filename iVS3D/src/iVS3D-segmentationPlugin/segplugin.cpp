@@ -1,8 +1,9 @@
 #include "segplugin.h"
 
+#include <chrono>
+
 #include "NeuralUtil.h"
 #include "QMessageBox"
-#include <chrono>
 
 std::optional<Error> SegmentationPlugin::ensureModelReady() {
     auto activeModel = m_modelManager.activeModel();
@@ -23,9 +24,10 @@ std::optional<Error> SegmentationPlugin::ensureModelReady() {
         auto result = NN::NeuralNetFactory::create(
             activeModel->onnxPath.toStdString(), m_useCuda);
         if (!result) {
-            return Error{ErrorCode::RuntimeError,
-                        tr("Failed to load neural network model: %1")
-                            .arg(QString::fromStdString(result.error().message()))};
+            return Error{
+                ErrorCode::RuntimeError,
+                tr("Failed to load neural network model: %1")
+                    .arg(QString::fromStdString(result.error().message()))};
         }
         m_currentModel = *result;
     }
@@ -34,7 +36,7 @@ std::optional<Error> SegmentationPlugin::ensureModelReady() {
 }
 
 SegmentationPlugin::SegmentationPlugin() {
-    m_overlayAlpha = 0.5f; // Default overlay alpha
+    m_overlayAlpha = 0.5f;  // Default overlay alpha
     m_modelManager.setNameFilter("Segmentation_*");
 }
 
@@ -47,7 +49,8 @@ SettingsWidgetResult SegmentationPlugin::getSettingsWidget(QWidget* parent) {
         mainLayout->setContentsMargins(8, 8, 8, 8);
 
         // Add ModelSettingsWidget
-        m_modelSettingsWidget = new ModelSettingsWidget(m_modelManager, m_settingsWidget.get());
+        m_modelSettingsWidget =
+            new ModelSettingsWidget(m_modelManager, m_settingsWidget.get());
         mainLayout->addWidget(m_modelSettingsWidget);
 
         // Add separator
@@ -62,7 +65,9 @@ SettingsWidgetResult SegmentationPlugin::getSettingsWidget(QWidget* parent) {
         m_alphaSlider = new QSlider(Qt::Horizontal);
         m_alphaSlider->setRange(0, 100);
         m_alphaSlider->setValue(static_cast<int>(m_overlayAlpha * 100));
-        m_alphaSlider->setToolTip(tr("Adjust transparency of the segmentation overlay (0% = transparent, 100% = opaque)"));
+        m_alphaSlider->setToolTip(
+            tr("Adjust transparency of the segmentation overlay (0% = "
+               "transparent, 100% = opaque)"));
         m_alphaValue = new QLabel(QString::number(m_overlayAlpha, 'f', 2));
         m_alphaValue->setMinimumWidth(40);
         m_alphaValue->setAlignment(Qt::AlignCenter);
@@ -74,8 +79,8 @@ SettingsWidgetResult SegmentationPlugin::getSettingsWidget(QWidget* parent) {
         mainLayout->addStretch();
 
         // Connect signals from ModelSettingsWidget (model/class selection)
-        connect(m_modelSettingsWidget, &ModelSettingsWidget::modelChanged,
-                this, [this](const QString& modelName, bool isValid) {
+        connect(m_modelSettingsWidget, &ModelSettingsWidget::modelChanged, this,
+                [this](const QString& modelName, bool isValid) {
                     if (isValid) {
                         onModelChanged(modelName);
                     } else {
@@ -83,13 +88,21 @@ SettingsWidgetResult SegmentationPlugin::getSettingsWidget(QWidget* parent) {
                         emit updatePreview(true);
                     }
                 });
-        connect(m_modelSettingsWidget, &ModelSettingsWidget::classSelectionChanged,
-                this, [this](const QVector<uint>& selectedIds) {
+        connect(m_modelSettingsWidget,
+                &ModelSettingsWidget::classSelectionChanged, this,
+                [this](const QVector<uint>& selectedIds) {
                     onClassSelectionChanged(selectedIds);
+                });
+        connect(m_modelSettingsWidget,
+                &ModelSettingsWidget::normalizationChanged, this,
+                [this](bool normalize) {
+                    // need to recalculate everything if normalization changes
+                    m_cache = std::nullopt;
+                    emit updatePreview(true);
                 });
 
         // Connect alpha slider
-        connect(m_alphaSlider, &QSlider::valueChanged, [this](int value){
+        connect(m_alphaSlider, &QSlider::valueChanged, [this](int value) {
             m_overlayAlpha = static_cast<float>(value) / 100.0f;
             m_alphaValue->setText(QString::number(m_overlayAlpha, 'f', 2));
             emit updatePreview(false);  // No need to re-run inference
@@ -149,11 +162,13 @@ VisualizationResult SegmentationPlugin::generatePreview(
     if (!m_cache) {
         // Inference if we don't have a cached result
         auto start = std::chrono::high_resolution_clock::now();
-        
+
         auto inferenceResult = runInference(data.image);
-        
+
         auto end = std::chrono::high_resolution_clock::now();
-        auto durationMs = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+        auto durationMs =
+            std::chrono::duration_cast<std::chrono::milliseconds>(end - start)
+                .count();
 
         if (!inferenceResult) {
             if (inferenceResult.error().code() == NN::ErrorCode::OutOfMemory) {
@@ -223,7 +238,8 @@ VisualizationResult SegmentationPlugin::generatePreview(
     {
         auto& view = vis.views.emplace_back();
         if (m_cache->inferenceDurationMs > 0) {
-            view.title = tr("Segmentation Preview (inference time: %1 ms)").arg(m_cache->inferenceDurationMs);
+            view.title = tr("Segmentation Preview (inference time: %1 ms)")
+                             .arg(m_cache->inferenceDurationMs);
         } else {
             view.title = tr("Segmentation Preview (cached)");
         }
@@ -256,28 +272,29 @@ VisualizationResult SegmentationPlugin::generatePreview(
 tl::expected<NN::Tensor, NN::NeuralError> SegmentationPlugin::runInference(
     const cv::Mat& image) {
     if (auto error = ensureModelReady()) {
-        return tl::make_unexpected(
-            NN::NeuralError{NN::ErrorCode::RuntimeError,
-                            error->message.toStdString()});
+        return tl::make_unexpected(NN::NeuralError{
+            NN::ErrorCode::RuntimeError, error->message.toStdString()});
     }
 
     const auto& config = m_modelManager.activeModel()->config;
-    return NN::Tensor::fromCvMat(image, m_currentModel->inputShape(),
-                                 1.0f, config->getMean(),
-                                 config->getStd())
+    return NN::Tensor::fromCvMat(
+               image, m_currentModel->inputShape(),
+               config->getNormalizeInput() ? 1.0f / 255.0f : 1.0f,
+               config->getMean(), config->getStd())
         .and_then(NN::Util::bind_inference(m_currentModel))
         .and_then(NN::Util::bind_selectOutput(0))
         .and_then([](NN::Tensor&& tensor)
                       -> tl::expected<NN::Tensor, NN::NeuralError> {
             // Tensor is expected to be either Float (logits) or Int64 (classId)
-            // If Float, reduce to ArgMax along channel dimension [NCHW] -> [NHW]
+            // If Float, reduce to ArgMax along channel dimension [NCHW] ->
+            // [NHW]
             if (tensor.dtype() == NN::TensorType::Float) {
                 return tensor.reduceWithIndex(NN::ReduceArgMax{}, 1);
             }
             // Now its Int64 with a classId per pixel as expected
             return tl::expected<NN::Tensor, NN::NeuralError>(std::move(tensor));
         })
-        .and_then(NN::Util::bind_squeeze()); // remove leading singleton dims
+        .and_then(NN::Util::bind_squeeze());  // remove leading singleton dims
 }
 
 tl::expected<cv::Mat, NN::NeuralError> SegmentationPlugin::runColorization(
@@ -289,12 +306,12 @@ tl::expected<cv::Mat, NN::NeuralError> SegmentationPlugin::runColorization(
     return inferenceTensor
         .map(
             [&classes](const int64_t& value) -> std::array<uint8_t, 3> {
-                if (value >= 0 && value < static_cast<int64_t>(classes.size())) {
+                if (value >= 0 &&
+                    value < static_cast<int64_t>(classes.size())) {
                     const auto& color = classes[value].color;
-                    return {
-                        static_cast<uint8_t>(color.red()),
-                        static_cast<uint8_t>(color.green()),
-                        static_cast<uint8_t>(color.blue())};
+                    return {static_cast<uint8_t>(color.red()),
+                            static_cast<uint8_t>(color.green()),
+                            static_cast<uint8_t>(color.blue())};
                 }
                 return {0, 0, 0};
             },

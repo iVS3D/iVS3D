@@ -8,6 +8,7 @@
 #include <QSpacerItem>
 #include <QFrame>
 
+
 ModelSettingsWidget::ModelSettingsWidget(
     ModelManager& manager, QWidget* parent)
     : QWidget(parent), m_manager(manager)
@@ -24,10 +25,10 @@ void ModelSettingsWidget::setupUi()
 
     // ==================== Model Selection ====================
     auto* modelLayout = new QHBoxLayout();
-    auto* modelLabel = new QLabel(tr("Detection Model:"));
+    auto* modelLabel = new QLabel(tr("Model:"));
     
     m_modelCombo = new QComboBox();
-    m_modelCombo->setToolTip(tr("Select which detection model to use"));
+    m_modelCombo->setToolTip(tr("Select which neural network to use"));
     
     m_statusLabel = new QLabel();
     m_statusLabel->setStyleSheet("QLabel { color: #666; font-size: 10px; }");
@@ -39,6 +40,24 @@ void ModelSettingsWidget::setupUi()
 
     connect(m_modelCombo, QOverload<int>::of(&QComboBox::currentIndexChanged),
             this, &ModelSettingsWidget::onModelIndexChanged);
+
+
+#ifdef SHOW_MODEL_CONFIG_INFO
+    // ==================== Model Configuration Info ====================
+    m_configInfoLabel = new QLabel();
+    m_configInfoLabel->setStyleSheet("QLabel { color: #666; font-size: 9px; font-family: monospace; }");
+    m_configInfoLabel->setWordWrap(true);
+    m_configInfoLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
+    mainLayout->addWidget(m_configInfoLabel);
+#endif
+
+    // ==================== Normalization Option ====================
+    m_normalizeInputCheckBox = new QCheckBox(tr("Normalize input [0,255] → [0,1]"));
+    m_normalizeInputCheckBox->setToolTip(tr("Divide pixel values by 255 before applying mean/std normalization"));
+    mainLayout->addWidget(m_normalizeInputCheckBox);
+
+    connect(m_normalizeInputCheckBox, &QCheckBox::toggled,
+            this, &ModelSettingsWidget::onNormalizeInputToggled);
 
     // ==================== Class Selection Container ====================
     m_classContainer = new QWidget();
@@ -256,6 +275,58 @@ void ModelSettingsWidget::updateModelDisplay()
         m_classContainer->show();
         updateClassList();
         
+        // Update normalization checkbox from config
+        auto modelEntry = m_manager.activeModel();
+        if (modelEntry && modelEntry->config) {
+            m_normalizeInputCheckBox->blockSignals(true);
+            m_normalizeInputCheckBox->setChecked(modelEntry->config->getNormalizeInput());
+            m_normalizeInputCheckBox->setEnabled(true);
+            m_normalizeInputCheckBox->blockSignals(false);
+            
+#ifdef SHOW_MODEL_CONFIG_INFO
+            // Build config info string
+            const auto& config = *modelEntry->config;
+            QString info;
+            
+            // Mean values
+            const auto& mean = config.getMean();
+            info += "Mean: [";
+            for (size_t i = 0; i < mean.size(); ++i) {
+                if (i > 0) info += ", ";
+                info += QString::number(mean[i], 'f', 3);
+            }
+            info += "]";
+            
+            // Std values
+            const auto& std = config.getStd();
+            info += " | Std: [";
+            for (size_t i = 0; i < std.size(); ++i) {
+                if (i > 0) info += ", ";
+                info += QString::number(std[i], 'f', 3);
+            }
+            info += "]";
+            
+            // Input shape
+            const auto& inputShape = config.getInputShape();
+            if (!inputShape.empty()) {
+                info += " | Input: ";
+                for (size_t i = 0; i < inputShape.size(); ++i) {
+                    if (i > 0) info += "x";
+                    info += QString::number(inputShape[i]);
+                }
+            }
+            
+            // Input alignment
+            uint alignment = config.getInputAlignment();
+            if (alignment > 1) {
+                info += " | Align: " + QString::number(alignment);
+            }
+            
+            m_configInfoLabel->setText(info);
+            m_configInfoLabel->show();
+#endif
+        }
+        
         if (!m_blockSignals) {
             emit modelChanged(modelName, true);
         }
@@ -267,6 +338,13 @@ void ModelSettingsWidget::updateModelDisplay()
         m_classContainer->hide();
         m_errorContainer->show();
         showModelError(state, error);
+        
+        // Disable normalization checkbox for invalid models
+        m_normalizeInputCheckBox->setEnabled(false);
+        
+#ifdef SHOW_MODEL_CONFIG_INFO
+        m_configInfoLabel->hide();
+#endif
         
         if (!m_blockSignals) {
             emit modelChanged(modelName, false);
@@ -492,5 +570,15 @@ void ModelSettingsWidget::onSearchTextChanged(const QString& text)
     if (!matchingIndices.isEmpty()) {
         gridLayout->addItem(new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding),
                            (numMatching / columns) + 1, 0, 1, columns);
+    }
+}
+
+void ModelSettingsWidget::onNormalizeInputToggled(bool checked)
+{
+    // Update the model config
+    auto modelEntry = m_manager.activeModel();
+    if (modelEntry && modelEntry->config) {
+        modelEntry->config->setNormalizeInput(checked);
+        emit normalizationChanged(checked);
     }
 }

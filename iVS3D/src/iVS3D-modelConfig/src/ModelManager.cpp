@@ -190,6 +190,25 @@ void ModelManager::markModelIncompatible(const QString& name,
     entry.error = reason;
 }
 
+QString ModelManager::modelToString(const QString& name) const noexcept {
+    auto it = indexByName_.find(name);
+    if (it == indexByName_.end()) {
+        return QString();
+    }
+    const auto& entry = models_[it.value()];
+    QStringList desc;
+    desc << QString("Model: %1").arg(entry.name);
+    QStringList selectedClassNames;
+    for (const auto& cls : entry.config->getClasses()) {
+        if (cls.selected) {
+            selectedClassNames.append(cls.name);
+        }
+    }
+    desc << QString("Selected Classes: %1")
+                .arg(selectedClassNames.join(", "));
+    return desc.join(" | ");
+}
+
 QJsonObject ModelManager::modelToJson(const QString& name) const noexcept {
     auto it = indexByName_.find(name);
     if (it == indexByName_.end()) {

@@ -50,6 +50,7 @@ public:
     const std::string& getModelPath() const noexcept;
     uint getInputAlignment() const noexcept;
     const std::vector<uint>& getInputShape() const noexcept;
+    bool getNormalizeInput() const noexcept;
 
     // Class information getters
     const std::vector<ClassInfo>& getClasses() const noexcept;
@@ -69,6 +70,12 @@ public:
      */
     bool setClassSelected(ClassId id, bool selected) noexcept;
 
+    /**
+     * @brief Set whether to normalize input from [0,255] to [0,1]
+     * @param normalize true to enable normalization, false to disable
+     */
+    void setNormalizeInput(bool normalize) noexcept;
+
 
 private:
     // Private members - only accessible via getters
@@ -78,4 +85,5 @@ private:
     std::string modelPath_;
     uint inputAlignment_ = 1;
     std::vector<uint> inputShape_;  // Optional: [width, height] for models with dynamic input
+    bool normalizeInput_ = false;   // Whether to normalize pixel values from [0,255] to [0,1]
 };

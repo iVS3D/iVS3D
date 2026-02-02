@@ -184,6 +184,7 @@ void PluginController::slot_addMask() {
     record.pluginName = m_currentPlugin.name();
     record.pluginSettings =
         m_currentPlugin.base->getSettings();  // get current plugin settings
+    record.pluginSettingsString = m_currentPlugin.base->getSettingsString();
     record.workingResolution = m_dataManager->getModelInputPictures()
                      ->getReaderParams()
                      ->getWorkingResolution();

@@ -17,7 +17,7 @@ MaskStackView::MaskStackView(QWidget* parent)
 
     // Header with title and clear button
     auto* headerLayout = new QHBoxLayout();
-    auto* titleLabel = new QLabel(tr("Saved Masks"));
+    auto* titleLabel = new QLabel(tr("Masks to export"));
     m_clearButton = new QPushButton("✕");
     m_clearButton->setToolTip(tr("Remove all saved masks"));
     m_clearButton->setMaximumWidth(28);
@@ -55,36 +55,7 @@ void MaskStackView::connectSelectionSignals()
 
 QString MaskStackView::formatDetails(const MaskRecord& record) const
 {
-    // TODO: This should be done by the plugin!
-    // Convert settings map to a compact string
-    QStringList settingsParts;
-    for (auto it = record.pluginSettings.constBegin(); it != record.pluginSettings.constEnd(); ++it) {
-        if (it.value().type() == QVariant::String &&
-            it.value().toString().isEmpty()) {
-            continue;  // Skip empty strings
-        }
-        if (it.value().type() == QVariant::List &&
-            it.value().toList().isEmpty()) {
-            continue;  // Skip empty lists
-        }
-        if (it.value().type() == QVariant::Double) {
-            // Format doubles with limited precision
-            settingsParts << QString("%1=%2")
-                                 .arg(it.key(),
-                                      QString::number(it.value().toDouble(), 'g', 3));
-            continue;
-        }
-        if (it.value().type() == QVariant::Bool) {
-            continue;
-        }
-        settingsParts << QString("%1=%2").arg(it.key(), it.value().toString());
-    }
-    QString settingsStr = settingsParts.join(", ");
-    if (settingsStr.length() > kMaxSettingsLength) {
-        settingsStr = settingsStr.left(kMaxSettingsLength - 3) + "...";
-    }
-
-    return settingsStr;
+    return record.pluginSettingsString;
 }
 
 QWidget* MaskStackView::createListItem(const MaskRecord& record, ItemWidgets& outWidgets)

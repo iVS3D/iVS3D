@@ -11,6 +11,9 @@
 #include <QCheckBox>
 #include <memory>
 
+// Define this to show detailed model configuration info
+#define SHOW_MODEL_CONFIG_INFO
+
 #include "ModelManager.h"
 
 /**
@@ -84,11 +87,18 @@ signals:
      */
     void classSelectionChanged(const QVector<uint>& selectedClassIds);
 
+    /**
+     * @brief Emitted when user changes input normalization setting
+     * @param normalizeInput true if [0,255] to [0,1] normalization is enabled
+     */
+    void normalizationChanged(bool normalizeInput);
+
 private slots:
     void onModelIndexChanged(int index);
     void onClassCheckBoxToggled();
     void onInvertSelectionClicked();
     void onSearchTextChanged(const QString& text);
+    void onNormalizeInputToggled(bool checked);
 
 private:
     /**
@@ -125,6 +135,10 @@ private:
     // UI Elements
     QComboBox* m_modelCombo = nullptr;
     QLabel* m_statusLabel = nullptr;
+    QCheckBox* m_normalizeInputCheckBox = nullptr;
+#ifdef SHOW_MODEL_CONFIG_INFO
+    QLabel* m_configInfoLabel = nullptr;
+#endif
     QWidget* m_classContainer = nullptr;
     QWidget* m_errorContainer = nullptr;
     QLabel* m_errorMessageLabel = nullptr;

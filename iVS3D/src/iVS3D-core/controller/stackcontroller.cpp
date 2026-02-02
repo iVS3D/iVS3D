@@ -102,16 +102,7 @@ void StackController::addToStack(const PluginHandle& plugin)
     QString uiText = plugin.name();
 
     uiText.append(" - ");
-        QMapIterator<QString, QVariant> iter(settings);
-        while(iter.hasNext()) {
-           iter.next();
-           QString identifier = iter.key() + " = " + iter.value().toString() + "; ";
-           if (iter.value().toString() == "") {
-               continue;
-           }
-           uiText.append(identifier);
-        }
-        uiText.chop(2);
+    uiText.append(plugin.base->getSettingsString());
     m_opStack->addEntry(uiText);
     m_algoSettings.insert(uiText, {plugin.name(), settings});
 }

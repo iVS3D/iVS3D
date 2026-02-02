@@ -110,6 +110,9 @@ tl::expected<ModelConfig, ModelConfig::Error> ModelConfig::loadFromFile(
         cfg.classes_.push_back(cls);
     }
 
+    // Load normalizeInput (default to false if not present)
+    cfg.normalizeInput_ = obj.value("normalizeInput").toBool(false);
+
     return cfg;
 }
 
@@ -133,6 +136,10 @@ const std::vector<uint>& ModelConfig::getInputShape() const noexcept {
     return inputShape_;
 }
 
+bool ModelConfig::getNormalizeInput() const noexcept {
+    return normalizeInput_;
+}
+
 const std::vector<ModelConfig::ClassInfo>& ModelConfig::getClasses() const noexcept {
     return classes_;
 }
@@ -154,4 +161,8 @@ bool ModelConfig::setClassSelected(ClassId id, bool selected) noexcept {
         }
     }
     return false;
+}
+
+void ModelConfig::setNormalizeInput(bool normalize) noexcept {
+    normalizeInput_ = normalize;
 }

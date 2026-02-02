@@ -74,6 +74,7 @@ public:
 
     void markModelIncompatible(const QString& name, const QString& reason);
 
+    QString modelToString(const QString& name) const noexcept;
     QJsonObject modelToJson(const QString& name) const noexcept;
     std::optional<ModelEntry> modelFromJson(const QJsonObject& obj) const noexcept;
 

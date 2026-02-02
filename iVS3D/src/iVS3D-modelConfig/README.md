@@ -109,6 +109,20 @@ Input image dimensions must be multiples of this value.
 - Common values for YOLO models: `32` (due to downsampling layers)
 - Images are padded if necessary to meet alignment requirements
 
+#### `normalizeInput` (boolean)
+Whether to normalize input pixel values from [0,255] to [0,1] before applying mean/std normalization.
+
+**Example:**
+```json
+"normalizeInput": true
+```
+
+**Notes:**
+- Default: `false` (assumes model expects [0,255] input)
+- Set to `true` for models trained on [0,1] normalized inputs
+- When `true`, pixels are divided by 255.0 before subtracting mean and dividing by std
+- Processing order: `output = ((input / 255.0) - mean) / std` when true, `output = (input - mean) / std` when false
+
 ## Complete Example
 
 ```json

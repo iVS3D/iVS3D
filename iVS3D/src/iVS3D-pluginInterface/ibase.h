@@ -69,6 +69,15 @@ class IBase : public QObject {
      */
     virtual QMap<QString, QVariant> getSettings() const = 0;
 
+    virtual QString getSettingsString() const {
+        QMap<QString, QVariant> settings = getSettings();
+        QStringList settingsList;
+        for (auto it = settings.constBegin(); it != settings.constEnd(); ++it) {
+            settingsList.append(it.key() + "=" + it.value().toString());
+        }
+        return settingsList.join(";");
+    }
+
     /**
      * @brief applySettings applies the provided settings to the plugin. This
      * method is used to restore plugin configurations from the history within
