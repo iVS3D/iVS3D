@@ -8,7 +8,7 @@
 #include "opencv2/core.hpp"
 #include "visualization.h"
 
-
+/*
 struct PreviewRequest {
     uint idx;
     cv::Mat img;
@@ -99,3 +99,4 @@ private:
     bool m_hasNewRequest = false;
     bool m_quit = false;
 };
+*/

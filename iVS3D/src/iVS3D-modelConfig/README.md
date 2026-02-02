@@ -1,10 +1,12 @@
 # ModelConfig
 
-Configuration system for neural network models used in iVS3D object detection.
+Configuration system for neural network models used in iVS3D.
 
 ## Overview
 
-ModelConfig provides a JSON-based configuration format for object detection models. It defines normalization parameters, class information, and model metadata used by the detection system.
+ModelConfig provides a JSON-based configuration format for neural network models performing classification tasks. It is used for various image-to-classification tasks including semantic segmentation, object detection, and other classification-based image processing. The format defines normalization parameters, class information, and model metadata.
+
+**Default Example:** iVS3D-segmentationPlugin
 
 ## Configuration Format
 
@@ -83,31 +85,32 @@ Relative or absolute path to the ONNX model file.
 - Validation of file existence is performed by ObjectDetectionModelManager, not during config parsing
 - Missing model files result in `MissingModel` state in the model manager
 
-#### `inputSize` (array of 2 integers)
-Target input dimensions [width, height] for the neural network.
-
-**Example:**
-```json
-"inputSize": [640, 640]
-```
-
-**Notes:**
-- Only used when the ONNX model has dynamic input dimensions
-- If the model has fixed input dimensions that differ from this value, an error will occur
-- Common values: `[416, 416]`, `[640, 640]`, `[1280, 1280]`
-
-#### `resolutionAlignment` (integer)
+#### `inputAlignment` (integer)
 Input image dimensions must be multiples of this value.
 
 **Example:**
 ```json
-"resolutionAlignment": 32
+"inputAlignment": 32
 ```
 
 **Notes:**
 - Default: `1` (no alignment requirement)
 - Common values for YOLO models: `32` (due to downsampling layers)
 - Images are padded if necessary to meet alignment requirements
+
+#### `normalizeInput` (boolean)
+Whether to normalize input pixel values from [0,255] to [0,1] before applying mean/std normalization.
+
+**Example:**
+```json
+"normalizeInput": true
+```
+
+**Notes:**
+- Default: `false` (assumes model expects [0,255] input)
+- Set to `true` for models trained on [0,1] normalized inputs
+- When `true`, pixels are divided by 255.0 before subtracting mean and dividing by std
+- Processing order: `output = ((input / 255.0) - mean) / std` when true, `output = (input - mean) / std` when false
 
 ## Complete Example
 
@@ -116,8 +119,7 @@ Input image dimensions must be multiples of this value.
   "modelPath": "yolov8n-coco.onnx",
   "mean": [0.0, 0.0, 0.0],
   "std": [1.0, 1.0, 1.0],
-  "inputSize": [640, 640],
-  "resolutionAlignment": 32,
+  "inputAlignment": 32,
   "classes": [
     {"id": 0, "name": "person", "color": [255, 0, 0]},
     {"id": 1, "name": "bicycle", "color": [0, 255, 0]},
@@ -166,7 +168,7 @@ std::vector<float> std = config.std;
 
 // Model metadata
 std::string modelPath = config.modelPath;
-uint alignment = config.resolutionAlignment;
+uint alignment = config.inputAlignment;
 std::vector<uint> inputSize = config.inputSize;
 
 // Class information

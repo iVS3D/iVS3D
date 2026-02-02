@@ -1,0 +1,18 @@
+{
+  "modelPath": "invalid_config.onnx",
+  "mean": [0.5, 0.5],
+  "std": [0.5, 0.5, 0.5],
+  "inputSize": [512, 512],
+  "classes": [
+    {
+      "id": 1,
+      "name": "class1",
+      "color": [255, 0, 0]
+    },
+    {
+      "id": 1,
+      "name": "class2",
+      "color": [0, 255, 0]
+    }
+  ]
+}

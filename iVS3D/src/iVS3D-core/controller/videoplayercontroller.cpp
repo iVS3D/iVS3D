@@ -3,8 +3,9 @@
 VideoPlayerController::VideoPlayerController(QObject* parent,
                                              VideoPlayer* player,
                                              Timeline* timeline,
-                                             DataManager* dataManager)
-    : QObject(parent) {
+                                             DataManager* dataManager,
+                                             std::shared_ptr<PluginThread> pluginThread)
+    : QObject(parent), m_pluginThread(std::move(pluginThread)) {
     m_videoPlayer = player;
     m_timeline = timeline;
     m_dataManager = dataManager;
@@ -88,6 +89,9 @@ VideoPlayerController::VideoPlayerController(QObject* parent,
     connect(m_asyncImageLoader.get(), &AsyncImageLoader::finished, this,
             &VideoPlayerController::slot_receiveImage);
 
+    connect(m_pluginThread.get(), &PluginThread::previewFinished, this,
+            &VideoPlayerController::slot_receiveVisualization);
+
     showImage();
 }
 
@@ -133,27 +137,12 @@ void VideoPlayerController::resetLayout() {
     m_currentImage = cv::Mat();
 }
 
-void VideoPlayerController::setPreviewPlugin(IPreview* previewPlugin) {
-    if (m_asyncVisualizer) {
-        disconnect(m_asyncVisualizer.get(), &AsyncPreview::finished, this,
-                   &VideoPlayerController::slot_receiveVisualization);
-        m_asyncVisualizer = nullptr;
-    }
-    if (!previewPlugin) {  // nothing to preview
-        return;
-    }
+void VideoPlayerController::setPreviewPlugin(const PluginHandle& previewPlugin) {
+    m_currentPreviewPlugin = previewPlugin;
+}
 
-    m_asyncVisualizer = std::make_unique<AsyncPreview>(
-        [previewPlugin](const PreviewRequest& req) {
-            PreviewResult result;
-            result.idx = req.idx;
-            result.visualization =
-                previewPlugin->generatePreview({req.idx, req.img});
-            return result;
-        },
-        nullptr);
-    connect(m_asyncVisualizer.get(), &AsyncPreview::finished, this,
-            &VideoPlayerController::slot_receiveVisualization, Qt::QueuedConnection);
+void VideoPlayerController::clearPreviewPlugin() {
+    m_currentPreviewPlugin.reset();
 }
 
 void VideoPlayerController::slot_play() {
@@ -412,13 +401,14 @@ void VideoPlayerController::slot_receiveImage(const ImageRequest& request,
 
     // request visualization if preview plugin is available and image is still
     // the one on screen
-    if (m_asyncVisualizer && (m_imageIndexOnScreen == result.idx)) {
-        m_asyncVisualizer->request({result.idx, croppedImage});
+    if (m_currentPreviewPlugin && (m_imageIndexOnScreen == result.idx)) {
+        m_pluginThread->requestPreview(*m_currentPreviewPlugin,
+                                      {m_imageIndexOnScreen, croppedImage});
     }
 }
 
 void VideoPlayerController::slot_receiveVisualization(
-    const PreviewRequest& request, const PreviewResult& result) {
+    const PreviewResult& result) {
     if (m_imageIndexOnScreen != result.idx) {
         //return;  // discard outdated visualization
     }
@@ -434,7 +424,7 @@ void VideoPlayerController::slot_receiveVisualization(
 }
 
 void VideoPlayerController::slot_refreshPreview(bool clearOldPreview) {
-    if (m_imageIndexOnScreen == UINT_MAX || m_currentImage.empty() || !m_asyncVisualizer) {
+    if (m_imageIndexOnScreen == UINT_MAX || m_currentImage.empty() || !m_currentPreviewPlugin) {
         return;
     }
     if (clearOldPreview) {
@@ -445,9 +435,11 @@ void VideoPlayerController::slot_refreshPreview(bool clearOldPreview) {
     if (params->getUseRoi()) {
         cv::Mat croppedImage = m_currentImage;
         params->getRoi().crop(croppedImage);
-        m_asyncVisualizer->request({m_imageIndexOnScreen, croppedImage});
+        m_pluginThread->requestPreview(*m_currentPreviewPlugin,
+                                       {m_imageIndexOnScreen, croppedImage});
     } else {
-        m_asyncVisualizer->request({m_imageIndexOnScreen, m_currentImage});
+        m_pluginThread->requestPreview(*m_currentPreviewPlugin,
+                                       {m_imageIndexOnScreen, m_currentImage});
     }
 }
 

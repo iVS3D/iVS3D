@@ -1,5 +1,6 @@
 #include "controller.h"
 #include "roiselect.h"
+#include "pluginthread.h"
 
 
 Controller::Controller(QString inputPath, QString settingsPath, QString outputPath, QString logPath)
@@ -749,9 +750,11 @@ void Controller::onSuccessfulOpen()
     // --- using the new data (in dataManager) and connect to main window
 
     m_stack = std::make_shared<MaskStack>();
+    
+    auto pluginThread = std::make_shared<PluginThread>(PluginManager::instance().getPlugins(), this);
 
     // VideoPlayerControler manages video player and timeline
-    m_videoPlayerController = new VideoPlayerController(this, m_mainWindow->getVideoPlayer(), m_mainWindow->getTimeline(), m_dataManager);
+    m_videoPlayerController = new VideoPlayerController(this, m_mainWindow->getVideoPlayer(), m_mainWindow->getTimeline(), m_dataManager, pluginThread);
     connect(m_videoPlayerController, &VideoPlayerController::sig_hasStatusMessage, m_mainWindow, &MainWindow::slot_displayStatusMessage);
     connect(m_mainWindow, &MainWindow::sig_deleteAllKeyframes, m_videoPlayerController, &VideoPlayerController::slot_deleteAllKeyframes);
     connect(m_mainWindow, &MainWindow::sig_deleteKeyframesBoundaries, m_videoPlayerController, &VideoPlayerController::slot_deleteKeyframes);

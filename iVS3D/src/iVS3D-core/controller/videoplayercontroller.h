@@ -20,7 +20,7 @@
 #include "view/reallydeletedialog.h"
 
 #include "model/asyncimageloader.h"
-#include "model/asyncpreview.h"
+#include "plugin/pluginthread.h"
 
 #include "ipreview.h"
 
@@ -59,7 +59,7 @@ public:
      * @param dataManager a DataManager Instance to access image data
      * @param algoController an AlgorithmController instance to transform images and preview them
      */
-    explicit VideoPlayerController(QObject *parent = nullptr, VideoPlayer *player = nullptr, Timeline *timeline = nullptr, DataManager *dataManager = nullptr);
+    explicit VideoPlayerController(QObject *parent = nullptr, VideoPlayer *player = nullptr, Timeline *timeline = nullptr, DataManager *dataManager = nullptr, std::shared_ptr<PluginThread> pluginThread = nullptr);
 
     /**
      * @brief disconnects signals, deletes timer and VideoPlayerController instance.
@@ -74,7 +74,9 @@ public:
 
     void resetLayout();
 
-    void setPreviewPlugin(IPreview* previewPlugin);
+    void setPreviewPlugin(const PluginHandle& previewPlugin);
+
+    void clearPreviewPlugin();
 
 public slots:
     /**
@@ -198,7 +200,7 @@ private slots:
     void slot_timerNextImage();
     void slot_boundaryStopped();
     void slot_receiveImage(const ImageRequest &request, const ImageResult &result);
-    void slot_receiveVisualization(const PreviewRequest &request, const PreviewResult& result);
+    void slot_receiveVisualization(const PreviewResult& result);
 
 private:
     VideoPlayer *m_videoPlayer;
@@ -226,7 +228,8 @@ private:
     void showImage();
 
     std::unique_ptr<AsyncImageLoader> m_asyncImageLoader;
-    std::unique_ptr<AsyncPreview> m_asyncVisualizer;
+    std::shared_ptr<PluginThread> m_pluginThread;
+    std::optional<PluginHandle> m_currentPreviewPlugin;
 
 };
 

@@ -34,6 +34,8 @@ struct MaskRecord {
      */
     QMap<QString, QVariant> pluginSettings;
 
+    QString pluginSettingsString;
+
     /**
      * @brief Working resolution at the time the mask was configured
      * The images will be resized to this resolution during mask generation

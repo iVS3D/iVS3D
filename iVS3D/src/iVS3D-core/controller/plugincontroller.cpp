@@ -65,13 +65,13 @@ void PluginController::slot_enablePreview(bool enabled) {
     if (enabled && m_currentPlugin.hasPreview()) {
         // when enabled the video player controller gets the preview plugin
         // and needs to update the preview on requests
-        m_vpc->setPreviewPlugin(m_currentPlugin.preview);
+        m_vpc->setPreviewPlugin(m_currentPlugin);
         connect(m_currentPlugin.base, &IBase::updatePreview, m_vpc,
                 &VideoPlayerController::slot_refreshPreview);
     } else {
         // when disabled the video player controller removes the preview plugin
         // and disconnects the updatePreview signal
-        m_vpc->setPreviewPlugin(nullptr);
+        m_vpc->clearPreviewPlugin();
         disconnect(m_currentPlugin.base, &IBase::updatePreview, m_vpc,
                    &VideoPlayerController::slot_refreshPreview);
     }
@@ -184,6 +184,7 @@ void PluginController::slot_addMask() {
     record.pluginName = m_currentPlugin.name();
     record.pluginSettings =
         m_currentPlugin.base->getSettings();  // get current plugin settings
+    record.pluginSettingsString = m_currentPlugin.base->getSettingsString();
     record.workingResolution = m_dataManager->getModelInputPictures()
                      ->getReaderParams()
                      ->getWorkingResolution();

@@ -46,6 +46,7 @@ void ignoreMessages(QtMsgType type, const QMessageLogContext &context, const QSt
 
 int main(int argc, char *argv[])
 {
+
     qRegisterMetaType<cv::Mat>("cvMat");
     qRegisterMetaType<ImageList>("ImageList");
     qRegisterMetaType<QStringList>("QStringList");
@@ -83,6 +84,7 @@ int main(int argc, char *argv[])
     }
 
     if(!arguments.contains("--nogui")){
+        QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
         QApplication a( argc, argv );
         a.setApplicationName("iVS3D");
         a.setApplicationVersion(QString(QUOTE(IVS3D_VER)));

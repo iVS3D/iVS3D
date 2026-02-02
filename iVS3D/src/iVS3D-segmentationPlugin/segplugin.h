@@ -1,10 +1,14 @@
 #pragma once
 
+#include <ModelManager.h>
+#include <ModelSettingsWidget.h>
 #include <NeuralNetFactory.h>
 
 #include <QCoreApplication>
+#include <QFrame>
 #include <QLabel>
 #include <QObject>
+#include <QSlider>
 #include <QVBoxLayout>
 #include <QWidget>
 #include <memory>
@@ -13,10 +17,6 @@
 #include "ibase.h"
 #include "imask.h"
 #include "ipreview.h"
-#include "segloader.h"
-#include "settingswidget.h"
-
-using namespace segmentationplugin;
 
 class SegmentationPlugin : public IBase, public IMask, public IPreview {
     Q_OBJECT
@@ -28,78 +28,58 @@ class SegmentationPlugin : public IBase, public IMask, public IPreview {
    public:
     using IBase::IBase;
 
-    QString getName() const override {
-        return tr("Segmentation Plugin with Preview");
-    }
+    SegmentationPlugin();
+
+    QString getName() const override { return tr("Segmentation Masks"); }
 
     SettingsWidgetResult getSettingsWidget(QWidget* parent) override;
 
     QMap<QString, QVariant> getSettings() const override {
         QMap<QString, QVariant> settings;
-        if (m_currentSession) {
-            settings["modelName"] = m_currentSession->info.name;
-
-            QStringList selectedClasses;
-            for (const auto& cls : m_currentSession->info.classes) {
-                if (cls.selected) {
-                    selectedClasses.append(cls.name);
-                }
-            }
-            settings["selectedClasses"] = selectedClasses;
+        auto activeModel = m_modelManager.activeModel();
+        if (activeModel && activeModel->config) {
+            auto modelJson = m_modelManager.modelToJson(activeModel->name);
+            settings.insert("selectedModel", modelJson);
         }
         settings["overlayAlpha"] = m_overlayAlpha;
         return settings;
     }
 
+    QString getSettingsString() const override {
+        return m_modelManager.modelToString(
+            m_modelManager.activeModelName());
+    }
+
     ApplySettingsResult applySettings(
         const QMap<QString, QVariant>& settings) override {
         // find the model name in the given settings
-        if (!settings.contains("modelName"))
-            return tl::make_unexpected(Error{ErrorCode::InvalidInput,
-                         tr("modelName is required in settings.")});
-        QString modelName = settings["modelName"].toString();
-
-        // make sure we can load models
-        if (!m_loader) {
-            auto initError = initializeModelLoader();
-            if (initError) {
-                return tl::make_unexpected(initError.value());
-            }
+        if (!settings.contains("selectedModel")) {
+            return tl::make_unexpected(
+                Error{ErrorCode::InvalidInput,
+                      tr("selectedModel is required in settings.")});
         }
-
-        // load the model
-        auto model = m_loader->getModelByName(modelName);
-        if (!model) {
-            return tl::make_unexpected(Error{ErrorCode::InvalidInput,
-                         tr("Model '%1' not found.").arg(modelName)});
+        QJsonObject modelObj = settings["selectedModel"].toJsonObject();
+        auto modelEntryOpt = m_modelManager.modelFromJson(modelObj);
+        if (!modelEntryOpt) {
+            return tl::make_unexpected(
+                Error{ErrorCode::InvalidInput,
+                      tr("Failed to parse selected model from settings.")});
         }
-        m_currentSession = {model.value(), nullptr};
-        m_cache = std::nullopt;  // Clear cache
-
-        // load selected classes
-        for (auto& classInfo : m_currentSession->info.classes)
-            classInfo.selected = false;
-
-        if (settings.contains("selectedClasses")) {
-            QStringList selectedClasses =
-                settings["selectedClasses"].toStringList();
-            for (auto& classInfo : m_currentSession->info.classes) {
-                if (selectedClasses.contains(classInfo.name)) {
-                    classInfo.selected = true;
-                }
-            }
+        m_modelManager.activateModel(modelEntryOpt->name);
+        // update settings widget if it exists
+        if (m_modelSettingsWidget) {
+            m_modelSettingsWidget->setSelectedModel(modelEntryOpt->name);
         }
-
         // load overlay alpha
         if (settings.contains("overlayAlpha")) {
             m_overlayAlpha = settings["overlayAlpha"].toFloat();
+            // Update UI slider if it exists
+            if (m_alphaSlider) {
+                m_alphaSlider->setValue(
+                    static_cast<int>(m_overlayAlpha * 100.0f));
+            }
         }
 
-        // update settings widget if it exists
-        if (m_settingsWidget) {
-            m_settingsWidget->setModel(m_currentSession->info);
-            m_settingsWidget->setOverlayAlpha(m_overlayAlpha);
-        }
         return {};
     }
 
@@ -109,68 +89,74 @@ class SegmentationPlugin : public IBase, public IMask, public IPreview {
 
     void onCudaChanged(bool enabled) override {
         m_useCuda = enabled;
-        if (m_currentSession) {
-            m_currentSession->model =
-                nullptr;             // force reload with new cuda setting
-            m_cache = std::nullopt;  // Clear cache
-            emit updatePreview(true);
-        }
+        // Force reload of model with new CUDA setting
+        m_cache = std::nullopt;  // Clear cache
+        m_currentModelName.clear();
+        m_currentModel = nullptr;
+        emit updatePreview(true);
+    }
+
+    void deactivate() override {
+        m_cache = std::nullopt;
+        m_currentModelName.clear();
+        m_currentModel = nullptr;
     }
 
    private slots:
     void onModelChanged(const QString& modelName) {
-        m_currentSession = std::nullopt;  // force reload with new model
-        m_cache = std::nullopt;           // Clear entire cache on model change
-
-        if (auto modelInfo = m_loader->getModelByName(modelName)) {
-            m_currentSession = ModelSession{*modelInfo, nullptr};
-            m_settingsWidget->setModel(m_currentSession->info);
-            // Do something with the selected model
-        } else {
+        m_currentModelName.clear();
+        m_currentModel = nullptr;
+        auto result = m_modelManager.activateModel(modelName);
+        if (!result.has_value()) {
             emit encounteredError(
                 Error{ErrorCode::InvalidInput,
-                      tr("Model '%1' could not be found.").arg(modelName)});
+                      tr("Model '%1' could not be found or activated.")
+                          .arg(modelName)});
             return;
         }
-
-        emit updatePreview();
+        m_currentModelName = modelName;
+        m_cache = std::nullopt;  // Clear entire cache on model change
+        emit updatePreview(true);
     }
 
-    void onClassSelectionChanged(const QVector<bool>& selectedClasses) {
+    void onClassSelectionChanged(const QVector<uint>& selectedClassIds) {
         if (m_cache) {
             m_cache->maskImage =
                 cv::Mat();  // Invalidate only mask image in cache
-        }  // Segmentation and colorized image can remain
-        assert(selectedClasses.size() == m_currentSession->info.classes.size());
-        for (size_t i = 0; i < selectedClasses.size(); ++i)
-            m_currentSession->info.classes[i].selected = selectedClasses[i];
-
+        }
         emit updatePreview(false);
     }
 
    private:
+    /**
+     * @brief Ensures the model manager has an active, ready model and loads the
+     * neural network. Validates that there is an active model in Ready state
+     * and loads the neural network if needed.
+     * @return std::nullopt if successful, Error if validation fails
+     */
+    std::optional<Error> ensureModelReady();
+
     tl::expected<NN::Tensor, NN::NeuralError> runInference(
         const cv::Mat& image);
     tl::expected<cv::Mat, NN::NeuralError> runColorization(
         const NN::Tensor& inferenceTensor);
     tl::expected<cv::Mat, NN::NeuralError> runMasking(
         const NN::Tensor& inferenceTensor);
-    std::optional<Error> initializeModelLoader();
 
-    QString m_modelFolder = QCoreApplication::applicationDirPath() +
-                            "/plugins/resources/neural_network_models";
+    ModelManager m_modelManager{QCoreApplication::applicationDirPath() +
+                                "/plugins/resources/neural_network_models"};
 
-    std::shared_ptr<ModelLoader> m_loader;
-    std::shared_ptr<SettingsWidget> m_settingsWidget;
+    // Settings widget is a container with ModelSettingsWidget + alpha slider
+    std::shared_ptr<QWidget> m_settingsWidget;
+    ModelSettingsWidget* m_modelSettingsWidget = nullptr;
+    QSlider* m_alphaSlider = nullptr;
+    QLabel* m_alphaValue = nullptr;
 
     bool m_useCuda = false;
     float m_overlayAlpha = 0.5f;
 
-    struct ModelSession {
-        ModelInfo info;
-        NN::NeuralNetPtr model;
-    };
-    std::optional<ModelSession> m_currentSession;
+    QString m_currentModelName;
+    NN::NeuralNetPtr m_currentModel;
 
     // cache for the last inference result (if any and valid)
     struct SegmentationCache {
