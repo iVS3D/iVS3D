@@ -4,36 +4,106 @@
 #include "QMessageBox"
 #include <chrono>
 
-SettingsWidgetResult SegmentationPlugin::getSettingsWidget(QWidget* parent) {
-    if (!m_loader) {
-        auto res = initializeModelLoader();
-        if (res) {
-            return tl::make_unexpected(res.value());
-        }
+std::optional<Error> SegmentationPlugin::ensureModelReady() {
+    auto activeModel = m_modelManager.activeModel();
+    if (!activeModel || !activeModel->config) {
+        return Error{ErrorCode::ResourceUnavailable,
+                     tr("No segmentation model is currently active. "
+                        "Please select a model in the plugin settings.")};
     }
 
+    // Verify model name matches (in case model was changed)
+    if (m_currentModelName != activeModel->name) {
+        m_currentModel = nullptr;  // Force reload if model changed
+        m_currentModelName = activeModel->name;
+    }
+
+    // Load neural network if not already loaded
+    if (!m_currentModel) {
+        auto result = NN::NeuralNetFactory::create(
+            activeModel->onnxPath.toStdString(), m_useCuda);
+        if (!result) {
+            return Error{ErrorCode::RuntimeError,
+                        tr("Failed to load neural network model: %1")
+                            .arg(QString::fromStdString(result.error().message()))};
+        }
+        m_currentModel = *result;
+    }
+
+    return std::nullopt;
+}
+
+SegmentationPlugin::SegmentationPlugin() {
+    m_overlayAlpha = 0.5f; // Default overlay alpha
+    m_modelManager.setNameFilter("Segmentation_*");
+}
+
+SettingsWidgetResult SegmentationPlugin::getSettingsWidget(QWidget* parent) {
     if (!m_settingsWidget) {
-        m_settingsWidget = std::make_shared<SettingsWidget>(
-            parent, m_loader ? m_loader->getModels() : QVector<ModelInfo>());
-        m_settingsWidget->setOverlayAlpha(0.5f);  // default alpha
-        connect(m_settingsWidget.get(), &SettingsWidget::modelChanged, this,
-                &SegmentationPlugin::onModelChanged);
-        connect(m_settingsWidget.get(), &SettingsWidget::overlayAlphaChanged,
-                [this](float alpha) {
-                    m_overlayAlpha =
-                        alpha;  // does not require cache invalidation
-                    emit updatePreview(false);
+        // Create container widget
+        m_settingsWidget = std::make_shared<QWidget>(parent);
+        auto* mainLayout = new QVBoxLayout(m_settingsWidget.get());
+        mainLayout->setSpacing(12);
+        mainLayout->setContentsMargins(8, 8, 8, 8);
+
+        // Add ModelSettingsWidget
+        m_modelSettingsWidget = new ModelSettingsWidget(m_modelManager, m_settingsWidget.get());
+        mainLayout->addWidget(m_modelSettingsWidget);
+
+        // Add separator
+        auto* separator = new QFrame();
+        separator->setFrameShape(QFrame::HLine);
+        separator->setFrameShadow(QFrame::Sunken);
+        mainLayout->addWidget(separator);
+
+        // Add Overlay Alpha slider
+        auto* alphaLayout = new QHBoxLayout();
+        auto* alphaLabel = new QLabel(tr("Overlay Opacity:"));
+        m_alphaSlider = new QSlider(Qt::Horizontal);
+        m_alphaSlider->setRange(0, 100);
+        m_alphaSlider->setValue(static_cast<int>(m_overlayAlpha * 100));
+        m_alphaSlider->setToolTip(tr("Adjust transparency of the segmentation overlay (0% = transparent, 100% = opaque)"));
+        m_alphaValue = new QLabel(QString::number(m_overlayAlpha, 'f', 2));
+        m_alphaValue->setMinimumWidth(40);
+        m_alphaValue->setAlignment(Qt::AlignCenter);
+        alphaLayout->addWidget(alphaLabel);
+        alphaLayout->addWidget(m_alphaSlider, 1);
+        alphaLayout->addWidget(m_alphaValue);
+        mainLayout->addLayout(alphaLayout);
+
+        mainLayout->addStretch();
+
+        // Connect signals from ModelSettingsWidget (model/class selection)
+        connect(m_modelSettingsWidget, &ModelSettingsWidget::modelChanged,
+                this, [this](const QString& modelName, bool isValid) {
+                    if (isValid) {
+                        onModelChanged(modelName);
+                    } else {
+                        m_cache = std::nullopt;
+                        emit updatePreview(true);
+                    }
                 });
-        connect(m_settingsWidget.get(), &SettingsWidget::classSelectionChanged,
-                this, &SegmentationPlugin::onClassSelectionChanged);
+        connect(m_modelSettingsWidget, &ModelSettingsWidget::classSelectionChanged,
+                this, [this](const QVector<uint>& selectedIds) {
+                    onClassSelectionChanged(selectedIds);
+                });
+
+        // Connect alpha slider
+        connect(m_alphaSlider, &QSlider::valueChanged, [this](int value){
+            m_overlayAlpha = static_cast<float>(value) / 100.0f;
+            m_alphaValue->setText(QString::number(m_overlayAlpha, 'f', 2));
+            emit updatePreview(false);  // No need to re-run inference
+        });
     }
 
     return m_settingsWidget;
 }
 
 MaskResult SegmentationPlugin::generateMask(const MaskData& data) {
-    assert(m_currentSession);  // core should ensure that the plugin is in a
-                               // valid state before calling this
+    // Ensure model is ready before processing
+    if (auto error = ensureModelReady()) {
+        return tl::make_unexpected(*error);
+    }
 
     auto inferenceResult = runInference(data.image);
 
@@ -62,10 +132,9 @@ VisualizationResult SegmentationPlugin::generatePreview(
     assert(m_settingsWidget);  // core should ensure to load settings widget
                                // before enabling preview
 
-    if (!m_currentSession) {
-        return tl::make_unexpected(
-            Error{ErrorCode::RuntimeError,
-                  tr("No model selected for segmentation preview.")});
+    // Ensure model is ready before processing
+    if (auto error = ensureModelReady()) {
+        return tl::make_unexpected(*error);
     }
 
     // Check cache validity
@@ -184,62 +253,50 @@ VisualizationResult SegmentationPlugin::generatePreview(
     return vis;
 }
 
-std::optional<Error> SegmentationPlugin::initializeModelLoader() {
-    try {
-        m_loader = std::make_shared<ModelLoader>(m_modelFolder);
-
-    } catch (const std::exception& e) {
-        return Error{ErrorCode::ResourceUnavailable,
-                     tr("Failed to initialize model loader:\n%1")
-                         .arg(QString::fromStdString(e.what()))};
-    }
-    if (m_loader->getModels().empty()) {
-        return Error{ErrorCode::ResourceUnavailable,
-                     tr("No segmentation models found in folder:\n%1")
-                         .arg(m_modelFolder)};
-    }
-    m_currentSession = {m_loader->getModels().front(), nullptr};
-    return std::nullopt;
-}
-
 tl::expected<NN::Tensor, NN::NeuralError> SegmentationPlugin::runInference(
     const cv::Mat& image) {
-    if (!m_currentSession->model) {
-        auto result = NN::NeuralNetFactory::create(
-            m_currentSession->info.path.toStdString(), m_useCuda);
-        if (!result) {
-            return tl::make_unexpected(result.error());
-        }
-        m_currentSession->model = *result;
+    if (auto error = ensureModelReady()) {
+        return tl::make_unexpected(
+            NN::NeuralError{NN::ErrorCode::RuntimeError,
+                            error->message.toStdString()});
     }
-    return NN::Tensor::fromCvMat(image, m_currentSession->model->inputShape(),
-                                 1.0f, m_currentSession->info.mean,
-                                 m_currentSession->info.std)
-        .and_then(NN::Util::bind_inference(m_currentSession->model))
+
+    const auto& config = m_modelManager.activeModel()->config;
+    return NN::Tensor::fromCvMat(image, m_currentModel->inputShape(),
+                                 1.0f, config->getMean(),
+                                 config->getStd())
+        .and_then(NN::Util::bind_inference(m_currentModel))
         .and_then(NN::Util::bind_selectOutput(0))
         .and_then([](NN::Tensor&& tensor)
                       -> tl::expected<NN::Tensor, NN::NeuralError> {
-            // squeeze the tensor to remove leading dimensions of size 1
+            // Tensor is expected to be either Float (logits) or Int64 (classId)
+            // If Float, reduce to ArgMax along channel dimension [NCHW] -> [NHW]
             if (tensor.dtype() == NN::TensorType::Float) {
                 return tensor.reduceWithIndex(NN::ReduceArgMax{}, 1);
             }
+            // Now its Int64 with a classId per pixel as expected
             return tl::expected<NN::Tensor, NN::NeuralError>(std::move(tensor));
         })
-        .and_then(NN::Util::bind_squeeze());
+        .and_then(NN::Util::bind_squeeze()); // remove leading singleton dims
 }
 
 tl::expected<cv::Mat, NN::NeuralError> SegmentationPlugin::runColorization(
     const NN::Tensor& inferenceTensor) {
+    // Model is guaranteed to be ready by ensureModelReady()
+    auto activeModel = m_modelManager.activeModel();
+    const auto& classes = activeModel->config->getClasses();
+
     return inferenceTensor
         .map(
-            [this](const int64_t& value) -> std::array<uint8_t, 3> {
-                return {
-                    static_cast<uint8_t>(
-                        m_currentSession->info.classes[value].color.red()),
-                    static_cast<uint8_t>(
-                        m_currentSession->info.classes[value].color.green()),
-                    static_cast<uint8_t>(
-                        m_currentSession->info.classes[value].color.blue())};
+            [&classes](const int64_t& value) -> std::array<uint8_t, 3> {
+                if (value >= 0 && value < static_cast<int64_t>(classes.size())) {
+                    const auto& color = classes[value].color;
+                    return {
+                        static_cast<uint8_t>(color.red()),
+                        static_cast<uint8_t>(color.green()),
+                        static_cast<uint8_t>(color.blue())};
+                }
+                return {0, 0, 0};
             },
             0)
         .and_then(NN::Util::bind_toCvMat());
@@ -247,11 +304,16 @@ tl::expected<cv::Mat, NN::NeuralError> SegmentationPlugin::runColorization(
 
 tl::expected<cv::Mat, NN::NeuralError> SegmentationPlugin::runMasking(
     const NN::Tensor& inferenceTensor) {
+    // Model is guaranteed to be ready by ensureModelReady()
+    auto activeModel = m_modelManager.activeModel();
+    const auto& classes = activeModel->config->getClasses();
+
     return inferenceTensor
-        .map([classes = m_currentSession->info.classes](
-                 const int64_t& value) -> uint8_t {
-            return classes[value].selected ? 255
-                                           : 0;  // only keep selected classes
+        .map([&classes](const int64_t& value) -> uint8_t {
+            if (value >= 0 && value < static_cast<int64_t>(classes.size())) {
+                return classes[value].selected ? 255 : 0;
+            }
+            return 0;
         })
         .and_then(NN::Util::bind_toCvMat());
 }

@@ -18,12 +18,11 @@ MaskStackView::MaskStackView(QWidget* parent)
     // Header with title and clear button
     auto* headerLayout = new QHBoxLayout();
     auto* titleLabel = new QLabel(tr("Saved Masks"));
-    titleLabel->setStyleSheet("font-weight: bold;");
     m_clearButton = new QPushButton("✕");
     m_clearButton->setToolTip(tr("Remove all saved masks"));
     m_clearButton->setMaximumWidth(28);
     m_clearButton->setMaximumHeight(28);
-    m_clearButton->setStyleSheet("QPushButton { font-size: 16px; font-weight: bold; }");
+    m_clearButton->setStyleSheet("QPushButton { font-size: 14px; }");
     headerLayout->addWidget(titleLabel);
     headerLayout->addStretch();
     headerLayout->addWidget(m_clearButton);
@@ -100,7 +99,6 @@ QWidget* MaskStackView::createListItem(const MaskRecord& record, ItemWidgets& ou
     topRow->setSpacing(12);
     
     auto* title = new QLabel(record.pluginName);
-    title->setStyleSheet("font-weight: 600;");
     
     // Resolution in smaller font
     QString resolutionText = record.workingResolution.toString();
@@ -115,10 +113,10 @@ QWidget* MaskStackView::createListItem(const MaskRecord& record, ItemWidgets& ou
     auto* removeBtn = new QPushButton("✕");
     removeBtn->setToolTip(tr("Remove this mask"));
     removeBtn->setCursor(Qt::PointingHandCursor);
-    removeBtn->setMaximumWidth(24);
-    removeBtn->setMaximumHeight(24);
+    removeBtn->setMaximumWidth(18);
+    removeBtn->setMaximumHeight(18);
     
-    removeBtn->setStyleSheet(QString("QPushButton { font-size: 14px; font-weight: bold; }"));
+    removeBtn->setStyleSheet(QString("QPushButton { font-size: 12px; }"));
     
     topRow->addWidget(title);
     topRow->addWidget(resolutionLabel);

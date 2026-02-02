@@ -1,7 +1,12 @@
 set(TARGET_NAME "ModelConfig")
 
+set(CMAKE_AUTOMOC ON) # Enable Qt MOC for the ModelSettingsWidget
+
 add_library(${TARGET_NAME} STATIC
     src/ModelConfig.cpp
+    src/ModelManager.cpp
+    src/ModelSettingsWidget.cpp
+    include/ModelSettingsWidget.h
 )
 
 target_include_directories(${TARGET_NAME}
@@ -16,8 +21,10 @@ include_directories(SYSTEM
     ${Qt${QT_VERSION_MAJOR}Widgets_INCLUDE_DIRS}
 )
 
-target_link_libraries(${TARGET_NAME}
-    PUBLIC tl-expected Qt${QT_VERSION_MAJOR}::Core
+target_link_libraries(${TARGET_NAME} PUBLIC 
+    tl-expected 
+    Qt${QT_VERSION_MAJOR}::Core
+    Qt${QT_VERSION_MAJOR}::Widgets
 )
 
 # only build examples if Build_Examples is enabled
@@ -29,5 +36,8 @@ endif()
 if(Build_Tests)
     add_subdirectory(tests)
 endif()
+
+add_subdirectory(examples)
+add_subdirectory(tests)
 
 add_component_summary("${TARGET_NAME}" TRUE)

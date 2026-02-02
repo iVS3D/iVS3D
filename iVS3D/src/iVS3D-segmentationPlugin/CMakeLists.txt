@@ -7,6 +7,12 @@ if(NOT TARGET NeuralNet)
     return()
 endif()
 
+if(NOT TARGET ModelConfig)
+    message(WARNING "iVS3D-ModelConfig not found - skipping build of 'iVS3D-${TARGET_NAME}' plugin.")
+    add_plugin_summary("${TARGET_NAME}" FALSE "Missing ModelConfig")
+    return()
+endif()
+
 # set include directories
 include_directories(SYSTEM
     ${Qt${QT_VERSION_MAJOR}Core_INCLUDE_DIRS}
@@ -14,15 +20,7 @@ include_directories(SYSTEM
     ${Qt${QT_VERSION_MAJOR}Widgets_INCLUDE_DIRS}
     ${OpenCV_INCLUDE_DIRS}
 )
-include_directories(
-    "${CMAKE_CURRENT_LIST_DIR}/../iVS3D-pluginInterface"
-    "${CMAKE_CURRENT_LIST_DIR}/../iVS3D-core"
-    "${CMAKE_CURRENT_LIST_DIR}/../iVS3D-core/model"
-    "${CMAKE_CURRENT_LIST_DIR}/../iVS3D-core/model/reader"
-    "${CMAKE_CURRENT_LIST_DIR}/../iVS3D-core/model/metaData"
-    "${CMAKE_CURRENT_LIST_DIR}/../iVS3D-core/model/log"
-    "${CMAKE_CURRENT_LIST_DIR}/../iVS3D-core/plugin"
-)
+
 
 find_package(OpenCV 4.10 REQUIRED COMPONENTS
     imgproc
@@ -30,15 +28,10 @@ find_package(OpenCV 4.10 REQUIRED COMPONENTS
 
 set(HEADER_FILES
     "${CMAKE_CURRENT_LIST_DIR}/segplugin.h"
-    "${CMAKE_CURRENT_LIST_DIR}/segloader.h"
-    "${CMAKE_CURRENT_LIST_DIR}/settingswidget.h"
-    "${CMAKE_CURRENT_LIST_DIR}/segmodel.h"
 )
 
 set(SRC_FILES
     "${CMAKE_CURRENT_LIST_DIR}/segplugin.cpp"
-    "${CMAKE_CURRENT_LIST_DIR}/segloader.cpp"
-    "${CMAKE_CURRENT_LIST_DIR}/settingswidget.cpp"
 )
 
 add_library(${TARGET_NAME} SHARED
@@ -54,6 +47,7 @@ target_link_libraries(${TARGET_NAME}
     ${CUDA_LIBRARIES}
     ${CUDNN_LIBRARIES}
     NeuralNet
+    ModelConfig
 )
 
 # add dependency to iVS3D_pluginInterface
