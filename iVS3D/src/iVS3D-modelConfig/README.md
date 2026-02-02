@@ -96,12 +96,12 @@ Target input dimensions [width, height] for the neural network.
 - If the model has fixed input dimensions that differ from this value, an error will occur
 - Common values: `[416, 416]`, `[640, 640]`, `[1280, 1280]`
 
-#### `resolutionAlignment` (integer)
+#### `inputAlignment` (integer)
 Input image dimensions must be multiples of this value.
 
 **Example:**
 ```json
-"resolutionAlignment": 32
+"inputAlignment": 32
 ```
 
 **Notes:**
@@ -117,7 +117,7 @@ Input image dimensions must be multiples of this value.
   "mean": [0.0, 0.0, 0.0],
   "std": [1.0, 1.0, 1.0],
   "inputSize": [640, 640],
-  "resolutionAlignment": 32,
+  "inputAlignment": 32,
   "classes": [
     {"id": 0, "name": "person", "color": [255, 0, 0]},
     {"id": 1, "name": "bicycle", "color": [0, 255, 0]},
@@ -166,7 +166,7 @@ std::vector<float> std = config.std;
 
 // Model metadata
 std::string modelPath = config.modelPath;
-uint alignment = config.resolutionAlignment;
+uint alignment = config.inputAlignment;
 std::vector<uint> inputSize = config.inputSize;
 
 // Class information

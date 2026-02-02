@@ -37,7 +37,4 @@ if(Build_Tests)
     add_subdirectory(tests)
 endif()
 
-add_subdirectory(examples)
-add_subdirectory(tests)
-
 add_component_summary("${TARGET_NAME}" TRUE)
