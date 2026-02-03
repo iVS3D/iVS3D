@@ -31,7 +31,7 @@ void ModelSettingsWidget::setupUi()
     m_modelCombo->setToolTip(tr("Select which neural network to use"));
     
     m_statusLabel = new QLabel();
-    m_statusLabel->setStyleSheet("QLabel { color: #666; font-size: 10px; }");
+    m_statusLabel->setStyleSheet("QLabel { color: #666; }");
     
     modelLayout->addWidget(modelLabel);
     modelLayout->addWidget(m_modelCombo, 1);
@@ -45,7 +45,7 @@ void ModelSettingsWidget::setupUi()
 #ifdef SHOW_MODEL_CONFIG_INFO
     // ==================== Model Configuration Info ====================
     m_configInfoLabel = new QLabel();
-    m_configInfoLabel->setStyleSheet("QLabel { color: #666; font-size: 9px; font-family: monospace; }");
+    m_configInfoLabel->setStyleSheet("QLabel { color: #666; font-family: monospace; }");
     m_configInfoLabel->setWordWrap(true);
     m_configInfoLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
     mainLayout->addWidget(m_configInfoLabel);
@@ -270,7 +270,7 @@ void ModelSettingsWidget::updateModelDisplay()
     if (state == ModelManager::ModelState::Ready) {
         // Valid model - show classes
         m_statusLabel->setText(tr("Ready"));
-        m_statusLabel->setStyleSheet("QLabel { color: #28a745; font-size: 10px; font-weight: bold; }");
+        m_statusLabel->setStyleSheet("QLabel { color: #28a745; font-weight: bold; }");
         m_errorContainer->hide();
         m_classContainer->show();
         updateClassList();
@@ -306,16 +306,6 @@ void ModelSettingsWidget::updateModelDisplay()
             }
             info += "]";
             
-            // Input shape
-            const auto& inputShape = config.getInputShape();
-            if (!inputShape.empty()) {
-                info += " | Input: ";
-                for (size_t i = 0; i < inputShape.size(); ++i) {
-                    if (i > 0) info += "x";
-                    info += QString::number(inputShape[i]);
-                }
-            }
-            
             // Input alignment
             uint alignment = config.getInputAlignment();
             if (alignment > 1) {
@@ -334,7 +324,7 @@ void ModelSettingsWidget::updateModelDisplay()
         // Invalid model - show error
         QString error = m_manager.modelError(modelName);
         m_statusLabel->setText(getStateString(state));
-        m_statusLabel->setStyleSheet("QLabel { color: #dc3545; font-size: 10px; font-weight: bold; }");
+        m_statusLabel->setStyleSheet("QLabel { color: #dc3545; font-weight: bold; }");
         m_classContainer->hide();
         m_errorContainer->show();
         showModelError(state, error);

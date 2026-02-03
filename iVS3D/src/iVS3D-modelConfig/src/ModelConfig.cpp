@@ -67,13 +67,6 @@ tl::expected<ModelConfig, ModelConfig::Error> ModelConfig::loadFromFile(
         cfg.inputAlignment_ = static_cast<uint>(obj["inputAlignment"].toInt(1));
     }
 
-    // Load input shape (optional)
-    if (obj.contains("inputShape")) {
-        for (const auto& val : obj["inputShape"].toArray()) {
-            cfg.inputShape_.push_back(static_cast<uint>(val.toInt()));
-        }
-    }
-
     // Load class information and validate for duplicate IDs
     QSet<ClassId> seenIds;
     ModelConfig::ClassId autoId = 0;
@@ -130,10 +123,6 @@ const std::string& ModelConfig::getModelPath() const noexcept {
 
 uint ModelConfig::getInputAlignment() const noexcept {
     return inputAlignment_;
-}
-
-const std::vector<uint>& ModelConfig::getInputShape() const noexcept {
-    return inputShape_;
 }
 
 bool ModelConfig::getNormalizeInput() const noexcept {

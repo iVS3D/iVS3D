@@ -49,7 +49,6 @@ public:
     const std::vector<float>& getStd() const noexcept;
     const std::string& getModelPath() const noexcept;
     uint getInputAlignment() const noexcept;
-    const std::vector<uint>& getInputShape() const noexcept;
     bool getNormalizeInput() const noexcept;
 
     // Class information getters
@@ -84,6 +83,5 @@ private:
     std::vector<ClassInfo> classes_;
     std::string modelPath_;
     uint inputAlignment_ = 1;
-    std::vector<uint> inputShape_;  // Optional: [width, height] for models with dynamic input
     bool normalizeInput_ = false;   // Whether to normalize pixel values from [0,255] to [0,1]
 };

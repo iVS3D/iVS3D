@@ -2,7 +2,6 @@
   "modelPath": "missing_onnx.onnx",
   "mean": [0.5, 0.5, 0.5],
   "std": [0.5, 0.5, 0.5],
-  "inputSize": [512, 512],
   "classes": [
     {
       "id": 1,

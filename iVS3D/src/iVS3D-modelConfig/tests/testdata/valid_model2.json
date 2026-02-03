@@ -2,7 +2,6 @@
   "modelPath": "valid_model2.onnx",
   "mean": [0.5, 0.5, 0.5],
   "std": [0.5, 0.5, 0.5],
-  "inputSize": [640, 640],
   "classes": [
     {
       "id": 10,

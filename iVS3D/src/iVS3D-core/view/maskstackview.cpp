@@ -22,7 +22,6 @@ MaskStackView::MaskStackView(QWidget* parent)
     m_clearButton->setToolTip(tr("Remove all saved masks"));
     m_clearButton->setMaximumWidth(28);
     m_clearButton->setMaximumHeight(28);
-    m_clearButton->setStyleSheet("QPushButton { font-size: 14px; }");
     headerLayout->addWidget(titleLabel);
     headerLayout->addStretch();
     headerLayout->addWidget(m_clearButton);
@@ -62,45 +61,68 @@ QWidget* MaskStackView::createListItem(const MaskRecord& record, ItemWidgets& ou
 {
     auto* container = new QWidget();
     auto* layout = new QVBoxLayout(container);
-    layout->setContentsMargins(4, 2, 4, 2);
-    layout->setSpacing(1);
+    layout->setContentsMargins(8, 6, 8, 6);
+    layout->setSpacing(4);
 
     // First line: Plugin name, resolution, ROI indicator, and remove button
     auto* topRow = new QHBoxLayout();
     topRow->setSpacing(12);
+    topRow->setContentsMargins(0, 0, 0, 0);
     
+    // Title with bold font
     auto* title = new QLabel(record.pluginName);
+    QFont titleFont = title->font();
+    titleFont.setBold(true);
+    titleFont.setPointSize(titleFont.pointSize() + 1);
+    title->setFont(titleFont);
     
-    // Resolution in smaller font
+    // Resolution and ROI indicator
     QString resolutionText = record.workingResolution.toString();
     if (!record.roi.isDefault()) {
         resolutionText += " (ROI)";
     }
     auto* resolutionLabel = new QLabel(resolutionText);
-    QFont f = resolutionLabel->font();
-    f.setPointSize(f.pointSize() - 2);
-    resolutionLabel->setFont(f);
+    QFont resFont = resolutionLabel->font();
+    resFont.setPointSize(resFont.pointSize() - 1);
+    resolutionLabel->setFont(resFont);
+    resolutionLabel->setStyleSheet("color: palette(mid-light);");
 
+    // Remove button with better sizing
     auto* removeBtn = new QPushButton("✕");
     removeBtn->setToolTip(tr("Remove this mask"));
     removeBtn->setCursor(Qt::PointingHandCursor);
-    removeBtn->setMaximumWidth(18);
-    removeBtn->setMaximumHeight(18);
+    removeBtn->setMaximumWidth(24);
+    removeBtn->setMaximumHeight(24);
+    removeBtn->setMinimumWidth(24);
+    removeBtn->setMinimumHeight(24);
+    removeBtn->setStyleSheet(
+        "QPushButton { "
+        "  border: none; "
+        "  background-color: transparent; "
+        "  padding: 2px; "
+        "  border-radius: 4px; "
+        "} "
+        "QPushButton:hover { "
+        "  background-color: palette(button); "
+        "}"
+    );
     
-    removeBtn->setStyleSheet(QString("QPushButton { font-size: 12px; }"));
-    
-    topRow->addWidget(title);
-    topRow->addWidget(resolutionLabel);
+    topRow->addWidget(title, 1);
+    topRow->addWidget(resolutionLabel, 0);
     topRow->addStretch();
-    topRow->addWidget(removeBtn);
+    topRow->addWidget(removeBtn, 0);
 
-    // Second line: Settings in even smaller font
-    auto* detail = new QLabel(formatDetails(record));
+    // Details section
+    QString detailsText = formatDetails(record);
+    auto* detail = new QLabel(detailsText);
     detail->setWordWrap(true);
-    detail->setFont(f);
+    QFont detailFont = detail->font();
+    detailFont.setPixelSize(int(detailFont.pixelSize() * 0.95));
+    detail->setFont(detailFont);
+    detail->setStyleSheet("color: palette(mid);");
 
     layout->addLayout(topRow);
-    if (!formatDetails(record).isEmpty()) {
+    if (!detailsText.isEmpty()) {
         layout->addWidget(detail);
     }
 
