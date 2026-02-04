@@ -39,9 +39,6 @@ public:
 public slots:
     void refreshJobQueue();
     void refreshWorkerState();
-    void bumpJobUp(const ColmapWrapper::SJob &job);
-    void bumpJobDown(const ColmapWrapper::SJob &job);
-    void editJob(const ColmapWrapper::SJob &job);
     void deleteJob(const ColmapWrapper::SJob &job);
 
 private slots:

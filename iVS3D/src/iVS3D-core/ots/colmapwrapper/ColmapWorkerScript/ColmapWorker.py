@@ -335,12 +335,29 @@ def computeCustomCommandJob(colmapDatabaseFilePath: str, projectImageDir: str, c
         quality = parameterList['quality']
         camModel = parameterList['camera_model']
         mask_path = parameterList.get('mask_path', "")
+        multiple_models = parameterList['multiple_models']
+        max_focal_length_ratio = parameterList['max_focal_length_ratio']
+        camera_params = parameterList['camera_params']
+        robust_mode = parameterList['robust_mode']
+        single_camera = parameterList['single_camera']
+        max_threads = parameterList['max_threads']
+        run_sparse = parameterList['run_sparse']
+        run_dense = parameterList['run_dense']
+        run_mesh = parameterList['run_mesh']
 
         def scan_function(line):
             # Scanning custom command stdout for progress
             if "iVS3D_PROGRESS" in line:               
-                _, progress, step, eta = line.split(" ")                
-                progressCallback(int(progress), eta=int(eta), step=int(step), force_Write = True)
+                log = line.split(" ")      
+                if len(log) < 4:
+                    print(log)
+                    return          
+                _, progress, eta = log[:3]   
+                step = " ".join(log[3:])
+                progressCallback(int(progress), eta=int(eta), step=step, force_Write = False)
+
+        global COLMAP_BIN 
+        global OPENMVS_BIN_FOLDER 
 
         args = [custom_command, 
             projectImageDir, 
@@ -349,7 +366,28 @@ def computeCustomCommandJob(colmapDatabaseFilePath: str, projectImageDir: str, c
             "--quality", quality,
             "--gpus", gpus,
             "--camera_model", camModel,
-            "--mask_path", mask_path]
+            "--single_camera", single_camera,
+            "--multiple_models", multiple_models,
+            "--max_focal_length_ratio", max_focal_length_ratio,
+            "--robust_mode", robust_mode,
+            "--max_threads", max_threads,
+            "--run_sparse", run_sparse,
+            "--run_dense", run_dense,
+            "--run_mesh", run_mesh,
+            ]
+        
+        if mask_path.strip() != "" and mask_path != None:
+            args.extend(["--mask_path", mask_path])
+            
+        if camera_params.strip() != "" and camera_params != None:
+            args.extend(["--camera_params", camera_params])
+            
+        if COLMAP_BIN.strip() != "" and COLMAP_BIN != None:
+            args.extend(["--COLMAP_bin_path", COLMAP_BIN])
+            
+        if OPENMVS_BIN_FOLDER.strip() != "" and OPENMVS_BIN_FOLDER != None:
+            args.extend(["--OpenMVS_bin_folder_path", OPENMVS_BIN_FOLDER])
+            
 
         args = " ".join(args)
         print(args)
@@ -1330,7 +1368,7 @@ def writeCurrentJobToStateFile(yamlFilePath: str, currentJobYamlObj):
 
 ######################################################################################################################
 # Method to write currently running job to state files
-def progressCallback(progress: float, force_Write = False, step=1, eta=0):
+def progressCallback(progress: float, force_Write = False, step="-", eta=0):
     global LAST_PROGRESS_UPDATE_TIME
     global WORKER_STATE_YAML_PATH
 

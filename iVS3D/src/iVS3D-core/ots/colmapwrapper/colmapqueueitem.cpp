@@ -93,10 +93,11 @@ QueueItemActive::QueueItemActive(ColmapWrapper::SJob job, QWidget *parent)
     ui->l_name->setText(QString::fromStdString(job.sequenceName)
                             .append(": ")
                             .append(QString::fromStdString(job.displayName))
-                            .append(" ETA for step ")
-                            .append(QString::number(job.step))
-                            .append(" ")
-                            .append(time.toString("hh:mm:ss")));
+                            .append(" (")
+                            .append(QString::fromStdString(job.step))
+                            .append(": ETA ")
+                            //.append(" Time remaining:")
+                            .append(time.toString("hh:mm:ss").append(")")));
     ui->l_name->setStyleSheet("color: black;");
     ui->l_progress->setStyleSheet("color: black;");
 }
@@ -116,13 +117,11 @@ void QueueItemActive::setProgress(int progress)
 //==================================================================================================
 void QueueItemActive::onUpdateToDarkTheme()
 {
-    ui->btnCancel->setIcon(QIcon(":/assets/icons/glyphicons-17-bin-dark.png"));
 }
 
 //==================================================================================================
 void QueueItemActive::onUpdateToLightTheme()
 {
-    ui->btnCancel->setIcon(QIcon(":/assets/icons/glyphicons-17-bin.png"));
 }
 
 //==================================================================================================

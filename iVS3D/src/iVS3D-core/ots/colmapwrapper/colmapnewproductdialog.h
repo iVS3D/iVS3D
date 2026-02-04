@@ -42,7 +42,6 @@ class NewProductDialog : public QDialog
 
   private slots:
 
-    void onCustomCommandClicked();
     void onProdCameraPosesClicked();
     void onProdPointCloudClicked();
     void onProdMeshClicked();

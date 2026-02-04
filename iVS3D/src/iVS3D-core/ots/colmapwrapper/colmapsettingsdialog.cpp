@@ -64,33 +64,45 @@ SettingsDialog::SettingsDialog(ColmapWrapper *ipWrapper, QWidget *parent)
             this,
             &SettingsDialog::addEmptyRow);
 
-    connect(ui->cb_experimental, &QCheckBox::toggled, this, &SettingsDialog::onClickonExperimental);
+    connect(mpColmapWrapper,
+            &ColmapWrapper::setupStatusUpdate,
+            this,
+            &SettingsDialog::onStatusChanged);
+    connect(ui->le_localWorkspace, &QLineEdit::textChanged, this, &SettingsDialog::settingsChanged);
+    connect(ui->le_localColmapBinary,
+            &QLineEdit::textChanged,
+            this,
+            &SettingsDialog::settingsChanged);
+    connect(ui->le_localOpenMVSBinaryFolder,
+            &QLineEdit::textChanged,
+            this,
+            &SettingsDialog::settingsChanged);
+    connect(ui->le_remoteWorkspace, &QLineEdit::textChanged, this, &SettingsDialog::settingsChanged);
+    connect(ui->le_remoteAddr, &QLineEdit::textChanged, this, &SettingsDialog::settingsChanged);
+    connect(ui->le_remoteUsr, &QLineEdit::textChanged, this, &SettingsDialog::settingsChanged);
+    connect(ui->le_remoteColmapBinary,
+            &QLineEdit::textChanged,
+            this,
+            &SettingsDialog::settingsChanged);
+    connect(ui->le_remoteOpenMVSBinaryFolder,
+            &QLineEdit::textChanged,
+            this,
+            &SettingsDialog::settingsChanged);
+    connect(ui->le_mntPnt, &QLineEdit::textChanged, this, &SettingsDialog::settingsChanged);
 
-  connect(mpColmapWrapper, &ColmapWrapper::setupStatusUpdate, this, &SettingsDialog::onStatusChanged);
-  connect(ui->le_localWorkspace, &QLineEdit::textChanged, this, &SettingsDialog::settingsChanged);
-  connect(ui->le_localColmapBinary, &QLineEdit::textChanged, this, &SettingsDialog::settingsChanged);
-  connect(ui->le_localOpenMVSBinaryFolder, &QLineEdit::textChanged, this, &SettingsDialog::settingsChanged);
-  connect(ui->le_remoteWorkspace, &QLineEdit::textChanged, this, &SettingsDialog::settingsChanged);
-  connect(ui->le_remoteAddr, &QLineEdit::textChanged, this, &SettingsDialog::settingsChanged);
-  connect(ui->le_remoteUsr, &QLineEdit::textChanged, this, &SettingsDialog::settingsChanged);
-  connect(ui->le_remoteColmapBinary, &QLineEdit::textChanged, this, &SettingsDialog::settingsChanged);
-  connect(ui->le_remoteOpenMVSBinaryFolder, &QLineEdit::textChanged, this, &SettingsDialog::settingsChanged);
-  connect(ui->le_mntPnt, &QLineEdit::textChanged, this, &SettingsDialog::settingsChanged);
+    ColmapWrapperControlsFactory *pCtrlFactory = mpColmapWrapper->getOrCreateUiControlsFactory();
+    connect(pCtrlFactory,
+            &ColmapWrapperControlsFactory::updateToDarkTheme,
+            this,
+            &SettingsDialog::onUpdateToDarkTheme);
+    connect(pCtrlFactory,
+            &ColmapWrapperControlsFactory::updateToLightTheme,
+            this,
+            &SettingsDialog::onUpdateToLightTheme);
 
-  ColmapWrapperControlsFactory *pCtrlFactory = mpColmapWrapper->getOrCreateUiControlsFactory();
-  connect(pCtrlFactory,
-          &ColmapWrapperControlsFactory::updateToDarkTheme,
-          this,
-          &SettingsDialog::onUpdateToDarkTheme);
-  connect(pCtrlFactory,
-          &ColmapWrapperControlsFactory::updateToLightTheme,
-          this,
-          &SettingsDialog::onUpdateToLightTheme);
-
-  //--- hide remote settings (default)
-  ui->f_remote->setVisible(false);
-  ui->f_customCommand->setVisible(false);
-  //updateStatusMsg();
+    //--- hide remote settings (default)
+    ui->f_remote->setVisible(false);
+    //updateStatusMsg();
 }
 
 //==================================================================================================
@@ -107,10 +119,6 @@ void SettingsDialog::onUpdateToDarkTheme()
 void SettingsDialog::onUpdateToLightTheme()
 {
   settingsChanged();
-}
-
-void SettingsDialog::onClickonExperimental(){
-    ui->f_customCommand->setVisible(ui->cb_experimental->isChecked());
 }
 
 void SettingsDialog::onAddCustomCommand()

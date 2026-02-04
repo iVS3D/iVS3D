@@ -18,7 +18,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)   # Enforce C++17
 set(CMAKE_CXX_EXTENSIONS OFF)         # Use only standard C++ (disable compiler-specific extensions)
 
 # OpenCV
-find_package(OpenCV 4.7 REQUIRED COMPONENTS
+find_package(OpenCV REQUIRED COMPONENTS
     core
     imgcodecs
     videoio

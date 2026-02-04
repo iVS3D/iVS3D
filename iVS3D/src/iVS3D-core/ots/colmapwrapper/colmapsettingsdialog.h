@@ -51,7 +51,6 @@ class SettingsDialog : public QDialog
     void onRestoreDefaults();
     void onAddCustomCommand();
     void onRemoveCustomCommand(int row);
-    void onClickonExperimental();
 
   private:
     Ui::SettingsDialog *ui;

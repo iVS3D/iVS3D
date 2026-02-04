@@ -128,7 +128,7 @@ class ColmapWrapper : public QObject
         uint progress = 0;
 
         /// current step of job.
-        uint step = 0;
+        std::string step = "-";
 
         /// ETA (expected time of arrival) for current step in ms
         uint eta = 0;
@@ -504,20 +504,6 @@ class ColmapWrapper : public QObject
     void addJobList( const std::vector<SJob> &iJobList);
 
     /**
-     * @brief Move given Job one up in queue.
-     *
-     * @return True, if successful. False, if job is not found in list.
-     */
-    bool moveJobOneUp(const SJob &iJob);
-
-    /**
-     * @brief Move given Job one down in queue.
-     *
-     * @return True, if successful. False, if job is not found in list.
-     */
-    bool moveJobOneDown(const SJob &iJob);
-
-    /**
      * @brief Delete given Job.
      *
      * @return True, if successful. False, if job is not found in list.
@@ -615,14 +601,9 @@ class ColmapWrapper : public QObject
     QString getFirstMatchingFileNameWithWildcard(const QString& path, QString baseName) const;
 
     /**
-     * @brief Read work queue from file (colmap_work_queue.yaml) in workspace.
+     * @brief Read worker state and queue from file (colmap_worker_state.yaml & colmap_work_queue.yaml) in workspace.
      */
-    void readWorkQueueFromFile();
-
-    /**
-     * @brief Read worker state from file (colmap_worker_state.yaml) in workspace.
-     */
-    void readWorkerStateFromFile();
+    void readWorkerStateAndQueueFromFile();
 
     /**
      * @brief Sync files and update job list after colmap wrapper settings changed.
@@ -660,13 +641,6 @@ class ColmapWrapper : public QObject
      * @param[in] iPdctType Type of product that is to be queried.
      */
     bool hasProduct(const std::string iSeqName, const ColmapWrapper::EProductType iPdctType) const;
-
-    /**
-     * @brief Move job in queue.
-     * @param[in] fromidx Index pointing to job that is to be moved.
-     * @param[in] toIdx Index to which the job is to be moved.
-     */
-    void moveJobInQueue(const int fromidx, const int toIdx);
 
     /**
      * @return Returns index of given job in queue.

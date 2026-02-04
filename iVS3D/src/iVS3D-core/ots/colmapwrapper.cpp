@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <fstream>
 #include <iostream>
+#include <vector>
 
 // Qt
 #include <QApplication>
@@ -196,28 +197,47 @@ bool ColmapWrapper::testSettings(const SSettings *settings, SSetupResults *resul
 
         // check ssh connection
         {
-            QStringList args;
-            args << settings->remoteUsr + QString("@") + settings->remoteAddr << "hostnamectl";
-            QProcess p;
-            p.start("ssh", args);
-            if(!p.waitForFinished(5000)){  // maximum 5 sec to respond
-                // something went wrong!
-                results->sshConnection.first = TEST_FAILED;
-                results->sshConnection.second = "'ssh " + args[0] + " " + args[1] + "': " + p.readAll();
+            QString userAtHost = settings->remoteUsr + "@" + settings->remoteAddr;
 
+            QStringList args{"-o",
+                             "BatchMode=yes",
+                             "-o",
+                             "NumberOfPasswordPrompts=0",
+                             "-o",
+                             "ConnectTimeout=5",
+                             "-o",
+                             "StrictHostKeyChecking=accept-new",
+                             "-o",
+                             "LogLevel=ERROR",
+                             "-T",
+                             userAtHost,
+                             "true"};
+
+            QProcess p;
+            p.setProgram("ssh");
+            p.setArguments(args);
+            p.start();
+
+            bool finished = p.waitForFinished(10000); // give enough time for handshake
+            if (!finished) {
+                results->sshConnection.first = TEST_FAILED;
+                results->sshConnection.second = "Timeout: " + p.errorString();
                 emit setupStatusUpdate();
                 return false;
-            } else {
-                QString err(p.readAllStandardError());
-                if(!err.isEmpty()){
-                    results->sshConnection.first = TEST_FAILED;
-                    results->sshConnection.second = "'ssh " + args[0] + " " + args[1] + "': " + err;
-                    emit setupStatusUpdate();
-                    return false;
-                }
             }
-            results->sshConnection.first = TEST_SUCCESSFUL;
-            emit setupStatusUpdate();
+
+            if (p.exitStatus() == QProcess::NormalExit && p.exitCode() == 0) {
+                results->sshConnection.first = TEST_SUCCESSFUL;
+                emit setupStatusUpdate();
+            } else {
+                results->sshConnection.first = TEST_FAILED;
+                results->sshConnection.second = QString("SSH failed (code %1): %2")
+                                                    .arg(p.exitCode())
+                                                    .arg(QString::fromUtf8(
+                                                        p.readAllStandardError()));
+                emit setupStatusUpdate();
+                return false;
+            }
         }
 
 
@@ -616,11 +636,9 @@ QString ColmapWrapper::getFirstMatchingFileNameWithWildcard(const QString& path,
     }
 }
 
-
 //==================================================================================================
-void ColmapWrapper::readWorkQueueFromFile()
+void ColmapWrapper::readWorkerStateAndQueueFromFile()
 {
-
     //--- if remote connection use mounting point
     QDir inputDir;
     if (mConnectionType == LOCAL) {
@@ -639,13 +657,17 @@ void ColmapWrapper::readWorkQueueFromFile()
     }
 
     //--- initialize file storage and import jobs
-    QString inputFile = getFirstMatchingFileNameWithWildcard(QDir::toNativeSeparators(inputDir.absolutePath()), WORK_QUEUE_FILE_NAME);
-    if(inputFile==""){
+    QString inputFile = getFirstMatchingFileNameWithWildcard(QDir::toNativeSeparators(
+                                                                 inputDir.absolutePath()),
+                                                             WORK_QUEUE_FILE_NAME);
+    if (inputFile == "") {
         qDebug() << "Info: "
                     "Failed to open worke queue file.";
         return;
     }
     int elementsInQueue;
+    auto tmpJobs = std::vector<SJob>();
+
     // TODO find better way to prevent application from crashing if both c++ and python read/write at the same time
     try {
         cv::FileStorage fs = cv::FileStorage(inputFile.toStdString(),
@@ -655,47 +677,28 @@ void ColmapWrapper::readWorkQueueFromFile()
 
         elementsInQueue = queueNode.size();
 
-        mJobs.clear();
         for (cv::FileNodeIterator itr = queueNode.begin(); itr != queueNode.end(); ++itr) {
             SJob newPendingJob;
             importJob(*itr, newPendingJob);
-            mJobs.push_back(newPendingJob);
+            tmpJobs.push_back(newPendingJob);
         }
         fs.release();
 
     } catch (const std::exception &ex) {
         qDebug() << "Info: "
                     "Failed to open worke queue file.";
+
+        qDebug() << ex.what();
         return;
     }
 
     qDebug() << "Info: " << elementsInQueue << " jobs read from file.";
-}
-
-//==================================================================================================
-void ColmapWrapper::readWorkerStateFromFile()
-{
-
-    //--- if remote connection use mounting point
-    QDir inputDir;
-    if (mConnectionType == LOCAL) {
-        inputDir.setPath(mLocalWorkspacePath);
-        if (!inputDir.exists()) {
-            qDebug() << "Error: Local Workspace does not exist!";
-            return;
-        }
-    } else {
-        if (!isRemoteWorkspaceMounted(mMntPntRemoteWorkspacePath)) {
-            qDebug() << "Error: Remote Workspace is not mounted!";
-            return;
-        }
-
-        inputDir.setPath(mMntPntRemoteWorkspacePath);
-    }
 
     //--- initialize file storage and import jobs
-    QString inputFile = getFirstMatchingFileNameWithWildcard(QDir::toNativeSeparators(inputDir.absolutePath()), WORKER_STATE_FILE_NAME);
-    if(inputFile==""){
+    inputFile = getFirstMatchingFileNameWithWildcard(QDir::toNativeSeparators(
+                                                         inputDir.absolutePath()),
+                                                     WORKER_STATE_FILE_NAME);
+    if (inputFile == "") {
         qDebug() << "Info: "
                     "Failed to open worker state file.";
         return;
@@ -742,8 +745,7 @@ void ColmapWrapper::readWorkerStateFromFile()
         nRunningJob = jobNode.size();
         if (nRunningJob > 0) {
             importJob(jobNode[0], runningJob);
-            mJobs.insert(mJobs.begin(), runningJob);
-            mPyWorker.currentlyRunningJob = &mJobs[0];
+            tmpJobs.insert(tmpJobs.begin(), runningJob);
         } else {
             mPyWorker.currentlyRunningJob = nullptr;
         }
@@ -754,12 +756,17 @@ void ColmapWrapper::readWorkerStateFromFile()
     } catch (const std::exception &ex) {
         qDebug() << "Info: "
                     "Failed to open worker state file.";
+        qDebug() << ex.what();
         return;
     }
 
+    mJobs = tmpJobs;
+    mPyWorker.currentlyRunningJob = &mJobs[0];
+
     //--- compute worker state
-    bool isRunningFileExists
-        = QFileInfo(QDir::toNativeSeparators(inputDir.absolutePath()) + QDir::separator() + IS_RUNNING_FILE_NAME).exists();
+    bool isRunningFileExists = QFileInfo(QDir::toNativeSeparators(inputDir.absolutePath())
+                                         + QDir::separator() + IS_RUNNING_FILE_NAME)
+                                   .exists();
     if (mPyWorker.currentlyRunningJob == nullptr && !isRunningFileExists)
         mPyWorker.state = WORKER_IDLE;
     else if (mPyWorker.currentlyRunningJob != nullptr && isRunningFileExists)
@@ -818,7 +825,7 @@ void ColmapWrapper::importJob(const cv::FileNode &iFileNode, ColmapWrapper::SJob
         QString().fromStdString(iFileNode["productType"]).toUInt());
     oJob.state = static_cast<EJobState>(QString().fromStdString(iFileNode["jobState"]).toUInt());
     oJob.progress = QString().fromStdString(iFileNode["progress"]).toUInt();
-    oJob.step = QString().fromStdString(iFileNode["step"]).toUInt();
+    oJob.step = std::string(iFileNode["step"]);
     oJob.eta = QString().fromStdString(iFileNode["eta"]).toUInt();
 
     cv::FileNode params = iFileNode["parameters"];
@@ -853,12 +860,6 @@ bool ColmapWrapper::hasProduct(const std::string iSeqName,
         }
     }
     return false;
-}
-
-//==================================================================================================
-void ColmapWrapper::moveJobInQueue(const int fromidx, const int toIdx)
-{
-    std::iter_swap(mJobs.begin() + fromidx, mJobs.begin() + toIdx);
 }
 
 //==================================================================================================
@@ -1038,8 +1039,7 @@ bool ColmapWrapper::checkWorkerState()
     }
 
     //--- read woker queue and worker state
-    readWorkQueueFromFile();
-    readWorkerStateFromFile();
+    readWorkerStateAndQueueFromFile();
     emit jobListUpdate();
     emit workerStateUpdate();
 
@@ -1230,53 +1230,6 @@ void ColmapWrapper::addJobList(const std::vector<SJob> &iJobList)
     mJobs.insert(mJobs.end(), iJobList.begin(), iJobList.end());
 
     emit jobListUpdate();
-}
-
-//==================================================================================================
-bool ColmapWrapper::moveJobOneUp(const ColmapWrapper::SJob &iJob)
-{
-    qDebug()
-        << "==================================================================================";
-    qDebug() << "Time: " << QDateTime::currentDateTime().toString();
-
-    int jobIdx = getIndexOfJob(iJob);
-    if (jobIdx == -1) {
-        return false;
-    } else if (jobIdx == 0) {
-        return true;
-    }
-    // if job in front is running, then do nothing
-    else if (jobIdx > 0 && mJobs[jobIdx - 1].state == JOB_RUNNING) {
-        return true;
-    }
-    // if job in front is of same sequence and a prerequisite, then do nothing
-    else if (jobIdx > 0 && mJobs[jobIdx - 1].sequenceName == iJob.sequenceName
-             && static_cast<int>(mJobs[jobIdx - 1].product) < static_cast<int>(iJob.product)) {
-        return true;
-    }
-
-    moveJobInQueue(jobIdx, jobIdx - 1);
-    return true;
-}
-
-//==================================================================================================
-bool ColmapWrapper::moveJobOneDown(const ColmapWrapper::SJob &iJob)
-{
-
-    int jobIdx = getIndexOfJob(iJob);
-    if (jobIdx == -1) {
-        return false;
-    } else if (jobIdx == 0) {
-        return true;
-    }
-    // if job behind is of same sequence and dependent of this job, then do nothing
-    else if (jobIdx >= 0 && mJobs[jobIdx + 1].sequenceName == iJob.sequenceName
-             && static_cast<int>(mJobs[jobIdx + 1].product) > static_cast<int>(iJob.product)) {
-        return true;
-    }
-
-    moveJobInQueue(jobIdx, jobIdx + 1);
-    return true;
 }
 
 //==================================================================================================
@@ -1481,10 +1434,16 @@ void ColmapWrapper::installScriptFilesIntoWorkspace(){
             QString outputFile = outputPath + QDir::separator()
                                  + QFileInfo(res).filePath().replace(":/ots/colmapwrapper/", "");
 
+            if (res.endsWith(".yaml")
+                && getFirstMatchingFileNameWithWildcard(
+                       outputPath, QFileInfo(res).filePath().replace(":/ots/colmapwrapper/", ""))
+                       != "") {
+                continue;
+            }
+
             //--- copy file and set permissions
             if (QFile::exists(outputFile))
                 QFile::remove(outputFile);
-
 
             QFileInfo fileInfo(outputFile);
             QDir dir(fileInfo.absolutePath());
@@ -1542,6 +1501,13 @@ bool ColmapWrapper::hasScriptFilesInstalled()
             //--- compute output file path
             QString outputFile = outputPath + QDir::separator()
                                  + QFileInfo(res).filePath().replace(":/ots/colmapwrapper/", "");
+
+            if (res.endsWith(".yaml")
+                && getFirstMatchingFileNameWithWildcard(
+                       outputPath, QFileInfo(res).filePath().replace(":/ots/colmapwrapper/", ""))
+                       != "") {
+                continue;
+            }
 
             //--- copy file and set permissions
             if (res.endsWith(".yaml") && QFile::exists(outputFile))

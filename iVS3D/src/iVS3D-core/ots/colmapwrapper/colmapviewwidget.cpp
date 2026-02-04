@@ -65,34 +65,6 @@ ViewWidget::~ViewWidget()
 }
 
 //==================================================================================================
-void ViewWidget::bumpJobUp(const ColmapWrapper::SJob &job)
-{
-    mpColmapWrapper->moveJobOneUp(job);
-    mpColmapWrapper->writeWorkQueueToFile();
-    refreshJobQueue();
-}
-
-//==================================================================================================
-void ViewWidget::bumpJobDown(const ColmapWrapper::SJob &job)
-{
-    mpColmapWrapper->moveJobOneDown(job);
-    mpColmapWrapper->writeWorkQueueToFile();
-    refreshJobQueue();
-}
-
-//==================================================================================================
-void ViewWidget::editJob(const ColmapWrapper::SJob &job)
-{
-    Q_UNUSED(job)
-    //TODO
-    //    Job sJob(job);
-    //    if(WidgetJobEdit(&sJob).exec()) {
-    //        dataset->editJob(sJob);
-    //    }
-    //    dataset->save_work();
-}
-
-//==================================================================================================
 void ViewWidget::deleteJob(const ColmapWrapper::SJob &job)
 {
     mpColmapWrapper->deleteJob(job);
