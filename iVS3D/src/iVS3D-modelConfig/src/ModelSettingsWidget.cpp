@@ -36,7 +36,7 @@ void ModelSettingsWidget::setupUi()
     mainLayout->setContentsMargins(0, 0, 0, 0);
 
     // ==================== Model Selection ====================
-    auto* modelLayout = new QHBoxLayout(this);
+    auto* modelLayout = new QHBoxLayout();
     auto* modelLabel = new QLabel(tr("Model:"), this);
     
     m_modelCombo = new QComboBox(this);
@@ -78,7 +78,7 @@ void ModelSettingsWidget::setupUi()
     classLayout->setSpacing(8);
 
     // Search and invert controls
-    auto* classHeaderLayout = new QHBoxLayout(this);
+    auto* classHeaderLayout = new QHBoxLayout();
     auto* classLabel = new QLabel(tr("Select Classes:"), this);
     
     m_searchEdit = new QLineEdit(this);
@@ -550,7 +550,7 @@ void ModelSettingsWidget::onSearchTextChanged(const QString& text)
         gridLayout = new QGridLayout(m_classGridWidget);
         gridLayout->setSpacing(6);
         gridLayout->setContentsMargins(0, 0, 0, 0);
-        m_classGridWidget->setLayout(gridLayout);
+        // Note: Layout is already set by constructor, no need to call setLayout() again
     } else {
         QLayoutItem* item;
         while ((item = gridLayout->takeAt(0)) != nullptr) {
