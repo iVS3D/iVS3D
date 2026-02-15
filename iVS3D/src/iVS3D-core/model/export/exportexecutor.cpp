@@ -1,9 +1,10 @@
 #include "exportexecutor.h"
 
-ExportExecutor::ExportExecutor(QObject* parent, DataManager* dataManager)
+ExportExecutor::ExportExecutor(QObject* parent, DataManager* dataManager, std::shared_ptr<PluginThread> pluginThread)
 {
     m_parent = parent;
     m_dataManager = dataManager;
+    m_pluginThread = pluginThread;
     m_exportThread = nullptr;
 
     m_boundaries = m_dataManager->getModelInputPictures()->getBoundaries();
@@ -14,7 +15,7 @@ void ExportExecutor::startExport(const ExportConfig& config, LogFile *logFile){
     ModelInputPictures* mip = m_dataManager->getModelInputPictures();
     // cause mip loses its boundary attribute in a magical and unkown way
     mip->setBoundaries(m_boundaries);
-    m_exportThread = new ExportThread(this, mip, config, &m_stopped, logFile);
+    m_exportThread = new ExportThread(this, mip, config, &m_stopped, logFile, m_pluginThread.get());
     if (qApp->property(stringContainer::UIIdentifier).toBool()) {
         connect(m_exportThread, &ExportThread::finished, this, &ExportExecutor::slot_finished);
     }

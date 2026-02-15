@@ -3,9 +3,10 @@
 #include <QThread>
 #include <QObject>
 #include <QAtomicInteger>
+#include <queue>
+#include <memory>
 
 #include "pluginhandle.h"
-
 
 using RequestId = quint64;
 
@@ -23,6 +24,24 @@ struct PreviewResult {
 };
 Q_DECLARE_METATYPE(PreviewResult)
 
+struct MaskRequest {
+    RequestId id;               // unique ID for this request
+    uint imageIndex;            // Index of the image in the sequence
+    cv::Mat image;              // The image to create a mask for
+    PluginHandle plugin;        // The plugin to use for mask generation
+    int maskRecordId;           // ID of the MaskRecord for tracking
+};
+Q_DECLARE_METATYPE(MaskRequest)
+
+struct MaskGenerationResult {
+    uint imageIndex;            // Index of the image in the sequence
+    cv::Mat mask;               // The generated mask
+    int maskRecordId;           // ID of the MaskRecord
+    bool success = true;
+    QString errorMessage;
+};
+Q_DECLARE_METATYPE(MaskGenerationResult)
+
 enum class PreviewState {
     Idle,
     Processing,
@@ -31,8 +50,7 @@ Q_DECLARE_METATYPE(PreviewState)
 
 /**
  * PluginRunner lives in a separate worker thread and is responsible for executing plugin code asynchronously. 
- * It receives requests to execute plugin code via the request_preview slot, executes the plugin's generatePreview 
- * function, and emits a signal with the result when done. It also keeps track of the
+ * It receives requests to execute plugin code via slots and emits signals with results when done.
  */
 class PluginRunner : public QObject {
     Q_OBJECT
@@ -45,13 +63,15 @@ public:
 
 public slots:
     void requestPreview(const PreviewRequest& request);
+    void requestMask(const MaskRequest& request);
 
 signals:
     void previewStarted(const RequestId& id);
     void previewFinished(const PreviewResult& result);
+    void maskFinished(const MaskGenerationResult& result);
 
 private:
-    QAtomicInteger<RequestId> m_latestRequest{0};  // track the latest request ID to ensure only the most recent request is processed
+    QAtomicInteger<RequestId> m_latestRequest{0};
 };
 
 
@@ -63,14 +83,15 @@ public:
     ~PluginThread();
 
     void requestPreview(const PluginHandle& plugin, const PreviewData& request);
+    void requestMask(const MaskRequest& request);
 
 signals:
     void previewFinished(const PreviewResult& result);
     void previewStateChanged(const PreviewState& state);
+    void maskFinished(const MaskGenerationResult& result);
 
 private:
-
     std::unique_ptr<QThread> m_thread;
     std::unique_ptr<PluginRunner> m_runner;
-    RequestId m_counter{0};  // counter to assign unique IDs to each request
+    RequestId m_counter{0};
 };

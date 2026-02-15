@@ -13,6 +13,37 @@ void PluginRunner::requestPreview(const PreviewRequest& request) {
     emit previewFinished({request.idx, result});
 }
 
+void PluginRunner::requestMask(const MaskRequest& request) {
+    if (!request.plugin.hasMask()) {
+        MaskGenerationResult result;
+        result.imageIndex = request.imageIndex;
+        result.mask = cv::Mat();
+        result.maskRecordId = request.maskRecordId;
+        result.success = false;
+        result.errorMessage = "Plugin does not support mask generation";
+        emit maskFinished(result);
+        return;
+    }
+    
+    const auto maskResult = request.plugin.mask->generateMask({request.imageIndex, request.image});
+    
+    MaskGenerationResult result;
+    result.imageIndex = request.imageIndex;
+    result.maskRecordId = request.maskRecordId;
+    
+    if (maskResult) {
+        result.mask = *maskResult;
+        result.success = true;
+        result.errorMessage = "";
+    } else {
+        result.mask = cv::Mat();
+        result.success = false;
+        result.errorMessage = maskResult.error().message;
+    }
+    
+    emit maskFinished(result);
+}
+
 PluginThread::PluginThread(const QVector<PluginHandle>& pluginHandles,
                            QObject* parent)
     : QObject(parent) {
@@ -37,6 +68,13 @@ PluginThread::PluginThread(const QVector<PluginHandle>& pluginHandles,
     connect(m_runner.get(), &PluginRunner::previewStarted, this,
             [=](const RequestId& id) {
                 emit previewStateChanged(PreviewState::Processing);  // update state to processing when preview starts
+            },
+            Qt::QueuedConnection);
+
+    // Forward mask finished signal from runner to PluginThread
+    connect(m_runner.get(), &PluginRunner::maskFinished, this,
+            [=](const MaskGenerationResult& result) {
+                emit maskFinished(result);
             },
             Qt::QueuedConnection);
 
@@ -67,4 +105,11 @@ void PluginThread::requestPreview(const PluginHandle& plugin,
         m_runner.get(), "requestPreview",
         Qt::QueuedConnection,
         Q_ARG(PreviewRequest, previewRequest));
+}
+
+void PluginThread::requestMask(const MaskRequest& request) {
+    QMetaObject::invokeMethod(
+        m_runner.get(), "requestMask",
+        Qt::QueuedConnection,
+        Q_ARG(MaskRequest, request));
 }

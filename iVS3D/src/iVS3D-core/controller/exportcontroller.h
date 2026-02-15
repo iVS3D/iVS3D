@@ -17,6 +17,7 @@
 
 #include "colmapwrapper.h"
 #include "maskstack.h"
+#include "pluginthread.h"
 
 #include <QObject>
 #include <QDebug>
@@ -56,7 +57,7 @@ public:
      * @param outputWidget
      * @param dataManager
      */
-    ExportController(OutputWidget *outputWidget, DataManager *dataManager, lib3d::ots::ColmapWrapper *colmap, std::shared_ptr<MaskStack> maskStack = nullptr);
+    ExportController(OutputWidget *outputWidget, DataManager *dataManager, lib3d::ots::ColmapWrapper *colmap, std::shared_ptr<PluginThread> pluginThread, std::shared_ptr<MaskStack> maskStack = nullptr);
 
 
     /**
@@ -202,6 +203,7 @@ private:
     double m_altitude_current = 0.0;
 
     std::shared_ptr<MaskStack> m_maskStack;
+    std::shared_ptr<PluginThread> m_pluginThread;
 
 };
 

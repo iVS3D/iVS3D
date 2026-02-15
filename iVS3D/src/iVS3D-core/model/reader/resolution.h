@@ -72,6 +72,8 @@ public:
      */
     bool operator==(const Resolution& other) const { return m_width == other.m_width && m_height == other.m_height; }
 
+    bool operator!=(const Resolution& other) const { return !(*this == other); }
+
 
     cv::Size toCvSize() const { return cv::Size(m_width, m_height); }
     QSize toQSize() const { return QSize(m_width, m_height); }

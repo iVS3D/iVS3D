@@ -759,7 +759,7 @@ void Controller::onSuccessfulOpen()
     connect(m_mainWindow, &MainWindow::sig_resetBoundaries, m_videoPlayerController, &VideoPlayerController::slot_resetBoundaries);
 
     // ExportController manages algorithm used widget and reconstruct widget and delegates export of images and 3d-reconstruction
-    m_exportController = new ExportController(m_mainWindow->getOutputWidget(), m_dataManager, m_colmapWrapper, m_stack);
+    m_exportController = new ExportController(m_mainWindow->getOutputWidget(), m_dataManager, m_colmapWrapper, m_pluginThread, m_stack);
     connect(m_exportController, &ExportController::sig_hasStatusMessage, m_mainWindow, &MainWindow::slot_displayStatusMessage);
     connect(m_exportController, &ExportController::sig_stopPlay, m_videoPlayerController, &VideoPlayerController::slot_stopPlay);
     connect(m_exportController, &ExportController::sig_exportStarted, this, &Controller::slot_exportStarted);

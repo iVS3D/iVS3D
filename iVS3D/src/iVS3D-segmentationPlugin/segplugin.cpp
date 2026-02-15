@@ -128,7 +128,7 @@ MaskResult SegmentationPlugin::generateMask(const MaskData& data) {
                           inferenceResult.error().message()))});
     }
 
-    auto maskResult = runMasking(m_cache->inferenceTensor);
+    auto maskResult = runMasking(inferenceResult.value());
 
     if (!maskResult) {
         return tl::make_unexpected(Error{
