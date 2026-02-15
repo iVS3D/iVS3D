@@ -3,6 +3,7 @@
 #include <QColor>
 #include <QDir>
 #include <QMap>
+#include <QMetaType>
 #include <QString>
 #include <string>
 #include <vector>
@@ -85,3 +86,7 @@ private:
     uint inputAlignment_ = 1;
     bool normalizeInput_ = false;   // Whether to normalize pixel values from [0,255] to [0,1]
 };
+
+// Register custom types for use in signals/slots
+Q_DECLARE_METATYPE(ModelConfig::ClassInfo)
+Q_DECLARE_METATYPE(QVector<ModelConfig::ClassInfo>)

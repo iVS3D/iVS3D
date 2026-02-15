@@ -6,6 +6,8 @@ add_library(${TARGET_NAME} STATIC
     src/ModelConfig.cpp
     src/ModelManager.cpp
     src/ModelSettingsWidget.cpp
+    include/ModelConfig.h
+    include/ModelManager.h
     include/ModelSettingsWidget.h
 )
 

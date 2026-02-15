@@ -789,7 +789,7 @@ void Controller::onSuccessfulOpen()
     connect(m_exportController, &ExportController::sig_exportFinished, m_stackController, &StackController::slot_exportFinished);
 
     // AlgorithmController manages input widget and algorithm used widgets and delegates image sampling
-    m_pluginController = new PluginController(m_dataManager, m_mainWindow->getSamplingWidget(), m_videoPlayerController, m_stackController, m_stack);
+    m_pluginController = new PluginController(m_dataManager, m_mainWindow->getSamplingWidget(), m_videoPlayerController, m_stackController, pluginThread, m_stack);
     connect(m_mainWindow->getOutputWidget()->getMaskStackView().get(), &MaskStackView::sig_recordSelected, this, &Controller::slot_restorePluginSettings);
 
     // update the working resolution, roi, etc

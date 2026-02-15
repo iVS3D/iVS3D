@@ -10,6 +10,7 @@ void PluginRunner::requestPreview(const PreviewRequest& request) {
     }
     
     qDebug() << "[THREADING] PluginRunner generating preview with ID" << request.id << "for plugin" << request.plugin.name();
+    emit previewStarted(request.id);  // emit signal that preview generation has started
     VisualizationResult result =
         request.plugin.preview->generatePreview({request.idx, request.img});
     emit previewFinished({request.idx, result});
@@ -31,8 +32,16 @@ PluginThread::PluginThread(const QVector<PluginHandle>& pluginHandles,
     // own signal
     connect(
         m_runner.get(), &PluginRunner::previewFinished, this,
-        [=](const PreviewResult& result) { emit previewFinished(result); },
+        [=](const PreviewResult& result) {
+            emit previewStateChanged(PreviewState::Idle);  // update state to idle when preview is finished 
+            emit previewFinished(result);
+        },
         Qt::QueuedConnection);
+    connect(m_runner.get(), &PluginRunner::previewStarted, this,
+            [=](const RequestId& id) {
+                emit previewStateChanged(PreviewState::Processing);  // update state to processing when preview starts
+            },
+            Qt::QueuedConnection);
 
     // start the worker thread
     m_thread->start();
@@ -45,7 +54,7 @@ void PluginThread::requestPreview(const PluginHandle& plugin,
     RequestId id = ++m_counter;  // generate a new unique ID for this request
     m_runner->setLatestRequestId(
         id);  // update the latest request ID in the runner
-
+    
     qDebug() << "[THREADING] Requesting preview with ID" << id << "for plugin" << plugin.name();
 
     PreviewRequest previewRequest{id, request.index, request.image, plugin};

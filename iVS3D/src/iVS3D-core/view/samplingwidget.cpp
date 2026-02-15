@@ -34,9 +34,12 @@ SamplingWidget::SamplingWidget(QWidget* parent)
     connect(ui->comboBoxResolution, &QComboBox::currentTextChanged,
             [=](const QString& text) { emit sig_resChanged(text); });
 
+    m_previewSpinner = new SpinnerIcon(this);
+    m_previewSpinner->setVisible(false);
+
     QHBoxLayout* layout = ui->btnLayout;
     std::vector<QWidget*> btns = {m_startSelectionBtn, m_addMaskBtn,
-                                  m_previewCB};
+                                  m_previewCB, m_previewSpinner};
     for (QWidget* btn : btns) {
         layout->addWidget(btn);
     }
@@ -118,6 +121,7 @@ void SamplingWidget::setPluginActionVisible(PluginActions action,
             break;
         case PluginActions::PREVIEW_TOGGLE:
             m_previewCB->setVisible(visible);
+            m_previewSpinner->setVisible(visible);
             break;
         case PluginActions::ADD_MASK:
             m_addMaskBtn->setVisible(visible);
@@ -125,6 +129,7 @@ void SamplingWidget::setPluginActionVisible(PluginActions action,
         case PluginActions::ALL_ACTIONS:
             m_startSelectionBtn->setVisible(visible);
             m_previewCB->setVisible(visible);
+            m_previewSpinner->setVisible(visible);
             m_addMaskBtn->setVisible(visible);
             break;
 
@@ -135,4 +140,19 @@ void SamplingWidget::setPluginActionVisible(PluginActions action,
 
 void SamplingWidget::setPreviewEnabled(bool enabled) {
     m_previewCB->setChecked(enabled);
+}
+
+void SamplingWidget::setPreviewState(const PreviewState& state) {
+    switch (state) {
+        case PreviewState::Idle:
+            m_previewSpinner->setSpinning(false);
+            m_previewSpinner->setText("");
+            break;
+        case PreviewState::Processing:
+            m_previewSpinner->setSpinning(true);
+            m_previewSpinner->setText(tr("Generating preview..."));
+            break;
+        default:
+            break;
+    }
 }

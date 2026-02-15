@@ -10,11 +10,13 @@ PluginController::PluginController(DataManager* dataManager,
                                    SamplingWidget* samplingWidget,
                                    VideoPlayerController* vpc,
                                    StackController* stackController,
+                                   std::shared_ptr<PluginThread> pluginThread,
                                    std::shared_ptr<MaskStack> maskStack)
     : m_dataManager(dataManager),
       m_samplingWidget(samplingWidget),
       m_vpc(vpc),
       m_stack(stackController),
+      m_pluginThread(pluginThread),
       m_maskStack(maskStack) {
     connect(m_samplingWidget, &SamplingWidget::sig_selectedPluginChanged, this,
             &PluginController::slot_selectPlugin);
@@ -26,6 +28,8 @@ PluginController::PluginController(DataManager* dataManager,
             [=]() { m_samplingWidget->setPreviewEnabled(false); });
     connect(m_samplingWidget, &SamplingWidget::sig_addMask, this,
             &PluginController::slot_addMask);
+    connect(m_pluginThread.get(), &PluginThread::previewStateChanged, this,
+            &PluginController::slot_previewStateChanged);
 
     m_currentPlugin = PluginHandle{nullptr, nullptr, nullptr};
 
@@ -193,6 +197,19 @@ void PluginController::slot_addMask() {
             ? m_dataManager->getModelInputPictures()->getReaderParams()->getRoi()
             : ROI();  // get current ROI or empty ROI if not used
     m_maskStack->addRecord(record);
+}
+
+void PluginController::slot_previewStateChanged(const PreviewState& state) {
+    switch(state) {
+        case PreviewState::Idle:
+            m_samplingWidget->setPreviewState(SamplingWidget::PreviewState::Idle);
+            break;
+        case PreviewState::Processing:
+            m_samplingWidget->setPreviewState(SamplingWidget::PreviewState::Processing);
+            break;
+        default:
+            break;
+    }
 }
 
 void PluginController::slot_selectPlugin(QString name) {

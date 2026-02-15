@@ -13,8 +13,20 @@ ModelSettingsWidget::ModelSettingsWidget(
     ModelManager& manager, QWidget* parent)
     : QWidget(parent), m_manager(manager)
 {
+    static bool firstInstance = true;
+    if (firstInstance) {
+        // Register metatypes for use in signals/slots across threads
+        qRegisterMetaType<QVector<uint>>("QVector<uint>");
+        qRegisterMetaType<ModelManager::ModelState>("ModelManager::ModelState");
+        qRegisterMetaType<QVector<ModelConfig::ClassInfo>>("QVector<ModelConfig::ClassInfo>");
+        qRegisterMetaType<QVector<ModelManager::ModelEntry>>("QVector<ModelManager::ModelEntry>");
+        firstInstance = false;
+    }
     setupUi();
-    refreshModelList();
+    setupManagerConnections();
+    
+    // Request initial models list from manager
+    emit modelsRefreshRequested();
 }
 
 void ModelSettingsWidget::setupUi()
@@ -24,13 +36,13 @@ void ModelSettingsWidget::setupUi()
     mainLayout->setContentsMargins(0, 0, 0, 0);
 
     // ==================== Model Selection ====================
-    auto* modelLayout = new QHBoxLayout();
-    auto* modelLabel = new QLabel(tr("Model:"));
+    auto* modelLayout = new QHBoxLayout(this);
+    auto* modelLabel = new QLabel(tr("Model:"), this);
     
-    m_modelCombo = new QComboBox();
+    m_modelCombo = new QComboBox(this);
     m_modelCombo->setToolTip(tr("Select which neural network to use"));
     
-    m_statusLabel = new QLabel();
+    m_statusLabel = new QLabel(this);
     m_statusLabel->setStyleSheet("QLabel { color: #666; }");
     
     modelLayout->addWidget(modelLabel);
@@ -44,7 +56,7 @@ void ModelSettingsWidget::setupUi()
 
 #ifdef SHOW_MODEL_CONFIG_INFO
     // ==================== Model Configuration Info ====================
-    m_configInfoLabel = new QLabel();
+    m_configInfoLabel = new QLabel(this);
     m_configInfoLabel->setStyleSheet("QLabel { color: #666; font-family: monospace; }");
     m_configInfoLabel->setWordWrap(true);
     m_configInfoLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
@@ -52,7 +64,7 @@ void ModelSettingsWidget::setupUi()
 #endif
 
     // ==================== Normalization Option ====================
-    m_normalizeInputCheckBox = new QCheckBox(tr("Normalize input [0,255] → [0,1]"));
+    m_normalizeInputCheckBox = new QCheckBox(tr("Normalize input [0,255] → [0,1]"), this);
     m_normalizeInputCheckBox->setToolTip(tr("Divide pixel values by 255 before applying mean/std normalization"));
     mainLayout->addWidget(m_normalizeInputCheckBox);
 
@@ -60,21 +72,21 @@ void ModelSettingsWidget::setupUi()
             this, &ModelSettingsWidget::onNormalizeInputToggled);
 
     // ==================== Class Selection Container ====================
-    m_classContainer = new QWidget();
+    m_classContainer = new QWidget(this);
     auto* classLayout = new QVBoxLayout(m_classContainer);
     classLayout->setContentsMargins(0, 0, 0, 0);
     classLayout->setSpacing(8);
 
     // Search and invert controls
-    auto* classHeaderLayout = new QHBoxLayout();
-    auto* classLabel = new QLabel(tr("Select Classes:"));
+    auto* classHeaderLayout = new QHBoxLayout(this);
+    auto* classLabel = new QLabel(tr("Select Classes:"), this);
     
-    m_searchEdit = new QLineEdit();
+    m_searchEdit = new QLineEdit(this);
     m_searchEdit->setPlaceholderText(tr("Search..."));
     m_searchEdit->setClearButtonEnabled(true);
     m_searchEdit->setMaximumWidth(150);
     
-    m_invertButton = new QPushButton(tr("Invert"));
+    m_invertButton = new QPushButton(tr("Invert"), this);
     m_invertButton->setMaximumWidth(80);
     
     classHeaderLayout->addWidget(classLabel);
@@ -89,12 +101,12 @@ void ModelSettingsWidget::setupUi()
             this, &ModelSettingsWidget::onSearchTextChanged);
 
     // Class grid
-    m_classGridWidget = new QWidget();
+    m_classGridWidget = new QWidget(this);
     auto* gridLayout = new QGridLayout(m_classGridWidget);
     gridLayout->setSpacing(6);
     gridLayout->setContentsMargins(0, 0, 0, 0);
     
-    m_classScrollArea = new QScrollArea();
+    m_classScrollArea = new QScrollArea(this);
     m_classScrollArea->setWidget(m_classGridWidget);
     m_classScrollArea->setWidgetResizable(true);
     m_classScrollArea->setMinimumHeight(150);
@@ -104,23 +116,23 @@ void ModelSettingsWidget::setupUi()
     mainLayout->addWidget(m_classContainer, 1);
 
     // ==================== Error Display Container ====================
-    m_errorContainer = new QWidget();
+    m_errorContainer = new QWidget(this);
     auto* errorLayout = new QVBoxLayout(m_errorContainer);
     errorLayout->setContentsMargins(12, 12, 12, 12);
     errorLayout->setSpacing(8);
 
-    auto* errorFrame = new QFrame();
+    auto* errorFrame = new QFrame(this);
     errorFrame->setFrameShape(QFrame::StyledPanel);
     errorFrame->setStyleSheet(
         "QFrame { background-color: #fff3cd; border: 1px solid #ffc107; "
         "border-radius: 4px; padding: 8px; }");
     auto* errorFrameLayout = new QVBoxLayout(errorFrame);
     
-    m_errorMessageLabel = new QLabel();
+    m_errorMessageLabel = new QLabel(this);
     m_errorMessageLabel->setWordWrap(true);
     m_errorMessageLabel->setStyleSheet("QLabel { color: #856404; font-weight: bold; }");
     
-    m_errorHintLabel = new QLabel();
+    m_errorHintLabel = new QLabel(this);
     m_errorHintLabel->setWordWrap(true);
     m_errorHintLabel->setStyleSheet("QLabel { color: #856404; }");
     
@@ -137,6 +149,43 @@ void ModelSettingsWidget::setupUi()
     m_errorContainer->hide();
 }
 
+void ModelSettingsWidget::setupManagerConnections()
+{
+    // Connect widget signals to manager slots (crosses thread boundary)
+    connect(this, &ModelSettingsWidget::modelActivationRequested,
+            &m_manager, &ModelManager::onModelActivationRequested,
+            Qt::QueuedConnection);
+    
+    connect(this, &ModelSettingsWidget::classSelectionRequested,
+            &m_manager, &ModelManager::onClassSelectionRequested,
+            Qt::QueuedConnection);
+    
+    connect(this, &ModelSettingsWidget::modelsRefreshRequested,
+            &m_manager, &ModelManager::onModelsRefreshRequested,
+            Qt::QueuedConnection);
+    
+    connect(this, &ModelSettingsWidget::normalizeInputRequested,
+            &m_manager, &ModelManager::onNormalizeInputRequested,
+            Qt::QueuedConnection);
+    
+    // Connect manager signals to widget slots (crosses thread boundary)
+    connect(&m_manager, QOverload<const QString&, ModelManager::ModelState, const QString&>::of(&ModelManager::modelActivated),
+            this, &ModelSettingsWidget::onModelActivated,
+            Qt::QueuedConnection);
+    
+    connect(&m_manager, QOverload<const QVector<ModelConfig::ClassInfo>&>::of(&ModelManager::classListUpdated),
+            this, &ModelSettingsWidget::onClassListUpdated,
+            Qt::QueuedConnection);
+    
+    connect(&m_manager, QOverload<const QVector<ModelManager::ModelEntry>&>::of(&ModelManager::modelsListUpdated),
+            this, &ModelSettingsWidget::onModelsListUpdated,
+            Qt::QueuedConnection);
+    
+    connect(&m_manager, &ModelManager::normalizationSettingUpdated,
+            this, &ModelSettingsWidget::onNormalizationSettingUpdated,
+            Qt::QueuedConnection);
+}
+
 void ModelSettingsWidget::refreshModelList()
 {
     m_blockSignals = true;
@@ -144,7 +193,7 @@ void ModelSettingsWidget::refreshModelList()
     QString previousSelection = m_currentModelName;
     m_modelCombo->clear();
     
-    const auto& models = m_manager.models();
+    const auto& models = m_cachedModels;
     
     if (models.isEmpty()) {
         m_modelCombo->addItem(tr("No models found"));
@@ -194,7 +243,17 @@ void ModelSettingsWidget::refreshModelList()
     }
     
     m_blockSignals = false;
-    updateModelDisplay();
+    
+    // Request activation of the selected model
+    // This is needed because setCurrentIndex() while m_blockSignals was true won't trigger onModelIndexChanged()
+    int currentIndex = m_modelCombo->currentIndex();
+    if (currentIndex >= 0) {
+        QString modelName = m_modelCombo->itemData(currentIndex).toString();
+        if (!modelName.isEmpty()) {
+            m_currentModelName = modelName;
+            emit modelActivationRequested(modelName);
+        }
+    }
 }
 
 bool ModelSettingsWidget::setSelectedModel(const QString& modelName)
@@ -248,44 +307,35 @@ void ModelSettingsWidget::onModelIndexChanged(int index)
         return;
     }
     
-    updateModelDisplay();
+    QString modelName = m_modelCombo->itemData(index).toString();
+    if (!modelName.isEmpty()) {
+        m_currentModelName = modelName;
+        emit modelActivationRequested(modelName);
+    }
 }
 
 void ModelSettingsWidget::updateModelDisplay()
 {
-    int index = m_modelCombo->currentIndex();
-    if (index < 0) {
-        m_classContainer->hide();
-        m_errorContainer->hide();
-        return;
-    }
-    
-    QString modelName = m_modelCombo->itemData(index).toString();
-    m_currentModelName = modelName;
-
-    m_manager.activateModel(modelName);
-    
-    auto state = m_manager.modelState(modelName);
-    
-    if (state == ModelManager::ModelState::Ready) {
+    // This is now called after receiving cached data from manager signals
+    if (m_cachedModelState == ModelManager::ModelState::Ready) {
         // Valid model - show classes
         m_statusLabel->setText(tr("Ready"));
         m_statusLabel->setStyleSheet("QLabel { color: #28a745; font-weight: bold; }");
         m_errorContainer->hide();
         m_classContainer->show();
-        updateClassList();
+        // Note: updateClassList() will be called by onClassListUpdated() after signal chain completes
         
-        // Update normalization checkbox from config
-        auto modelEntry = m_manager.activeModel();
-        if (modelEntry && modelEntry->config) {
+        // Update normalization checkbox from cached config
+        if (m_cachedCurrentConfig) {
             m_normalizeInputCheckBox->blockSignals(true);
-            m_normalizeInputCheckBox->setChecked(modelEntry->config->getNormalizeInput());
+            m_cachedNormalizeInput = m_cachedCurrentConfig->getNormalizeInput();
+            m_normalizeInputCheckBox->setChecked(m_cachedNormalizeInput);
             m_normalizeInputCheckBox->setEnabled(true);
             m_normalizeInputCheckBox->blockSignals(false);
             
 #ifdef SHOW_MODEL_CONFIG_INFO
             // Build config info string
-            const auto& config = *modelEntry->config;
+            const auto& config = *m_cachedCurrentConfig;
             QString info;
             
             // Mean values
@@ -318,16 +368,15 @@ void ModelSettingsWidget::updateModelDisplay()
         }
         
         if (!m_blockSignals) {
-            emit modelChanged(modelName, true);
+            emit modelChanged(m_currentModelName, true);
         }
     } else {
         // Invalid model - show error
-        QString error = m_manager.modelError(modelName);
-        m_statusLabel->setText(getStateString(state));
+        m_statusLabel->setText(getStateString(m_cachedModelState));
         m_statusLabel->setStyleSheet("QLabel { color: #dc3545; font-weight: bold; }");
         m_classContainer->hide();
         m_errorContainer->show();
-        showModelError(state, error);
+        showModelError(m_cachedModelState, m_cachedModelError);
         
         // Disable normalization checkbox for invalid models
         m_normalizeInputCheckBox->setEnabled(false);
@@ -337,7 +386,7 @@ void ModelSettingsWidget::updateModelDisplay()
 #endif
         
         if (!m_blockSignals) {
-            emit modelChanged(modelName, false);
+            emit modelChanged(m_currentModelName, false);
         }
     }
 }
@@ -356,25 +405,22 @@ void ModelSettingsWidget::updateClassList()
     }
     m_classContainers.clear();
     m_classIds.clear();
-    
-    // Get active model to access classes
-    auto result = m_manager.activateModel(m_currentModelName);
-    if (!result.has_value()) {
-        return;
-    }
-    
-    auto modelEntry = result.value();
-    if (modelEntry.state != ModelManager::ModelState::Ready ||
-        !modelEntry.config) {
-        return;
+
+    // Clear grid layout completely
+    auto* gridLayout = qobject_cast<QGridLayout*>(m_classGridWidget->layout());
+    if (gridLayout) {
+        QLayoutItem* item;
+        while ((item = gridLayout->takeAt(0)) != nullptr) {
+            delete item->widget();
+            delete item;
+        }
     }
 
-    const auto& classes = modelEntry.config->getClasses();
+    const auto& classes = m_cachedClasses;
     
     if (classes.empty()) {
-        auto* gridLayout = qobject_cast<QGridLayout*>(m_classGridWidget->layout());
         if (gridLayout) {
-            auto* emptyLabel = new QLabel(tr("No classes defined in this model"));
+            auto* emptyLabel = new QLabel(tr("No classes defined in this model"), this);
             emptyLabel->setAlignment(Qt::AlignCenter);
             emptyLabel->setStyleSheet("QLabel { color: #666; font-style: italic; }");
             gridLayout->addWidget(emptyLabel, 0, 0);
@@ -384,7 +430,7 @@ void ModelSettingsWidget::updateClassList()
     
     // Create checkboxes for each class
     for (const auto& classInfo : classes) {
-        QCheckBox* checkbox = new QCheckBox(classInfo.name);
+        QCheckBox* checkbox = new QCheckBox(classInfo.name, this);
         checkbox->setChecked(classInfo.selected);
         checkbox->setMinimumHeight(24);
         checkbox->setCursor(Qt::PointingHandCursor);
@@ -466,10 +512,10 @@ QString ModelSettingsWidget::getStateString(
 void ModelSettingsWidget::onClassCheckBoxToggled()
 {
     if (!m_blockSignals) {
-        // Update model's class selection state
+        // Emit signals to update model's class selection state on worker thread
         for (int i = 0; i < m_classCheckBoxes.size() && i < m_classIds.size(); ++i) {
-            m_manager.setClassSelected(m_currentModelName, m_classIds[i],
-                                      m_classCheckBoxes[i]->isChecked());
+            emit classSelectionRequested(m_currentModelName, m_classIds[i],
+                                         m_classCheckBoxes[i]->isChecked());
         }
         
         emit classSelectionChanged(selectedClassIds());
@@ -565,10 +611,50 @@ void ModelSettingsWidget::onSearchTextChanged(const QString& text)
 
 void ModelSettingsWidget::onNormalizeInputToggled(bool checked)
 {
-    // Update the model config
-    auto modelEntry = m_manager.activeModel();
-    if (modelEntry && modelEntry->config) {
-        modelEntry->config->setNormalizeInput(checked);
-        emit normalizationChanged(checked);
+    // Emit signal to update normalization setting on worker thread
+    emit normalizeInputRequested(m_currentModelName, checked);
+    emit normalizationChanged(checked);}
+
+void ModelSettingsWidget::onModelActivated(const QString& modelName, ModelManager::ModelState modelState, const QString& error)
+{
+    // Cache the response from manager
+    m_cachedModelState = static_cast<ModelManager::ModelState>(modelState);
+    m_cachedModelError = error;
+    m_currentModelName = modelName;
+    
+    // Find the corresponding model entry to cache its config
+    for (const auto& entry : m_cachedModels) {
+        if (entry.name == modelName) {
+            m_cachedCurrentConfig = entry.config;
+            break;
+        }
+    }
+    
+    // Now update the display with cached data
+    updateModelDisplay();
+}
+
+void ModelSettingsWidget::onClassListUpdated(const QVector<ModelConfig::ClassInfo>& classes)
+{
+    // Cache the class list from manager
+    m_cachedClasses = classes;
+    
+    // Update the display with the new class list
+    updateClassList();
+}
+
+void ModelSettingsWidget::onModelsListUpdated(const QVector<ModelManager::ModelEntry>& models)
+{
+    // Cache the models list from manager
+    m_cachedModels = models;
+    
+    // Refresh the combo box display using cached data
+    refreshModelList();
+}
+
+void ModelSettingsWidget::onNormalizationSettingUpdated(const QString& modelName, bool normalizeInput)
+{
+    if (modelName == m_currentModelName) {
+        m_cachedNormalizeInput = normalizeInput;
     }
 }
