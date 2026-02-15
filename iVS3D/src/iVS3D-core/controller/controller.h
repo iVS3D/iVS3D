@@ -27,6 +27,7 @@
 
 #include "pluginmanager.h"
 #include "plugincontroller.h"
+#include "pluginthread.h"
 
 #include <QObject>
 #include <QWidget>
@@ -194,7 +195,7 @@ private:
     QElapsedTimer m_timer;
 
     std::shared_ptr<MaskStack> m_stack;
-
+    std::shared_ptr<PluginThread> m_pluginThread;
 
 };
 

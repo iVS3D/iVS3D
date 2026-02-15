@@ -7,6 +7,7 @@
 #include "pluginmanager.h"
 #include "videoplayercontroller.h"
 #include "maskstack.h"
+#include "pluginthread.h"
 #include "stackcontroller.h"
 
 class PluginController : public QObject
@@ -14,7 +15,7 @@ class PluginController : public QObject
     Q_OBJECT
 
 public:
-    explicit PluginController(DataManager* dataManager, SamplingWidget* samplingWidget, VideoPlayerController* vpc, StackController* stackController,std::shared_ptr<MaskStack> maskStack = nullptr);
+    explicit PluginController(DataManager* dataManager, SamplingWidget* samplingWidget, VideoPlayerController* vpc, StackController* stackController, std::shared_ptr<PluginThread> pluginThread, std::shared_ptr<MaskStack> maskStack = nullptr);
     ~PluginController();
 
 public slots:
@@ -24,6 +25,7 @@ private slots:
     void slot_enablePreview(bool enabled);
     void slot_startSelection();
     void slot_addMask();
+    void slot_previewStateChanged(const PreviewState& state);
 
 private:
     DataManager* m_dataManager;
@@ -32,5 +34,6 @@ private:
     PluginHandle m_currentPlugin;
     StackController* m_stack;
     std::shared_ptr<MaskStack> m_maskStack;
+    std::shared_ptr<PluginThread> m_pluginThread;
     volatile bool m_selectionCancelFlag;
 };

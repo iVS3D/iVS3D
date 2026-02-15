@@ -10,6 +10,7 @@
 #include <QScrollArea>
 #include <QCheckBox>
 #include <memory>
+#include <QMetaType>
 
 // Define this to show detailed model configuration info
 #define SHOW_MODEL_CONFIG_INFO
@@ -93,7 +94,20 @@ signals:
      */
     void normalizationChanged(bool normalizeInput);
 
+    // Internal signals for communicating with ModelManager on worker thread
+    void modelActivationRequested(const QString& modelName);
+    void classSelectionRequested(const QString& modelName, uint classId, bool selected);
+    void modelsRefreshRequested();
+    void normalizeInputRequested(const QString& modelName, bool normalizeInput);
+
 private slots:
+    // Slots to handle responses from ModelManager
+    void onModelActivated(const QString& modelName, ModelManager::ModelState modelState, const QString& error);
+    void onClassListUpdated(const QVector<ModelConfig::ClassInfo>& classes);
+    void onModelsListUpdated(const QVector<ModelManager::ModelEntry>& models);
+    void onNormalizationSettingUpdated(const QString& modelName, bool normalizeInput);
+
+    // Slots to handle UI interactions
     void onModelIndexChanged(int index);
     void onClassCheckBoxToggled();
     void onInvertSelectionClicked();
@@ -121,6 +135,11 @@ private:
      * @brief Create all UI elements
      */
     void setupUi();
+
+    /**
+     * @brief Setup connections to ModelManager signals/slots
+     */
+    void setupManagerConnections();
 
     /**
      * @brief Get human-readable hint for resolving model errors
@@ -155,5 +174,15 @@ private:
     QVector<QWidget*> m_classContainers;
     QVector<uint> m_classIds;  // Maps checkbox index to class ID
     
+    // Cache for model state (since we can't directly query manager from GUI thread)
+    QVector<ModelManager::ModelEntry> m_cachedModels;
+    QVector<ModelConfig::ClassInfo> m_cachedClasses;
+    ModelManager::ModelState m_cachedModelState = ModelManager::ModelState::MissingConfig;
+    QString m_cachedModelError;
+    bool m_cachedNormalizeInput = false;
+    std::shared_ptr<ModelConfig> m_cachedCurrentConfig;
+    
     bool m_blockSignals = false;
 };
+
+Q_DECLARE_METATYPE(QVector<uint>)

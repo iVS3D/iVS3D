@@ -23,6 +23,12 @@ struct PreviewResult {
 };
 Q_DECLARE_METATYPE(PreviewResult)
 
+enum class PreviewState {
+    Idle,
+    Processing,
+};
+Q_DECLARE_METATYPE(PreviewState)
+
 /**
  * PluginRunner lives in a separate worker thread and is responsible for executing plugin code asynchronously. 
  * It receives requests to execute plugin code via the request_preview slot, executes the plugin's generatePreview 
@@ -41,6 +47,7 @@ public slots:
     void requestPreview(const PreviewRequest& request);
 
 signals:
+    void previewStarted(const RequestId& id);
     void previewFinished(const PreviewResult& result);
 
 private:
@@ -53,11 +60,13 @@ class PluginThread : public QObject {
 
 public:
     PluginThread(const QVector<PluginHandle>& pluginHandles, QObject* parent = nullptr);
+    ~PluginThread();
 
     void requestPreview(const PluginHandle& plugin, const PreviewData& request);
 
 signals:
     void previewFinished(const PreviewResult& result);
+    void previewStateChanged(const PreviewState& state);
 
 private:
 

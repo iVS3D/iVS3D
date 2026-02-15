@@ -249,3 +249,40 @@ std::optional<ModelManager::ModelEntry> ModelManager::modelFromJson(
     }
     return std::optional<ModelEntry>();
 }
+void ModelManager::onModelActivationRequested(const QString& modelName) {
+    auto result = activateModel(modelName);
+    if (result.has_value()) {
+        const auto& entry = result.value();
+        emit modelActivated(modelName, entry.state, entry.error);
+        
+        // Also emit class list if model is valid
+        if (entry.state == ModelState::Ready && entry.config) {
+            // Convert std::vector to QVector for Qt signal/slot communication
+            const auto& stdClasses = entry.config->getClasses();
+            QVector<ModelConfig::ClassInfo> qClasses(stdClasses.begin(), stdClasses.end());
+            emit classListUpdated(qClasses);
+        }
+    } else {
+        emit modelActivated(modelName, ModelState::MissingConfig, "Model not found");
+    }
+}
+
+void ModelManager::onClassSelectionRequested(const QString& modelName, uint classId, bool selected) {
+    setClassSelected(modelName, classId, selected);
+}
+
+void ModelManager::onModelsRefreshRequested() {
+    refresh();
+    emit modelsListUpdated(models_);
+}
+
+void ModelManager::onNormalizeInputRequested(const QString& modelName, bool normalizeInput) {
+    auto it = indexByName_.find(modelName);
+    if (it != indexByName_.end()) {
+        const auto& entry = models_[it.value()];
+        if (entry.config) {
+            entry.config->setNormalizeInput(normalizeInput);
+            emit normalizationSettingUpdated(modelName, normalizeInput);
+        }
+    }
+}

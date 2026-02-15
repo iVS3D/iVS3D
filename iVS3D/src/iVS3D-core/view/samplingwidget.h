@@ -6,6 +6,8 @@
 #include <QPushButton>
 #include "ui_samplingwidget.h"
 
+#include "spinnericon.h"
+
 
 namespace Ui {
 class SamplingWidget;
@@ -75,6 +77,12 @@ public:
 
     void setPreviewEnabled(bool enabled);
 
+    enum class PreviewState {
+        Idle,
+        Processing,
+    };
+    void setPreviewState(const PreviewState& state);
+
 
 signals:
 
@@ -112,6 +120,7 @@ private:
     QPushButton* m_startSelectionBtn = nullptr;
     QCheckBox* m_previewCB = nullptr;
     QPushButton* m_addMaskBtn = nullptr;
+    SpinnerIcon* m_previewSpinner = nullptr;
 };
 
 #endif // SAMPLINGWIDGET_H

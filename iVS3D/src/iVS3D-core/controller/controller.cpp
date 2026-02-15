@@ -122,6 +122,7 @@ Controller::Controller(QString inputPath, QString settingsPath, QString outputPa
     m_mainWindow->getOutputWidget()->enableCreateFilesWidget(TransformManager::instance().getTransformCount() != 0);
     MetaDataManager::instance().interpolateMissingMetaData(interpolateMetaData);
 
+    m_pluginThread = std::make_shared<PluginThread>(PluginManager::instance().getPlugins(), this);
 }
 
 Controller::~Controller()
@@ -750,11 +751,9 @@ void Controller::onSuccessfulOpen()
     // --- using the new data (in dataManager) and connect to main window
 
     m_stack = std::make_shared<MaskStack>();
-    
-    auto pluginThread = std::make_shared<PluginThread>(PluginManager::instance().getPlugins(), this);
 
     // VideoPlayerControler manages video player and timeline
-    m_videoPlayerController = new VideoPlayerController(this, m_mainWindow->getVideoPlayer(), m_mainWindow->getTimeline(), m_dataManager, pluginThread);
+    m_videoPlayerController = new VideoPlayerController(this, m_mainWindow->getVideoPlayer(), m_mainWindow->getTimeline(), m_dataManager, m_pluginThread);
     connect(m_videoPlayerController, &VideoPlayerController::sig_hasStatusMessage, m_mainWindow, &MainWindow::slot_displayStatusMessage);
     connect(m_mainWindow, &MainWindow::sig_deleteAllKeyframes, m_videoPlayerController, &VideoPlayerController::slot_deleteAllKeyframes);
     connect(m_mainWindow, &MainWindow::sig_deleteKeyframesBoundaries, m_videoPlayerController, &VideoPlayerController::slot_deleteKeyframes);
@@ -790,7 +789,7 @@ void Controller::onSuccessfulOpen()
     connect(m_exportController, &ExportController::sig_exportFinished, m_stackController, &StackController::slot_exportFinished);
 
     // AlgorithmController manages input widget and algorithm used widgets and delegates image sampling
-    m_pluginController = new PluginController(m_dataManager, m_mainWindow->getSamplingWidget(), m_videoPlayerController, m_stackController, m_stack);
+    m_pluginController = new PluginController(m_dataManager, m_mainWindow->getSamplingWidget(), m_videoPlayerController, m_stackController, m_pluginThread, m_stack);
     connect(m_mainWindow->getOutputWidget()->getMaskStackView().get(), &MaskStackView::sig_recordSelected, this, &Controller::slot_restorePluginSettings);
 
     // update the working resolution, roi, etc
