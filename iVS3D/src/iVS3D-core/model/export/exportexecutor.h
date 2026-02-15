@@ -43,8 +43,9 @@ public:
      * @brief ExportExecutor creates an executor operating on the data provided by given DataManager.
      * @param parent The parent for the QObject
      * @param dataManager The DataManager to access images for export
+     * @param pluginThread The PluginThread to use for export processing
      */
-    explicit ExportExecutor(QObject* parent, DataManager* dataManager);
+    explicit ExportExecutor(QObject* parent, DataManager* dataManager, std::shared_ptr<PluginThread> pluginThread);
 
     /**
      * @brief startExport starts a new Export with the currently selected keyframes in ModelInputPictures provided by the DataManager.
@@ -90,6 +91,7 @@ private:
     QObject* m_parent;
 
     QPoint m_boundaries = QPoint(0, 0);
+    std::shared_ptr<PluginThread> m_pluginThread;
 };
 
 #endif // EXPORTEXECUTOR_H

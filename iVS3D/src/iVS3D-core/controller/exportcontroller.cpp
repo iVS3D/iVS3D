@@ -3,7 +3,9 @@
 ExportController::ExportController(OutputWidget *outputWidget,
                                    DataManager *dataManager,
                                    lib3d::ots::ColmapWrapper *colmap,
-                                   std::shared_ptr<MaskStack> maskStack) {
+                                   std::shared_ptr<PluginThread> pluginThread,
+                                   std::shared_ptr<MaskStack> maskStack
+                                ) {
     m_exportExec = nullptr;
     m_reconstructDialog = nullptr;
     m_currentExports.clear();
@@ -12,6 +14,7 @@ ExportController::ExportController(OutputWidget *outputWidget,
     m_dataManager = dataManager;
     m_colmap = colmap;
     m_maskStack = maskStack;
+    m_pluginThread = pluginThread;
 
     connect(m_maskStack.get(), &MaskStack::sig_stackChanged, this,
             &ExportController::slot_onMaskStackChanged);
@@ -324,7 +327,7 @@ void ExportController::slot_export() {
     if (m_exportExec != nullptr) {
         delete m_exportExec;
     }
-    m_exportExec = new ExportExecutor(this, m_dataManager);
+    m_exportExec = new ExportExecutor(this, m_dataManager, m_pluginThread);
     // connect GUI to export executor to display progress and result or to abort
     // export
     connect(m_exportExec, &ExportExecutor::sig_exportAborted, this,
@@ -348,10 +351,10 @@ void ExportController::slot_export() {
     config.working_resolution = m_workingResolution;
     config.export_resolution = m_exportResolution;
     config.roi = m_roi;
-    config.transformations = iTransformCopies;
     config.copy_images =
         canCopyImages() &&
         (m_outputWidget->getExportFormat() == EXPORT_FORMAT_SAME_AS_INPUT);
+    config.maskStack = m_maskStack.get();
 
     // start export
     m_exportExec->startExport(config, m_lfExport);

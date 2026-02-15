@@ -1,4 +1,5 @@
 #include "nouiexport.h"
+#include "pluginmanager.h"
 
 noUIExport::noUIExport(Progressable * receiver, QMap<QString, QVariant> exportSettings, DataManager* dm)
 {
@@ -99,8 +100,8 @@ void noUIExport::runExport()
         }
     }
 
-
-    m_exportExec = new ExportExecutor(this, m_dataManager);
+    auto pluginThread = std::make_shared<PluginThread>(PluginManager::instance().getPlugins(), this);
+    m_exportExec = new ExportExecutor(this, m_dataManager, pluginThread);
     connect(m_exportExec, &ExportExecutor::sig_exportFinished, this, &noUIExport::slot_exportFinished, Qt::DirectConnection);
 
     connect(m_exportExec,&ExportExecutor::sig_progress, this, &noUIExport::slot_displayProgress, Qt::DirectConnection);
@@ -111,7 +112,6 @@ void noUIExport::runExport()
     ExportConfig config;
     config.name = outputName;
     config.destination = m_path;
-    config.transformations = iTransformCopies;
     config.format = "png";
     auto readerParams = m_dataManager->getModelInputPictures()->getReaderParams();
     config.original_resolution = readerParams->getOriginalResolution();

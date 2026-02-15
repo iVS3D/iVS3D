@@ -81,6 +81,7 @@ target_link_libraries(${TARGET_NAME}
     Qt${QT_VERSION_MAJOR}::Concurrent
     Qt${QT_VERSION_MAJOR}::Positioning
     Qt${QT_VERSION_MAJOR}::Svg
+    tl-expected
 )
 
 # add defines
