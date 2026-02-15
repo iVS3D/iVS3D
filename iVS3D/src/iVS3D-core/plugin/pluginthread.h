@@ -60,6 +60,7 @@ class PluginThread : public QObject {
 
 public:
     PluginThread(const QVector<PluginHandle>& pluginHandles, QObject* parent = nullptr);
+    ~PluginThread();
 
     void requestPreview(const PluginHandle& plugin, const PreviewData& request);
 
