@@ -309,25 +309,29 @@ void VideoPlayer::on_pushButton_resetKeyframes_clicked() {
 }
 
 QImage VideoPlayer::qImageFromCvMat(const cv::Mat& input, bool bgr) {
-    cv::Mat rgb = input;
+    cv::Mat rgb;
     if (input.channels() == 4) {
         if (bgr) {
             cv::cvtColor(input, rgb, cv::COLOR_BGRA2RGBA);
+        } else {
+            rgb = input;
         }
 
         return QImage(rgb.data, rgb.cols, rgb.rows, static_cast<int>(rgb.step),
                       QImage::Format_RGBA8888)
             .copy();
-    } else if (rgb.channels() == 3) {
+    } else if (input.channels() == 3) {
         if (bgr) {
             cv::cvtColor(input, rgb, cv::COLOR_BGR2RGB);
+        } else {
+            rgb = input;
         }
 
         return QImage(rgb.data, rgb.cols, rgb.rows, static_cast<int>(rgb.step),
                       QImage::Format_RGB888)
             .copy();
-    } else if (rgb.channels() == 1) {
-        return QImage(rgb.data, rgb.cols, rgb.rows, static_cast<int>(rgb.step),
+    } else if (input.channels() == 1) {
+        return QImage(input.data, input.cols, input.rows, static_cast<int>(input.step),
                       QImage::Format_Grayscale8)
             .copy();
     }
