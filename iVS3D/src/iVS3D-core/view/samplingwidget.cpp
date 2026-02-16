@@ -142,6 +142,10 @@ void SamplingWidget::setPreviewEnabled(bool enabled) {
     m_previewCB->setChecked(enabled);
 }
 
+bool SamplingWidget::isPreviewEnabled() const {
+    return m_previewCB->isChecked();
+}
+
 void SamplingWidget::setPreviewState(const PreviewState& state) {
     switch (state) {
         case PreviewState::Idle:
