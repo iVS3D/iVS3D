@@ -276,13 +276,32 @@ void ModelManager::onModelsRefreshRequested() {
     emit modelsListUpdated(models_);
 }
 
-void ModelManager::onNormalizeInputRequested(const QString& modelName, bool normalizeInput) {
+void ModelManager::onApplyMeanStdRequested(const QString& modelName, bool apply) {
     auto it = indexByName_.find(modelName);
     if (it != indexByName_.end()) {
         const auto& entry = models_[it.value()];
         if (entry.config) {
-            entry.config->setNormalizeInput(normalizeInput);
-            emit normalizationSettingUpdated(modelName, normalizeInput);
+            entry.config->setApplyMeanStd(apply);
+        }
+    }
+}
+
+void ModelManager::onNormalizeTo01Requested(const QString& modelName, bool normalize) {
+    auto it = indexByName_.find(modelName);
+    if (it != indexByName_.end()) {
+        const auto& entry = models_[it.value()];
+        if (entry.config) {
+            entry.config->setNormalizeTo01(normalize);
+        }
+    }
+}
+
+void ModelManager::onInputAlignmentRequested(const QString& modelName, uint alignment) {
+    auto it = indexByName_.find(modelName);
+    if (it != indexByName_.end()) {
+        const auto& entry = models_[it.value()];
+        if (entry.config) {
+            entry.config->setInputAlignment(alignment);
         }
     }
 }

@@ -9,11 +9,9 @@
 #include <QString>
 #include <QScrollArea>
 #include <QCheckBox>
+#include <QGroupBox>
 #include <memory>
 #include <QMetaType>
-
-// Define this to show detailed model configuration info
-#define SHOW_MODEL_CONFIG_INFO
 
 #include "ModelManager.h"
 
@@ -89,30 +87,36 @@ signals:
     void classSelectionChanged(const QVector<uint>& selectedClassIds);
 
     /**
-     * @brief Emitted when user changes input normalization setting
-     * @param normalizeInput true if [0,255] to [0,1] normalization is enabled
+     * @brief Emitted when any model configuration parameter changes
+     * This includes normalizeTo01, applyMeanStd, or inputAlignment changes
      */
-    void normalizationChanged(bool normalizeInput);
+    void modelConfigChanged();
 
     // Internal signals for communicating with ModelManager on worker thread
     void modelActivationRequested(const QString& modelName);
     void classSelectionRequested(const QString& modelName, uint classId, bool selected);
     void modelsRefreshRequested();
-    void normalizeInputRequested(const QString& modelName, bool normalizeInput);
+    void applyMeanStdRequested(const QString& modelName, bool apply);
+    void normalizeTo01Requested(const QString& modelName, bool normalize);
+    void inputAlignmentRequested(const QString& modelName, uint alignment);
 
 private slots:
     // Slots to handle responses from ModelManager
     void onModelActivated(const QString& modelName, ModelManager::ModelState modelState, const QString& error);
     void onClassListUpdated(const QVector<ModelConfig::ClassInfo>& classes);
     void onModelsListUpdated(const QVector<ModelManager::ModelEntry>& models);
-    void onNormalizationSettingUpdated(const QString& modelName, bool normalizeInput);
 
     // Slots to handle UI interactions
     void onModelIndexChanged(int index);
     void onClassCheckBoxToggled();
     void onInvertSelectionClicked();
     void onSearchTextChanged(const QString& text);
-    void onNormalizeInputToggled(bool checked);
+    void onApplyMeanStdToggled(bool checked);
+    void onNormalizeTo01Toggled(bool checked);
+    void onInputAlignmentChanged(const QString& text);
+
+protected:
+    bool eventFilter(QObject* watched, QEvent* event) override;
 
 private:
     /**
@@ -151,13 +155,27 @@ private:
      */
     QString getStateString(ModelManager::ModelState state) const;
 
+    /**
+     * @brief Update configuration section with current model config
+     */
+    void updateConfigurationSection();
+
+    /**
+     * @brief Check if configuration has changed from original values
+     */
+    void checkConfigurationChanges();
+
     // UI Elements
     QComboBox* m_modelCombo = nullptr;
     QLabel* m_statusLabel = nullptr;
-    QCheckBox* m_normalizeInputCheckBox = nullptr;
-#ifdef SHOW_MODEL_CONFIG_INFO
-    QLabel* m_configInfoLabel = nullptr;
-#endif
+    QCheckBox* m_applyMeanStdCheckBox = nullptr;
+    QCheckBox* m_normalizeTo01CheckBox = nullptr;
+    QLineEdit* m_inputAlignmentEdit = nullptr;
+    QLabel* m_meanStdDisplayLabel = nullptr;
+    QLabel* m_configChangeWarningLabel = nullptr;
+    QPushButton* m_configSectionToggleButton = nullptr;
+    QWidget* m_configurationSection = nullptr;
+    QGroupBox* m_configContentWidget = nullptr;
     QWidget* m_classContainer = nullptr;
     QWidget* m_errorContainer = nullptr;
     QLabel* m_errorMessageLabel = nullptr;
@@ -179,10 +197,20 @@ private:
     QVector<ModelConfig::ClassInfo> m_cachedClasses;
     ModelManager::ModelState m_cachedModelState = ModelManager::ModelState::MissingConfig;
     QString m_cachedModelError;
-    bool m_cachedNormalizeInput = false;
+    bool m_cachedApplyMeanStd = true;
+    bool m_cachedNormalizeTo01 = true;
+    uint m_cachedInputAlignment = 1;
+    std::vector<float> m_cachedMean;
+    std::vector<float> m_cachedStd;
     std::shared_ptr<ModelConfig> m_cachedCurrentConfig;
     
+    // Original configuration values (for detecting changes)
+    bool m_originalApplyMeanStd = true;
+    bool m_originalNormalizeTo01 = true;
+    uint m_originalInputAlignment = 1;
+    
     bool m_blockSignals = false;
+    bool m_configurationSectionExpanded = false;
 };
 
 Q_DECLARE_METATYPE(QVector<uint>)

@@ -103,8 +103,11 @@ tl::expected<ModelConfig, ModelConfig::Error> ModelConfig::loadFromFile(
         cfg.classes_.push_back(cls);
     }
 
-    // Load normalizeInput (default to false if not present)
-    cfg.normalizeInput_ = obj.value("normalizeInput").toBool(false);
+    // Load applyMeanStd (default to true if not present)
+    cfg.applyMeanStd_ = obj.value("applyMeanStd").toBool(true);
+
+    // Load normalizeTo01 (default to true if not present)
+    cfg.normalizeTo01_ = obj.value("normalizeTo01").toBool(true);
 
     return cfg;
 }
@@ -123,10 +126,6 @@ const std::string& ModelConfig::getModelPath() const noexcept {
 
 uint ModelConfig::getInputAlignment() const noexcept {
     return inputAlignment_;
-}
-
-bool ModelConfig::getNormalizeInput() const noexcept {
-    return normalizeInput_;
 }
 
 const std::vector<ModelConfig::ClassInfo>& ModelConfig::getClasses() const noexcept {
@@ -152,6 +151,22 @@ bool ModelConfig::setClassSelected(ClassId id, bool selected) noexcept {
     return false;
 }
 
-void ModelConfig::setNormalizeInput(bool normalize) noexcept {
-    normalizeInput_ = normalize;
+bool ModelConfig::getApplyMeanStd() const noexcept {
+    return applyMeanStd_;
+}
+
+bool ModelConfig::getNormalizeTo01() const noexcept {
+    return normalizeTo01_;
+}
+
+void ModelConfig::setApplyMeanStd(bool apply) noexcept {
+    applyMeanStd_ = apply;
+}
+
+void ModelConfig::setNormalizeTo01(bool normalize) noexcept {
+    normalizeTo01_ = normalize;
+}
+
+void ModelConfig::setInputAlignment(uint alignment) noexcept {
+    inputAlignment_ = alignment;
 }

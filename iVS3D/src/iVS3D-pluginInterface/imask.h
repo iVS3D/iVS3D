@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QObject>
+#include <QDir>
 #include <tl/expected.hpp>
 
 #include "ierror.h"
@@ -20,8 +21,9 @@ using MaskResult = tl::expected<cv::Mat, Error>;
  * interest before being passed to the plugin.
  */
 struct MaskData {
-    uint index;     // Index of the image in the sequence
-    cv::Mat image;  // The image to create a mask for
+    uint index;      // Index of the image in the sequence
+    cv::Mat image;   // The image to create a mask for
+    QDir exportDir;  // Directory where the generated mask will be saved
 };
 
 /**

@@ -50,7 +50,8 @@ public:
     const std::vector<float>& getStd() const noexcept;
     const std::string& getModelPath() const noexcept;
     uint getInputAlignment() const noexcept;
-    bool getNormalizeInput() const noexcept;
+    bool getApplyMeanStd() const noexcept;
+    bool getNormalizeTo01() const noexcept;
 
     // Class information getters
     const std::vector<ClassInfo>& getClasses() const noexcept;
@@ -71,10 +72,22 @@ public:
     bool setClassSelected(ClassId id, bool selected) noexcept;
 
     /**
-     * @brief Set whether to normalize input from [0,255] to [0,1]
+     * @brief Set whether to apply mean/std normalization
+     * @param apply true to enable mean/std application, false to disable
+     */
+    void setApplyMeanStd(bool apply) noexcept;
+
+    /**
+     * @brief Set whether to normalize input to [0,1]
      * @param normalize true to enable normalization, false to disable
      */
-    void setNormalizeInput(bool normalize) noexcept;
+    void setNormalizeTo01(bool normalize) noexcept;
+
+    /**
+     * @brief Set the input alignment value
+     * @param alignment Alignment value for input dimensions
+     */
+    void setInputAlignment(uint alignment) noexcept;
 
 
 private:
@@ -84,7 +97,8 @@ private:
     std::vector<ClassInfo> classes_;
     std::string modelPath_;
     uint inputAlignment_ = 1;
-    bool normalizeInput_ = false;   // Whether to normalize pixel values from [0,255] to [0,1]
+    bool applyMeanStd_ = true;      // Whether to apply mean/std normalization
+    bool normalizeTo01_ = true;     // Whether to normalize input to [0,1]
 };
 
 // Register custom types for use in signals/slots

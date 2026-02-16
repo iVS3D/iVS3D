@@ -17,12 +17,26 @@
  */
 using SettingsWidgetResult = tl::expected<std::shared_ptr<QWidget>, Error>;
 
+/**
+ * @typedef ApplySettingsResult
+ * @brief Type alias for the result of applying settings to a plugin, which can be
+ * either a successful void result or an Error indicating failure.
+ */
 using ApplySettingsResult = tl::expected<void, Error>;
 
+/**
+ * @typedef InputLoadedResult
+ * @brief Type alias for the result of handling an input loaded event, which can be
+ * either a successful void result or an Error indicating failure.
+ */
 using InputLoadedResult = tl::expected<void, Error>;
 
 class Reader;
 
+/**
+ * @struct InputData
+ * @brief Struct to encapsulate data related to the input loaded event in iVS3D
+ */
 struct InputData {
     Reader* reader = nullptr;
 };
@@ -77,6 +91,14 @@ class IBase : public QObject {
      */
     virtual QMap<QString, QVariant> getSettings() const = 0;
 
+    /**
+     * @brief getSettingsString is a helper method that converts the plugin settings
+     * into a human-readable string format. 
+     * 
+     * @details This is used to display the settings in the 
+     * iVS3D interface and to store them in the history. The default implementation converts 
+     * the settings map into a semicolon-separated list of key=value pairs.
+     */
     virtual QString getSettingsString() const {
         QMap<QString, QVariant> settings = getSettings();
         QStringList settingsList;
