@@ -11,8 +11,13 @@ NN::OrtNeuralNet::OrtNeuralNet(const std::string& modelPath, bool useCuda,
                                int gpuId)
     : m_env(ORT_LOGGING_LEVEL_WARNING, "OrtNeuralNet"), m_gpuId(gpuId) {
     if (useCuda) {
-        Ort::ThrowOnError(OrtSessionOptionsAppendExecutionProvider_CUDA(
-            m_sessionOptions, m_gpuId));
+        // Configure CUDA execution provider with custom options
+        // We use heuristic search for convolution algorithms to reduce startup time, 
+        // but you can choose other options based on your needs
+        OrtCUDAProviderOptions cudaOptions;
+        cudaOptions.device_id = m_gpuId;
+        cudaOptions.cudnn_conv_algo_search = OrtCudnnConvAlgoSearch::OrtCudnnConvAlgoSearchHeuristic;
+        m_sessionOptions.AppendExecutionProvider_CUDA(cudaOptions);
     } else {
         m_gpuId = -1;  // No GPU used
     }
