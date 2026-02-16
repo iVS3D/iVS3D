@@ -25,7 +25,7 @@ void PluginRunner::requestMask(const MaskRequest& request) {
         return;
     }
     
-    const auto maskResult = request.plugin.mask->generateMask({request.imageIndex, request.image});
+    const auto maskResult = request.plugin.mask->generateMask({request.imageIndex, request.image, request.exportDir});
     
     MaskGenerationResult result;
     result.imageIndex = request.imageIndex;

@@ -59,6 +59,7 @@ std::optional<QString> MaskCommand::execute(ImageContext& ctx) {
     MaskRequest maskRequest;
     maskRequest.imageIndex = ctx.index;
     maskRequest.image = ctx.image;
+    maskRequest.exportDir = QDir(m_folder);
     maskRequest.plugin = m_pluginHandle;
     maskRequest.maskRecordId = m_record->id;
 

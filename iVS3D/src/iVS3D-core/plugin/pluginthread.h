@@ -3,6 +3,7 @@
 #include <QThread>
 #include <QObject>
 #include <QAtomicInteger>
+#include <QDir>
 #include <queue>
 #include <memory>
 
@@ -28,6 +29,7 @@ struct MaskRequest {
     RequestId id;               // unique ID for this request
     uint imageIndex;            // Index of the image in the sequence
     cv::Mat image;              // The image to create a mask for
+    QDir exportDir;             // Directory where the generated mask will be saved
     PluginHandle plugin;        // The plugin to use for mask generation
     int maskRecordId;           // ID of the MaskRecord for tracking
 };
