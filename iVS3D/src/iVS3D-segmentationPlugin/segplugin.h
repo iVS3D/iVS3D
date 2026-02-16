@@ -79,7 +79,7 @@ class SegmentationPlugin : public IBase, public IMask, public IPreview {
                     static_cast<int>(m_overlayAlpha * 100.0f));
             }
         }
-
+        m_cache = std::nullopt;  // Clear cache to reflect new settings
         return {};
     }
 

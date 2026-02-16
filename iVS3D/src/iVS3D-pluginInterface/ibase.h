@@ -19,6 +19,14 @@ using SettingsWidgetResult = tl::expected<std::shared_ptr<QWidget>, Error>;
 
 using ApplySettingsResult = tl::expected<void, Error>;
 
+using InputLoadedResult = tl::expected<void, Error>;
+
+class Reader;
+
+struct InputData {
+    Reader* reader = nullptr;
+};
+
 
 /**
  * @interface IBase
@@ -112,6 +120,17 @@ class IBase : public QObject {
      * CUDA setting.
      */
     virtual void onCudaChanged(bool enabled) {}
+
+    /**
+     * @brief onInputLoaded is called when a new input video or image set is loaded.
+     *
+     * Plugins can override this method to reset caches or initialize state that
+     * depends on the current input.
+     */
+    virtual InputLoadedResult onInputLoaded(const InputData& input) {
+        (void)input;
+        return {};
+    }
 
    signals:
     /**

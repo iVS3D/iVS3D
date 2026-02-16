@@ -791,6 +791,20 @@ void Controller::onSuccessfulOpen()
     m_pluginController = new PluginController(m_dataManager, m_mainWindow->getSamplingWidget(), m_videoPlayerController, m_stackController, m_pluginThread, m_stack);
     connect(m_mainWindow->getOutputWidget()->getMaskStackView().get(), &MaskStackView::sig_recordSelected, this, &Controller::slot_restorePluginSettings);
 
+    // Connect export state to plugin preview/sampling control
+    connect(m_exportController, &ExportController::sig_exportStarted,
+            m_pluginController, &PluginController::slot_pausePreview);
+    connect(m_exportController, &ExportController::sig_exportStarted,
+            m_pluginController, &PluginController::slot_disableSampling);
+    connect(m_exportController, &ExportController::sig_exportFinished,
+            m_pluginController, &PluginController::slot_resumePreview);
+    connect(m_exportController, &ExportController::sig_exportFinished,
+            m_pluginController, &PluginController::slot_enableSampling);
+    connect(m_exportController, &ExportController::sig_exportAborted,
+            m_pluginController, &PluginController::slot_resumePreview);
+    connect(m_exportController, &ExportController::sig_exportAborted,
+            m_pluginController, &PluginController::slot_enableSampling);
+
     // update the working resolution, roi, etc
     std::shared_ptr<ReaderParams> params = m_dataManager->getModelInputPictures()->getReaderParams();
     m_mainWindow->getVideoPlayer()->setCropStatus(params->getUseRoi());

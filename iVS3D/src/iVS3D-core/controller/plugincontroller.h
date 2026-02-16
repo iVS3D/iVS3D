@@ -20,6 +20,10 @@ public:
 
 public slots:
     void slot_selectPlugin(QString name);
+    void slot_pausePreview();
+    void slot_resumePreview();
+    void slot_disableSampling();
+    void slot_enableSampling();
 
 private slots:
     void slot_enablePreview(bool enabled);
@@ -36,4 +40,6 @@ private:
     std::shared_ptr<MaskStack> m_maskStack;
     std::shared_ptr<PluginThread> m_pluginThread;
     volatile bool m_selectionCancelFlag;
+    bool m_previewWasEnabled = false;
+    bool m_samplingWasEnabled = false;
 };

@@ -76,6 +76,7 @@ public:
     void setPluginActionVisible(PluginActions action, bool visible);
 
     void setPreviewEnabled(bool enabled);
+    bool isPreviewEnabled() const;
 
     enum class PreviewState {
         Idle,

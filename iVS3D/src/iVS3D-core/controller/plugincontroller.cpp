@@ -31,6 +31,15 @@ PluginController::PluginController(DataManager* dataManager,
     connect(m_pluginThread.get(), &PluginThread::previewStateChanged, this,
             &PluginController::slot_previewStateChanged);
 
+    auto reader = m_dataManager->getModelInputPictures()->getReader();
+    for (const auto& plugin : PluginManager::instance().getPlugins()) {
+        plugin.base->onInputLoaded({reader}).map_error([&](Error err) {
+            printf("[PluginController] Error loading input for plugin %s: %s\n",
+                   plugin.name().toStdString().c_str(),
+                   err.message.toStdString().c_str());
+        });
+    }
+
     m_currentPlugin = PluginHandle{nullptr, nullptr, nullptr};
 
     auto plugin_names = PluginManager::instance().getPlugins();
@@ -197,6 +206,32 @@ void PluginController::slot_addMask() {
             ? m_dataManager->getModelInputPictures()->getReaderParams()->getRoi()
             : ROI();  // get current ROI or empty ROI if not used
     m_maskStack->addRecord(record);
+}
+
+void PluginController::slot_pausePreview() {
+    if (m_samplingWidget) {
+        m_previewWasEnabled = m_samplingWidget->isPreviewEnabled();
+        m_samplingWidget->setPreviewEnabled(false);
+    }
+}
+
+void PluginController::slot_resumePreview() {
+    if (m_samplingWidget && m_previewWasEnabled) {
+        m_samplingWidget->setPreviewEnabled(true);
+    }
+}
+
+void PluginController::slot_disableSampling() {
+    if (m_samplingWidget) {
+        m_samplingWasEnabled = m_samplingWidget->isEnabled();
+        m_samplingWidget->setEnabled(false);
+    }
+}
+
+void PluginController::slot_enableSampling() {
+    if (m_samplingWidget && m_samplingWasEnabled) {
+        m_samplingWidget->setEnabled(true);
+    }
 }
 
 void PluginController::slot_previewStateChanged(const PreviewState& state) {
