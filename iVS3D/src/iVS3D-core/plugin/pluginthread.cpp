@@ -46,7 +46,7 @@ void PluginRunner::requestMask(const MaskRequest& request) {
 
 PluginThread::PluginThread(const QVector<PluginHandle>& pluginHandles,
                            QObject* parent)
-    : QObject(parent) {
+    : QObject(parent), m_plugins(pluginHandles) {
     m_thread = std::make_unique<QThread>(this);
     m_runner = std::make_unique<PluginRunner>(nullptr);
 
@@ -83,13 +83,44 @@ PluginThread::PluginThread(const QVector<PluginHandle>& pluginHandles,
 }
 
 PluginThread::~PluginThread() {
-    // Signal the thread to stop
-    m_thread->quit();
-    
-    // Wait for the thread to finish before destroying it
-    if (!m_thread->wait(5000)) {  // 5 second timeout
-        m_thread->terminate();
-        m_thread->wait();
+    if (m_thread && m_thread->isRunning()) {
+        // Move objects back to the current thread from within their own thread
+        for (const PluginHandle& handle : m_plugins) {
+            if (!handle.base) {
+                continue;
+            }
+            QMetaObject::invokeMethod(
+                handle.base,
+                [this, base = handle.base]() {
+                    base->moveToThread(this->thread());
+                },
+                Qt::BlockingQueuedConnection);
+        }
+
+        if (m_runner) {
+            QMetaObject::invokeMethod(
+                m_runner.get(),
+                [this]() {
+                    m_runner->moveToThread(this->thread());
+                },
+                Qt::BlockingQueuedConnection);
+        }
+
+        // Signal the thread to stop
+        m_thread->quit();
+
+        // Wait for the thread to finish before destroying it
+        m_thread->wait(5000);  // 5 second timeout
+    } else {
+        // Thread already stopped, move directly
+        for (const PluginHandle& handle : m_plugins) {
+            if (handle.base) {
+                handle.base->moveToThread(this->thread());
+            }
+        }
+        if (m_runner) {
+            m_runner->moveToThread(this->thread());
+        }
     }
 }
 

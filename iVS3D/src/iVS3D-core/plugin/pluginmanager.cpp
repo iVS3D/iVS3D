@@ -3,6 +3,17 @@
 #include <QDir>
 #include <iostream>
 
+PluginManager::~PluginManager()
+{
+    qDebug() << "Unloading plugins...";
+    for (auto& handle : m_plugins) {
+        if (handle.loader) {
+            handle.loader->unload();
+            delete handle.loader;
+        }
+    }
+}
+
 PluginManager& PluginManager::instance() {
     static PluginManager INSTANCE;
     return INSTANCE;

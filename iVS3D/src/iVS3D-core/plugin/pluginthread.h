@@ -96,4 +96,5 @@ private:
     std::unique_ptr<QThread> m_thread;
     std::unique_ptr<PluginRunner> m_runner;
     RequestId m_counter{0};
+    QVector<PluginHandle> m_plugins;
 };
