@@ -94,9 +94,9 @@ SettingsWidgetResult SegmentationPlugin::getSettingsWidget(QWidget* parent) {
                     onClassSelectionChanged(selectedIds);
                 });
         connect(m_modelSettingsWidget,
-                &ModelSettingsWidget::normalizationChanged, this,
-                [this](bool normalize) {
-                    // need to recalculate everything if normalization changes
+                &ModelSettingsWidget::modelConfigChanged, this,
+                [this]() {
+                    // need to recalculate everything if config changes
                     m_cache = std::nullopt;
                     emit updatePreview(true);
                 });
@@ -279,8 +279,9 @@ tl::expected<NN::Tensor, NN::NeuralError> SegmentationPlugin::runInference(
     const auto& config = m_modelManager.activeModel()->config;
     return NN::Tensor::fromCvMat(
                image, m_currentModel->inputShape(),
-               config->getNormalizeInput() ? 1.0f / 255.0f : 1.0f,
-               config->getMean(), config->getStd())
+               config->getNormalizeTo01() ? 1.0f / 255.0f : 1.0f,
+               config->getApplyMeanStd() ? config->getMean() : std::vector<float>{}, 
+               config->getApplyMeanStd() ? config->getStd() : std::vector<float>{})
         .and_then(NN::Util::bind_inference(m_currentModel))
         .and_then(NN::Util::bind_selectOutput(0))
         .and_then([](NN::Tensor&& tensor)

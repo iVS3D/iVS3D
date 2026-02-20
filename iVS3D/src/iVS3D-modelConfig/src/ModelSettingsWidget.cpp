@@ -7,6 +7,8 @@
 #include <QCheckBox>
 #include <QSpacerItem>
 #include <QFrame>
+#include <QIntValidator>
+#include <QGroupBox>
 
 
 ModelSettingsWidget::ModelSettingsWidget(
@@ -53,24 +55,6 @@ void ModelSettingsWidget::setupUi()
     connect(m_modelCombo, QOverload<int>::of(&QComboBox::currentIndexChanged),
             this, &ModelSettingsWidget::onModelIndexChanged);
 
-
-#ifdef SHOW_MODEL_CONFIG_INFO
-    // ==================== Model Configuration Info ====================
-    m_configInfoLabel = new QLabel(this);
-    m_configInfoLabel->setStyleSheet("QLabel { color: #666; font-family: monospace; }");
-    m_configInfoLabel->setWordWrap(true);
-    m_configInfoLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
-    mainLayout->addWidget(m_configInfoLabel);
-#endif
-
-    // ==================== Normalization Option ====================
-    m_normalizeInputCheckBox = new QCheckBox(tr("Normalize input [0,255] → [0,1]"), this);
-    m_normalizeInputCheckBox->setToolTip(tr("Divide pixel values by 255 before applying mean/std normalization"));
-    mainLayout->addWidget(m_normalizeInputCheckBox);
-
-    connect(m_normalizeInputCheckBox, &QCheckBox::toggled,
-            this, &ModelSettingsWidget::onNormalizeInputToggled);
-
     // ==================== Class Selection Container ====================
     m_classContainer = new QWidget(this);
     auto* classLayout = new QVBoxLayout(m_classContainer);
@@ -114,6 +98,98 @@ void ModelSettingsWidget::setupUi()
     classLayout->addWidget(m_classScrollArea, 1);
 
     mainLayout->addWidget(m_classContainer, 1);
+
+    // ==================== Configuration Section (Collapsible) ====================
+    m_configurationSection = new QWidget(this);
+    auto* configLayout = new QVBoxLayout(m_configurationSection);
+    configLayout->setContentsMargins(0, 0, 0, 0);
+    configLayout->setSpacing(0);
+
+    // Toggle button for collapsible section
+    auto* configHeaderLayout = new QHBoxLayout();
+    m_configSectionToggleButton = new QPushButton(tr("▶  Model Configuration"), this);
+    m_configSectionToggleButton->setFlat(true);
+    m_configSectionToggleButton->setCursor(Qt::PointingHandCursor);
+    m_configSectionToggleButton->setStyleSheet(
+        "QPushButton { text-align: left; border: None; }");
+    
+    configHeaderLayout->addWidget(m_configSectionToggleButton);
+    configHeaderLayout->addStretch();
+    configLayout->addLayout(configHeaderLayout);
+    
+    connect(m_configSectionToggleButton, &QPushButton::clicked,
+            this, [this]() {
+        m_configurationSectionExpanded = !m_configurationSectionExpanded;
+        QString arrow = m_configurationSectionExpanded ? tr("▼") : tr("▶");
+        m_configSectionToggleButton->setText(arrow + tr("  Model Configuration"));
+        // Toggle visibility of the content
+        if (m_configContentWidget) {
+            m_configContentWidget->setVisible(m_configurationSectionExpanded);
+        }
+    });
+
+    // Configuration content (initially hidden) - using QGroupBox for consistent styling
+    m_configContentWidget = new QGroupBox(this);
+    m_configContentWidget->setTitle(""); // No title, controlled by toggle button
+    auto* configContentLayout = new QVBoxLayout(m_configContentWidget);
+    configContentLayout->setContentsMargins(12, 12, 12, 12);
+    configContentLayout->setSpacing(10);
+
+    // Apply Mean/Std
+    auto* applyMeanStdLayout = new QHBoxLayout();
+    m_applyMeanStdCheckBox = new QCheckBox(tr("Apply Mean/Std Normalization"), this);
+    m_applyMeanStdCheckBox->setToolTip(tr("Apply mean and standard deviation normalization"));
+    m_meanStdDisplayLabel = new QLabel(this);
+    m_meanStdDisplayLabel->setStyleSheet("QLabel { color: #666; font-family: monospace; font-size: 10px; }");
+    applyMeanStdLayout->addWidget(m_applyMeanStdCheckBox);
+    applyMeanStdLayout->addStretch();
+    applyMeanStdLayout->addWidget(m_meanStdDisplayLabel);
+    configContentLayout->addLayout(applyMeanStdLayout);
+
+    connect(m_applyMeanStdCheckBox, &QCheckBox::toggled,
+            this, &ModelSettingsWidget::onApplyMeanStdToggled);
+
+    // Normalize to [0,1]
+    m_normalizeTo01CheckBox = new QCheckBox(tr("Normalize input [0,255] → [0,1]"), this);
+    m_normalizeTo01CheckBox->setToolTip(tr("Divide pixel values by 255 before applying normalization"));
+    configContentLayout->addWidget(m_normalizeTo01CheckBox);
+
+    connect(m_normalizeTo01CheckBox, &QCheckBox::toggled,
+            this, &ModelSettingsWidget::onNormalizeTo01Toggled);
+
+    // Input Alignment
+    auto* inputAlignmentLayout = new QHBoxLayout();
+    auto* alignmentLabel = new QLabel(tr("Input Alignment:"), this);
+    m_inputAlignmentEdit = new QLineEdit(this);
+    m_inputAlignmentEdit->setMaximumWidth(100);
+    m_inputAlignmentEdit->setValidator(new QIntValidator(1, 1024, this));
+    inputAlignmentLayout->addWidget(alignmentLabel);
+    inputAlignmentLayout->addWidget(m_inputAlignmentEdit);
+    inputAlignmentLayout->addStretch();
+    configContentLayout->addLayout(inputAlignmentLayout);
+
+    connect(m_inputAlignmentEdit, &QLineEdit::textChanged,
+            this, &ModelSettingsWidget::onInputAlignmentChanged);
+
+    // Configuration change warning
+    m_configChangeWarningLabel = new QLabel(this);
+    m_configChangeWarningLabel->setWordWrap(true);
+    m_configChangeWarningLabel->setStyleSheet(
+        "QLabel { color: #856404;"
+        "border: 1px solid #ffc107; border-radius: 4px; padding: 8px; }");
+    m_configChangeWarningLabel->setText(
+        tr("ⓘ Configuration changes made here are temporary and will not be persisted. "
+           "To save these settings permanently, manually update the model configuration JSON file."));
+    m_configChangeWarningLabel->hide();
+    configContentLayout->addWidget(m_configChangeWarningLabel);
+
+    configLayout->addWidget(m_configContentWidget);
+    configLayout->addStretch();
+
+    mainLayout->addWidget(m_configurationSection, 0);
+    m_configurationSection->hide();
+    m_configContentWidget->hide();
+
 
     // ==================== Error Display Container ====================
     m_errorContainer = new QWidget(this);
@@ -164,8 +240,16 @@ void ModelSettingsWidget::setupManagerConnections()
             &m_manager, &ModelManager::onModelsRefreshRequested,
             Qt::QueuedConnection);
     
-    connect(this, &ModelSettingsWidget::normalizeInputRequested,
-            &m_manager, &ModelManager::onNormalizeInputRequested,
+    connect(this, &ModelSettingsWidget::applyMeanStdRequested,
+            &m_manager, &ModelManager::onApplyMeanStdRequested,
+            Qt::QueuedConnection);
+    
+    connect(this, &ModelSettingsWidget::normalizeTo01Requested,
+            &m_manager, &ModelManager::onNormalizeTo01Requested,
+            Qt::QueuedConnection);
+    
+    connect(this, &ModelSettingsWidget::inputAlignmentRequested,
+            &m_manager, &ModelManager::onInputAlignmentRequested,
             Qt::QueuedConnection);
     
     // Connect manager signals to widget slots (crosses thread boundary)
@@ -179,10 +263,6 @@ void ModelSettingsWidget::setupManagerConnections()
     
     connect(&m_manager, QOverload<const QVector<ModelManager::ModelEntry>&>::of(&ModelManager::modelsListUpdated),
             this, &ModelSettingsWidget::onModelsListUpdated,
-            Qt::QueuedConnection);
-    
-    connect(&m_manager, &ModelManager::normalizationSettingUpdated,
-            this, &ModelSettingsWidget::onNormalizationSettingUpdated,
             Qt::QueuedConnection);
 }
 
@@ -327,44 +407,9 @@ void ModelSettingsWidget::updateModelDisplay()
         
         // Update normalization checkbox from cached config
         if (m_cachedCurrentConfig) {
-            m_normalizeInputCheckBox->blockSignals(true);
-            m_cachedNormalizeInput = m_cachedCurrentConfig->getNormalizeInput();
-            m_normalizeInputCheckBox->setChecked(m_cachedNormalizeInput);
-            m_normalizeInputCheckBox->setEnabled(true);
-            m_normalizeInputCheckBox->blockSignals(false);
             
-#ifdef SHOW_MODEL_CONFIG_INFO
-            // Build config info string
-            const auto& config = *m_cachedCurrentConfig;
-            QString info;
-            
-            // Mean values
-            const auto& mean = config.getMean();
-            info += "Mean: [";
-            for (size_t i = 0; i < mean.size(); ++i) {
-                if (i > 0) info += ", ";
-                info += QString::number(mean[i], 'f', 3);
-            }
-            info += "]";
-            
-            // Std values
-            const auto& std = config.getStd();
-            info += " | Std: [";
-            for (size_t i = 0; i < std.size(); ++i) {
-                if (i > 0) info += ", ";
-                info += QString::number(std[i], 'f', 3);
-            }
-            info += "]";
-            
-            // Input alignment
-            uint alignment = config.getInputAlignment();
-            if (alignment > 1) {
-                info += " | Align: " + QString::number(alignment);
-            }
-            
-            m_configInfoLabel->setText(info);
-            m_configInfoLabel->show();
-#endif
+            // Update configuration section
+            updateConfigurationSection();
         }
         
         if (!m_blockSignals) {
@@ -376,14 +421,8 @@ void ModelSettingsWidget::updateModelDisplay()
         m_statusLabel->setStyleSheet("QLabel { color: #dc3545; font-weight: bold; }");
         m_classContainer->hide();
         m_errorContainer->show();
+        m_configurationSection->hide();
         showModelError(m_cachedModelState, m_cachedModelError);
-        
-        // Disable normalization checkbox for invalid models
-        m_normalizeInputCheckBox->setEnabled(false);
-        
-#ifdef SHOW_MODEL_CONFIG_INFO
-        m_configInfoLabel->hide();
-#endif
         
         if (!m_blockSignals) {
             emit modelChanged(m_currentModelName, false);
@@ -609,11 +648,101 @@ void ModelSettingsWidget::onSearchTextChanged(const QString& text)
     }
 }
 
-void ModelSettingsWidget::onNormalizeInputToggled(bool checked)
+void ModelSettingsWidget::onApplyMeanStdToggled(bool checked)
 {
-    // Emit signal to update normalization setting on worker thread
-    emit normalizeInputRequested(m_currentModelName, checked);
-    emit normalizationChanged(checked);}
+    m_cachedApplyMeanStd = checked;
+    emit applyMeanStdRequested(m_currentModelName, checked);
+    emit modelConfigChanged();
+    checkConfigurationChanges();
+}
+
+void ModelSettingsWidget::onNormalizeTo01Toggled(bool checked)
+{
+    m_cachedNormalizeTo01 = checked;
+    emit normalizeTo01Requested(m_currentModelName, checked);
+    emit modelConfigChanged();
+    checkConfigurationChanges();
+}
+
+void ModelSettingsWidget::onInputAlignmentChanged(const QString& text)
+{
+    if (!text.isEmpty()) {
+        m_cachedInputAlignment = text.toUInt();
+        emit inputAlignmentRequested(m_currentModelName, m_cachedInputAlignment);
+        emit modelConfigChanged();
+        checkConfigurationChanges();
+    }
+}
+
+void ModelSettingsWidget::checkConfigurationChanges()
+{
+    // Check if any configuration differs from original
+    bool hasChanges = (m_cachedApplyMeanStd != m_originalApplyMeanStd) ||
+                      (m_cachedNormalizeTo01 != m_originalNormalizeTo01) ||
+                      (m_cachedInputAlignment != m_originalInputAlignment);
+    
+    if (hasChanges) {
+        m_configChangeWarningLabel->show();
+    } else {
+        m_configChangeWarningLabel->hide();
+    }
+}
+
+void ModelSettingsWidget::updateConfigurationSection()
+{
+    if (!m_cachedCurrentConfig) {
+        m_configurationSection->hide();
+        return;
+    }
+
+    m_blockSignals = true;
+
+    // Cache original values
+    m_originalApplyMeanStd = m_cachedCurrentConfig->getApplyMeanStd();
+    m_originalNormalizeTo01 = m_cachedCurrentConfig->getNormalizeTo01();
+    m_originalInputAlignment = m_cachedCurrentConfig->getInputAlignment();
+
+    m_cachedApplyMeanStd = m_originalApplyMeanStd;
+    m_cachedNormalizeTo01 = m_originalNormalizeTo01;
+    m_cachedInputAlignment = m_originalInputAlignment;
+    m_cachedMean = m_cachedCurrentConfig->getMean();
+    m_cachedStd = m_cachedCurrentConfig->getStd();
+
+    // Update UI with config values
+    m_applyMeanStdCheckBox->setChecked(m_originalApplyMeanStd);
+    m_normalizeTo01CheckBox->setChecked(m_originalNormalizeTo01);
+    m_inputAlignmentEdit->setText(QString::number(m_originalInputAlignment));
+
+    // Update mean/std display
+    QString meanStdText;
+    if (!m_cachedMean.empty() && !m_cachedStd.empty()) {
+        QStringList meanValues;
+        for (float val : m_cachedMean) {
+            meanValues << QString::number(val, 'f', 3);
+        }
+        QStringList stdValues;
+        for (float val : m_cachedStd) {
+            stdValues << QString::number(val, 'f', 3);
+        }
+        meanStdText = QString("μ=[%1] σ=[%2]")
+            .arg(meanValues.join(", "))
+            .arg(stdValues.join(", "));
+    }
+    m_meanStdDisplayLabel->setText(meanStdText);
+
+    // Hide warning since we just loaded the original values
+    m_configChangeWarningLabel->hide();
+
+    // Reset expansion state and hide content by default
+    m_configurationSectionExpanded = false;
+    m_configSectionToggleButton->setText(tr("▶ Model Configuration"));
+    if (m_configContentWidget) {
+        m_configContentWidget->hide();
+    }
+
+    m_configurationSection->show();
+    m_blockSignals = false;
+}
 
 void ModelSettingsWidget::onModelActivated(const QString& modelName, ModelManager::ModelState modelState, const QString& error)
 {
@@ -650,11 +779,4 @@ void ModelSettingsWidget::onModelsListUpdated(const QVector<ModelManager::ModelE
     
     // Refresh the combo box display using cached data
     refreshModelList();
-}
-
-void ModelSettingsWidget::onNormalizationSettingUpdated(const QString& modelName, bool normalizeInput)
-{
-    if (modelName == m_currentModelName) {
-        m_cachedNormalizeInput = normalizeInput;
-    }
 }

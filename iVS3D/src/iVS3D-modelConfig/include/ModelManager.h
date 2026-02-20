@@ -103,13 +103,6 @@ signals:
      */
     void modelsListUpdated(const QVector<ModelEntry>& models);
 
-    /**
-     * @brief Emitted when normalization setting is changed for a model
-     * @param modelName Name of the model
-     * @param normalizeInput Whether input normalization is enabled
-     */
-    void normalizationSettingUpdated(const QString& modelName, bool normalizeInput);
-
 public slots:
     /**
      * @brief Slot to handle model activation requests from UI thread
@@ -131,11 +124,25 @@ public slots:
     void onModelsRefreshRequested();
 
     /**
-     * @brief Slot to handle normalization setting changes from UI thread
+     * @brief Slot to handle apply mean/std setting changes from UI thread
      * @param modelName Name of the model
-     * @param normalizeInput Whether to normalize input
+     * @param apply Whether to apply mean/std normalization
      */
-    void onNormalizeInputRequested(const QString& modelName, bool normalizeInput);
+    void onApplyMeanStdRequested(const QString& modelName, bool apply);
+
+    /**
+     * @brief Slot to handle normalize to [0,1] setting changes from UI thread
+     * @param modelName Name of the model
+     * @param normalize Whether to normalize input to [0,1]
+     */
+    void onNormalizeTo01Requested(const QString& modelName, bool normalize);
+
+    /**
+     * @brief Slot to handle input alignment changes from UI thread
+     * @param modelName Name of the model
+     * @param alignment Input alignment value
+     */
+    void onInputAlignmentRequested(const QString& modelName, uint alignment);
 
 private:
     const ModelEntry* findEntry(const QString& name) const noexcept;
