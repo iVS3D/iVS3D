@@ -111,7 +111,6 @@ private slots:
     void onClassCheckBoxToggled();
     void onInvertSelectionClicked();
     void onSearchTextChanged(const QString& text);
-    void onNormalizeInputToggled(bool checked);
     void onApplyMeanStdToggled(bool checked);
     void onNormalizeTo01Toggled(bool checked);
     void onInputAlignmentChanged(const QString& text);
