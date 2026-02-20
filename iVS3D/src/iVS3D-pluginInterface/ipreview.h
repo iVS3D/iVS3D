@@ -1,12 +1,4 @@
 #pragma once
-/**
- * @file ipreview.h
- * @brief Interface for preview plugins in iVS3D.
- *
- * @ingroup Plugin
- * @author Dominik Wüst
- * @date 2025/12/05
- */
 
 #include <QObject>
 
