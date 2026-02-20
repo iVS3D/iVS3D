@@ -98,7 +98,6 @@ void PluginController::slot_startSelection() {
 
     if (!m_currentPlugin.hasSelection()) return;
     
-    m_samplingWidget->setPreviewEnabled(false);
     m_vpc->slot_stopPlay(); // stop playback if running
 
     // Prepare selection data
