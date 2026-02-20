@@ -116,6 +116,9 @@ private slots:
     void onNormalizeTo01Toggled(bool checked);
     void onInputAlignmentChanged(const QString& text);
 
+protected:
+    bool eventFilter(QObject* watched, QEvent* event) override;
+
 private:
     /**
      * @brief Update the display based on currently selected model

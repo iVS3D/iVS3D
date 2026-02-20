@@ -9,6 +9,8 @@
 #include <QFrame>
 #include <QIntValidator>
 #include <QGroupBox>
+#include <QEvent>
+#include <QMouseEvent>
 
 
 ModelSettingsWidget::ModelSettingsWidget(
@@ -634,6 +636,8 @@ void ModelSettingsWidget::onSearchTextChanged(const QString& text)
         auto* layout = new QHBoxLayout(container);
         layout->setContentsMargins(0, 0, 0, 0);
         layout->addWidget(checkbox);
+        container->setCursor(Qt::PointingHandCursor);
+        container->installEventFilter(this);
         m_classContainers.append(container);
         
         int row = displayIdx / columns;
@@ -646,6 +650,25 @@ void ModelSettingsWidget::onSearchTextChanged(const QString& text)
         gridLayout->addItem(new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding),
                            (numMatching / columns) + 1, 0, 1, columns);
     }
+}
+
+bool ModelSettingsWidget::eventFilter(QObject* watched, QEvent* event)
+{
+    if (event->type() == QEvent::MouseButtonPress) {
+        auto* widget = qobject_cast<QWidget*>(watched);
+        if (widget) {
+            int index = m_classContainers.indexOf(widget);
+            if (index >= 0 && index < m_classCheckBoxes.size()) {
+                auto* mouseEvent = static_cast<QMouseEvent*>(event);
+                if (mouseEvent->button() == Qt::LeftButton) {
+                    m_classCheckBoxes[index]->toggle();
+                    return true;
+                }
+            }
+        }
+    }
+
+    return QWidget::eventFilter(watched, event);
 }
 
 void ModelSettingsWidget::onApplyMeanStdToggled(bool checked)
