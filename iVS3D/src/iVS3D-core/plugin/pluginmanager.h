@@ -17,6 +17,7 @@ class PluginManager : public QObject {
     Q_OBJECT
 
 public:
+    ~PluginManager();
     static PluginManager& instance();
 
     QVector<PluginHandle> getPlugins() const;
