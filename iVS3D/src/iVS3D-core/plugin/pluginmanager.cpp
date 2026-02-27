@@ -6,6 +6,7 @@
 PluginManager::~PluginManager()
 {
     qDebug() << "Unloading plugins...";
+    m_pluginThread.reset();
     for (auto& handle : m_plugins) {
         if (handle.loader) {
             handle.loader->unload();
@@ -19,39 +20,70 @@ PluginManager& PluginManager::instance() {
     return INSTANCE;
 }
 
-QVector<PluginHandle> PluginManager::getPlugins() const {
-    return m_plugins.values().toVector();
-}
-
 QStringList PluginManager::getPluginNames() const {
     return m_plugins.keys();
 }
 
-QVector<PluginHandle> PluginManager::getMaskPlugins() const {
-    QVector<PluginHandle> maskPlugins;
-    for (const PluginHandle& handle : m_plugins.values()) {
-        if (handle.hasMask()) {
-            maskPlugins.append(handle);
-        }
-    }
-    return maskPlugins;
+bool PluginManager::hasPlugin(const QString& name) const { return m_plugins.contains(name); }
+
+bool PluginManager::hasPreviewPlugin(const QString& name) const {
+    auto it = m_plugins.find(name);
+    return it != m_plugins.end() && it->hasPreview();
 }
 
-QVector<PluginHandle> PluginManager::getSelectionPlugins() const {
-    QVector<PluginHandle> selectionPlugins;
-    for (const PluginHandle& handle : m_plugins.values()) {
-        if (handle.hasSelection()) {
-            selectionPlugins.append(handle);
-        }
-    }
-    return selectionPlugins;
+bool PluginManager::hasMaskPlugin(const QString& name) const {
+    auto it = m_plugins.find(name);
+    return it != m_plugins.end() && it->hasMask();
 }
 
-std::optional<PluginHandle> PluginManager::getPluginByName(const QString& name) const {
-    if (!m_plugins.contains(name)) {
+bool PluginManager::hasSelectionPlugin(const QString& name) const {
+    auto it = m_plugins.find(name);
+    return it != m_plugins.end() && it->hasSelection();
+}
+
+std::shared_ptr<QWidget> PluginManager::getSettingsWidget(const QString& pluginName) const {
+    auto it = m_plugins.find(pluginName);
+    if (it == m_plugins.end()) {
+        return nullptr;
+    }
+    return it->settingsWidget;
+}
+
+std::optional<Error> PluginManager::getSettingsWidgetError(
+    const QString& pluginName) const {
+    auto it = m_plugins.find(pluginName);
+    if (it == m_plugins.end()) {
         return std::nullopt;
     }
-    return m_plugins.value(name);
+    return it->settingsWidgetError;
+}
+
+ApplySettingsResult PluginManager::applyPluginSettings(
+    const QString& pluginName,
+    const QMap<QString, QVariant>& settings) const {
+    if (!m_pluginThread) {
+        return tl::unexpected(Error(ErrorCode::RuntimeError, "PluginThread not available"));
+    }
+    return m_pluginThread->applyPluginSettings(pluginName, settings);
+}
+
+QMap<QString, QVariant> PluginManager::getPluginSettings(
+    const QString& pluginName) const {
+    if (!m_pluginThread) {
+        return {};
+    }
+    return m_pluginThread->getPluginSettings(pluginName);
+}
+
+QString PluginManager::getPluginSettingsString(const QString& pluginName) const {
+    if (!m_pluginThread) {
+        return {};
+    }
+    return m_pluginThread->getPluginSettingsString(pluginName);
+}
+
+std::shared_ptr<PluginThread> PluginManager::getPluginThread() const {
+    return m_pluginThread;
 }
 
 QVector<QPair<QString, Error>> PluginManager::loadSettingsWidgets() {
@@ -84,15 +116,15 @@ QVector<QPair<QString, Error>> PluginManager::loadSettingsWidgets() {
 }
 
 void PluginManager::enableCuda(bool useCuda) {
-    for (auto& handle : m_plugins) {
-        IBase* base = handle.base;
-        if (base) {
-            base->onCudaChanged(useCuda);
-        }
+    if (m_pluginThread) {
+        m_pluginThread->enableCuda(useCuda);
     }
 }
 
-PluginManager::PluginManager() { loadPlugins(); }
+PluginManager::PluginManager() {
+    loadPlugins();
+    m_pluginThread = std::make_shared<PluginThread>(m_plugins, this);
+}
 
 void PluginManager::loadPlugins() {
     QDir pluginsDir(QCoreApplication::applicationDirPath());

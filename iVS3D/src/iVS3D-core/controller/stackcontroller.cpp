@@ -71,14 +71,17 @@ void StackController::slot_rowClicked(int row)
             m_exportController->setOutputSettings(algoData.pluginSettings);
         }
         //Regular sampling
-        else if (PluginManager::instance().getPluginByName(algoData.pluginName).has_value()) {
-            auto pluginHandle = PluginManager::instance().getPluginByName(algoData.pluginName).value();
-            auto result = pluginHandle.base->applySettings(algoData.pluginSettings);
+        else if (PluginManager::instance().hasPlugin(algoData.pluginName)) {
+            auto result =
+                PluginManager::instance().applyPluginSettings(
+                    algoData.pluginName, algoData.pluginSettings);
             assert(result.has_value()); // should not fail
 
             m_samplingWidget->setSelectedPlugin(algoData.pluginName);
-            if (pluginHandle.settingsWidget) {
-                m_samplingWidget->showPluginSettings(pluginHandle.settingsWidget.get());
+            auto settingsWidget =
+                PluginManager::instance().getSettingsWidget(algoData.pluginName);
+            if (settingsWidget) {
+                m_samplingWidget->showPluginSettings(settingsWidget.get());
             }
         }
 
@@ -95,25 +98,27 @@ void StackController::slot_clearClicked()
     select();
 }
 
-void StackController::addToStack(const PluginHandle& plugin)
+void StackController::addToStack(const QString& pluginName,
+                                 const QMap<QString, QVariant>& settings,
+                                 const QString& settingsString)
 {
     deleteInvalidFuture();
-    QMap<QString, QVariant> settings = plugin.base->getSettings();
-    QString uiText = plugin.name();
+    QString uiText = pluginName;
 
     uiText.append(" - ");
-    uiText.append(plugin.base->getSettingsString());
+    uiText.append(settingsString);
     m_opStack->addEntry(uiText);
-    m_algoSettings.insert(uiText, {plugin.name(), settings});
+    m_algoSettings.insert(uiText, {pluginName, settings});
 }
 
 void StackController::slot_pluginFinished(QString name)
 {
     deleteInvalidFuture();
-    auto pluginResult = PluginManager::instance().getPluginByName(name);
-    assert(pluginResult.has_value()); // should not fail
-    auto pluginHandle = pluginResult.value();
-    QMap<QString, QVariant> settings = pluginHandle.base->getSettings();
+    if (!PluginManager::instance().hasPlugin(name)) {
+        return;
+    }
+    QMap<QString, QVariant> settings =
+        PluginManager::instance().getPluginSettings(name);
     QString uiText = name;
 
     uiText.append(" - ");

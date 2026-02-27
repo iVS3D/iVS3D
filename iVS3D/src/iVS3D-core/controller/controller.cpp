@@ -116,7 +116,7 @@ Controller::Controller(QString inputPath, QString settingsPath, QString outputPa
 
     MetaDataManager::instance().interpolateMissingMetaData(interpolateMetaData);
 
-    m_pluginThread = std::make_shared<PluginThread>(PluginManager::instance().getPlugins(), this);
+    m_pluginThread = PluginManager::instance().getPluginThread();
 }
 
 Controller::~Controller()
@@ -495,9 +495,9 @@ void Controller::slot_restorePluginSettings(int id) {
     if (m_exportController) {
         m_exportController->slot_roiChanged(params->getUseRoi() ? std::optional<ROI>(params->getRoi()) : std::nullopt);
     }
-    auto pluginHandle = PluginManager::instance().getPluginByName(record->pluginName);
-    assert(pluginHandle.has_value());
-    auto applySettingsResult = pluginHandle.value().base->applySettings(record->pluginSettings);
+    auto applySettingsResult =
+        PluginManager::instance().applyPluginSettings(record->pluginName,
+                                                      record->pluginSettings);
     if (!applySettingsResult) {
         QMessageBox msgBox;
         msgBox.setText(tr("Error restoring plugin settings for plugin '") + record->pluginName + tr("': ") + applySettingsResult.error().message);

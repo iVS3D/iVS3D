@@ -137,8 +137,8 @@ void VideoPlayerController::resetLayout() {
     m_currentImage = cv::Mat();
 }
 
-void VideoPlayerController::setPreviewPlugin(const PluginHandle& previewPlugin) {
-    m_currentPreviewPlugin = previewPlugin;
+void VideoPlayerController::setPreviewPlugin(const QString& previewPluginName) {
+    m_currentPreviewPlugin = previewPluginName;
 }
 
 void VideoPlayerController::clearPreviewPlugin() {

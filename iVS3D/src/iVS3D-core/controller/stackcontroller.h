@@ -18,7 +18,9 @@ public:
     ~StackController();
     void select();
 
-    void addToStack(const PluginHandle& plugin);
+    void addToStack(const QString& pluginName,
+                    const QMap<QString, QVariant>& settings,
+                    const QString& settingsString);
 
 private:
     OperationStack* m_opStack;

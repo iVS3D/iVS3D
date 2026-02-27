@@ -4,14 +4,17 @@
 #include <QHash>
 #include <QString>
 #include <QVector>
+#include <QObject>
 
 #include <optional>
+#include <memory>
 
 #include "ibase.h"
 #include "imask.h"
 #include "ipreview.h"
 #include "iselection.h"
 #include "pluginhandle.h"
+#include "pluginthread.h"
 
 class PluginManager : public QObject {
     Q_OBJECT
@@ -20,11 +23,22 @@ public:
     ~PluginManager();
     static PluginManager& instance();
 
-    QVector<PluginHandle> getPlugins() const;
     QStringList getPluginNames() const;
-    QVector<PluginHandle> getMaskPlugins() const;
-    QVector<PluginHandle> getSelectionPlugins() const;
-    std::optional<PluginHandle> getPluginByName(const QString& name) const;
+    bool hasPlugin(const QString& name) const;
+    bool hasPreviewPlugin(const QString& name) const;
+    bool hasMaskPlugin(const QString& name) const;
+    bool hasSelectionPlugin(const QString& name) const;
+
+    std::shared_ptr<QWidget> getSettingsWidget(const QString& pluginName) const;
+    std::optional<Error> getSettingsWidgetError(const QString& pluginName) const;
+
+    ApplySettingsResult applyPluginSettings(
+        const QString& pluginName,
+        const QMap<QString, QVariant>& settings) const;
+    QMap<QString, QVariant> getPluginSettings(const QString& pluginName) const;
+    QString getPluginSettingsString(const QString& pluginName) const;
+
+    std::shared_ptr<PluginThread> getPluginThread() const;
 
     /**
      * @brief loadSettingsWidgets asks each plugin to create its settings widget once.
@@ -43,4 +57,5 @@ private:
     void loadPlugins();
 
     QHash<QString, PluginHandle> m_plugins;
+    std::shared_ptr<PluginThread> m_pluginThread;
 };
