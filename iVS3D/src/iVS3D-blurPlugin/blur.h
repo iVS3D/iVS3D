@@ -11,21 +11,18 @@
 #include <QComboBox>
 #include <QCoreApplication>
 #include <QDoubleSpinBox>
-#include <QGridLayout>
 #include <QLabel>
 #include <QLayout>
 #include <QMap>
 #include <QObject>
+#include <QSpinBox>
 #include <QString>
 #include <QTranslator>
 #include <QWidget>
 #include <algorithm>
-#include <opencv2/video.hpp>
 
-#include "ialgorithm.h"
-#include "reader.h"
-#include "sequentialreader.h"
-#include "logfile.h"
+#include "ibase.h"
+#include "iselection.h"
 
 #include "BlurAlgorithm.h"
 #include "blurlaplacian.h"
@@ -45,20 +42,18 @@
  *
  * @ingroup BlurPlugin
  *
- * @brief The Blur class is responsible for selecting they keyframes based on
- * the blu values calculated by a BlurAlgorithm.
+ * @brief The Blur class selects keyframes based on blur/sharpness values
+ * computed by the selected `BlurAlgorithm`.
  *
  * @author Daniel Brommer
  *
  * @date 2021/02/19
  */
 
-class Blur : public IAlgorithm {
+class Blur : public IBase, public ISelection {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "iVS3D.IAlgorithm")  // implement interface as plugin,
-                                               // use the iid as identifier
-    Q_INTERFACES(
-        IAlgorithm)  // declare this as implementation of IAlgorithm interface
+    Q_PLUGIN_METADATA(IID "iVS3D.IBase")
+    Q_INTERFACES(IBase ISelection)
 
    public:
     /**
@@ -66,129 +61,63 @@ class Blur : public IAlgorithm {
      * and stets standard values (WindowSize = 30, LocalDeviation = 95)
      */
     Blur();
-    ~Blur() {}
-    /**
-     * @brief getSettingsWidget Returns the settings widget where BlurAlgorithm,
-     * WindowSizw and LocalDeviation can be set
-     * @param parent Parent of the created QWidget
-     * @return The Settings Widget
-     */
-    QWidget *getSettingsWidget(QWidget *parent) override;
-    /**
-     * @brief sampleImages selects keyframes based on their bluriness. It
-     * differs between a calulation on all images and a caculation only on
-     * keyframes.
-     *
-     * If allImages are used, sampleImages calulates the blur value of every
-     * image with the selected BlurAlgorithm. Then it creates a window for every
-     * image x. This window is defined as [x - windowSize, .., x, .. , x +
-     * windowSize] (This window will be cropped to 0 on the left and picCOunt on
-     * the rigth side). For every window the average Blur values y of it's
-     * images is calculated. If (Blur value from x) / y >= LocalDeviation / 100
-     * Image x is considered a sharpImage.
-     *
-     * If only keyframes are used, sampleImages creates the same windows, but
-     * only for keyframes and it will selected the Image in a window with the
-     * largest blur value.
-     *
-     * @param imageList is a preselection of frames
-     * @param receiver is a progressable, which displays the already made
-     * progress
-     * @param stopped Pointer to a bool indication if user wants to stop the
-     * computation
-     * @param useCuda defines if the compution should run on graphics card
-     * @param logFile can be used to protocoll progress or problems
-     * @return A list of indices, which represent the selected keyframes.
-     */
-    std::vector<uint> sampleImages(const std::vector<unsigned int> &imageList,
-                                   Progressable *receiver,
-                                   volatile bool *stopped, bool useCuda,
-                                   LogFileParent *logFile) override;
+    ~Blur() override;
+
+    // IBase interface
+    SettingsWidgetResult getSettingsWidget() override;
     /**
      * @brief getName Returns the plugin Name
      * @return "Blur"
      */
     QString getName() const override;
-    /**
-     * @brief initialize Blur doesn't use this currently
-     * @param reader the images
-     * @param buffer is a QVariant, which holds previous computions that could
-     * be usefull for the next selection
-     * @param sigObj provides signals from the core
-     */
-    void initialize(Reader *reader, QMap<QString, QVariant> buffer,
-                    signalObject *sigObj) override;
-    /**
-     * @brief setter for plugin's settings
-     * @param QMap with the settings
-     */
-    void setSettings(QMap<QString, QVariant> settings) override;
-    /**
-     * @brief generateSettings tries to generate the best settings for the
-     * current input
-     * @param receiver is a progressable, which displays the already made
-     * progress
-     * @param buffer QVariant with the buffered data form last call to
-     * sampleImages
-     * @param useCuda @a true if cv::cuda can be used
-     * @param stopped is set if the algorithm should abort
-     * @return QMap with the settings
-     */
-    QMap<QString, QVariant> generateSettings(Progressable *receiver,
-                                             bool useCuda,
-                                             volatile bool *stopped) override;
-    /**
-     * @brief getter for plugin's settings
-     * @return QMap with the settings
-     */
-    QMap<QString, QVariant> getSettings() override;
+    QMap<QString, QVariant> getSettings() const override;
+    ApplySettingsResult applySettings(const QMap<QString, QVariant>& settings) override;
+    void activate() override;
+    void deactivate() override;
+    void onCudaChanged(bool enabled) override;
+    InputLoadedResult onInputLoaded(const InputData& input) override;
+    void onIndexChanged(uint index) override;
 
-   public slots:
-    /**
-     * @brief [slot] slot_blurAlgoChanged selects the algorithm identified by name.
-     * @param name The algorithm name
-     */
-    void slot_blurAlgoChanged(const QString &name);
-    /**
-     * @brief [slot] slot_wsChanged updates the windowsize.
-     * @param ws The new windowsize
-     */
+    // ISelection interface
+    SelectionResult selectImages(const SelectionData& data,
+                                 volatile bool& cancelFlag) override;
+
+signals:
+    void syncSettingsWidget(const QString& algorithmName,
+                            int windowSize,
+                            double localDeviation,
+                            const QString& infoText);
+
+private slots:
+    void slot_blurAlgoChanged(const QString& name);
     void slot_wsChanged(int ws);
-    /**
-     * @brief [slot] slot_ldChanged updates local deviation.
-     * @param ld The new local deviation
-     */
-    void slot_ldChanged(int ld);
-    /**
-     * @brief [slot] slot_selectedImageIndex changes currently displayed info
-     * (blur value of current image)
-     * @param index index of the currently shown image
-     */
-    void slot_selectedImageIndex(uint index);
+    void slot_ldChanged(double ld);
 
-   private:
-        Reader *m_reader = nullptr;
-    QMap<QString, QVariant> m_buffer;
-    signalObject *m_sigObj = nullptr;
-    QWidget *m_settingsWidget = nullptr;
-    QComboBox *m_comboBoxBlur = nullptr;
-    QSpinBox *m_spinBoxWS = nullptr;
-    QSpinBox *m_spinBoxLD = nullptr;
-    QLabel *m_infoLabel = nullptr;
-    BlurAlgorithm *m_usedBlur = nullptr;
-    int m_windowSize;
-    double m_localDeviation;
-    std::vector<BlurAlgorithm *> m_blurAlgorithms = {};
-    std::vector<double> m_blurValues = {};
-    LogFileParent *m_logFile = nullptr;
+private:
+    std::unique_ptr<QWidget> createSettingsWidget();
+    std::vector<uint> sampleKeyframes(Reader* reader,
+                                      volatile bool& cancelFlag,
+                                      const std::vector<uint>& indices);
+    QString progressMessage(int curr, int total) const;
+    QString currentInfoText() const;
+    void invalidateCache();
 
-    void createSettingsWidget(QWidget *parent);
-    std::vector<double> splitDoubleString(QString string);
-    std::vector<uint> sampleKeyframes(Reader *reader, Progressable *receiver,
-                                      volatile bool *stopped,
-                                      std::vector<uint> sharpImages);
-    QString progressMessage(int curr, int total);
-    void computeBuffer();
+    Reader* m_reader = nullptr;
+    QComboBox* m_comboBoxBlur = nullptr;
+    QSpinBox* m_spinBoxWS = nullptr;
+    QDoubleSpinBox* m_spinBoxLD = nullptr;
+    QLabel* m_infoLabel = nullptr;
+    BlurAlgorithm* m_usedBlur = nullptr;
+    int m_windowSize = 30;
+    double m_localDeviation = 5.0;
+    std::vector<BlurAlgorithm*> m_blurAlgorithms = {};
+
+    // Local cache (invalidated on algorithm/input change)
+    std::vector<double> m_cachedBlurValues = {};
+    uint m_cachedPicCount = 0;
+    QString m_cachedAlgoName;
+    uint m_currentIndex = 0;
+    bool m_useCuda = false;
 };
 
 #endif  // BLUR_H
