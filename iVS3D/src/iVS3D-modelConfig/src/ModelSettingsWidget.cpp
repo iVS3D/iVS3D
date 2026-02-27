@@ -20,7 +20,6 @@ ModelSettingsWidget::ModelSettingsWidget(
     static bool firstInstance = true;
     if (firstInstance) {
         // Register metatypes for use in signals/slots across threads
-        qRegisterMetaType<QVector<uint>>("QVector<uint>");
         qRegisterMetaType<ModelManager::ModelState>("ModelManager::ModelState");
         qRegisterMetaType<QVector<ModelConfig::ClassInfo>>("QVector<ModelConfig::ClassInfo>");
         qRegisterMetaType<QVector<ModelManager::ModelEntry>>("QVector<ModelManager::ModelEntry>");

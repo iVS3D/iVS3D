@@ -19,7 +19,7 @@
 
 
 
-MainWindow::MainWindow(QWidget *parent, ColorTheme theme, int cuda, bool createLog, bool interpolateMetaData, QList<QLocale> locales, QLocale selectedLocale, QStringList algorithmList, QStringList transformList, QWidget *otsWidget)
+MainWindow::MainWindow(QWidget *parent, ColorTheme theme, int cuda, bool createLog, bool interpolateMetaData, QList<QLocale> locales, QLocale selectedLocale, QWidget *otsWidget)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {

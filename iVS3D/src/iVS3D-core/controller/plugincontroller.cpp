@@ -2,6 +2,7 @@
 #include <QtConcurrent>
 
 #include "applicationsettings.h"
+#include "logmanager.h"
 #include <QProgressBar>
 #include <QLabel>
 #include <QVBoxLayout>
@@ -108,6 +109,13 @@ void PluginController::slot_startSelection() {
                                  ->getReaderParams()
                                  ->getWorkingResolution();
     data.reader = m_dataManager->getModelInputPictures()->getReader();
+    auto selectionLog =
+        LogManager::instance().createLogFile(m_currentPlugin.name(), true);
+    if (selectionLog) {
+        selectionLog->setSettings(m_currentPlugin.base->getSettings());
+        selectionLog->setInputInfo(data.selectedIndices);
+        data.logFile = selectionLog;
+    }
                                     
     // Reset cancel flag
     m_selectionCancelFlag = false;
@@ -155,7 +163,8 @@ void PluginController::slot_startSelection() {
     // Monitor completion with QFutureWatcher
     auto* watcher = new QFutureWatcher<decltype(m_currentPlugin.selection->selectImages(data, m_selectionCancelFlag))>(this);
     
-    connect(watcher, &QFutureWatcherBase::finished, this, [this, progressDialog, watcher]() {
+        connect(watcher, &QFutureWatcherBase::finished, this,
+            [this, progressDialog, watcher, selectionLog]() {
         progressDialog->close();
         progressDialog->deleteLater();
         
@@ -176,6 +185,9 @@ void PluginController::slot_startSelection() {
                     .arg(result.error().message));
         } else {
             auto selectedIndices = result.value();
+            if (selectionLog) {
+                selectionLog->setResultsInfo(selectedIndices);
+            }
             m_dataManager->getModelInputPictures()->updateMIP(selectedIndices);
             m_stack->addToStack(m_currentPlugin);
             m_dataManager->getHistory()->slot_save();

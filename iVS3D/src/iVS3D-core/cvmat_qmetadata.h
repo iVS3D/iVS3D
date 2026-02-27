@@ -22,6 +22,8 @@ Q_DECLARE_METATYPE(ImageList)
 typedef QList<QColor> QColorList;
 Q_DECLARE_METATYPE(QColorList)
 
+Q_DECLARE_METATYPE(QVector<uint>)
+
 typedef QList<bool> QBoolList;
 Q_DECLARE_METATYPE(QBoolList)
 

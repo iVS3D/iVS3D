@@ -6,6 +6,7 @@
 #include <QFile>
 #include <QDir>
 #include <QCoreApplication>
+#include <memory>
 
 #include "stringcontainer.h"
 #include "logfile.h"
@@ -41,7 +42,7 @@ public:
      * @param name of the returned LogFile
      * @return Pointer to a new LogFile or an already existing one with the given name
      */
-    LogFile* createLogFile(QString name, bool isPlugin);
+    std::shared_ptr<LogFile> createLogFile(QString name, bool isPlugin);
     /**
      * @brief deleteAllLogFiles Deletes all LogFiles. Every existing pointer is invalid now.
      */
@@ -81,7 +82,7 @@ public slots:
 private:
     bool print();
     LogManager();
-    QList<QPair<QString, LogFile*>> m_allLogFiles;
+    QList<QPair<QString, std::shared_ptr<LogFile>>> m_allLogFiles;
     QString m_fileName;
     QString m_logDir;
     bool m_logEnabled = true;

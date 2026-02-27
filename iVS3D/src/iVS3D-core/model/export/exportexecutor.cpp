@@ -10,7 +10,7 @@ ExportExecutor::ExportExecutor(QObject* parent, DataManager* dataManager, std::s
     m_boundaries = m_dataManager->getModelInputPictures()->getBoundaries();
 }
 
-void ExportExecutor::startExport(const ExportConfig& config, LogFile *logFile){
+void ExportExecutor::startExport(const ExportConfig& config, std::shared_ptr<LogFile> logFile){
 
     ModelInputPictures* mip = m_dataManager->getModelInputPictures();
     // cause mip loses its boundary attribute in a magical and unkown way

@@ -4,12 +4,12 @@
 #include <QMutex>
 #include <QMutexLocker>
 #include <QObject>
+#include <QFileInfo>
 #include <iostream>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/videoio.hpp>
 
-#include "algorithmmanager.h"
 #include "reader.h"
 #include "readerfactory.h"
 #include "readerparams.h"

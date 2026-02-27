@@ -7,7 +7,6 @@
 #include "stringcontainer.h"
 #include "concurrentreader.h"
 #include "metadatamanager.h"
-#include "algorithmmanager.h"
 #include "readerparams.h"
 
 #include <QObject>
@@ -17,11 +16,17 @@
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/core/utils/filesystem.hpp>
 #include <QByteArray>
+#include <QVariant>
+#include <QJsonObject>
+#include <QJsonDocument>
+#include <QJsonArray>
 #include <QVector>
 #include <QVariant>
 #include <QJsonObject>
 #include <QVector>
 #include <QStringList>
+#include <QFileInfo>
+#include <QDir>
 
 
 /**

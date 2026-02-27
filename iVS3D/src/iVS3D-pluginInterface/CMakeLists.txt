@@ -18,9 +18,6 @@ include_directories(
 
 # set header files
 set(PUBLIC_HEADER_FILES
-    "${CMAKE_CURRENT_LIST_DIR}/iVS3D-pluginInterface_global.h"
-    "${CMAKE_CURRENT_LIST_DIR}/ialgorithm.h"
-    "${CMAKE_CURRENT_LIST_DIR}/itransform.h"
     "${CMAKE_CURRENT_LIST_DIR}/ierror.h"
     "${CMAKE_CURRENT_LIST_DIR}/ibase.h"
     "${CMAKE_CURRENT_LIST_DIR}/ipreview.h"

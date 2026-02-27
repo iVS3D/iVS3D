@@ -138,15 +138,6 @@ void ExportController::setOutputSettings(QMap<QString, QVariant> settings) {
             settings.find(stringContainer::OutputFormat).value().toString();
         m_outputWidget->setOutputFormat(format);
     }
-
-    QList<QVariant> iTransformSettingsList =
-        settings.find(stringContainer::ITransformSettings).value().toList();
-    int idx = 0;
-    for (QVariant var : iTransformSettingsList) {
-        QMap<QString, QVariant> iTransformSettings = var.toMap();
-        TransformManager::instance().setSettings(iTransformSettings, idx);
-        idx++;
-    }
     updateFormatOptions();
 }
 
@@ -202,7 +193,9 @@ void ExportController::slot_export() {
     }
 
     m_lfExport = LogManager::instance().createLogFile("Export", false);
-    m_lfExport->setSettings(getOutputSettings());
+    if (m_lfExport) {
+        m_lfExport->setSettings(getOutputSettings());
+    }
 
     if (m_path.endsWith("/")) {
         m_path.chop(1);
@@ -262,10 +255,6 @@ void ExportController::slot_export() {
         }
     }
 
-    // prepare iTransformNames
-    QStringList iTransformNames =
-        TransformManager::instance().getTransformList();
-
     if (wipeDir) {
         EmptyFolderDialog *emptyFolderD =
             new EmptyFolderDialog(m_outputWidget, pathWOimages);
@@ -305,23 +294,6 @@ void ExportController::slot_export() {
     for (const auto &rec : m_maskStack->getAllRecords()) {
         printf("%s\n",
                rec.getDisplayName().toStdString().c_str());
-    }
-    // add Itransform folders
-    std::vector<bool> iTransformUsed = {};
-    if (iTransformNames.length() != (int)iTransformUsed.size()) {
-        // this shouldn't happen!
-        qDebug()
-            << "count of iTransformNames doesn't match iTransformUsed list";
-        return;
-    }
-    std::vector<ITransform *> iTransformCopies;
-    for (uint i = 0; i < unsigned(iTransformNames.length()); ++i) {
-        // check if itransform has been selected to export
-        if (!iTransformUsed[i]) {
-            continue;
-        }
-        iTransformCopies.push_back(
-            TransformManager::instance().getTransform(i)->copy());
     }
 
     if (m_exportExec != nullptr) {
@@ -463,24 +435,9 @@ bool ExportController::startReconstruct() {
     QString exportPath = m_currentExports.find(exportName).value();
     qDebug() << "ExportPath:" << exportPath;
 
-    // get Itransforms and create maskPath
-    QStringList iTransformNames =
-        TransformManager::instance().getTransformList();
-    std::vector<ITransform *> iTransformCopies;
     QString maskPath = exportPath;
-    // mask path in project.ini file (for COLMAP) is set for the first
-    // iTransform that has a masks folder
-    bool maskPathIsSet = false;
-    std::vector<bool> iTransformUsed = {};
-    if (iTransformUsed.size() != iTransformNames.length()) {
-        // this shouldn't happen
-        qDebug() << "start reconstruct failed, because .getTransformList() and "
-                    "getSelectedITransformMasks() didn't return Lists with the "
-                    "same size";
-    }
-
     maskPath.append("/masks");
-    maskPathIsSet = QDir(maskPath).exists();
+    bool maskPathIsSet = QDir(maskPath).exists();
 
     // boolean for whether it starts colmap gui or explorer
     bool colmapGUI = false;

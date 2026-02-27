@@ -69,8 +69,6 @@ public:
      * @param dark @a true if darkmode enabled
      * @param cuda @a -1..-4 if cuda is not available, @a 0 if disabled, @a 1 if enabled
      * @param horizontal @a true if horizontal layout, vertical otherwise
-     * @param algorithmList holds identifier(names) of all loaded plugins(algorithms)
-	 * @param transformList holds identifier(names) of all loaded transform plugins
      *
      * The following error codes can be supplied vie the cuda parameter:
      *  -1 No GPU found
@@ -90,8 +88,6 @@ public:
         bool interpolateMetaData = true,
         QList<QLocale> locales = {QLocale(QLocale::English), QLocale(QLocale::German)},
         QLocale selectedLocale = QLocale::system(),
-        QStringList algorithmList = QStringList(tr("no algorithm")),
-        QStringList transformList = QStringList(""),
         QWidget *otsWidget = nullptr);
 
     /**
