@@ -159,16 +159,14 @@ void VideoPlayerController::slot_showFirstImage() {
     m_imageIndex = m_iterator->getFirst(m_dataManager->getModelInputPictures());
     showImage();
     m_timeline->selectFrame(m_imageIndex);
-    // TODO: notify plugins about new image index
-    // AlgorithmManager::instance().notifySelectedImageIndex(m_imageIndex);
+    m_pluginThread->onIndexChanged(m_imageIndex);
 }
 
 void VideoPlayerController::slot_showLastImage() {
     m_imageIndex = m_iterator->getLast(m_dataManager->getModelInputPictures());
     showImage();
     m_timeline->selectFrame(m_imageIndex);
-    // TODO: notify plugins about new image index
-    // AlgorithmManager::instance().notifySelectedImageIndex(m_imageIndex);
+    m_pluginThread->onIndexChanged(m_imageIndex);
 }
 
 void VideoPlayerController::slot_showPreviousImage() {
@@ -176,8 +174,7 @@ void VideoPlayerController::slot_showPreviousImage() {
         m_dataManager->getModelInputPictures(), m_imageIndex, m_stepsize);
     showImage();
     m_timeline->selectFrame(m_imageIndex);
-    // TODO: notify plugins about new image index
-    // AlgorithmManager::instance().notifySelectedImageIndex(m_imageIndex);
+    m_pluginThread->onIndexChanged(m_imageIndex);
 }
 
 void VideoPlayerController::slot_showNextImage() {
@@ -185,8 +182,7 @@ void VideoPlayerController::slot_showNextImage() {
                                        m_imageIndex, m_stepsize);
     showImage();
     m_timeline->selectFrame(m_imageIndex);
-    // TODO: notify plugins about new image index
-    // AlgorithmManager::instance().notifySelectedImageIndex(m_imageIndex);
+    m_pluginThread->onIndexChanged(m_imageIndex);
 }
 
 void VideoPlayerController::slot_toggleKeyframe() {
@@ -258,8 +254,7 @@ void VideoPlayerController::slot_changeStepSize(unsigned int stepsize) {
 
 void VideoPlayerController::slot_changeIndex(unsigned int index) {
     m_imageIndex = index;
-    // TODO: notify plugins about new image index
-    // AlgorithmManager::instance().notifySelectedImageIndex(index);
+    m_pluginThread->onIndexChanged(index);
     showImage();
 }
 
@@ -461,7 +456,7 @@ void VideoPlayerController::slot_timerNextImage() {
         } else {
             showImage();
         }
-        // TODO: notify plugins about new image index
+        m_pluginThread->onIndexChanged(m_imageIndex);
     }
 }
 
