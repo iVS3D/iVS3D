@@ -212,5 +212,3 @@ private:
     bool m_blockSignals = false;
     bool m_configurationSectionExpanded = false;
 };
-
-Q_DECLARE_METATYPE(QVector<uint>)

@@ -74,7 +74,7 @@ public:
 
     void resetLayout();
 
-    void setPreviewPlugin(const PluginHandle& previewPlugin);
+    void setPreviewPlugin(const QString& previewPluginName);
 
     void clearPreviewPlugin();
 
@@ -229,7 +229,7 @@ private:
 
     std::unique_ptr<AsyncImageLoader> m_asyncImageLoader;
     std::shared_ptr<PluginThread> m_pluginThread;
-    std::optional<PluginHandle> m_currentPreviewPlugin;
+    std::optional<QString> m_currentPreviewPlugin;
 
 };
 

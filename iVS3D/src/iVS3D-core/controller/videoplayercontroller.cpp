@@ -137,8 +137,8 @@ void VideoPlayerController::resetLayout() {
     m_currentImage = cv::Mat();
 }
 
-void VideoPlayerController::setPreviewPlugin(const PluginHandle& previewPlugin) {
-    m_currentPreviewPlugin = previewPlugin;
+void VideoPlayerController::setPreviewPlugin(const QString& previewPluginName) {
+    m_currentPreviewPlugin = previewPluginName;
 }
 
 void VideoPlayerController::clearPreviewPlugin() {
@@ -159,14 +159,16 @@ void VideoPlayerController::slot_showFirstImage() {
     m_imageIndex = m_iterator->getFirst(m_dataManager->getModelInputPictures());
     showImage();
     m_timeline->selectFrame(m_imageIndex);
-    AlgorithmManager::instance().notifySelectedImageIndex(m_imageIndex);
+    // TODO: notify plugins about new image index
+    // AlgorithmManager::instance().notifySelectedImageIndex(m_imageIndex);
 }
 
 void VideoPlayerController::slot_showLastImage() {
     m_imageIndex = m_iterator->getLast(m_dataManager->getModelInputPictures());
     showImage();
     m_timeline->selectFrame(m_imageIndex);
-    AlgorithmManager::instance().notifySelectedImageIndex(m_imageIndex);
+    // TODO: notify plugins about new image index
+    // AlgorithmManager::instance().notifySelectedImageIndex(m_imageIndex);
 }
 
 void VideoPlayerController::slot_showPreviousImage() {
@@ -174,7 +176,8 @@ void VideoPlayerController::slot_showPreviousImage() {
         m_dataManager->getModelInputPictures(), m_imageIndex, m_stepsize);
     showImage();
     m_timeline->selectFrame(m_imageIndex);
-    AlgorithmManager::instance().notifySelectedImageIndex(m_imageIndex);
+    // TODO: notify plugins about new image index
+    // AlgorithmManager::instance().notifySelectedImageIndex(m_imageIndex);
 }
 
 void VideoPlayerController::slot_showNextImage() {
@@ -182,7 +185,8 @@ void VideoPlayerController::slot_showNextImage() {
                                        m_imageIndex, m_stepsize);
     showImage();
     m_timeline->selectFrame(m_imageIndex);
-    AlgorithmManager::instance().notifySelectedImageIndex(m_imageIndex);
+    // TODO: notify plugins about new image index
+    // AlgorithmManager::instance().notifySelectedImageIndex(m_imageIndex);
 }
 
 void VideoPlayerController::slot_toggleKeyframe() {
@@ -254,7 +258,8 @@ void VideoPlayerController::slot_changeStepSize(unsigned int stepsize) {
 
 void VideoPlayerController::slot_changeIndex(unsigned int index) {
     m_imageIndex = index;
-    AlgorithmManager::instance().notifySelectedImageIndex(index);
+    // TODO: notify plugins about new image index
+    // AlgorithmManager::instance().notifySelectedImageIndex(index);
     showImage();
 }
 
@@ -453,11 +458,10 @@ void VideoPlayerController::slot_timerNextImage() {
             m_videoPlayer->setPlaying(false);
             m_videoPlayer->setEnabledForwardBtns(false);
             showImage();
-            AlgorithmManager::instance().notifySelectedImageIndex(m_imageIndex);
         } else {
             showImage();
-            AlgorithmManager::instance().notifySelectedImageIndex(m_imageIndex);
         }
+        // TODO: notify plugins about new image index
     }
 }
 

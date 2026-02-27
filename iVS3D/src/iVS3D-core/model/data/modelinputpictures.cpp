@@ -94,7 +94,8 @@ void ModelInputPictures::updateMIP(const std::vector<unsigned int> &keyframes)
                 new_frames.end(),
                 this->m_keyframes.begin());
 
-    AlgorithmManager::instance().notifyKeyframesChanged(m_keyframes);
+    // TODO: inform all plugins about the new keyframe list, so they can update their internal states
+    // AlgorithmManager::instance().notifyKeyframesChanged(m_keyframes);
     emit sig_mipChanged();
 }
 
@@ -105,7 +106,8 @@ void ModelInputPictures::addKeyframe(unsigned int index)
         return;
     }
     this->m_keyframes.insert(std::upper_bound(this->m_keyframes.begin(), this->m_keyframes.end(), index), index);
-    AlgorithmManager::instance().notifyKeyframesChanged(m_keyframes);
+    // TODO: inform all plugins about the new keyframe list, so they can update their internal states
+    //AlgorithmManager::instance().notifyKeyframesChanged(m_keyframes);
     emit sig_mipChanged();
     return;
 }
@@ -114,7 +116,8 @@ void ModelInputPictures::removeKeyframe(unsigned int index) {
     if (isKeyframe(index)) {
         std::vector<unsigned int>::iterator it = std::find(this->m_keyframes.begin(), this->m_keyframes.end(), index);
         this->m_keyframes.erase(it);
-        AlgorithmManager::instance().notifyKeyframesChanged(m_keyframes);
+        // TODO: inform all plugins about the new keyframe list, so they can update their internal states
+        //AlgorithmManager::instance().notifyKeyframesChanged(m_keyframes);
         emit sig_mipChanged();
     }
     return;
@@ -329,7 +332,8 @@ ModelInputPictures::Memento *ModelInputPictures::save()
 void ModelInputPictures::restore(ModelInputPictures::Memento *m)
 {
     m_keyframes = m->getState();
-    AlgorithmManager::instance().notifyKeyframesChanged(m_keyframes);
+    // TODO: inform all plugins about the new keyframe list, so they can update their internal states
+    // AlgorithmManager::instance().notifyKeyframesChanged(m_keyframes);
     emit sig_mipChanged();
 }
 

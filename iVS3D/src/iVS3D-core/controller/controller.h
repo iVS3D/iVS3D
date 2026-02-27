@@ -11,8 +11,6 @@
 #include "DataManager.h"
 #include "openexecutor.h"
 #include "applicationsettings.h"
-#include "automaticexecutor.h"
-#include "automaticexecsettings.h"
 #include "stackcontroller.h"
 
 #include "view/mainwindow.h"
@@ -21,7 +19,6 @@
 
 #include "controller/exportcontroller.h"
 #include "controller/videoplayercontroller.h"
-#include "controller/automaticcontroller.h"
 
 #include "colmapwrapper.h"
 
@@ -165,7 +162,6 @@ private:
     VideoPlayerController *m_videoPlayerController;
     PluginController* m_pluginController;
     ExportController *m_exportController;
-    AutomaticController* m_automaticController;
     StackController *m_stackController;
     MainWindow* m_mainWindow;
     DataManager* m_dataManager;
@@ -191,6 +187,7 @@ private:
     uint loadMetaDataFromPath(QString path);
     bool loadInputDataFromPath(QString path);
     void setAltitude();
+    void loadPluginSettingsWidgets();
     // plugin runtime
     QElapsedTimer m_timer;
 

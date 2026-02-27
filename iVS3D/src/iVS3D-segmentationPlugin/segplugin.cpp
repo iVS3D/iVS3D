@@ -4,6 +4,7 @@
 
 #include "NeuralUtil.h"
 #include "QMessageBox"
+#include "segsettingswidget.h"
 
 std::optional<Error> SegmentationPlugin::ensureModelReady() {
     auto activeModel = m_modelManager.activeModel();
@@ -40,76 +41,89 @@ SegmentationPlugin::SegmentationPlugin() {
     m_modelManager.setNameFilter("Segmentation_*");
 }
 
-SettingsWidgetResult SegmentationPlugin::getSettingsWidget(QWidget* parent) {
-    if (!m_settingsWidget) {
-        // Create container widget
-        m_settingsWidget = std::make_shared<QWidget>(parent);
-        auto* mainLayout = new QVBoxLayout(m_settingsWidget.get());
-        mainLayout->setSpacing(12);
-        mainLayout->setContentsMargins(8, 8, 8, 8);
-
-        // Add ModelSettingsWidget
-        m_modelSettingsWidget =
-            new ModelSettingsWidget(m_modelManager, m_settingsWidget.get());
-        mainLayout->addWidget(m_modelSettingsWidget);
-
-        // Add separator
-        auto* separator = new QFrame();
-        separator->setFrameShape(QFrame::HLine);
-        separator->setFrameShadow(QFrame::Sunken);
-        mainLayout->addWidget(separator);
-
-        // Add Overlay Alpha slider
-        auto* alphaLayout = new QHBoxLayout();
-        auto* alphaLabel = new QLabel(tr("Overlay Opacity:"));
-        m_alphaSlider = new QSlider(Qt::Horizontal);
-        m_alphaSlider->setRange(0, 100);
-        m_alphaSlider->setValue(static_cast<int>(m_overlayAlpha * 100));
-        m_alphaSlider->setToolTip(
-            tr("Adjust transparency of the segmentation overlay (0% = "
-               "transparent, 100% = opaque)"));
-        m_alphaValue = new QLabel(QString::number(m_overlayAlpha, 'f', 2));
-        m_alphaValue->setMinimumWidth(40);
-        m_alphaValue->setAlignment(Qt::AlignCenter);
-        alphaLayout->addWidget(alphaLabel);
-        alphaLayout->addWidget(m_alphaSlider, 1);
-        alphaLayout->addWidget(m_alphaValue);
-        mainLayout->addLayout(alphaLayout);
-
-        mainLayout->addStretch();
-
-        // Connect signals from ModelSettingsWidget (model/class selection)
-        connect(m_modelSettingsWidget, &ModelSettingsWidget::modelChanged, this,
-                [this](const QString& modelName, bool isValid) {
-                    if (isValid) {
-                        onModelChanged(modelName);
-                    } else {
-                        m_cache = std::nullopt;
-                        emit updatePreview(true);
-                    }
-                });
-        connect(m_modelSettingsWidget,
-                &ModelSettingsWidget::classSelectionChanged, this,
-                [this](const QVector<uint>& selectedIds) {
-                    onClassSelectionChanged(selectedIds);
-                });
-        connect(m_modelSettingsWidget,
-                &ModelSettingsWidget::modelConfigChanged, this,
-                [this]() {
-                    // need to recalculate everything if config changes
-                    m_cache = std::nullopt;
-                    emit updatePreview(true);
-                });
-
-        // Connect alpha slider
-        connect(m_alphaSlider, &QSlider::valueChanged, [this](int value) {
-            m_overlayAlpha = static_cast<float>(value) / 100.0f;
-            m_alphaValue->setText(QString::number(m_overlayAlpha, 'f', 2));
-            emit updatePreview(false);  // No need to re-run inference
-        });
+SettingsWidgetResult SegmentationPlugin::getSettingsWidget() {
+    // Check if models are available
+    auto availableModels = m_modelManager.availableModelNames();
+    if (availableModels.isEmpty()) {
+        return tl::make_unexpected<Error>(
+            {ErrorCode::ResourceUnavailable,
+             tr("No detection models found in the models directory.")});
     }
 
-    return m_settingsWidget;
+    auto settingsWidget =
+        std::make_unique<SegmentationSettingsWidget>(m_modelManager, nullptr);
+
+    settingsWidget->setOverlayAlpha(m_overlayAlpha);
+
+    // connect signals for the model settings widget
+    connect(settingsWidget->modelSettingsWidget(),
+            &ModelSettingsWidget::modelChanged, this,
+            &SegmentationPlugin::onModelChanged);
+    connect(settingsWidget->modelSettingsWidget(),
+            &ModelSettingsWidget::classSelectionChanged, this,
+            &SegmentationPlugin::onClassSelectionChanged);
+    connect(settingsWidget->modelSettingsWidget(),
+            &ModelSettingsWidget::modelConfigChanged, this, [this]() {
+                // Clear cache when any config parameter changes
+                m_cache = std::nullopt;
+                emit updatePreview(true);
+            });
+
+    // connect signal for overlay alpha change
+    connect(settingsWidget.get(),
+            &SegmentationSettingsWidget::overlayAlphaChanged, this,
+            [this](float value) {
+                m_overlayAlpha = value;
+                emit updatePreview(false);  // No need to re-run inference
+            });
+
+    connect(this, &SegmentationPlugin::syncSettingsWidget, settingsWidget.get(),
+            &SegmentationSettingsWidget::applyPluginSettings,
+            Qt::QueuedConnection);
+
+    emit syncSettingsWidget(m_modelManager.activeModelName(), m_overlayAlpha);
+    return settingsWidget;
+}
+
+QMap<QString, QVariant> SegmentationPlugin::getSettings() const {
+    QMap<QString, QVariant> settings;
+    auto activeModel = m_modelManager.activeModel();
+    if (activeModel && activeModel->config) {
+        auto modelJson = m_modelManager.modelToJson(activeModel->name);
+        settings.insert("selectedModel", modelJson);
+    }
+    settings["overlayAlpha"] = m_overlayAlpha;
+    return settings;
+}
+
+QString SegmentationPlugin::getSettingsString() const {
+    return m_modelManager.modelToString(m_modelManager.activeModelName());
+}
+
+ApplySettingsResult SegmentationPlugin::applySettings(
+    const QMap<QString, QVariant>& settings) {
+    m_cache = std::nullopt;  // Clear cache to reflect new settings
+    // find the model name in the given settings
+    if (!settings.contains("selectedModel")) {
+        return tl::make_unexpected(
+            Error{ErrorCode::InvalidInput,
+                  tr("selectedModel is required in settings.")});
+    }
+    QJsonObject modelObj = settings["selectedModel"].toJsonObject();
+    auto modelEntryOpt = m_modelManager.modelFromJson(modelObj);
+    if (!modelEntryOpt) {
+        return tl::make_unexpected(
+            Error{ErrorCode::InvalidInput,
+                  tr("Failed to parse selected model from settings.")});
+    }
+    m_modelManager.activateModel(modelEntryOpt->name);
+    // load overlay alpha
+    if (settings.contains("overlayAlpha")) {
+        m_overlayAlpha = settings["overlayAlpha"].toFloat();
+    }
+    emit syncSettingsWidget(modelEntryOpt->name, m_overlayAlpha);
+    emit updatePreview(true);  // Force full preview update with new model
+    return {};
 }
 
 MaskResult SegmentationPlugin::generateMask(const MaskData& data) {
@@ -142,9 +156,6 @@ MaskResult SegmentationPlugin::generateMask(const MaskData& data) {
 
 VisualizationResult SegmentationPlugin::generatePreview(
     const PreviewData& data) {
-    assert(m_settingsWidget);  // core should ensure to load settings widget
-                               // before enabling preview
-
     // Ensure model is ready before processing
     if (auto error = ensureModelReady()) {
         return tl::make_unexpected(*error);
@@ -269,6 +280,42 @@ VisualizationResult SegmentationPlugin::generatePreview(
     return vis;
 }
 
+void SegmentationPlugin::onCudaChanged(bool enabled) {
+    m_useCuda = enabled;
+    // Force reload of model with new CUDA setting
+    m_cache = std::nullopt;  // Clear cache
+    m_currentModelName.clear();
+    m_currentModel = nullptr;
+    emit updatePreview(true);
+}
+
+void SegmentationPlugin::deactivate() {
+    m_cache = std::nullopt;
+    m_currentModelName.clear();
+    m_currentModel = nullptr;
+}
+
+void SegmentationPlugin::onModelChanged(const QString& modelName, bool) {
+    m_currentModelName.clear();
+    m_currentModel = nullptr;
+    m_currentModelName = modelName;
+    m_cache = std::nullopt;  // Clear entire cache on model change
+    emit updatePreview(true);
+}
+
+void SegmentationPlugin::onClassSelectionChanged(
+    const QVector<uint>& selectedClassIds) {
+    if (m_cache) {
+        m_cache->maskImage = cv::Mat();  // Invalidate only mask image in cache
+    }
+    emit updatePreview(false);
+}
+
+void SegmentationPlugin::onOverlayAlphaChanged(float value) {
+    m_overlayAlpha = value;
+    emit updatePreview(false);
+}
+
 tl::expected<NN::Tensor, NN::NeuralError> SegmentationPlugin::runInference(
     const cv::Mat& image) {
     if (auto error = ensureModelReady()) {
@@ -280,8 +327,10 @@ tl::expected<NN::Tensor, NN::NeuralError> SegmentationPlugin::runInference(
     return NN::Tensor::fromCvMat(
                image, m_currentModel->inputShape(),
                config->getNormalizeTo01() ? 1.0f / 255.0f : 1.0f,
-               config->getApplyMeanStd() ? config->getMean() : std::vector<float>{}, 
-               config->getApplyMeanStd() ? config->getStd() : std::vector<float>{})
+               config->getApplyMeanStd() ? config->getMean()
+                                         : std::vector<float>{},
+               config->getApplyMeanStd() ? config->getStd()
+                                         : std::vector<float>{})
         .and_then(NN::Util::bind_inference(m_currentModel))
         .and_then(NN::Util::bind_selectOutput(0))
         .and_then([](NN::Tensor&& tensor)

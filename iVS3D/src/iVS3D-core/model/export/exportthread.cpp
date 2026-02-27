@@ -4,7 +4,7 @@
 
 ExportThread::ExportThread(Progressable* receiver, ModelInputPictures* mip,
                            const ExportConfig& config, volatile bool* stopped,
-                           LogFile* logFile, PluginThread* pluginThread)
+                           std::shared_ptr<LogFile> logFile, PluginThread* pluginThread)
     : m_receiver(receiver),
       m_config(config),
       m_stopped(stopped),
@@ -27,7 +27,9 @@ ExportThread::ExportThread(Progressable* receiver, ModelInputPictures* mip,
             m_config.destination.length() - QString("/images").length());
     }
 
-    m_logFile->setInputInfo(m_keyframes);
+    if (m_logFile) {
+        m_logFile->setInputInfo(m_keyframes);
+    }
     m_exportExif = new ExportExif();
 }
 
@@ -105,7 +107,9 @@ void ExportThread::run() {
         .arg(m_config.export_resolution.toString())
         .arg(m_config.roi.has_value() ? "Yes" : "No")
         .arg(m_config.maskStack ? QString::number(m_config.maskStack->size()) : "No Stack");
-    m_logFile->addCustomEntry("ExportConfiguration", configLog);
+    if (m_logFile) {
+        m_logFile->addCustomEntry("ExportConfiguration", configLog);
+    }
 
     // Validate mask stack if present
     if (m_config.maskStack) {
@@ -113,7 +117,9 @@ void ExportThread::run() {
         if (!validation) {
             m_result = ExportResult::failed(validation.error().message);
             m_receiver->slot_displayMessage(validation.error().message);
-            m_logFile->addCustomEntry("MaskStackValidation", validation.error().message, "Error");
+            if (m_logFile) {
+                m_logFile->addCustomEntry("MaskStackValidation", validation.error().message, "Error");
+            }
             return;
         }
     }
@@ -181,7 +187,9 @@ void ExportThread::run() {
     if (m_config.maskStack && m_config.maskStack->size() > 0 && m_pluginThread) {
         const auto* record = m_config.maskStack->getRecord(0);
         if (record) {
-            m_logFile->addCustomEntry("MaskGeneration", "Adding mask generation to export pipeline");
+            if (m_logFile) {
+                m_logFile->addCustomEntry("MaskGeneration", "Adding mask generation to export pipeline");
+            }
 
             // Resize/crop to the working resolution that the mask generator expects
             if (record->workingResolution != m_config.original_resolution) {
@@ -216,11 +224,15 @@ void ExportThread::run() {
             if (!QDir().exists(maskPath) && !QDir().mkpath(maskPath)) {
                 QString errorMsg = tr("Failed to create mask output directory: %1").arg(maskPath);
                 m_receiver->slot_displayMessage(errorMsg);
-                m_logFile->addCustomEntry("MaskOutputDirectory", errorMsg, "Error");
+                if (m_logFile) {
+                    m_logFile->addCustomEntry("MaskOutputDirectory", errorMsg, "Error");
+                }
                 m_result = ExportResult::failed(errorMsg);
                 return;
             }
-            m_logFile->addCustomEntry("MaskOutputDirectory", QString("Mask output directory created: %1").arg(maskPath));
+            if (m_logFile) {
+                m_logFile->addCustomEntry("MaskOutputDirectory", QString("Mask output directory created: %1").arg(maskPath));
+            }
             maskProcessor.addCommand(std::make_unique<WriteToDiskCommand>(
                 maskPath, "", "png", m_reader->getFileVector()));
         }

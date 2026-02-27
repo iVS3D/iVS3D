@@ -3,12 +3,12 @@
 
 
 #include <QCoreApplication>
+#include <memory>
 
 
 #include "progressable.h"
 #include "DataManager.h"
 #include "exportthread.h"
-#include "itransform.h"
 #include "logfile.h"
 #include "stringcontainer.h"
 
@@ -53,7 +53,7 @@ public:
      * @param name The output name
      * @param iTransformCopies The ITransform instances to create additional export images
      */
-    void startExport(const ExportConfig& config, LogFile *logFile);
+    void startExport(const ExportConfig& config, std::shared_ptr<LogFile> logFile);
 
 public slots:
     /**

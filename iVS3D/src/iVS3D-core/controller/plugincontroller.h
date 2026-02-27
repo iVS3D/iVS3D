@@ -35,7 +35,10 @@ private:
     DataManager* m_dataManager;
     SamplingWidget* m_samplingWidget;
     VideoPlayerController* m_vpc;
-    PluginHandle m_currentPlugin;
+    QString m_currentPluginName;
+    bool m_currentHasPreview = false;
+    bool m_currentHasMask = false;
+    bool m_currentHasSelection = false;
     StackController* m_stack;
     std::shared_ptr<MaskStack> m_maskStack;
     std::shared_ptr<PluginThread> m_pluginThread;

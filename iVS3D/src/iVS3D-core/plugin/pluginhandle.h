@@ -3,6 +3,8 @@
 #include <QString>
 #include <QPluginLoader>
 #include <QObject>
+#include <memory>
+#include <optional>
 
 #include "ibase.h"
 #include "ipreview.h"
@@ -10,12 +12,14 @@
 #include "iselection.h"
 
 struct PluginHandle {
-    QPluginLoader* loader;
-    IBase* base;
-    QObject* qobject;
+  QPluginLoader* loader = nullptr;
+  IBase* base = nullptr;
+  QObject* qobject = nullptr;
     IPreview* preview = nullptr;
     IMask* mask = nullptr;
     ISelection* selection = nullptr;
+    std::shared_ptr<QWidget> settingsWidget = nullptr;
+    std::optional<Error> settingsWidgetError = std::nullopt;
 
     QString name() const { return base ? base->getName() : QString(); }
 

@@ -22,13 +22,14 @@ MaskCommand::MaskCommand(const MaskRecord* record, Resolution exportResolution,
     }
 
     // Get the plugin handle once in constructor (expensive operation)
-    auto pluginOpt = PluginManager::instance().getPluginByName(m_record->pluginName);
-    if (pluginOpt && pluginOpt->hasMask()) {
-        m_pluginHandle = *pluginOpt;
-        
+    if (PluginManager::instance().hasMaskPlugin(m_record->pluginName)) {
+        m_pluginName = m_record->pluginName;
+
         // Apply stored settings to the plugin (expensive, do once)
         if (!m_record->pluginSettings.isEmpty()) {
-            auto result = m_pluginHandle.base->applySettings(m_record->pluginSettings);
+            auto result = PluginManager::instance().applyPluginSettings(
+                m_pluginName, m_record->pluginSettings);
+            (void)result;
             // Note: Settings application errors are handled during execute() when mask fails
         }
     }
@@ -49,7 +50,7 @@ std::optional<QString> MaskCommand::execute(ImageContext& ctx) {
     s_pendingMasks.fetch_add(1, std::memory_order_release);
 
     // Verify plugin handle was loaded and initialized successfully in constructor
-    if (!m_pluginHandle.hasMask()) {
+    if (m_pluginName.isEmpty()) {
         s_pendingMasks.fetch_sub(1, std::memory_order_release);
         return QString("ERROR: Mask plugin '%1' not available").arg(m_record->pluginName);
     }
@@ -60,7 +61,7 @@ std::optional<QString> MaskCommand::execute(ImageContext& ctx) {
     maskRequest.imageIndex = ctx.index;
     maskRequest.image = ctx.image;
     maskRequest.exportDir = QDir(m_folder);
-    maskRequest.plugin = m_pluginHandle;
+    maskRequest.pluginName = m_pluginName;
     maskRequest.maskRecordId = m_record->id;
 
     // Send the async request to the plugin thread

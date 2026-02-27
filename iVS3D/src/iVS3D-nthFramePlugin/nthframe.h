@@ -43,7 +43,7 @@ public:
 
     // IBase interface implementation
     QString getName() const override;
-    SettingsWidgetResult getSettingsWidget(QWidget* parent) override;
+    SettingsWidgetResult getSettingsWidget() override;
     QMap<QString, QVariant> getSettings() const override;
     ApplySettingsResult applySettings(const QMap<QString, QVariant>& settings) override;
     void activate() override;
@@ -54,12 +54,15 @@ public:
     // ISelection interface implementation
     SelectionResult selectImages(const SelectionData& data, volatile bool& cancelFlag) override;
 
+signals:
+    void syncSettingsWidget(uint n, bool keepIsolated);
+
 private slots:
     void slot_nChanged(int n);
     void slot_checkboxToggled(bool checked);
 
 private:
-    void createSettingsWidget(QWidget* parent);
+    std::unique_ptr<QWidget> createSettingsWidget();
 
     // Settings
     unsigned int m_n = 1;           ///< Frame interval (select every Nth frame)
@@ -68,8 +71,5 @@ private:
     uint m_numFrames = 0;           ///< Total frame count of the current input
 
     // UI components
-    std::shared_ptr<QWidget> m_settingsWidget;
-    class QSpinBox* m_spinBox = nullptr;
-    class QCheckBox* m_checkBox = nullptr;
 };
 

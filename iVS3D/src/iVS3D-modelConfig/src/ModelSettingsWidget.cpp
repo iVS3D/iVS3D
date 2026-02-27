@@ -20,7 +20,6 @@ ModelSettingsWidget::ModelSettingsWidget(
     static bool firstInstance = true;
     if (firstInstance) {
         // Register metatypes for use in signals/slots across threads
-        qRegisterMetaType<QVector<uint>>("QVector<uint>");
         qRegisterMetaType<ModelManager::ModelState>("ModelManager::ModelState");
         qRegisterMetaType<QVector<ModelConfig::ClassInfo>>("QVector<ModelConfig::ClassInfo>");
         qRegisterMetaType<QVector<ModelManager::ModelEntry>>("QVector<ModelManager::ModelEntry>");
@@ -345,7 +344,9 @@ bool ModelSettingsWidget::setSelectedModel(const QString& modelName)
             m_blockSignals = true;
             m_modelCombo->setCurrentIndex(i);
             m_blockSignals = false;
-            updateModelDisplay();
+
+            m_currentModelName = modelName;
+            emit modelActivationRequested(modelName);
             return true;
         }
     }

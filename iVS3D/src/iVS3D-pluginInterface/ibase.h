@@ -13,9 +13,9 @@
 /**
  * @typedef SettingsWidgetResult
  * @brief Type alias for the result of a settings widget creation operation, which can be
- * either a successful shared pointer to a QWidget or an Error indicating failure.
+ * either a successful unique_ptr to a QWidget or an Error indicating failure.
  */
-using SettingsWidgetResult = tl::expected<std::shared_ptr<QWidget>, Error>;
+using SettingsWidgetResult = tl::expected<std::unique_ptr<QWidget>, Error>;
 
 /**
  * @typedef ApplySettingsResult
@@ -71,14 +71,25 @@ class IBase : public QObject {
     virtual QString getName() const = 0;
 
     /**
-     * @brief getSettingsWidget returns a QWidget that contains the settings
-     * interface for the plugin. It is not used in headless mode. The plugin
-     * can keep a pointer to the created widget.
-     * @param parent The parent QWidget for the settings widget.
-     * @return A shared pointer to the settings QWidget or an Error if the widget
+     * @brief getSettingsWidget creates and returns a settings QWidget for this plugin.
+     *
+     * Ownership contract:
+    *  - The plugin must allocate and return a std::unique_ptr<QWidget>.
+    *  - Returning the unique_ptr transfers ownership to the caller.
+    *  - The plugin must NOT keep ownership of, or store a pointer to, the returned widget.
+    *  - The caller (core application) owns the widget and may assign a QObject/QWidget parent.
+     *
+     * Threading contract:
+     *  - The widget is part of the UI and must only be accessed from the UI thread.
+     *  - Plugins may run in worker threads and therefore must not directly access the widget
+     *    after handing it over.
+    *  - If a plugin needs to reflect state changes in the UI later (e.g. from applySettings),
+    *    it must do so via Qt signals/slots connected during widget creation.
+     *
+    * @return A unique_ptr to the created settings QWidget or an Error if the widget
      * could not be created.
      */
-    virtual SettingsWidgetResult getSettingsWidget(QWidget* parent) = 0;
+    virtual SettingsWidgetResult getSettingsWidget() = 0;
 
     /**
      * @brief getSettings retrieves the current settings of the plugin as a map

@@ -69,7 +69,7 @@ private:
     ROI m_roi;
     QString m_folder;
     PluginThread* m_pluginThread;
-    PluginHandle m_pluginHandle;
+    QString m_pluginName;
     cv::Size m_exportSize;
     bool m_initialized = false;
 

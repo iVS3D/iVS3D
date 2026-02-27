@@ -37,13 +37,19 @@ int DataManager::open(QString path)
         delete m_ma;
     }
 
-    LogFile *lf = LogManager::instance().createLogFile(stringContainer::lfImportProcess, false);
-    lf->startTimer(stringContainer::lfImportMip);
+    auto lf = LogManager::instance().createLogFile(stringContainer::lfImportProcess, false);
+    if (lf) {
+        lf->startTimer(stringContainer::lfImportMip);
+    }
     m_mip = new ModelInputPictures(path);
-    lf->stopTimer();
+    if (lf) {
+        lf->stopTimer();
+    }
     QMap<QString, QVariant> settingsInput;
     settingsInput.insert(stringContainer::lfImportPath, path);
-    lf->setSettings(settingsInput);
+    if (lf) {
+        lf->setSettings(settingsInput);
+    }
 
     m_ma = new ModelAlgorithm;
     m_history = new History(m_mip);
@@ -68,13 +74,19 @@ int DataManager::openProject(QString path)
     m_mip = new ModelInputPictures();
     m_ma = new ModelAlgorithm();
 
-    LogFile *lf = LogManager::instance().createLogFile(stringContainer::lfImportProcess, false);
-    lf->startTimer(stringContainer::lfImportProject);
+    auto lf = LogManager::instance().createLogFile(stringContainer::lfImportProcess, false);
+    if (lf) {
+        lf->startTimer(stringContainer::lfImportProject);
+    }
     bool success = m_projectManager->loadProject(m_mip, m_ma, path);
-    lf->stopTimer();
+    if (lf) {
+        lf->stopTimer();
+    }
     QMap<QString, QVariant> settingsInput;
     settingsInput.insert(stringContainer::lfImportProjectPath, path);
-    lf->setSettings(settingsInput);
+    if (lf) {
+        lf->setSettings(settingsInput);
+    }
 
     if (success)
     {

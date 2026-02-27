@@ -10,11 +10,10 @@ SamplingWidget::SamplingWidget(QWidget* parent)
             &SamplingWidget::slot_selectedPluginChanged);
 
     // setup area for algo settings widget
-    m_currentPluginSettings = std::make_shared<QWidget>(this);
+    m_currentPluginSettings = new QWidget(this);
     ui->scrollAreaWidgetContents->setLayout(new QVBoxLayout(this));
     ui->scrollAreaWidgetContents->layout()->setContentsMargins(0, 0, 0, 0);
-    ui->scrollAreaWidgetContents->layout()->addWidget(
-        m_currentPluginSettings.get());
+    ui->scrollAreaWidgetContents->layout()->addWidget(m_currentPluginSettings);
 
     m_startSelectionBtn = new QPushButton(tr("Start Selection"), this);
     m_startSelectionBtn->setVisible(false);
@@ -47,10 +46,17 @@ SamplingWidget::SamplingWidget(QWidget* parent)
 
 SamplingWidget::~SamplingWidget() { delete ui; }
 
-void SamplingWidget::showPluginSettings(
-    std::shared_ptr<QWidget> settingsWidget) {
+void SamplingWidget::showPluginSettings(QWidget* settingsWidget) {
+    if (!settingsWidget) {
+        return;
+    }
+    if (m_currentPluginSettings == settingsWidget) {
+        settingsWidget->setVisible(true);
+        return;
+    }
+
     ui->scrollAreaWidgetContents->layout()->replaceWidget(
-        m_currentPluginSettings.get(), settingsWidget.get());
+        m_currentPluginSettings, settingsWidget);
     m_currentPluginSettings->setVisible(false);
     settingsWidget->setVisible(true);
     m_currentPluginSettings = settingsWidget;

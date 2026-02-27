@@ -3,11 +3,13 @@
 #include <QObject>
 #include <tl/expected.hpp>
 #include <vector>
+#include <memory>
 
 #include "ierror.h"
 #include "resolution.h"
 #include "roi.h"
 #include "reader.h"
+#include "LogFileParent.h"
 #include "opencv2/core.hpp"
 
 
@@ -17,6 +19,7 @@ struct SelectionData {
     Resolution workingResolution;      // Working resolution of the images
     ROI roi;                           // Region of interest within the images
     Reader* reader;                    // Pointer to the Reader instance
+    std::shared_ptr<LogFileParent> logFile;  // Log sink for plugin selection
 };
 
 using SelectionResult = tl::expected<std::vector<uint>, Error>;

@@ -1,6 +1,7 @@
 #include "controller.h"
 #include "roiselect.h"
 #include "pluginthread.h"
+#include <iostream>
 
 
 Controller::Controller(QString inputPath, QString settingsPath, QString outputPath, QString logPath)
@@ -9,8 +10,6 @@ Controller::Controller(QString inputPath, QString settingsPath, QString outputPa
     m_videoPlayerController = nullptr;
     m_pluginController = nullptr;
     m_stackController = nullptr;
-    QStringList algorithms = AlgorithmManager::instance().getAlgorithmNames();
-    QStringList transforms = TransformManager::instance().getTransformList();
     int useCuda = -1;
     ApplicationSettings::CUDA_ERR_CODE cuda_err_code;
     if(ApplicationSettings::instance().getCudaAvailable(&cuda_err_code)){
@@ -43,8 +42,6 @@ Controller::Controller(QString inputPath, QString settingsPath, QString outputPa
                 interpolateMetaData,
                 locales,
                 selectedLocale,
-                algorithms,
-                transforms,
                 otsWidget
                 );
 
@@ -59,7 +56,6 @@ Controller::Controller(QString inputPath, QString settingsPath, QString outputPa
 
     m_colmapWrapper->getOrCreateUiControlsFactory()->updateIconTheme(otsTheme);
 
-    TransformManager::instance().enableCuda(ApplicationSettings::instance().getUseCuda());
     PluginManager::instance().enableCuda(ApplicationSettings::instance().getUseCuda());
 
     LogManager::instance().toggleLog(ApplicationSettings::instance().getCreateLogs());
@@ -97,7 +93,7 @@ Controller::Controller(QString inputPath, QString settingsPath, QString outputPa
 
     connect(this, &Controller::sig_hasStatusMessage, m_mainWindow, &MainWindow::slot_displayStatusMessage);
 
-    m_automaticController = new AutomaticController(m_mainWindow->getOutputWidget(), m_mainWindow->getAutoWidget(), m_mainWindow->getSamplingWidget(), m_dataManager);
+    loadPluginSettingsWidgets();
 
     m_mainWindow->show();
 
@@ -118,11 +114,9 @@ Controller::Controller(QString inputPath, QString settingsPath, QString outputPa
         m_mainWindow->getOutputWidget()->setOutputPath(outputPath);
     }
 
-    //Disable 'create files for' widget when no transform plugins are found
-    m_mainWindow->getOutputWidget()->enableCreateFilesWidget(TransformManager::instance().getTransformCount() != 0);
     MetaDataManager::instance().interpolateMissingMetaData(interpolateMetaData);
 
-    m_pluginThread = std::make_shared<PluginThread>(PluginManager::instance().getPlugins(), this);
+    m_pluginThread = PluginManager::instance().getPluginThread();
 }
 
 Controller::~Controller()
@@ -137,8 +131,28 @@ Controller::~Controller()
     if (m_stackController) {
         delete m_stackController;
     }
-    TransformManager::instance().exit();
-    delete m_dataManager;
+}
+
+void Controller::loadPluginSettingsWidgets() {
+    auto errors = PluginManager::instance().loadSettingsWidgets();
+    if (errors.empty()) {
+        return;
+    }
+
+    QStringList lines;
+    for (const auto& item : errors) {
+        lines.append(QString("- %1: %2").arg(item.first, item.second.message));
+    }
+
+    const QString summary =
+        tr("Some plugin settings widgets could not be loaded (%1).")
+            .arg(errors.size());
+    emit sig_hasStatusMessage(summary);
+
+    std::cerr << "[WARNING] " << summary.toStdString() << std::endl;
+    for (const auto& line : lines) {
+        std::cerr << "  " << line.toStdString() << std::endl;
+    }
 }
 
 void Controller::slot_openInputFolder()
@@ -302,9 +316,6 @@ void Controller::slot_changeColorTheme(ColorTheme theme)
 void Controller::slot_changeUseCuda(bool useCuda)
 {
     ApplicationSettings::instance().setUseCuda(useCuda);
-    if(!m_exporting){
-        TransformManager::instance().enableCuda(ApplicationSettings::instance().getUseCuda());
-    }
     PluginManager::instance().enableCuda(ApplicationSettings::instance().getUseCuda());
     emit sig_hasStatusMessage(useCuda ? tr("CUDA enabled") : tr("CUDA disabled"));
 }
@@ -367,13 +378,11 @@ void Controller::slot_openFinished(int result)
 void Controller::slot_exportStarted()
 {
     m_exporting = true;
-    TransformManager::instance().enableCuda(false);
 }
 
 void Controller::slot_exportFinished()
 {
     m_exporting = false;
-    TransformManager::instance().enableCuda(ApplicationSettings::instance().getUseCuda());
     m_dataManager->getHistory()->slot_save();
 }
 
@@ -486,9 +495,9 @@ void Controller::slot_restorePluginSettings(int id) {
     if (m_exportController) {
         m_exportController->slot_roiChanged(params->getUseRoi() ? std::optional<ROI>(params->getRoi()) : std::nullopt);
     }
-    auto pluginHandle = PluginManager::instance().getPluginByName(record->pluginName);
-    assert(pluginHandle.has_value());
-    auto applySettingsResult = pluginHandle.value().base->applySettings(record->pluginSettings);
+    auto applySettingsResult =
+        PluginManager::instance().applyPluginSettings(record->pluginName,
+                                                      record->pluginSettings);
     if (!applySettingsResult) {
         QMessageBox msgBox;
         msgBox.setText(tr("Error restoring plugin settings for plugin '") + record->pluginName + tr("': ") + applySettingsResult.error().message);
@@ -617,7 +626,6 @@ void Controller::onFailedOpen()
         delete m_exportController;
         m_exportController = nullptr;
     }
-    m_automaticController->disableAutoWidget();
 
     QMessageBox msgBox;
     msgBox.setText(tr("Failed to load input data. Possible causes are:\n"
@@ -632,7 +640,8 @@ uint Controller::loadMetaDataFromPath(QString path)
 {
     int n = m_dataManager->getModelInputPictures()->loadMetaData(QStringList(path));
     if (n > 0) {
-        AlgorithmManager::instance().notifyNewMetaData();
+        // TODO: notify plugins about new metadata
+        //AlgorithmManager::instance().notifyNewMetaData();
         //Update the info widget
         setInputWidgetInfo();
         QString msg = tr("Loaded ") + QString::number(n) + tr(" meta data feature") + QString(n > 1 ? tr("s") : "");
@@ -722,11 +731,6 @@ void Controller::onSuccessfulOpen()
 
     //init plugins and notify about current keyframes
     Reader* currentReader = m_dataManager->getModelInputPictures()->getReader();
-    AlgorithmManager::instance().initializePlugins(currentReader, m_dataManager->getModelAlgorithm()->getPluginBuffer());
-    AlgorithmManager::instance().notifyKeyframesChanged(m_dataManager->getModelInputPictures()->getAllKeyframes(false));
-    if (currentReader->getMetaData() != nullptr && currentReader->getMetaData()->availableMetaData().size() > 0) {
-        AlgorithmManager::instance().notifyNewMetaData();
-    }
 
     // remove old controllers if existing
 
@@ -767,11 +771,6 @@ void Controller::onSuccessfulOpen()
     connect(m_exportController, &ExportController::sig_exportFinished, this, &Controller::slot_exportFinished);
     connect(m_exportController, &ExportController::sig_exportAborted, this, &Controller::slot_exportFinished);
     //connect(m_videoPlayerController, &VideoPlayerController::sig_read, m_exportController, &ExportController::slot_nextImageOnPlayer);
-
-    //AutoExecutor is used for the automatic Execution
-    m_automaticController->setExporController(m_exportController);
-    connect(m_automaticController->autoExec(), &AutomaticExecutor::sig_stopPlay, m_videoPlayerController, &VideoPlayerController::slot_stopPlay);
-    connect(m_automaticController->autoExec(), &AutomaticExecutor::sig_hasStatusMessage, m_mainWindow, &MainWindow::slot_displayStatusMessage);
 
 
     setInputWidgetInfo(); // initialize input widget with information about new input data

@@ -146,11 +146,29 @@ ModelManager::activateModel(const QString& name) {
     if (name != activeModelName_) {
         activeModelName_.clear();
     }
+
     const ModelEntry* entry = findEntry(name);
-    if (!entry || entry->state != ModelState::Ready) {
+    if (!entry) {
+        emit modelActivated(name, ModelState::MissingConfig,
+                            "Model not found");
         return std::nullopt;
     }
+
+    if (entry->state != ModelState::Ready) {
+        emit modelActivated(name, entry->state, entry->error);
+        return std::nullopt;
+    }
+
     activeModelName_ = name;
+
+    emit modelActivated(name, entry->state, entry->error);
+    if (entry->config) {
+        const auto& stdClasses = entry->config->getClasses();
+        QVector<ModelConfig::ClassInfo> qClasses(stdClasses.begin(),
+                                                 stdClasses.end());
+        emit classListUpdated(qClasses);
+    }
+
     return *entry;
 }
 
@@ -250,21 +268,7 @@ std::optional<ModelManager::ModelEntry> ModelManager::modelFromJson(
     return std::optional<ModelEntry>();
 }
 void ModelManager::onModelActivationRequested(const QString& modelName) {
-    auto result = activateModel(modelName);
-    if (result.has_value()) {
-        const auto& entry = result.value();
-        emit modelActivated(modelName, entry.state, entry.error);
-        
-        // Also emit class list if model is valid
-        if (entry.state == ModelState::Ready && entry.config) {
-            // Convert std::vector to QVector for Qt signal/slot communication
-            const auto& stdClasses = entry.config->getClasses();
-            QVector<ModelConfig::ClassInfo> qClasses(stdClasses.begin(), stdClasses.end());
-            emit classListUpdated(qClasses);
-        }
-    } else {
-        emit modelActivated(modelName, ModelState::MissingConfig, "Model not found");
-    }
+    (void)activateModel(modelName);
 }
 
 void ModelManager::onClassSelectionRequested(const QString& modelName, uint classId, bool selected) {

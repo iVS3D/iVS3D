@@ -15,6 +15,8 @@
 #include <QFutureSynchronizer>
 #include <QFile>
 
+#include <memory>
+
 #include <tl/expected.hpp>
 #include <chrono>
 #include <thread>
@@ -111,7 +113,7 @@ class ExportThread : public QThread {
 public:
     explicit ExportThread(Progressable* receiver, ModelInputPictures* mip,
                          const ExportConfig& config, volatile bool* stopped,
-                         LogFile* logFile, PluginThread* pluginThread = nullptr);
+                         std::shared_ptr<LogFile> logFile, PluginThread* pluginThread = nullptr);
     ~ExportThread();
 
     ExportResult getResult() const;
@@ -123,7 +125,7 @@ private:
     volatile bool* m_stopped;
     ExportConfig m_config;
     ExportResult m_result = ExportResult::success();
-    LogFile* m_logFile;
+    std::shared_ptr<LogFile> m_logFile;
     int m_progress = 0;
     ExportExif* m_exportExif;
     PluginThread* m_pluginThread = nullptr;

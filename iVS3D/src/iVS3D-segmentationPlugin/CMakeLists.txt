@@ -28,10 +28,12 @@ find_package(OpenCV 4.10 REQUIRED COMPONENTS
 
 set(HEADER_FILES
     "${CMAKE_CURRENT_LIST_DIR}/segplugin.h"
+    "${CMAKE_CURRENT_LIST_DIR}/segsettingswidget.h"
 )
 
 set(SRC_FILES
     "${CMAKE_CURRENT_LIST_DIR}/segplugin.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/segsettingswidget.cpp"
 )
 
 add_library(${TARGET_NAME} SHARED
