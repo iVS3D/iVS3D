@@ -258,18 +258,20 @@ void PluginController::slot_selectPlugin(QString name) {
     m_samplingWidget->setPreviewEnabled(false);
 
     m_currentPlugin = *plugin_handle;
-    auto result = m_currentPlugin.base->getSettingsWidget(m_samplingWidget);
-    if (!result) {
-        std::shared_ptr<QWidget> errorWidget = std::make_shared<QWidget>();
+    if (!m_currentPlugin.settingsWidget) {
+        QWidget* errorWidget = new QWidget(m_samplingWidget);
         errorWidget->setLayout(new QVBoxLayout());
+        const QString message =
+            m_currentPlugin.settingsWidgetError
+                ? m_currentPlugin.settingsWidgetError->message
+                : tr("No settings widget available for this plugin.");
         QLabel* errorLabel =
-            new QLabel(tr("The plugin encountered an error:\n%1")
-                           .arg(result.error().message));
+            new QLabel(tr("The plugin encountered an error:\n%1").arg(message));
         errorWidget->layout()->addWidget(errorLabel);
         m_samplingWidget->showPluginSettings(errorWidget);
         return;
     }
-    m_samplingWidget->showPluginSettings(result.value());
+    m_samplingWidget->showPluginSettings(m_currentPlugin.settingsWidget.get());
 
     m_samplingWidget->setPluginActionVisible(
         SamplingWidget::PluginActions::PREVIEW_TOGGLE,

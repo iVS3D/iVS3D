@@ -58,7 +58,7 @@ public:
      * @brief showAlgorithmSettings shows the given QWidget to the user.
      * @param algoSettings the QWidget to display
      */
-    void showPluginSettings(std::shared_ptr<QWidget> settingsWidget);
+    void showPluginSettings(QWidget* settingsWidget);
 
     void setResolutionList(QStringList resList, int idx);
     void setResolution(QString resolution);
@@ -116,7 +116,7 @@ private slots:
 
 private:
     Ui::SamplingWidget *ui;
-    std::shared_ptr<QWidget> m_currentPluginSettings;
+    QWidget* m_currentPluginSettings = nullptr;
 
     QPushButton* m_startSelectionBtn = nullptr;
     QCheckBox* m_previewCB = nullptr;

@@ -54,6 +54,35 @@ std::optional<PluginHandle> PluginManager::getPluginByName(const QString& name) 
     return m_plugins.value(name);
 }
 
+QVector<QPair<QString, Error>> PluginManager::loadSettingsWidgets() {
+    QVector<QPair<QString, Error>> errors;
+
+    for (auto it = m_plugins.begin(); it != m_plugins.end(); ++it) {
+        PluginHandle& handle = it.value();
+        if (!handle.base) {
+            continue;
+        }
+
+        // already loaded successfully
+        if (handle.settingsWidget) {
+            continue;
+        }
+
+        auto settingsWidgetResult = handle.base->getSettingsWidget();
+        if (settingsWidgetResult) {
+            auto settingsWidget = std::move(settingsWidgetResult.value());
+            handle.settingsWidget =
+                std::shared_ptr<QWidget>(std::move(settingsWidget));
+            handle.settingsWidgetError = std::nullopt;
+        } else {
+            handle.settingsWidgetError = settingsWidgetResult.error();
+            errors.append(QPair<QString, Error>(handle.name(), settingsWidgetResult.error()));
+        }
+    }
+
+    return errors;
+}
+
 void PluginManager::enableCuda(bool useCuda) {
     for (auto& handle : m_plugins) {
         IBase* base = handle.base;
@@ -104,6 +133,7 @@ void PluginManager::loadPlugins() {
         handle.preview = qobject_cast<IPreview*>(handle.qobject);
         handle.mask = qobject_cast<IMask*>(handle.qobject);
         handle.selection = qobject_cast<ISelection*>(handle.qobject);
+
         m_plugins.insert(handle.name(), handle);
         // print info like name and supported interfaces
         std::cout << "[INFO] Loaded plugin: " << handle.name().toStdString() << " | Supports Preview: " 

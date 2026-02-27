@@ -345,7 +345,9 @@ bool ModelSettingsWidget::setSelectedModel(const QString& modelName)
             m_blockSignals = true;
             m_modelCombo->setCurrentIndex(i);
             m_blockSignals = false;
-            updateModelDisplay();
+
+            m_currentModelName = modelName;
+            emit modelActivationRequested(modelName);
             return true;
         }
     }

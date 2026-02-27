@@ -1,6 +1,7 @@
 #include "controller.h"
 #include "roiselect.h"
 #include "pluginthread.h"
+#include <iostream>
 
 
 Controller::Controller(QString inputPath, QString settingsPath, QString outputPath, QString logPath)
@@ -97,6 +98,8 @@ Controller::Controller(QString inputPath, QString settingsPath, QString outputPa
 
     connect(this, &Controller::sig_hasStatusMessage, m_mainWindow, &MainWindow::slot_displayStatusMessage);
 
+    loadPluginSettingsWidgets();
+
     m_automaticController = new AutomaticController(m_mainWindow->getOutputWidget(), m_mainWindow->getAutoWidget(), m_mainWindow->getSamplingWidget(), m_dataManager);
 
     m_mainWindow->show();
@@ -138,6 +141,28 @@ Controller::~Controller()
         delete m_stackController;
     }
     TransformManager::instance().exit();
+}
+
+void Controller::loadPluginSettingsWidgets() {
+    auto errors = PluginManager::instance().loadSettingsWidgets();
+    if (errors.empty()) {
+        return;
+    }
+
+    QStringList lines;
+    for (const auto& item : errors) {
+        lines.append(QString("- %1: %2").arg(item.first, item.second.message));
+    }
+
+    const QString summary =
+        tr("Some plugin settings widgets could not be loaded (%1).")
+            .arg(errors.size());
+    emit sig_hasStatusMessage(summary);
+
+    std::cerr << "[WARNING] " << summary.toStdString() << std::endl;
+    for (const auto& line : lines) {
+        std::cerr << "  " << line.toStdString() << std::endl;
+    }
 }
 
 void Controller::slot_openInputFolder()

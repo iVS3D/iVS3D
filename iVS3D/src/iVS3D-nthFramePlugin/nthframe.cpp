@@ -10,6 +10,7 @@
 #include <QLocale>
 #include <QTranslator>
 #include <QDebug>
+#include <QSignalBlocker>
 #include <cmath>
 
 constexpr auto DESCRIPTION_STYLE =
@@ -32,14 +33,8 @@ QString NthFrame::getName() const {
     return tr("Nth image selection");
 }
 
-SettingsWidgetResult NthFrame::getSettingsWidget(QWidget* parent) {
-    if (!m_settingsWidget) {
-        createSettingsWidget(parent);
-    }
-    if (m_spinBox) {
-        m_spinBox->setValue(static_cast<int>(m_n));
-    }
-    return m_settingsWidget;
+SettingsWidgetResult NthFrame::getSettingsWidget() {
+    return createSettingsWidget();
 }
 
 QMap<QString, QVariant> NthFrame::getSettings() const {
@@ -66,13 +61,7 @@ ApplySettingsResult NthFrame::applySettings(const QMap<QString, QVariant>& setti
         m_keepIsolated = it.value().toBool();
     }
 
-    // Update UI if widget exists
-    if (m_spinBox) {
-        m_spinBox->setValue(static_cast<int>(m_n));
-    }
-    if (m_checkBox) {
-        m_checkBox->setChecked(m_keepIsolated);
-    }
+    emit syncSettingsWidget(m_n, m_keepIsolated);
 
     return {};
 }
@@ -98,9 +87,7 @@ InputLoadedResult NthFrame::onInputLoaded(const InputData& input) {
         m_fps = 30; // Default to 30 FPS if not available
     }
     m_n = m_fps; // Default N to the FPS for roughly 1 second intervals
-    if (m_spinBox) {
-        m_spinBox->setValue(static_cast<int>(m_n));
-    }
+    emit syncSettingsWidget(m_n, m_keepIsolated);
     return {};
 }
 
@@ -161,49 +148,60 @@ void NthFrame::slot_checkboxToggled(bool checked) {
     m_keepIsolated = checked;
 }
 
-void NthFrame::createSettingsWidget(QWidget* parent) {
-    m_settingsWidget = std::make_shared<QWidget>(parent);
-    auto* layout = new QVBoxLayout(m_settingsWidget.get());
+std::unique_ptr<QWidget> NthFrame::createSettingsWidget() {
+    auto settingsWidget = std::make_unique<QWidget>(nullptr);
+    auto* layout = new QVBoxLayout(settingsWidget.get());
     layout->setSpacing(0);
     layout->setContentsMargins(0, 0, 0, 0);
 
     // Create N value selector
-    auto* nSelectorWidget = new QWidget(parent);
+    auto* nSelectorWidget = new QWidget(settingsWidget.get());
     auto* nSelectorLayout = new QHBoxLayout(nSelectorWidget);
     nSelectorLayout->setSpacing(0);
     nSelectorLayout->setContentsMargins(0, 0, 0, 0);
 
-    auto* label = new QLabel(tr("Select every Nth image"), parent);
+    auto* label = new QLabel(tr("Select every Nth image"), settingsWidget.get());
     nSelectorLayout->addWidget(label);
 
-    m_spinBox = new QSpinBox(parent);
-    m_spinBox->setMinimum(1);
-    m_spinBox->setMaximum(9999);
-    m_spinBox->setValue(static_cast<int>(m_fps));
-    m_spinBox->setAlignment(Qt::AlignRight);
-    nSelectorLayout->addWidget(m_spinBox);
+    auto* spinBox = new QSpinBox(settingsWidget.get());
+    spinBox->setMinimum(1);
+    spinBox->setMaximum(9999);
+    spinBox->setValue(static_cast<int>(m_n));
+    spinBox->setAlignment(Qt::AlignRight);
+    nSelectorLayout->addWidget(spinBox);
 
-    connect(m_spinBox, QOverload<int>::of(&QSpinBox::valueChanged), this,
+    connect(spinBox, QOverload<int>::of(&QSpinBox::valueChanged), this,
             &NthFrame::slot_nChanged);
 
     layout->addWidget(nSelectorWidget);
 
     // Create "keep isolated" checkbox
-    m_checkBox = new QCheckBox(tr("Keep isolated images"), parent);
-    m_checkBox->setChecked(m_keepIsolated);
-    connect(m_checkBox, &QCheckBox::toggled, this, &NthFrame::slot_checkboxToggled);
-    layout->addWidget(m_checkBox);
+    auto* checkBox = new QCheckBox(tr("Keep isolated images"), settingsWidget.get());
+    checkBox->setChecked(m_keepIsolated);
+    connect(checkBox, &QCheckBox::toggled, this, &NthFrame::slot_checkboxToggled);
+    layout->addWidget(checkBox);
+
+    connect(this, &NthFrame::syncSettingsWidget, settingsWidget.get(),
+            [spinBox, checkBox](uint n, bool keepIsolated) {
+                QSignalBlocker spinBlocker(spinBox);
+                QSignalBlocker checkBlocker(checkBox);
+                spinBox->setValue(static_cast<int>(n));
+                checkBox->setChecked(keepIsolated);
+            },
+            Qt::QueuedConnection);
 
     // Add description
     auto* descriptionLabel = new QLabel(
         tr("When selecting strictly every Nth frame, isolated images or "
            "small batches are unlikely to get selected for larger N."),
-        parent);
+        settingsWidget.get());
     descriptionLabel->setStyleSheet(DESCRIPTION_STYLE);
     descriptionLabel->setWordWrap(true);
     layout->addWidget(descriptionLabel);
 
-    m_settingsWidget->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
-    m_settingsWidget->adjustSize();
+    settingsWidget->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+    settingsWidget->adjustSize();
+    emit syncSettingsWidget(m_n, m_keepIsolated);
+    return settingsWidget;
 }
 

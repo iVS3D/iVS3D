@@ -191,6 +191,7 @@ private:
     uint loadMetaDataFromPath(QString path);
     bool loadInputDataFromPath(QString path);
     void setAltitude();
+    void loadPluginSettingsWidgets();
     // plugin runtime
     QElapsedTimer m_timer;
 

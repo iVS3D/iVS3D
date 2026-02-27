@@ -77,9 +77,9 @@ void StackController::slot_rowClicked(int row)
             assert(result.has_value()); // should not fail
 
             m_samplingWidget->setSelectedPlugin(algoData.pluginName);
-            auto settingsResult = pluginHandle.base->getSettingsWidget(m_samplingWidget);
-            assert(settingsResult.has_value()); // should not fail
-            m_samplingWidget->showPluginSettings(settingsResult.value());
+            if (pluginHandle.settingsWidget) {
+                m_samplingWidget->showPluginSettings(pluginHandle.settingsWidget.get());
+            }
         }
 
     }

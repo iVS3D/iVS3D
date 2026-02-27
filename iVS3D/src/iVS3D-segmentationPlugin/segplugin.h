@@ -1,22 +1,17 @@
 #pragma once
 
 #include <ModelManager.h>
-#include <ModelSettingsWidget.h>
 #include <NeuralNetFactory.h>
 
 #include <QCoreApplication>
-#include <QFrame>
-#include <QLabel>
 #include <QObject>
-#include <QSlider>
-#include <QVBoxLayout>
-#include <QWidget>
-#include <memory>
 #include <optional>
 
 #include "ibase.h"
 #include "imask.h"
 #include "ipreview.h"
+
+class SegmentationSettingsWidget;
 
 class SegmentationPlugin : public IBase, public IMask, public IPreview {
     Q_OBJECT
@@ -30,102 +25,29 @@ class SegmentationPlugin : public IBase, public IMask, public IPreview {
 
     SegmentationPlugin();
 
+    // IBase interface
     QString getName() const override { return tr("Segmentation Masks"); }
-
-    SettingsWidgetResult getSettingsWidget(QWidget* parent) override;
-
-    QMap<QString, QVariant> getSettings() const override {
-        QMap<QString, QVariant> settings;
-        auto activeModel = m_modelManager.activeModel();
-        if (activeModel && activeModel->config) {
-            auto modelJson = m_modelManager.modelToJson(activeModel->name);
-            settings.insert("selectedModel", modelJson);
-        }
-        settings["overlayAlpha"] = m_overlayAlpha;
-        return settings;
-    }
-
-    QString getSettingsString() const override {
-        return m_modelManager.modelToString(
-            m_modelManager.activeModelName());
-    }
-
+    SettingsWidgetResult getSettingsWidget() override;
+    QMap<QString, QVariant> getSettings() const override;
+    QString getSettingsString() const override;
     ApplySettingsResult applySettings(
-        const QMap<QString, QVariant>& settings) override {
-        // find the model name in the given settings
-        if (!settings.contains("selectedModel")) {
-            return tl::make_unexpected(
-                Error{ErrorCode::InvalidInput,
-                      tr("selectedModel is required in settings.")});
-        }
-        QJsonObject modelObj = settings["selectedModel"].toJsonObject();
-        auto modelEntryOpt = m_modelManager.modelFromJson(modelObj);
-        if (!modelEntryOpt) {
-            return tl::make_unexpected(
-                Error{ErrorCode::InvalidInput,
-                      tr("Failed to parse selected model from settings.")});
-        }
-        m_modelManager.activateModel(modelEntryOpt->name);
-        // update settings widget if it exists
-        if (m_modelSettingsWidget) {
-            m_modelSettingsWidget->setSelectedModel(modelEntryOpt->name);
-        }
-        // load overlay alpha
-        if (settings.contains("overlayAlpha")) {
-            m_overlayAlpha = settings["overlayAlpha"].toFloat();
-            // Update UI slider if it exists
-            if (m_alphaSlider) {
-                m_alphaSlider->setValue(
-                    static_cast<int>(m_overlayAlpha * 100.0f));
-            }
-        }
-        m_cache = std::nullopt;  // Clear cache to reflect new settings
-        return {};
-    }
+        const QMap<QString, QVariant>& settings) override;
+    void onCudaChanged(bool enabled) override;
+    void deactivate() override;
 
+    // IMask interface
     MaskResult generateMask(const MaskData& data) override;
 
+    // IPreview interface
     VisualizationResult generatePreview(const PreviewData& data) override;
 
-    void onCudaChanged(bool enabled) override {
-        m_useCuda = enabled;
-        // Force reload of model with new CUDA setting
-        m_cache = std::nullopt;  // Clear cache
-        m_currentModelName.clear();
-        m_currentModel = nullptr;
-        emit updatePreview(true);
-    }
-
-    void deactivate() override {
-        m_cache = std::nullopt;
-        m_currentModelName.clear();
-        m_currentModel = nullptr;
-    }
+   signals:
+    void syncSettingsWidget(QString selectedModelName, float overlayAlpha);
 
    private slots:
-    void onModelChanged(const QString& modelName) {
-        m_currentModelName.clear();
-        m_currentModel = nullptr;
-        auto result = m_modelManager.activateModel(modelName);
-        if (!result.has_value()) {
-            emit encounteredError(
-                Error{ErrorCode::InvalidInput,
-                      tr("Model '%1' could not be found or activated.")
-                          .arg(modelName)});
-            return;
-        }
-        m_currentModelName = modelName;
-        m_cache = std::nullopt;  // Clear entire cache on model change
-        emit updatePreview(true);
-    }
-
-    void onClassSelectionChanged(const QVector<uint>& selectedClassIds) {
-        if (m_cache) {
-            m_cache->maskImage =
-                cv::Mat();  // Invalidate only mask image in cache
-        }
-        emit updatePreview(false);
-    }
+    void onModelChanged(const QString& modelName, bool isValid);
+    void onClassSelectionChanged(const QVector<uint>& selectedClassIds);
+    void onOverlayAlphaChanged(float value);
 
    private:
     /**
@@ -145,12 +67,6 @@ class SegmentationPlugin : public IBase, public IMask, public IPreview {
 
     ModelManager m_modelManager{QCoreApplication::applicationDirPath() +
                                 "/plugins/resources/neural_network_models"};
-
-    // Settings widget is a container with ModelSettingsWidget + alpha slider
-    std::shared_ptr<QWidget> m_settingsWidget;
-    ModelSettingsWidget* m_modelSettingsWidget = nullptr;
-    QSlider* m_alphaSlider = nullptr;
-    QLabel* m_alphaValue = nullptr;
 
     bool m_useCuda = false;
     float m_overlayAlpha = 0.5f;
