@@ -91,6 +91,9 @@ class PluginRunner : public QObject {
     void onInputLoaded(Reader* reader);
 
    public slots:
+    void onMetaDataLoaded(const InputMetaData& inputMetaData);
+    void onIndexChanged(uint index);
+    void onSelectedImagesChanged(const std::vector<uint>& selectedImages);
     void requestPreview(const PreviewRequest& request);
     void requestMask(const MaskRequest& request);
     void requestSelection(const SelectionRequest& request);
@@ -139,6 +142,11 @@ class PluginThread : public QObject {
     void enableCuda(bool useCuda);
     void onInputLoaded(Reader* reader);
 
+    public slots:
+    void onMetaDataLoaded(const InputMetaData& inputMetaData);
+    void onIndexChanged(uint index);
+    void onSelectedImagesChanged(const std::vector<uint>& selectedImages);
+
    signals:
     void previewFinished(const PreviewResult& result);
     void previewStateChanged(const PreviewState& state);
@@ -148,6 +156,9 @@ class PluginThread : public QObject {
     void activePluginUpdateProgress(int progress, const QString& message);
     void activePluginUpdateSelectedImages(
         const std::vector<uint>& selectedImages);
+    void notifyMetaDataLoaded(const InputMetaData& inputMetaData);
+    void notifyIndexChanged(uint index);
+    void notifySelectedImagesChanged(const std::vector<uint>& selectedImages);
 
    private:
     std::unique_ptr<QThread> m_thread;

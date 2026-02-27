@@ -102,6 +102,40 @@ void PluginRunner::onInputLoaded(Reader* reader) {
     }
 }
 
+void PluginRunner::onMetaDataLoaded(const InputMetaData& inputMetaData) {
+    for (const auto& handle : m_plugins) {
+        if (!handle.base) {
+            continue;
+        }
+        handle.base
+            ->onMetaDataLoaded(inputMetaData)
+            .map_error([&](const Error& err) {
+                printf(
+                    "[PluginThread] Error loading metadata for plugin %s: "
+                    "%s\n",
+                    handle.name().toStdString().c_str(),
+                    err.message.toStdString().c_str());
+            });
+    }
+}
+
+void PluginRunner::onIndexChanged(uint index) {
+    for (const auto& handle : m_plugins) {
+        if (handle.base) {
+            handle.base->onIndexChanged(index);
+        }
+    }
+}
+
+void PluginRunner::onSelectedImagesChanged(
+    const std::vector<uint>& selectedImages) {
+    for (const auto& handle : m_plugins) {
+        if (handle.base) {
+            handle.base->onSelectedImagesChanged(selectedImages);
+        }
+    }
+}
+
 void PluginRunner::requestPreview(const PreviewRequest& request) {
     const PluginHandle* plugin = findPlugin(request.pluginName);
     if (!plugin || !plugin->hasPreview()) return;  // no preview to compute
@@ -235,6 +269,13 @@ PluginThread::PluginThread(const QHash<QString, PluginHandle>& pluginHandles,
     connect(m_runner.get(), &PluginRunner::activePluginUpdateSelectedImages,
             this, &PluginThread::activePluginUpdateSelectedImages,
             Qt::QueuedConnection);
+
+        connect(this, &PluginThread::notifyMetaDataLoaded, m_runner.get(),
+            &PluginRunner::onMetaDataLoaded, Qt::QueuedConnection);
+        connect(this, &PluginThread::notifyIndexChanged, m_runner.get(),
+            &PluginRunner::onIndexChanged, Qt::QueuedConnection);
+        connect(this, &PluginThread::notifySelectedImagesChanged, m_runner.get(),
+            &PluginRunner::onSelectedImagesChanged, Qt::QueuedConnection);
 
     // start the worker thread
     m_thread->start();
@@ -378,4 +419,15 @@ void PluginThread::onInputLoaded(Reader* reader) {
     QMetaObject::invokeMethod(
         m_runner.get(), [this, reader]() { m_runner->onInputLoaded(reader); },
         Qt::QueuedConnection);
+}
+
+void PluginThread::onMetaDataLoaded(const InputMetaData& inputMetaData) {
+    emit notifyMetaDataLoaded(inputMetaData);
+}
+
+void PluginThread::onIndexChanged(uint index) { emit notifyIndexChanged(index); }
+
+void PluginThread::onSelectedImagesChanged(
+    const std::vector<uint>& selectedImages) {
+    emit notifySelectedImagesChanged(selectedImages);
 }

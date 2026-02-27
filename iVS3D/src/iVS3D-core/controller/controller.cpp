@@ -640,8 +640,11 @@ uint Controller::loadMetaDataFromPath(QString path)
 {
     int n = m_dataManager->getModelInputPictures()->loadMetaData(QStringList(path));
     if (n > 0) {
-        // TODO: notify plugins about new metadata
-        //AlgorithmManager::instance().notifyNewMetaData();
+        InputMetaData inputMetaData;
+        inputMetaData.metaData = m_dataManager->getModelInputPictures()->getReader()->getMetaData();
+        if (m_pluginThread) {
+            m_pluginThread->onMetaDataLoaded(inputMetaData);
+        }
         //Update the info widget
         setInputWidgetInfo();
         QString msg = tr("Loaded ") + QString::number(n) + tr(" meta data feature") + QString(n > 1 ? tr("s") : "");

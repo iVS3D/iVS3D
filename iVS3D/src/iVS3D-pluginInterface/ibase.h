@@ -4,8 +4,10 @@
 #include <QWidget>
 #include <QMap>
 #include <QVariant>
+#include <QStringList>
 #include <memory>
 #include <optional>
+#include <vector>
 #include <tl/expected.hpp>
 
 #include "ierror.h"
@@ -31,7 +33,15 @@ using ApplySettingsResult = tl::expected<void, Error>;
  */
 using InputLoadedResult = tl::expected<void, Error>;
 
+/**
+ * @typedef MetaDataLoadedResult
+ * @brief Type alias for the result of handling a metadata-loaded event,
+ * either success (`void`) or an `Error`.
+ */
+using MetaDataLoadedResult = tl::expected<void, Error>;
+
 class Reader;
+class MetaData;
 
 /**
  * @struct InputData
@@ -39,6 +49,15 @@ class Reader;
  */
 struct InputData {
     Reader* reader = nullptr;
+};
+
+/**
+ * @struct InputMetaData
+ * @brief Struct containing metadata context that has been loaded for the
+ * currently opened input.
+ */
+struct InputMetaData {
+    MetaData* metaData = nullptr;
 };
 
 
@@ -165,6 +184,64 @@ class IBase : public QObject {
         return {};
     }
 
+    /**
+     * @brief onMetaDataLoaded is called whenever metadata was loaded or
+     * refreshed for the currently active input.
+     *
+     * Typical use cases:
+     * - refresh plugin-internal caches that depend on metadata,
+     * - enable/disable metadata-dependent features,
+     * - precompute derived values from loaded metadata tracks.
+     *
+     * Threading contract:
+     * - This callback is invoked on the plugin worker thread.
+     * - Implementations must not directly manipulate UI widgets here.
+     *
+     * Error handling:
+     * - Return an `Error` if the plugin cannot consume the provided metadata.
+     * - iVS3D logs such errors and continues operating.
+     *
+     * @param inputMetaData Metadata context for the currently loaded input.
+     * @return `MetaDataLoadedResult` indicating success or failure.
+     */
+    virtual MetaDataLoadedResult onMetaDataLoaded(
+        const InputMetaData& inputMetaData) {
+        (void)inputMetaData;
+        return {};
+    }
+
+    /**
+     * @brief onIndexChanged is called when the currently displayed frame index
+     * changes in the viewer.
+     *
+     * Plugins can use this notification to update index-dependent internal
+     * state (for example temporal caches, active-frame labels, or lazy loading
+     * windows).
+     *
+     * Threading contract:
+     * - Called on the plugin worker thread.
+     *
+     * @param index New current frame index.
+     */
+    virtual void onIndexChanged(uint index) { (void)index; }
+
+    /**
+     * @brief onSelectedImagesChanged is called when the current keyframe /
+     * selected-image list changed.
+     *
+     * This keeps plugins synchronized with interactive edits, sampling results,
+     * and undo/redo restores that modify the selected image set.
+     *
+     * Threading contract:
+     * - Called on the plugin worker thread.
+     *
+     * @param selectedImages Updated sorted list of selected image indices.
+     */
+    virtual void onSelectedImagesChanged(
+        const std::vector<uint>& selectedImages) {
+        (void)selectedImages;
+    }
+
    signals:
     /**
      * @brief [signal] updatePreview(bool clearOldPreview) can be emitted when
@@ -223,3 +300,4 @@ class IBase : public QObject {
 };
 
 Q_DECLARE_INTERFACE(IBase, "iVS3D.IBase")
+Q_DECLARE_METATYPE(InputMetaData)
