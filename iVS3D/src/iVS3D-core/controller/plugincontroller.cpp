@@ -250,12 +250,22 @@ void PluginController::slot_selectPlugin(QString name) {
     auto plugin_handle = PluginManager::instance().getPluginByName(name);
     if (!plugin_handle) return;
 
+    const bool previewWasEnabled = m_samplingWidget->isPreviewEnabled();
+
+    // Tear down previous preview wiring before switching plugin.
+    if (previewWasEnabled) {
+        if (m_currentPlugin.base && m_currentPlugin.hasPreview()) {
+            disconnect(m_currentPlugin.base, &IBase::updatePreview, m_vpc,
+                       &VideoPlayerController::slot_refreshPreview);
+        }
+        m_vpc->clearPreviewPlugin();
+    }
+
     if (m_currentPlugin.base) m_currentPlugin.base->deactivate();
 
     // hide all plugin action buttons initially
     m_samplingWidget->setPluginActionVisible(
         SamplingWidget::PluginActions::ALL_ACTIONS, false);
-    m_samplingWidget->setPreviewEnabled(false);
 
     m_currentPlugin = *plugin_handle;
     if (!m_currentPlugin.settingsWidget) {
@@ -281,6 +291,16 @@ void PluginController::slot_selectPlugin(QString name) {
     m_samplingWidget->setPluginActionVisible(
         SamplingWidget::PluginActions::START_SELECTION,
         m_currentPlugin.hasSelection());
+
+    const bool keepPreviewEnabled = previewWasEnabled && m_currentPlugin.hasPreview();
+    m_samplingWidget->setPreviewEnabled(keepPreviewEnabled);
+    // If preview stayed enabled across switch, checkbox state didn't change and
+    // therefore no signal is emitted -> wire preview explicitly.
+    if (keepPreviewEnabled) {
+        slot_enablePreview(true);
+    } else {
+        slot_enablePreview(false);
+    }
 
     m_currentPlugin.base->activate();
 }
