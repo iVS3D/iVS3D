@@ -102,6 +102,10 @@ void PluginRunner::onInputLoaded(Reader* reader) {
     }
 }
 
+void PluginRunner::resetSelectionCancelFlag() { m_selectionCancelFlag = false; }
+
+void PluginRunner::cancelSelectionDirect() { m_selectionCancelFlag = true; }
+
 void PluginRunner::onMetaDataLoaded(const InputMetaData& inputMetaData) {
     for (const auto& handle : m_plugins) {
         if (!handle.base) {
@@ -195,7 +199,6 @@ void PluginRunner::requestSelection(const SelectionRequest& request) {
         return;
     }
 
-    m_selectionCancelFlag = false;
     const auto selectionResult =
         plugin->selection->selectImages(request.data, m_selectionCancelFlag);
 
@@ -346,6 +349,7 @@ void PluginThread::requestMask(const MaskRequest& request) {
 void PluginThread::requestSelection(const QString& pluginName,
                                     const SelectionData& data) {
     RequestId id = ++m_counter;
+    m_runner->resetSelectionCancelFlag();
     SelectionRequest selectionRequest{id, pluginName, data};
     QMetaObject::invokeMethod(m_runner.get(), "requestSelection",
                               Qt::QueuedConnection,
@@ -353,8 +357,7 @@ void PluginThread::requestSelection(const QString& pluginName,
 }
 
 void PluginThread::cancelSelection() {
-    QMetaObject::invokeMethod(m_runner.get(), "cancelSelection",
-                              Qt::QueuedConnection);
+    m_runner->cancelSelectionDirect();
 }
 
 bool PluginThread::setActivePlugin(const QString& pluginName) {

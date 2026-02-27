@@ -6,7 +6,7 @@ add_subdirectory(iVS3D-neuralNet)
 add_subdirectory(iVS3D-modelConfig)
 
 if(Build_Plugins)
-    #add_subdirectory(iVS3D-blurPlugin)
+    add_subdirectory(iVS3D-blurPlugin)
     add_subdirectory(iVS3D-nthFramePlugin)
     #add_subdirectory(iVS3D-semanticSegmentationPlugin)
     #add_subdirectory(iVS3D-stationaryCameraPlugin)

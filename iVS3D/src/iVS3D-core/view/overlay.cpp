@@ -79,7 +79,8 @@ void drawOverlay(QGraphicsScene* scene, QGraphicsItem* parent,
     QGraphicsPixmapItem* item = new QGraphicsPixmapItem(pixmap, parent);
     item->setOpacity(overlay.style.opacity);
     item->setTransform(
-        QTransform::fromScale(1.0/pixmap.width(), 1.0/pixmap.height()));
+        QTransform::fromScale(overlay.style.position.width() / pixmap.width(), overlay.style.position.height() / pixmap.height()));
+    item->setPos(overlay.style.position.x(), overlay.style.position.y());
     if (!parent) {
         scene->addItem(item);
     }

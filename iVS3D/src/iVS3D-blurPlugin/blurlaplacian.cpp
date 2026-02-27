@@ -29,7 +29,7 @@ static inline void toGray8CPU(const cv::Mat &src, cv::Mat &gray8) {
     }
 }
 
-static double laplacianCPU(const cv::Mat &image) {
+static double laplacianCPU(const cv::Mat &image, cv::Mat* debugImage = nullptr) {
     if (image.empty()) return -1.0;
     cv::Mat gray8;
     toGray8CPU(image, gray8);
@@ -37,6 +37,9 @@ static double laplacianCPU(const cv::Mat &image) {
     cv::Laplacian(gray8, lap, CV_64F, 1);
     cv::Scalar mean, stddev;
     cv::meanStdDev(lap, mean, stddev);
+    if (debugImage) {
+        *debugImage = lap;
+    }
     return stddev[0] * stddev[0];
 }
 
@@ -70,7 +73,7 @@ static inline void ensureCudaThreadInit() {
     }
 }
 
-static double laplacianCUDA(const cv::Mat &image) {
+static double laplacianCUDA(const cv::Mat &image, cv::Mat* debugImage) {
     if (image.empty()) return -1.0;
 
     cv::Mat gray8;
@@ -99,6 +102,13 @@ static double laplacianCUDA(const cv::Mat &image) {
     const double mean = sum / N;
     const double ex2 = sumsq / N;
     const double var = ex2 - mean * mean;
+
+    if (debugImage) {
+        cv::Mat h_lap32f;
+        d_lap32f.download(h_lap32f, tlsStream());
+        tlsStream().waitForCompletion();
+        *debugImage = h_lap32f;
+    }
     return var;
 }
 #endif
@@ -106,11 +116,11 @@ static double laplacianCUDA(const cv::Mat &image) {
 BlurLaplacian::BlurLaplacian() {}
 QString BlurLaplacian::getName() { return m_name; }
 
-double BlurLaplacian::singleCalculation(const cv::Mat &image) {
+double BlurLaplacian::singleCalculation(const cv::Mat &image, cv::Mat* debugImage) {
 #if defined(WITH_CUDA)
     if (g_useCuda) {
-        return laplacianCUDA(image);
+        return laplacianCUDA(image, debugImage);
     }
 #endif
-    return laplacianCPU(image);
+    return laplacianCPU(image, debugImage);
 }

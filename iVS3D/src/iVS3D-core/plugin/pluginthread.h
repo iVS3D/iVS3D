@@ -89,6 +89,8 @@ class PluginRunner : public QObject {
     QString getPluginSettingsString(const QString& pluginName) const;
     void enableCuda(bool useCuda);
     void onInputLoaded(Reader* reader);
+    void resetSelectionCancelFlag();
+    void cancelSelectionDirect();
 
    public slots:
     void onMetaDataLoaded(const InputMetaData& inputMetaData);

@@ -1,5 +1,9 @@
 set(TARGET_NAME Blur)
 
+# Set C++ standard for this target
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 # set include directories
 include_directories(SYSTEM
     ${Qt${QT_VERSION_MAJOR}Core_INCLUDE_DIRS}
@@ -24,8 +28,6 @@ set(HEADER_FILES
     "${CMAKE_CURRENT_LIST_DIR}/blurlaplacian.h"
     "${CMAKE_CURRENT_LIST_DIR}/blursobel.h"
     "${CMAKE_CURRENT_LIST_DIR}/blurtenengrad.h"
-    "${CMAKE_CURRENT_LIST_DIR}/../iVS3D-core/cvmat_qmetadata.h"
-
 )
 
 # set source files
@@ -71,6 +73,7 @@ add_library(${TARGET_NAME} SHARED
     ${TS_FILES}
 )
 target_link_libraries(${TARGET_NAME}
+    PRIVATE
     iVS3D-pluginInterface
     Qt${QT_VERSION_MAJOR}::Core
     Qt${QT_VERSION_MAJOR}::Widgets
@@ -78,6 +81,7 @@ target_link_libraries(${TARGET_NAME}
     Qt${QT_VERSION_MAJOR}::Concurrent
     Qt${QT_VERSION_MAJOR}::Positioning
     ${OpenCV_LIBRARIES}
+    tl-expected
 )
 
 # CUDA (if applicable)
@@ -88,7 +92,7 @@ if(WITH_CUDA)
     set(_linked_any_cuda FALSE)
     foreach(mod IN LISTS _cuda_modules)
         if (TARGET ${mod})
-            target_link_libraries(${TARGET_NAME} ${mod})
+            target_link_libraries(${TARGET_NAME} PRIVATE ${mod})
             set(_linked_any_cuda TRUE)
         endif()
     endforeach()
@@ -97,7 +101,7 @@ if(WITH_CUDA)
     if (NOT _linked_any_cuda)
         foreach(s IN ITEMS cudafilters cudaimgproc cudaarithm)
             if ("${OpenCV_LIBRARIES}" MATCHES "opencv_${s}")
-                target_link_libraries(${TARGET_NAME} opencv_${s})
+                target_link_libraries(${TARGET_NAME} PRIVATE opencv_${s})
                 set(_linked_any_cuda TRUE)
             endif()
         endforeach()
