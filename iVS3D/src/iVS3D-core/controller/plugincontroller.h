@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QObject>
+#include <vector>
 
 #include "samplingwidget.h"
 #include "DataManager.h"
@@ -30,6 +31,7 @@ private slots:
     void slot_startSelection();
     void slot_addMask();
     void slot_previewStateChanged(const PreviewState& state);
+    void slot_selectedImagesChanged(const std::vector<uint>& selectedImages);
 
 private:
     DataManager* m_dataManager;

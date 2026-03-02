@@ -9,6 +9,8 @@ Item {
     id: base
     visible: true
     anchors.fill: parent
+    property var polygonVertexItems: []
+    property var polygonSegmentItems: []
     signal gpsClicked(string msg)
     signal qmlClosed()
     signal mapClicked(string geo)
@@ -16,6 +18,22 @@ Item {
     signal deleteSelection()
     signal selectionBack()
     signal selectionForward()
+
+    function clearPolygonVertexItems() {
+        for (var i = 0; i < polygonVertexItems.length; ++i) {
+            mapToken.removeMapItem(polygonVertexItems[i])
+            polygonVertexItems[i].destroy()
+        }
+        polygonVertexItems = []
+    }
+
+    function clearPolygonSegmentItems() {
+        for (var i = 0; i < polygonSegmentItems.length; ++i) {
+            mapToken.removeMapItem(polygonSegmentItems[i])
+            polygonSegmentItems[i].destroy()
+        }
+        polygonSegmentItems = []
+    }
 
 
     Plugin {
@@ -44,7 +62,7 @@ Item {
                     var o = component.createObject(mapToken);
                     o.coordinate = coordinate
                     o.objectName = name
-                    o.opacity = (used) ? 1.0 : 0.1
+                    o.isUsed = used
                     mapToken.addMapItem(o)
                 }
             }
@@ -58,18 +76,69 @@ Item {
             }
 
             onSetMapSelect : {
-                selectGPS.setPath(path)
+                // Legacy path signal (kept for compatibility/debug)
+                console.log("[GeoMap][QML] onSetMapSelect (QGeoPath) received")
+            }
+
+            onSetMapSelectCoordinates : {
+                var polyPath = coordinates ? coordinates : []
+                // Rebuild path explicitly to avoid QVariantList conversion quirks.
+                selectGPS.path = []
+                clearPolygonVertexItems()
+                clearPolygonSegmentItems()
+                for (var i = 0; i < polyPath.length; ++i) {
+                    selectGPS.addCoordinate(polyPath[i])
+                    var marker = polygonVertexComponent.createObject(mapToken)
+                    marker.coordinate = polyPath[i]
+                    mapToken.addMapItem(marker)
+                    polygonVertexItems.push(marker)
+
+                    if (i > 0) {
+                        var segment = polygonSegmentComponent.createObject(mapToken)
+                        segment.addCoordinate(polyPath[i - 1])
+                        segment.addCoordinate(polyPath[i])
+                        mapToken.addMapItem(segment)
+                        polygonSegmentItems.push(segment)
+                    }
+                }
+                selectGPS.visible = selectGPS.path.length > 1
+                if (selectGPS.path.length > 0) {
+                    console.log("[GeoMap][QML] first polygon point:",
+                                selectGPS.path[0].latitude,
+                                selectGPS.path[0].longitude)
+                }
+                console.log("[GeoMap][QML] onSetMapSelectCoordinates points:", selectGPS.path.length)
             }
 
             onSetPoint : {
                 // mapItems is a list, so access by index is in O(N)!
                 // finding the item is very expensive if there are many items!
                 var item = mapToken.mapItems[index]
-                item.opacity = (used) ? 1.0 : 0.1
+                if (!item)
+                    return
+                item.isUsed = used
+            }
+
+            onSetPointHighlight : {
+                var item = mapToken.mapItems[index]
+                if (!item)
+                    return
+                item.isCurrent = highlighted
             }
 
             onGetMapItems : {
-                mapItems(mapToken.mapItems)
+                handler.onQmlMapItems(mapToken.mapItems)
+            }
+
+            onClearMap : {
+                clearPolygonVertexItems()
+                clearPolygonSegmentItems()
+                while (mapToken.mapItems.length > 0) {
+                    mapToken.removeMapItem(mapToken.mapItems[0])
+                }
+                mapPolyline.path = []
+                mapPolyline.visible = false
+                selectGPS.path = []
             }
         }
 
@@ -83,8 +152,35 @@ Item {
         MapPolyline {
             id: selectGPS
             visible: true
-            line.width: 3
-            line.color: 'blue'
+            z: 1000
+            line.width: 8
+            line.color: '#ff00ff'
+        }
+
+        Component {
+            id: polygonVertexComponent
+            MapQuickItem {
+                z: 1100
+                anchorPoint.x: 5
+                anchorPoint.y: 5
+                sourceItem: Rectangle {
+                    width: 10
+                    height: 10
+                    radius: 5
+                    color: "#00ffff"
+                    border.width: 2
+                    border.color: "black"
+                }
+            }
+        }
+
+        Component {
+            id: polygonSegmentComponent
+            MapPolyline {
+                z: 1090
+                line.width: 6
+                line.color: "#00ffff"
+            }
         }
 
 
@@ -93,9 +189,12 @@ Item {
             anchors.fill: parent
             acceptedButtons: Qt.RightButton
             onClicked: {
+                if (mouse.button !== Qt.RightButton)
+                    return
                 var cord = mapToken.toCoordinate(Qt.point(mouse.x,mouse.y))
                 var string = cord.latitude + 'x' + cord.longitude
-                mapClicked(string)
+                console.log("[GeoMap][QML] right click:", string)
+                handler.onQmlMapClicked(string)
             }
         }
 

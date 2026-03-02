@@ -4,8 +4,24 @@ import QtLocation 5.11
 
 MapQuickItem {
     id: mapMarker
-    sourceItem: Rectangle {id: rect; width: 15; height: 15; color: "#e41e25"; border.width: 1; border.color: "white"; smooth: true; radius: 10 }
-    opacity: 0.1
+    property bool isCurrent: false
+    property bool isUsed: true
+    z: mapMarker.isCurrent ? 5000 : 100
+    sourceItem: Rectangle {
+        id: rect
+        width: mapMarker.isCurrent ? 18 : (mapMarker.isUsed ? 15 : 9)
+        height: width
+        color: mapMarker.isCurrent
+               ? "#00c853"
+               : (mapMarker.isUsed ? "#e41e25" : "#8f7c7e")
+        border.width: mapMarker.isCurrent ? 2 : 1
+        border.color: mapMarker.isCurrent
+                      ? "black"
+                      : (mapMarker.isUsed ? "white" : "#d6c9ca")
+        smooth: true
+        radius: width / 2
+    }
+    opacity: mapMarker.isUsed ? 1.0 : 0.75
     anchorPoint.x: rect.width/2
     anchorPoint.y: rect.height/2
 
@@ -13,7 +29,7 @@ MapQuickItem {
         enabled: true
         anchors.fill: parent
         onClicked: {
-            mapMarker.opacity = (mapMarker.opacity == 1.0) ? 0.1 : 1.0
+            mapMarker.isUsed = !mapMarker.isUsed
             base.gpsClicked(mapMarker.objectName)
         }
     }

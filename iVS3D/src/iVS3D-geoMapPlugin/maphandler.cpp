@@ -1,4 +1,5 @@
 #include "maphandler.h"
+#include <QDebug>
 
 // Define < to use QPointF in QMap
 inline bool operator<(const QPointF& lhs, const QPointF& rhs)
@@ -13,20 +14,30 @@ inline uint qHash(const QPointF& key)
 }
 
 //==================================================================================================
-MapHandler::MapHandler()
+MapHandler::MapHandler(QObject* parent)
+    : QObject(parent)
 {
     mPolygon = QGeoPolygon();
 }
 
 //==================================================================================================
-void MapHandler::addPoints(const QList<QPair<QPointF, bool>>& gpsData)
+void MapHandler::addPoints(const GpsDataList& gpsData)
 {
-    //--- loop over gps pps data and insert into map if not already inserted
+    // Keep source-index mapping (one entry per frame/index), even if
+    // consecutive frames share the same GPS point.
+    mSourceIndexToPoint.clear();
+    mSourceIndexToPoint.reserve(gpsData.size());
+
+    //--- loop over gps data and insert unique points into map
     for (QPair<QPointF, bool> point : gpsData)
     {
-        // Skip if point already in the map and used
-        if (mGpsMap.contains(point.first) && mGpsMap[point.first])
+        mSourceIndexToPoint.push_back(point.first);
+
+        if (mGpsMap.contains(point.first)) {
+            // keep latest "used" state for this shared map point
+            mGpsMap[point.first] = point.second;
             continue;
+        }
 
         mGpsMap.insert(point.first, point.second);
         mOrderedGpsList.push_back(point.first);
@@ -35,7 +46,7 @@ void MapHandler::addPoints(const QList<QPair<QPointF, bool>>& gpsData)
     drawGpsDataOnMap();
 }
 
-void MapHandler::updatePoints(const QList<QPair<QPointF, bool> > &m_changedPoints)
+void MapHandler::updatePoints(const GpsDataList& m_changedPoints)
 {
     // update all points that changed
     for (auto gpsPoint : m_changedPoints) {
@@ -66,6 +77,36 @@ void MapHandler::setPolygon(const QPolygonF &poly)
         mPolygon.addCoordinate(c);
     }
     newMapItems();
+}
+
+void MapHandler::replaceData(const GpsDataList& gpsData,
+                             const QPolygonF& polygon) {
+    emit clearMap();
+
+    mGpsMap.clear();
+    mOrderedGpsList.clear();
+    mSourceIndexToPoint.clear();
+    mChangedPoints.clear();
+    mMapItems.clear();
+    mPolyStack.clear();
+    mCurrentStackPos = -1;
+    mPolygon = QGeoPolygon();
+    mCurrentMapItemIndex = -1;
+
+    addPoints(gpsData);
+    setPolygon(polygon);
+    mPolyStack.append(mPolygon);
+    mCurrentStackPos = mPolyStack.size() - 1;
+}
+
+void MapHandler::updatePointsAndPolygon(const GpsDataList& changedPoints,
+                                        const QPolygonF& polygon) {
+    mPolygon = QGeoPolygon();
+    for (int i = 0; i < polygon.size(); i++) {
+        const QPointF p = polygon.at(i);
+        mPolygon.addCoordinate(QGeoCoordinate(p.x(), p.y()));
+    }
+    updatePoints(changedPoints);
 }
 
 //==================================================================================================
@@ -148,6 +189,7 @@ void MapHandler::onQmlMapItems(const QVariant& variant)
         }
         index++;
     }
+    applyCurrentIndexHighlight();
 }
 
 //==================================================================================================
@@ -186,9 +228,15 @@ void MapHandler::onQmlSelectionForward()
 //==================================================================================================
 void MapHandler::newMapItems()
 {
-
+    qDebug() << "[GeoMap][MapHandler] newMapItems polygon size:" << mPolygon.size();
     QGeoPath path = QGeoPath(mPolygon.path());
     emitSetMapSelect(path);
+    QVariantList coordinates;
+    coordinates.reserve(mPolygon.path().size());
+    for (const auto& coord : mPolygon.path()) {
+        coordinates.append(QVariant::fromValue(coord));
+    }
+    emitSetMapSelectCoordinates(coordinates);
     QPolygonF polF = geoPolyToPolyF();
     emit gpsSelected(polF);
 
@@ -233,6 +281,7 @@ QPointF MapHandler::pointAtGeo(int index)
 //==================================================================================================
 void MapHandler::onQmlMapClicked(const QString& text)
 {
+    qDebug() << "[GeoMap][MapHandler] onQmlMapClicked:" << text;
     // Get clicked gps point
     QStringList position = text.split("x");
     double latitude      = position[0].toDouble();
@@ -243,12 +292,16 @@ void MapHandler::onQmlMapClicked(const QString& text)
     if (mPolygon.size() < 2)
     {
         mPolygon.addCoordinate(currentCoord);
+        qDebug() << "[GeoMap][MapHandler] add first/second point, size now:"
+                 << mPolygon.size();
     }
     // Add line back to the starting point
     else if (mPolygon.size() == 2)
     {
         mPolygon.addCoordinate(currentCoord);
         mPolygon.addCoordinate(mPolygon.coordinateAt(0));
+        qDebug() << "[GeoMap][MapHandler] close polygon, size now:"
+                 << mPolygon.size();
     }
     else
     {
@@ -315,10 +368,19 @@ void MapHandler::onQmlMapClicked(const QString& text)
         {
             mPolygon.insertCoordinate(nearestLineIndex + 1, currentCoord);
         }
+        qDebug() << "[GeoMap][MapHandler] insert/replace polygon point, size now:"
+                 << mPolygon.size();
     }
     mPolyStack.append(mPolygon);
     mCurrentStackPos++;
+    qDebug() << "[GeoMap][MapHandler] emitting polygon update, size:"
+             << mPolygon.size();
     newMapItems();
+}
+
+void MapHandler::setCurrentIndex(uint index) {
+    mCurrentSourceIndex = static_cast<int>(index);
+    applyCurrentIndexHighlight();
 }
 
 //==================================================================================================
@@ -335,4 +397,28 @@ QPointF MapHandler::minDistance(QPointF A, QPointF B, QPointF newPoint)
     QPointF distanceToPoint = pointOnLine - newPoint;
 
     return QPointF(distanceToPoint.x() * distanceToPoint.x() + distanceToPoint.y() * distanceToPoint.y(), bestT);
+}
+
+void MapHandler::applyCurrentIndexHighlight() {
+    int newMapIndex = -1;
+    if (mCurrentSourceIndex >= 0 &&
+        mCurrentSourceIndex < mSourceIndexToPoint.size()) {
+        const QPointF point = mSourceIndexToPoint[mCurrentSourceIndex];
+        if (mMapItems.contains(point)) {
+            newMapIndex = mMapItems.value(point);
+        }
+    }
+
+    if (mCurrentMapItemIndex == newMapIndex) {
+        return;
+    }
+
+    if (mCurrentMapItemIndex >= 0) {
+        emit setPointHighlight(mCurrentMapItemIndex, false);
+    }
+
+    mCurrentMapItemIndex = newMapIndex;
+    if (mCurrentMapItemIndex >= 0) {
+        emit setPointHighlight(mCurrentMapItemIndex, true);
+    }
 }

@@ -2,6 +2,8 @@
 
 #include "applicationsettings.h"
 #include "logmanager.h"
+#include <algorithm>
+#include <iterator>
 #include <QProgressBar>
 #include <QLabel>
 #include <QVBoxLayout>
@@ -32,9 +34,17 @@ PluginController::PluginController(DataManager* dataManager,
             &PluginController::slot_previewStateChanged);
     connect(m_pluginThread.get(), &PluginThread::activePluginUpdatePreview, m_vpc,
             &VideoPlayerController::slot_refreshPreview, Qt::QueuedConnection);
+    connect(m_pluginThread.get(),
+            &PluginThread::activePluginUpdateSelectedImages, this,
+            &PluginController::slot_selectedImagesChanged, Qt::QueuedConnection);
 
     auto reader = m_dataManager->getModelInputPictures()->getReader();
     m_pluginThread->onInputLoaded(reader);
+    auto *md = m_dataManager->getModelInputPictures()->getReader()->getMetaData();
+    if (md) {
+        InputMetaData inputMetaData{ md };
+        m_pluginThread->onMetaDataLoaded(inputMetaData);
+    }
 
     m_currentPluginName.clear();
 
@@ -245,6 +255,54 @@ void PluginController::slot_previewStateChanged(const PreviewState& state) {
         default:
             break;
     }
+}
+
+void PluginController::slot_selectedImagesChanged(
+    const std::vector<uint>& selectedImages) {
+    auto* modelInputPictures = m_dataManager->getModelInputPictures();
+    if (!modelInputPictures) {
+        return;
+    }
+
+    std::vector<uint> normalizedSelection = selectedImages;
+    std::sort(normalizedSelection.begin(), normalizedSelection.end());
+    normalizedSelection.erase(
+        std::unique(normalizedSelection.begin(), normalizedSelection.end()),
+        normalizedSelection.end());
+
+    const std::vector<uint> currentSelection =
+        modelInputPictures->getAllKeyframes(false);
+    const QPoint boundaries = modelInputPictures->getBoundaries();
+    auto isInBoundaries = [boundaries](uint index) {
+        return index >= static_cast<uint>(boundaries.x()) &&
+               index <= static_cast<uint>(boundaries.y());
+    };
+
+    // Simulate updateMIP result first and skip no-op updates to avoid
+    // plugin-core feedback loops.
+    std::vector<uint> oldFramesOutsideBoundaries;
+    std::copy_if(currentSelection.begin(), currentSelection.end(),
+                 std::back_inserter(oldFramesOutsideBoundaries),
+                 [&](uint index) { return !isInBoundaries(index); });
+
+    std::vector<uint> newFramesInsideBoundaries;
+    std::copy_if(normalizedSelection.begin(), normalizedSelection.end(),
+                 std::back_inserter(newFramesInsideBoundaries),
+                 isInBoundaries);
+
+    std::vector<uint> mergedSelection;
+    mergedSelection.resize(oldFramesOutsideBoundaries.size() +
+                           newFramesInsideBoundaries.size());
+    std::merge(oldFramesOutsideBoundaries.begin(),
+               oldFramesOutsideBoundaries.end(),
+               newFramesInsideBoundaries.begin(),
+               newFramesInsideBoundaries.end(), mergedSelection.begin());
+
+    if (mergedSelection == currentSelection) {
+        return;
+    }
+
+    modelInputPictures->updateMIP(normalizedSelection);
 }
 
 void PluginController::slot_selectPlugin(QString name) {
