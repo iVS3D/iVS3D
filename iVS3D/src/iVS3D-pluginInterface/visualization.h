@@ -80,6 +80,7 @@ struct TextOverlay {
  */
 struct ImageStyle {
     float opacity = 1.0f;  // Default opacity: fully opaque
+    QRectF position = QRectF(0, 0, 1, 1);  // Default position: covers the entire image
 };
 
 /**
@@ -118,6 +119,8 @@ struct ViewStyle {
     ViewportType viewport =
         ViewportType::FullImage;  // whether to show only the region of interest
                                   // or the full image
+    QPointF relativeSize = QPointF(
+        1.0, 1.0);  // scale factor relative to viewport size (width, height)
     bool showTitle = true;        // if true, show the title of the view
 };
 

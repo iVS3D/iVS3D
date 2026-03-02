@@ -124,6 +124,81 @@ void Blur::onIndexChanged(uint index) {
                             m_localDeviation, currentInfoText());
 }
 
+VisualizationResult Blur::generatePreview(const PreviewData& data) {
+    cv::Mat debugImage;
+    m_usedBlur->calcOneBluriness(data.image, &debugImage);
+    
+    // Process the debug image to create a visualization overlay
+    // 1. find minimum and maximum value for normalization
+    // 2. convert to heatmap
+    // 3. scale to 0..255 and convert to 8-bit
+    double minVal = 0.0, maxVal = 0.0;
+    cv::minMaxLoc(debugImage, &minVal, &maxVal);
+    if (maxVal > 0.0) {
+        double range = maxVal - minVal;
+        if (range > 0.0) {
+            debugImage = (debugImage - minVal) / range;  // normalize to 0..1
+        }
+        debugImage.convertTo(debugImage, CV_8U, 255.0);  // scale to 0..255
+        cv::applyColorMap(debugImage, debugImage, cv::COLORMAP_INFERNO);
+    } else {
+        debugImage.setTo(cv::Scalar(0, 0, 255));  // red for invalid frames
+    }
+
+    cv::Mat colormap(cv::Size(20, data.image.rows-20), CV_8U, cv::Scalar(0));
+    // visualize the INFERNO colormap as a legend on the left side of the preview
+    for (int y = 0; y < colormap.rows; ++y) {
+        double value = 1.0 - static_cast<double>(y) / colormap.rows;  // invert for better visibility
+        uint8_t colorValue = static_cast<uint8_t>(value * 255.0);
+        colormap.row(y).setTo(colorValue);
+    }
+    cv::applyColorMap(colormap, colormap, cv::COLORMAP_INFERNO);
+
+    Visualization vis;
+    {
+        auto& view = vis.views.emplace_back();
+        view.title = tr("Source Image");
+        view.style.backgroundColor = Qt::transparent;
+        view.style.viewport = ViewportType::FullImage;
+    }
+    {
+        auto& view = vis.views.emplace_back();
+        view.title = tr("Edge Detection (min: %1, max: %2)").arg(minVal, 0, 'f', 2).arg(maxVal, 0, 'f', 2);
+        view.style.backgroundColor = Qt::transparent;
+        view.style.viewport = ViewportType::RegionOfInterest;
+        ImageOverlay overlay;
+        overlay.image = std::move(debugImage);
+        view.overlays.push_back(overlay);
+    }
+
+    {
+        auto& view = vis.views.emplace_back();
+        view.title = tr("Legend");
+        view.style.backgroundColor = Qt::transparent;
+        view.style.viewport = ViewportType::FullImage;
+        view.style.relativeSize = QPointF(0.2, 1.0);
+
+        ImageOverlay overlay;
+        overlay.image = colormap;
+        overlay.style.position = QRectF(0.05, 0.15, 0.2, 0.8); // position on the left with some padding
+        view.overlays.push_back(overlay);
+
+        TextOverlay textOverlayMax;
+        textOverlayMax.text = tr("Edge (%1)").arg(maxVal, 0, 'f', 2);
+        textOverlayMax.position = QPointF(0.3, 0.15);
+        textOverlayMax.anchor = TextAnchor::TopLeft;
+        view.overlays.push_back(textOverlayMax);
+        
+
+        TextOverlay textOverlayMin;
+        textOverlayMin.text = tr("Smooth (%1)").arg(minVal, 0, 'f', 2);
+        textOverlayMin.position = QPointF(0.3, 0.95);
+        textOverlayMin.anchor = TextAnchor::BottomLeft;
+        view.overlays.push_back(textOverlayMin);
+    }
+    return vis;
+}
+
 SelectionResult Blur::selectImages(const SelectionData& data,
                                    volatile bool& cancelFlag) {
     g_useCuda = m_useCuda;
@@ -333,13 +408,13 @@ std::vector<uint> Blur::sampleKeyframes(Reader* reader,
         windowVals.reserve(wEnd - wStart + 1);
         for (int w = wStart; w <= wEnd; ++w) {
             if (m_cachedBlurValues[w] == 0.0) {
-                m_cachedBlurValues[w] = m_usedBlur->calcOneBluriness(reader, w);
+                m_cachedBlurValues[w] = m_usedBlur->calcOneBluriness(reader->getPic(w), nullptr);
             }
             windowVals.push_back(m_cachedBlurValues[w]);
         }
 
         if (m_cachedBlurValues[idx] == 0.0) {
-            m_cachedBlurValues[idx] = m_usedBlur->calcOneBluriness(reader, idx);
+            m_cachedBlurValues[idx] = m_usedBlur->calcOneBluriness(reader->getPic(idx), nullptr);
         }
 
         double med = medianOf(windowVals);

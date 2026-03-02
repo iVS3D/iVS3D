@@ -14,7 +14,8 @@ public:
 
     void setEdgeThreshold(double t) { m_edgeThreshold = t; }
 protected:
-    double singleCalculation(const cv::Mat &image) override;
+    double singleCalculation(const cv::Mat &image,
+                             cv::Mat* debugImage = nullptr) override;
 private:
     // Gradient magnitude threshold in 8-bit intensity units
     double m_edgeThreshold = 15.0;

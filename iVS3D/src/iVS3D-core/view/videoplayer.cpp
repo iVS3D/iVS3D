@@ -98,12 +98,14 @@ void VideoPlayer::showVisualization(const Visualization& vis) {
 
     clearVisualization();
 
-    QRectF viewport;
+    QRectF roi_viewport;
     if (m_roiItem) {
-        viewport = m_roiItem->rect();
+        roi_viewport = m_roiItem->rect();
     } else {
-        viewport = m_imageItem->boundingRect();
+        roi_viewport = m_imageItem->boundingRect();
     }
+    QRectF image_viewport = m_imageItem->boundingRect();
+    image_viewport.moveTo(0, 0); // ensure image viewport is at (0,0) for easier calculations
 
     m_visItemGroup = new QGraphicsItemGroup(m_imageItem);
     m_visItemGroup->setZValue(2); // on top of image and ROI
@@ -114,12 +116,10 @@ void VideoPlayer::showVisualization(const Visualization& vis) {
         if (view.style.showTitle && !view.title.isEmpty()) {
             auto view_root = new QGraphicsItemGroup(m_visItemGroup);
             view_root->setZValue(3);
-            QRectF viewport_title = (m_roiItem && view.style.viewport == ViewportType::RegionOfInterest)
-                                       ? m_roiItem->rect()
-                                       : m_imageItem->boundingRect();
+            
             view_root->setTransform(
                 QTransform::fromTranslate(width, 0)
-                    .scale(viewport_title.width(), viewport_title.height())); // scale from [0,1] to viewport size
+                    .scale(image_viewport.width() * view.style.relativeSize.x(), image_viewport.height() * view.style.relativeSize.y())); // scale from [0,1] to viewport size
             
             TextOverlay titleOverlay;
             titleOverlay.text = view.title;
@@ -133,21 +133,16 @@ void VideoPlayer::showVisualization(const Visualization& vis) {
 
         // create a root element correctly scaled and translated for this view
         auto *view_root = new QGraphicsItemGroup(m_visItemGroup);
-        int x_offset = 0;
-        int y_offset = 0;
-        // for FullImage, offset is the viewRect position in the full image
-        if (view.style.viewport == ViewportType::FullImage) {
-            x_offset = viewport.x();
-            y_offset = viewport.y();
-        }
+        auto &viewport = (view.style.viewport == ViewportType::RegionOfInterest) ? roi_viewport : image_viewport;
+
         view_root->setTransform(
-            QTransform::fromTranslate(x_offset + width, y_offset)
-                .scale(viewport.width(), viewport.height())); // scale from [0,1] to viewport size
+            QTransform::fromTranslate(viewport.x() + width, viewport.y())
+                .scale(viewport.width() * view.style.relativeSize.x(), viewport.height() * view.style.relativeSize.y())); // scale from [0,1] to viewport size
         
         // keep track of overall scene size to append next view
-        auto rect = (view.style.viewport == ViewportType::RegionOfInterest) ? viewport : m_imageItem->boundingRect();
-        width += rect.width();
-        height = std::max(height, int(rect.height()));
+        //auto rect = (view.style.viewport == ViewportType::RegionOfInterest) ? viewport : m_imageItem->boundingRect();
+        width += image_viewport.width() * view.style.relativeSize.x();
+        height = std::max(height, int(image_viewport.height() * view.style.relativeSize.y()));
 
         // draw all overlays for this view. They are in local [0,1] space.
         // Scaling is handled by the view_root transform.

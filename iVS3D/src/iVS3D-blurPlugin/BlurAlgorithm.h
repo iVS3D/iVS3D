@@ -40,7 +40,7 @@ class BlurAlgorithm : public QObject {
      * @param index The image index
      * @return The blur value (-1.0 if the frame is corrupted)
      */
-    double calcOneBluriness(Reader *images, int index);
+    double calcOneBluriness(const cv::Mat& img, cv::Mat* debugImage = nullptr);
     /**
      * @brief calcFullBluriness calculates blur meassures for all images within
      * the given range.
@@ -68,10 +68,11 @@ class BlurAlgorithm : public QObject {
      * @brief singleCalculation This functions implements the actual blur
      * algortihm
      * @param image cv::Mat of the image
+     * @param debugImage pointer to a cv::Mat that can be used for debug output
      * @return Double represeting the blur of the image (higher value -> sharper
      * image)
      */
-    virtual double singleCalculation(const cv::Mat &image) = 0;
+    virtual double singleCalculation(const cv::Mat &image, cv::Mat* debugImage = nullptr) = 0;
 
    private:
     volatile int m_lastProgress = 0;

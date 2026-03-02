@@ -31,7 +31,8 @@ static inline void toGray8CPU(const cv::Mat &src, cv::Mat &gray8) {
     }
 }
 
-static double tenengradCPU(const cv::Mat &image, double edgeThreshold) {
+static double tenengradCPU(const cv::Mat &image, double edgeThreshold,
+                           cv::Mat* debugImage = nullptr) {
     if (image.empty()) return -1.0;
     cv::Mat gray8;
     toGray8CPU(image, gray8);
@@ -44,9 +45,15 @@ static double tenengradCPU(const cv::Mat &image, double edgeThreshold) {
 
     const float t2 = static_cast<float>(edgeThreshold * edgeThreshold);
     cv::Mat mask = (mag2 > t2);
-
+    
     int strongCount = cv::countNonZero(mask);
     if (strongCount == 0) return 0.0;
+
+    if (debugImage) {
+        cv::Mat mask_f;
+        mask.convertTo(mask_f, CV_32F, 1.0 / 255.0, 0.0);
+        cv::multiply(mag2, mask_f, *debugImage);
+    }
 
     return cv::mean(mag2, mask)[0];
 }
@@ -67,7 +74,8 @@ static double reduceSum64(const cv::cuda::GpuMat &src) {
     return h.at<double>(0, 0);
 }
 
-static double tenengradCUDA(const cv::Mat &image, double edgeThreshold) {
+static double tenengradCUDA(const cv::Mat &image, double edgeThreshold,
+                            cv::Mat* debugImage = nullptr) {
     if (image.empty()) return -1.0;
 
     cv::Mat gray8;
@@ -95,8 +103,14 @@ static double tenengradCUDA(const cv::Mat &image, double edgeThreshold) {
 
     const double t2 = edgeThreshold * edgeThreshold;
     cv::cuda::compare(d_mag2, t2, d_mask, cv::CMP_GT, tlsStream());  // 0/255
+    
     d_mask.convertTo(d_maskF, CV_32F, 1.0 / 255.0, 0.0, tlsStream());
     cv::cuda::multiply(d_mag2, d_maskF, d_masked, 1.0, -1, tlsStream());
+
+    if (debugImage) {
+        d_masked.download(*debugImage, tlsStream());
+        tlsStream().waitForCompletion();
+    }
 
     const double sumStrong = reduceSum64(d_masked);
     const double count = reduceSum64(d_maskF);
@@ -105,11 +119,12 @@ static double tenengradCUDA(const cv::Mat &image, double edgeThreshold) {
 }
 #endif
 
-double BlurTenengrad::singleCalculation(const cv::Mat &image) {
+double BlurTenengrad::singleCalculation(const cv::Mat &image,
+                                        cv::Mat* debugImage) {
 #if defined(WITH_CUDA)
     if (g_useCuda) {
-        return tenengradCUDA(image, m_edgeThreshold);
+        return tenengradCUDA(image, m_edgeThreshold, debugImage);
     }
 #endif
-    return tenengradCPU(image, m_edgeThreshold);
+    return tenengradCPU(image, m_edgeThreshold, debugImage);
 }

@@ -23,6 +23,7 @@
 
 #include "ibase.h"
 #include "iselection.h"
+#include "ipreview.h"
 
 #include "BlurAlgorithm.h"
 #include "blurlaplacian.h"
@@ -50,10 +51,10 @@
  * @date 2021/02/19
  */
 
-class Blur : public IBase, public ISelection {
+class Blur : public IBase, public ISelection, public IPreview {
     Q_OBJECT
     Q_PLUGIN_METADATA(IID "iVS3D.IBase")
-    Q_INTERFACES(IBase ISelection)
+    Q_INTERFACES(IBase ISelection IPreview)
 
    public:
     /**
@@ -77,6 +78,9 @@ class Blur : public IBase, public ISelection {
     void onCudaChanged(bool enabled) override;
     InputLoadedResult onInputLoaded(const InputData& input) override;
     void onIndexChanged(uint index) override;
+
+    // IPreview interface
+    VisualizationResult generatePreview(const PreviewData& data) override;
 
     // ISelection interface
     SelectionResult selectImages(const SelectionData& data,

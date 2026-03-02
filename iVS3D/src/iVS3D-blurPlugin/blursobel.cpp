@@ -29,7 +29,7 @@ static inline void toGray8CPU(const cv::Mat &src, cv::Mat &gray8) {
     }
 }
 
-static double sobelCPU(const cv::Mat &image) {
+static double sobelCPU(const cv::Mat &image, cv::Mat* debugImage = nullptr) {
     if (image.empty()) return -1.0;
     cv::Mat gray8;
     toGray8CPU(image, gray8);
@@ -38,6 +38,9 @@ static double sobelCPU(const cv::Mat &image) {
     cv::Sobel(gray8, Gx, CV_64F, 1, 0, 3);
     cv::Sobel(gray8, Gy, CV_64F, 0, 1, 3);
     cv::Mat FM = Gx.mul(Gx) + Gy.mul(Gy);
+    if (debugImage) {
+        *debugImage = FM;
+    }
     return cv::mean(FM).val[0];
 }
 
@@ -57,7 +60,7 @@ static double reduceSum64(const cv::cuda::GpuMat &src) {
     return h.at<double>(0, 0);
 }
 
-static double sobelCUDA(const cv::Mat &image) {
+static double sobelCUDA(const cv::Mat &image, cv::Mat* debugImage = nullptr) {
     if (image.empty()) return -1.0;
 
     cv::Mat gray8;
@@ -87,6 +90,11 @@ static double sobelCUDA(const cv::Mat &image) {
         static_cast<double>(d_sum.rows) * static_cast<double>(d_sum.cols);
     if (N <= 0.0) return 0.0;
 
+    if (debugImage) {
+        d_sum.download(*debugImage, tlsStream());
+        tlsStream().waitForCompletion();
+    }
+
     const double total = reduceSum64(d_sum);
     return total / N;
 }
@@ -96,11 +104,11 @@ BlurSobel::BlurSobel() {}
 
 QString BlurSobel::getName() { return m_name; }
 
-double BlurSobel::singleCalculation(const cv::Mat &image) {
+double BlurSobel::singleCalculation(const cv::Mat &image, cv::Mat* debugImage) {
 #if defined(BLUR_PLUGIN_OPENCV_HAS_CUDA_LINK)
     if (g_useCuda) {
-        return sobelCUDA(image);
+        return sobelCUDA(image, debugImage);
     }
 #endif
-    return sobelCPU(image);
+    return sobelCPU(image, debugImage);
 }

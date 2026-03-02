@@ -255,7 +255,7 @@ VisualizationResult SegmentationPlugin::generatePreview(
             view.title = tr("Segmentation Preview (cached)");
         }
         view.style.backgroundColor = Qt::transparent;
-        view.style.viewport = ViewportType::FullImage;
+        view.style.viewport = ViewportType::RegionOfInterest;
         view.style.showTitle = true;
 
         ImageOverlay overlay;
@@ -268,7 +268,7 @@ VisualizationResult SegmentationPlugin::generatePreview(
         auto& view = vis.views.emplace_back();
         view.title = tr("Segmentation Mask");
         view.style.backgroundColor = Qt::transparent;
-        view.style.viewport = ViewportType::FullImage;
+        view.style.viewport = ViewportType::RegionOfInterest;
         view.style.showTitle = true;
 
         ImageOverlay overlay;
