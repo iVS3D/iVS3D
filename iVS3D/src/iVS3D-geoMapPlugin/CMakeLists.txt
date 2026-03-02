@@ -84,6 +84,7 @@ target_link_libraries(${TARGET_NAME}
     Qt${QT_VERSION_MAJOR}::Qml
     Qt${QT_VERSION_MAJOR}::Network
     ${OpenCV_LIBRARIES} 
+    tl-expected
 )
 
 # add defines

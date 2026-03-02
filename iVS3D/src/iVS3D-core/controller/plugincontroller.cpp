@@ -35,6 +35,11 @@ PluginController::PluginController(DataManager* dataManager,
 
     auto reader = m_dataManager->getModelInputPictures()->getReader();
     m_pluginThread->onInputLoaded(reader);
+    auto *md = m_dataManager->getModelInputPictures()->getReader()->getMetaData();
+    if (md) {
+        InputMetaData inputMetaData{ md };
+        m_pluginThread->onMetaDataLoaded(inputMetaData);
+    }
 
     m_currentPluginName.clear();
 

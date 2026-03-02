@@ -4,7 +4,18 @@ import QtLocation 5.11
 
 MapQuickItem {
     id: mapMarker
-    sourceItem: Rectangle {id: rect; width: 15; height: 15; color: "#e41e25"; border.width: 1; border.color: "white"; smooth: true; radius: 10 }
+    property bool isCurrent: false
+    z: mapMarker.isCurrent ? 5000 : 100
+    sourceItem: Rectangle {
+        id: rect
+        width: 15
+        height: 15
+        color: mapMarker.isCurrent ? "#00c853" : "#e41e25"
+        border.width: 1
+        border.color: mapMarker.isCurrent ? "black" : "white"
+        smooth: true
+        radius: 10
+    }
     opacity: 0.1
     anchorPoint.x: rect.width/2
     anchorPoint.y: rect.height/2
