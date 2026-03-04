@@ -62,7 +62,7 @@ Item {
                     var o = component.createObject(mapToken);
                     o.coordinate = coordinate
                     o.objectName = name
-                    o.opacity = (used) ? 1.0 : 0.1
+                    o.isUsed = used
                     mapToken.addMapItem(o)
                 }
             }
@@ -116,7 +116,7 @@ Item {
                 var item = mapToken.mapItems[index]
                 if (!item)
                     return
-                item.opacity = (used) ? 1.0 : 0.1
+                item.isUsed = used
             }
 
             onSetPointHighlight : {

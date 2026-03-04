@@ -23,12 +23,21 @@ MapHandler::MapHandler(QObject* parent)
 //==================================================================================================
 void MapHandler::addPoints(const GpsDataList& gpsData)
 {
-    //--- loop over gps pps data and insert into map if not already inserted
+    // Keep source-index mapping (one entry per frame/index), even if
+    // consecutive frames share the same GPS point.
+    mSourceIndexToPoint.clear();
+    mSourceIndexToPoint.reserve(gpsData.size());
+
+    //--- loop over gps data and insert unique points into map
     for (QPair<QPointF, bool> point : gpsData)
     {
-        // Skip if point already in the map and used
-        if (mGpsMap.contains(point.first) && mGpsMap[point.first])
+        mSourceIndexToPoint.push_back(point.first);
+
+        if (mGpsMap.contains(point.first)) {
+            // keep latest "used" state for this shared map point
+            mGpsMap[point.first] = point.second;
             continue;
+        }
 
         mGpsMap.insert(point.first, point.second);
         mOrderedGpsList.push_back(point.first);
@@ -76,6 +85,7 @@ void MapHandler::replaceData(const GpsDataList& gpsData,
 
     mGpsMap.clear();
     mOrderedGpsList.clear();
+    mSourceIndexToPoint.clear();
     mChangedPoints.clear();
     mMapItems.clear();
     mPolyStack.clear();
@@ -392,8 +402,8 @@ QPointF MapHandler::minDistance(QPointF A, QPointF B, QPointF newPoint)
 void MapHandler::applyCurrentIndexHighlight() {
     int newMapIndex = -1;
     if (mCurrentSourceIndex >= 0 &&
-        mCurrentSourceIndex < mOrderedGpsList.size()) {
-        const QPointF point = mOrderedGpsList[mCurrentSourceIndex];
+        mCurrentSourceIndex < mSourceIndexToPoint.size()) {
+        const QPointF point = mSourceIndexToPoint[mCurrentSourceIndex];
         if (mMapItems.contains(point)) {
             newMapIndex = mMapItems.value(point);
         }

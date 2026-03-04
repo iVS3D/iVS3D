@@ -206,6 +206,8 @@ class MapHandler : public QObject
 
     /// List of GPS data in the order of acquisition
     QList<QPointF> mOrderedGpsList;
+    /// Maps source frame index to GPS point (keeps duplicates).
+    QList<QPointF> mSourceIndexToPoint;
 
     /// The current polygon
     QGeoPolygon mPolygon;
