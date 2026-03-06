@@ -2,12 +2,15 @@ set(TARGET_NAME iVS3D-core)
 
 # set header, source and form files
 file(GLOB_RECURSE HEADER_FILES
+    CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_LIST_DIR}/*.h"
 )
 file(GLOB_RECURSE SRC_FILES
+    CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_LIST_DIR}/*.cpp"
 )
 file(GLOB_RECURSE UI_FILES
+    CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_LIST_DIR}/*.ui"
 )
 
