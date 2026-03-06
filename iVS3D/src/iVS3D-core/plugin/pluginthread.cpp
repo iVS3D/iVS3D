@@ -2,6 +2,15 @@
 
 #include <QMetaObject>
 
+using PLUG::ApplySettingsResult;
+using PLUG::Error;
+using PLUG::ErrorCode;
+using PLUG::IBase;
+using PLUG::InputMetaData;
+using PLUG::PreviewData;
+using PLUG::SelectionData;
+using VIS::VisualizationResult;
+
 PluginRunner::PluginRunner(const QHash<QString, PluginHandle>& plugins,
                            QObject* parent)
     : QObject(parent), m_plugins(plugins) {}
@@ -94,7 +103,7 @@ void PluginRunner::onInputLoaded(Reader* reader) {
         if (!handle.base) {
             continue;
         }
-        handle.base->onInputLoaded({reader}).map_error([&](const Error& err) {
+        handle.base->onInputLoaded(PLUG::InputData{reader}).map_error([&](const Error& err) {
             printf("[PluginThread] Error loading input for plugin %s: %s\n",
                    handle.name().toStdString().c_str(),
                    err.message.toStdString().c_str());
@@ -149,7 +158,7 @@ void PluginRunner::requestPreview(const PreviewRequest& request) {
     emit previewStarted(
         request.id);  // emit signal that preview generation has started
     VisualizationResult result =
-        plugin->preview->generatePreview({request.idx, request.img});
+        plugin->preview->generatePreview(PLUG::PreviewData{request.idx, request.img});
     emit previewFinished({request.idx, result});
 }
 
@@ -325,7 +334,7 @@ PluginThread::~PluginThread() {
 }
 
 void PluginThread::requestPreview(const QString& pluginName,
-                                  const PreviewData& request) {
+                                  const PLUG::PreviewData& request) {
     const auto pluginIt = m_plugins.find(pluginName);
     if (pluginIt == m_plugins.end() || !pluginIt->hasPreview())
         return;  // no preview to compute
@@ -347,7 +356,7 @@ void PluginThread::requestMask(const MaskRequest& request) {
 }
 
 void PluginThread::requestSelection(const QString& pluginName,
-                                    const SelectionData& data) {
+                                    const PLUG::SelectionData& data) {
     RequestId id = ++m_counter;
     m_runner->resetSelectionCancelFlag();
     SelectionRequest selectionRequest{id, pluginName, data};
@@ -424,7 +433,7 @@ void PluginThread::onInputLoaded(Reader* reader) {
         Qt::QueuedConnection);
 }
 
-void PluginThread::onMetaDataLoaded(const InputMetaData& inputMetaData) {
+void PluginThread::onMetaDataLoaded(const PLUG::InputMetaData& inputMetaData) {
     emit notifyMetaDataLoaded(inputMetaData);
 }
 

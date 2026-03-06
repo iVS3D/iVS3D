@@ -10,6 +10,18 @@
 
 #include "../iVS3D-core/model/metaData/metadata.h"
 
+using PLUG::ApplySettingsResult;
+using PLUG::Error;
+using PLUG::ErrorCode;
+using PLUG::IBase;
+using PLUG::InputData;
+using PLUG::InputLoadedResult;
+using PLUG::InputMetaData;
+using PLUG::MetaDataLoadedResult;
+using PLUG::SelectionData;
+using PLUG::SelectionResult;
+using PLUG::SettingsWidgetResult;
+
 namespace {
 constexpr int MAP_POINT_UPDATE_THRESHOLD = 100000;
 }

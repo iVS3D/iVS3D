@@ -22,7 +22,7 @@ Q_DECLARE_METATYPE(PreviewRequest)
 
 struct PreviewResult {
     uint idx;                           // Index of the image in the sequence
-    VisualizationResult visualization;  // The result of the visualization
+    VIS::VisualizationResult visualization;  // The result of the visualization
 };
 Q_DECLARE_METATYPE(PreviewResult)
 
@@ -39,7 +39,7 @@ Q_DECLARE_METATYPE(MaskRequest)
 struct SelectionRequest {
     RequestId id;
     QString pluginName;
-    SelectionData data;
+    PLUG::SelectionData data;
 };
 Q_DECLARE_METATYPE(SelectionRequest)
 
@@ -83,7 +83,7 @@ class PluginRunner : public QObject {
 
     bool setActivePlugin(const QString& pluginName);
     void clearActivePlugin();
-    ApplySettingsResult applyPluginSettings(
+    PLUG::ApplySettingsResult applyPluginSettings(
         const QString& pluginName, const QMap<QString, QVariant>& settings);
     QMap<QString, QVariant> getPluginSettings(const QString& pluginName) const;
     QString getPluginSettingsString(const QString& pluginName) const;
@@ -93,7 +93,7 @@ class PluginRunner : public QObject {
     void cancelSelectionDirect();
 
    public slots:
-    void onMetaDataLoaded(const InputMetaData& inputMetaData);
+    void onMetaDataLoaded(const PLUG::InputMetaData& inputMetaData);
     void onIndexChanged(uint index);
     void onSelectedImagesChanged(const std::vector<uint>& selectedImages);
     void requestPreview(const PreviewRequest& request);
@@ -128,15 +128,15 @@ class PluginThread : public QObject {
                  QObject* parent = nullptr);
     ~PluginThread();
 
-    void requestPreview(const QString& pluginName, const PreviewData& request);
+    void requestPreview(const QString& pluginName, const PLUG::PreviewData& request);
     void requestMask(const MaskRequest& request);
-    void requestSelection(const QString& pluginName, const SelectionData& data);
+    void requestSelection(const QString& pluginName, const PLUG::SelectionData& data);
     void cancelSelection();
 
     bool setActivePlugin(const QString& pluginName);
     void clearActivePlugin();
 
-    ApplySettingsResult applyPluginSettings(
+    PLUG::ApplySettingsResult applyPluginSettings(
         const QString& pluginName, const QMap<QString, QVariant>& settings);
     QMap<QString, QVariant> getPluginSettings(const QString& pluginName) const;
     QString getPluginSettingsString(const QString& pluginName) const;
@@ -145,7 +145,7 @@ class PluginThread : public QObject {
     void onInputLoaded(Reader* reader);
 
     public slots:
-    void onMetaDataLoaded(const InputMetaData& inputMetaData);
+    void onMetaDataLoaded(const PLUG::InputMetaData& inputMetaData);
     void onIndexChanged(uint index);
     void onSelectedImagesChanged(const std::vector<uint>& selectedImages);
 
@@ -158,7 +158,7 @@ class PluginThread : public QObject {
     void activePluginUpdateProgress(int progress, const QString& message);
     void activePluginUpdateSelectedImages(
         const std::vector<uint>& selectedImages);
-    void notifyMetaDataLoaded(const InputMetaData& inputMetaData);
+    void notifyMetaDataLoaded(const PLUG::InputMetaData& inputMetaData);
     void notifyIndexChanged(uint index);
     void notifySelectedImagesChanged(const std::vector<uint>& selectedImages);
 

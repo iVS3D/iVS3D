@@ -30,9 +30,9 @@ public:
     bool hasSelectionPlugin(const QString& name) const;
 
     std::shared_ptr<QWidget> getSettingsWidget(const QString& pluginName) const;
-    std::optional<Error> getSettingsWidgetError(const QString& pluginName) const;
+    std::optional<PLUG::Error> getSettingsWidgetError(const QString& pluginName) const;
 
-    ApplySettingsResult applyPluginSettings(
+    PLUG::ApplySettingsResult applyPluginSettings(
         const QString& pluginName,
         const QMap<QString, QVariant>& settings) const;
     QMap<QString, QVariant> getPluginSettings(const QString& pluginName) const;
@@ -48,7 +48,7 @@ public:
      * @return A list of (pluginName, error) pairs for plugins that failed to
      * create their settings widget.
      */
-    QVector<QPair<QString, Error>> loadSettingsWidgets();
+    QVector<QPair<QString, PLUG::Error>> loadSettingsWidgets();
 
     void enableCuda(bool useCuda);
 

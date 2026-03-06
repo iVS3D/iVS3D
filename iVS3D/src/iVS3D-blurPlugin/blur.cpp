@@ -4,6 +4,22 @@
 #include <QSignalBlocker>
 #include <QVBoxLayout>
 
+using PLUG::ApplySettingsResult;
+using PLUG::Error;
+using PLUG::ErrorCode;
+using PLUG::InputData;
+using PLUG::InputLoadedResult;
+using PLUG::PreviewData;
+using PLUG::SelectionData;
+using PLUG::SelectionResult;
+using PLUG::SettingsWidgetResult;
+using VIS::ImageOverlay;
+using VIS::TextAnchor;
+using VIS::TextOverlay;
+using VIS::ViewportType;
+using VIS::Visualization;
+using VIS::VisualizationResult;
+
 // Global CUDA switch shared with algorithms
 extern bool g_useCuda;
 

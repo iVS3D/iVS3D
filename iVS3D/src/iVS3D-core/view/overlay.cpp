@@ -11,7 +11,7 @@
 #include "textoverlayitem.h"
 
 void drawOverlay(QGraphicsScene* scene, QGraphicsItem* parent,
-                 const RectOverlay& overlay) {
+                 const VIS::RectOverlay& overlay) {
     QPen pen(overlay.style.strokeColor);
     pen.setWidth(overlay.style.strokeWidth);
     pen.setCosmetic(true);  // pen width is independent of zoom level
@@ -25,7 +25,7 @@ void drawOverlay(QGraphicsScene* scene, QGraphicsItem* parent,
 }
 
 void drawOverlay(QGraphicsScene* scene, QGraphicsItem* parent,
-                 const TextOverlay& overlay) {
+                 const VIS::TextOverlay& overlay) {
 
     auto* item =
         new TextOverlayItem(overlay.text, overlay.style.font, overlay.style.textColor,
@@ -71,7 +71,7 @@ QImage qImageFromCvMat(const cv::Mat& input, bool bgr) {
 }
 
 void drawOverlay(QGraphicsScene* scene, QGraphicsItem* parent,
-                 const ImageOverlay& overlay) {
+                 const VIS::ImageOverlay& overlay) {
     // Create pixmap from cv::Mat
     QImage img = qImageFromCvMat(overlay.image, false);
     QPixmap pixmap = QPixmap::fromImage(img);

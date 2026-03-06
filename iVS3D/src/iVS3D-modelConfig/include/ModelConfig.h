@@ -172,6 +172,3 @@ private:
 // Register custom types for use in signals/slots
 Q_DECLARE_METATYPE(MCFG::ModelConfig::ClassInfo)
 Q_DECLARE_METATYPE(QVector<MCFG::ModelConfig::ClassInfo>)
-
-// Backward-compatible alias (prefer MCFG::ModelConfig in new code).
-using ModelConfig = MCFG::ModelConfig;

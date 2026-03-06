@@ -28,11 +28,11 @@
  * @author Dominik Wüst
  * @date 2021/02/14
  */
-class NthFrame : public IBase, public ISelection {
+class NthFrame : public PLUG::IBase, public PLUG::ISelection {
     Q_OBJECT
     Q_PLUGIN_METADATA(IID "iVS3D.IBase")
     Q_PLUGIN_METADATA(IID "iVS3D.ISelection")
-    Q_INTERFACES(IBase ISelection)
+    Q_INTERFACES(PLUG::IBase PLUG::ISelection)
 
 public:
     /// Constructor initializing N to 1 and default settings.
@@ -43,16 +43,16 @@ public:
 
     // IBase interface implementation
     QString getName() const override;
-    SettingsWidgetResult getSettingsWidget() override;
+    PLUG::SettingsWidgetResult getSettingsWidget() override;
     QMap<QString, QVariant> getSettings() const override;
-    ApplySettingsResult applySettings(const QMap<QString, QVariant>& settings) override;
+    PLUG::ApplySettingsResult applySettings(const QMap<QString, QVariant>& settings) override;
     void activate() override;
     void deactivate() override;
     void onCudaChanged(bool enabled) override;
-    InputLoadedResult onInputLoaded(const InputData& input) override;
+    PLUG::InputLoadedResult onInputLoaded(const PLUG::InputData& input) override;
 
     // ISelection interface implementation
-    SelectionResult selectImages(const SelectionData& data, volatile bool& cancelFlag) override;
+    PLUG::SelectionResult selectImages(const PLUG::SelectionData& data, volatile bool& cancelFlag) override;
 
 signals:
     void syncSettingsWidget(uint n, bool keepIsolated);

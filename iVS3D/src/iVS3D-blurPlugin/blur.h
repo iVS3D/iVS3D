@@ -51,10 +51,10 @@
  * @date 2021/02/19
  */
 
-class Blur : public IBase, public ISelection, public IPreview {
+class Blur : public PLUG::IBase, public PLUG::ISelection, public PLUG::IPreview {
     Q_OBJECT
     Q_PLUGIN_METADATA(IID "iVS3D.IBase")
-    Q_INTERFACES(IBase ISelection IPreview)
+    Q_INTERFACES(PLUG::IBase PLUG::ISelection PLUG::IPreview)
 
    public:
     /**
@@ -65,25 +65,25 @@ class Blur : public IBase, public ISelection, public IPreview {
     ~Blur() override;
 
     // IBase interface
-    SettingsWidgetResult getSettingsWidget() override;
+    PLUG::SettingsWidgetResult getSettingsWidget() override;
     /**
      * @brief getName Returns the plugin Name
      * @return "Blur"
      */
     QString getName() const override;
     QMap<QString, QVariant> getSettings() const override;
-    ApplySettingsResult applySettings(const QMap<QString, QVariant>& settings) override;
+    PLUG::ApplySettingsResult applySettings(const QMap<QString, QVariant>& settings) override;
     void activate() override;
     void deactivate() override;
     void onCudaChanged(bool enabled) override;
-    InputLoadedResult onInputLoaded(const InputData& input) override;
+    PLUG::InputLoadedResult onInputLoaded(const PLUG::InputData& input) override;
     void onIndexChanged(uint index) override;
 
     // IPreview interface
-    VisualizationResult generatePreview(const PreviewData& data) override;
+    VIS::VisualizationResult generatePreview(const PLUG::PreviewData& data) override;
 
     // ISelection interface
-    SelectionResult selectImages(const SelectionData& data,
+    PLUG::SelectionResult selectImages(const PLUG::SelectionData& data,
                                  volatile bool& cancelFlag) override;
 
 signals:

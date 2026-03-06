@@ -13,13 +13,13 @@
 
 struct PluginHandle {
   QPluginLoader* loader = nullptr;
-  IBase* base = nullptr;
+  PLUG::IBase* base = nullptr;
   QObject* qobject = nullptr;
-    IPreview* preview = nullptr;
-    IMask* mask = nullptr;
-    ISelection* selection = nullptr;
+    PLUG::IPreview* preview = nullptr;
+    PLUG::IMask* mask = nullptr;
+    PLUG::ISelection* selection = nullptr;
     std::shared_ptr<QWidget> settingsWidget = nullptr;
-    std::optional<Error> settingsWidgetError = std::nullopt;
+    std::optional<PLUG::Error> settingsWidgetError = std::nullopt;
 
     QString name() const { return base ? base->getName() : QString(); }
 

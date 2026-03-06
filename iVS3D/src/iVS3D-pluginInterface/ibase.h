@@ -12,6 +12,30 @@
 
 #include "ierror.h"
 
+class Reader;
+class MetaData;
+
+/**
+ * @defgroup Plugin PluginInterface
+ * @brief Interfaces and types for iVS3D plugins.
+ * 
+ * @details
+ * This module defines the base interface `IBase` for all plugins, as well as common
+ * types and result aliases used across different plugin categories (e.g. selection, masking, preview).
+ * 
+ * @see @ref plugin_interface_doc "PluginInterface.md" for a comprehensive overview of the plugin API and integration guidelines.
+ */
+
+/**
+ * @namespace PLUG
+ * @brief Plugin interface namespace containing common plugin contracts and helper types.
+ * @ingroup Plugin
+ *
+ * For a full overview of the plugin API, see
+ * @ref plugin_interface_doc "PluginInterface.md".
+ */
+namespace PLUG {
+
 /**
  * @typedef SettingsWidgetResult
  * @brief Type alias for the result of a settings widget creation operation, which can be
@@ -40,15 +64,12 @@ using InputLoadedResult = tl::expected<void, Error>;
  */
 using MetaDataLoadedResult = tl::expected<void, Error>;
 
-class Reader;
-class MetaData;
-
 /**
  * @struct InputData
  * @brief Struct to encapsulate data related to the input loaded event in iVS3D
  */
 struct InputData {
-    Reader* reader = nullptr;
+    ::Reader* reader = nullptr;
 };
 
 /**
@@ -57,7 +78,7 @@ struct InputData {
  * currently opened input.
  */
 struct InputMetaData {
-    MetaData* metaData = nullptr;
+    ::MetaData* metaData = nullptr;
 };
 
 
@@ -71,6 +92,9 @@ struct InputMetaData {
  * common functionality across all plugins. All plugin signals need to be
  * declared in this interface to ensure they are available in derived plugin
  * classes.
+ *
+ * For usage and extension guidance see
+ * @ref plugin_interface_doc "PluginInterface.md".
  * 
  * @date 2025/12/05
  * @author Dominik Wüst
@@ -299,5 +323,7 @@ class IBase : public QObject {
     void encounteredError(Error error);
 };
 
-Q_DECLARE_INTERFACE(IBase, "iVS3D.IBase")
-Q_DECLARE_METATYPE(InputMetaData)
+} // namespace PLUG
+
+Q_DECLARE_INTERFACE(PLUG::IBase, "iVS3D.IBase")
+Q_DECLARE_METATYPE(PLUG::InputMetaData)

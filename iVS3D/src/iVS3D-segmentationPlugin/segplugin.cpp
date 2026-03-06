@@ -6,6 +6,19 @@
 #include "QMessageBox"
 #include "segsettingswidget.h"
 
+using MCFG::ModelSettingsWidget;
+using PLUG::ApplySettingsResult;
+using PLUG::Error;
+using PLUG::ErrorCode;
+using PLUG::MaskData;
+using PLUG::MaskResult;
+using PLUG::PreviewData;
+using PLUG::SettingsWidgetResult;
+using VIS::ImageOverlay;
+using VIS::ViewportType;
+using VIS::Visualization;
+using VIS::VisualizationResult;
+
 std::optional<Error> SegmentationPlugin::ensureModelReady() {
     auto activeModel = m_modelManager.activeModel();
     if (!activeModel || !activeModel->config) {

@@ -5,14 +5,14 @@
 #include <QSignalBlocker>
 #include <QVBoxLayout>
 
-SegmentationSettingsWidget::SegmentationSettingsWidget(ModelManager& manager,
+SegmentationSettingsWidget::SegmentationSettingsWidget(MCFG::ModelManager& manager,
                                                        QWidget* parent)
     : QWidget(parent) {
     auto* mainLayout = new QVBoxLayout(this);
     mainLayout->setSpacing(12);
     mainLayout->setContentsMargins(8, 8, 8, 8);
 
-    m_modelSettingsWidget = new ModelSettingsWidget(manager, this);
+    m_modelSettingsWidget = new MCFG::ModelSettingsWidget(manager, this);
     mainLayout->addWidget(m_modelSettingsWidget);
 
     auto* separator = new QFrame(this);

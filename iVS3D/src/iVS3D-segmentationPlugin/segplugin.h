@@ -13,33 +13,33 @@
 
 class SegmentationSettingsWidget;
 
-class SegmentationPlugin : public IBase, public IMask, public IPreview {
+class SegmentationPlugin : public PLUG::IBase, public PLUG::IMask, public PLUG::IPreview {
     Q_OBJECT
     Q_PLUGIN_METADATA(IID "iVS3D.IMask")
     Q_PLUGIN_METADATA(IID "iVS3D.IPreview")
     Q_PLUGIN_METADATA(IID "iVS3D.IBase")
-    Q_INTERFACES(IMask IBase IPreview)
+    Q_INTERFACES(PLUG::IMask PLUG::IBase PLUG::IPreview)
 
    public:
-    using IBase::IBase;
+    using PLUG::IBase::IBase;
 
     SegmentationPlugin();
 
     // IBase interface
     QString getName() const override { return tr("Segmentation Masks"); }
-    SettingsWidgetResult getSettingsWidget() override;
+    PLUG::SettingsWidgetResult getSettingsWidget() override;
     QMap<QString, QVariant> getSettings() const override;
     QString getSettingsString() const override;
-    ApplySettingsResult applySettings(
+    PLUG::ApplySettingsResult applySettings(
         const QMap<QString, QVariant>& settings) override;
     void onCudaChanged(bool enabled) override;
     void deactivate() override;
 
     // IMask interface
-    MaskResult generateMask(const MaskData& data) override;
+    PLUG::MaskResult generateMask(const PLUG::MaskData& data) override;
 
     // IPreview interface
-    VisualizationResult generatePreview(const PreviewData& data) override;
+    VIS::VisualizationResult generatePreview(const PLUG::PreviewData& data) override;
 
    signals:
     void syncSettingsWidget(QString selectedModelName, float overlayAlpha);
@@ -56,7 +56,7 @@ class SegmentationPlugin : public IBase, public IMask, public IPreview {
      * and loads the neural network if needed.
      * @return std::nullopt if successful, Error if validation fails
      */
-    std::optional<Error> ensureModelReady();
+    std::optional<PLUG::Error> ensureModelReady();
 
     tl::expected<NN::Tensor, NN::NeuralError> runInference(
         const cv::Mat& image);
@@ -65,7 +65,7 @@ class SegmentationPlugin : public IBase, public IMask, public IPreview {
     tl::expected<cv::Mat, NN::NeuralError> runMasking(
         const NN::Tensor& inferenceTensor);
 
-    ModelManager m_modelManager{QCoreApplication::applicationDirPath() +
+    MCFG::ModelManager m_modelManager{QCoreApplication::applicationDirPath() +
                                 "/plugins/resources/neural_network_models"};
 
     bool m_useCuda = false;
