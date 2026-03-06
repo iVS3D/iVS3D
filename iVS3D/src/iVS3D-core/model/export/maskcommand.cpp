@@ -9,9 +9,10 @@
 std::atomic<int> MaskCommand::s_pendingMasks(0);
 
 MaskCommand::MaskCommand(const MaskRecord* record, Resolution exportResolution,
-                         ROI roi, QString folder, PluginThread* pluginThread)
+                                                 ROI roi, QString folder, PluginThread* pluginThread,
+                                                 volatile bool* stopped)
     : m_record(record), m_exportResolution(exportResolution), m_roi(roi),
-      m_folder(folder), m_pluginThread(pluginThread) {
+            m_folder(folder), m_pluginThread(pluginThread), m_stopped(stopped) {
     
     // Compute cropped export resolution
     if (!roi.isDefault()) {
@@ -36,12 +37,19 @@ MaskCommand::MaskCommand(const MaskRecord* record, Resolution exportResolution,
 }
 
 std::optional<QString> MaskCommand::execute(ImageContext& ctx) {
+    if (m_stopped && *m_stopped) {
+        return "ABORTED";
+    }
+
     // Check current pending mask count and wait if necessary to avoid overwhelming the plugin thread.
     // MAX_PENDING_MASKS limits the number of concurrent mask generation requests in flight.
     // This prevents excessive queuing and memory usage when the plugin thread is slower than
     // the image processing pipeline.
     int currentPending = s_pendingMasks.load(std::memory_order_acquire);
     while (currentPending >= MAX_PENDING_MASKS) {
+        if (m_stopped && *m_stopped) {
+            return "ABORTED";
+        }
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
         currentPending = s_pendingMasks.load(std::memory_order_acquire);
     }
@@ -118,13 +126,22 @@ tl::expected< cv::Mat, QString > MaskCommand::waitForMask(uint imageIndex, int t
     // This timeout ensures the export doesn't hang indefinitely if a plugin malfunctions.
     // A 30-second timeout is generous for most mask generation operations but catches
     // genuine failures (e.g., plugin crash, GPU error) without excessive wait.
-    auto timeout = std::chrono::milliseconds(timeoutMs);
-    if (!m_maskReady.wait_for(locker, timeout, [this, imageIndex]() {
-        // Wait for either a mask result or an error message to arrive
-        return m_maskResults.find(imageIndex) != m_maskResults.end() ||
-               m_maskErrors.find(imageIndex) != m_maskErrors.end();
-    })) {
-        return tl::unexpected(QString("ERROR: Timeout waiting for mask for image at index %1").arg(imageIndex));
+    const auto waitStep = std::chrono::milliseconds(25);
+    const auto deadline = std::chrono::steady_clock::now() +
+                          std::chrono::milliseconds(timeoutMs);
+    while (m_maskResults.find(imageIndex) == m_maskResults.end() &&
+           m_maskErrors.find(imageIndex) == m_maskErrors.end()) {
+        if (m_stopped && *m_stopped) {
+            return tl::unexpected(QString("ABORTED"));
+        }
+
+        if (std::chrono::steady_clock::now() >= deadline) {
+            return tl::unexpected(
+                QString("ERROR: Timeout waiting for mask for image at index %1")
+                    .arg(imageIndex));
+        }
+
+        m_maskReady.wait_for(locker, waitStep);
     }
 
     // Check if an error message arrived

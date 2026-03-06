@@ -2,6 +2,8 @@
 
 #include "maskcommand.h"
 
+#include <algorithm>
+
 ExportThread::ExportThread(Progressable* receiver, ModelInputPictures* mip,
                            const ExportConfig& config, volatile bool* stopped,
                            std::shared_ptr<LogFile> logFile, PluginThread* pluginThread)
@@ -47,45 +49,54 @@ tl::expected<void, ExportError> ExportThread::validateMaskStack() {
 
     const auto& maskStack = *m_config.maskStack;
 
-    // Currently only support single mask record
-    if (maskStack.size() != 1) {
+    if (maskStack.size() == 0) {
+        return {};  // Explicitly empty stack is valid
+    }
+
+    if (!m_pluginThread) {
         return tl::unexpected(ExportError{
-            QString("MaskStack must contain exactly 1 entry, but contains %1")
-                .arg(maskStack.size())});
+            "Mask export requested, but PluginThread is not available"});
     }
 
-    const auto* record = maskStack.getRecord(0);
-    if (!record) {
-        return tl::unexpected(
-            ExportError{"Failed to retrieve mask record from stack"});
-    }
-
-    // Validate working resolution matches
-    if (!(record->workingResolution == m_config.working_resolution)) {
-        return tl::unexpected(
-            ExportError{QString("Mask working resolution (%1) does not match "
-                                "export resolution (%2)")
-                            .arg(record->workingResolution.toString())
-                            .arg(m_config.working_resolution.toString())});
-    }
-
-    // Validate ROI matches
-    const auto& recordRoi = record->roi;
-
-    // Check if both have ROI or both don't have ROI
-    bool recordHasRoi = !recordRoi.isDefault();
-    bool configHasRoi = m_config.roi.has_value();
-
-    if (recordHasRoi != configHasRoi) {
-        return tl::unexpected(
-            ExportError{"Mask ROI configuration does not match export ROI"});
-    }
-
-    // If both have ROI, compare them by converting to QRectF
-    if (configHasRoi) {
-        if (!(recordRoi.toQRectF() == m_config.roi->toQRectF())) {
+    for (int i = 0; i < maskStack.size(); ++i) {
+        const auto* record = maskStack.getRecord(i);
+        if (!record) {
             return tl::unexpected(
-                ExportError{"Mask ROI does not match export ROI"});
+                ExportError{QString("Failed to retrieve mask record at index %1")
+                                .arg(i)});
+        }
+
+        if (record->pluginName.isEmpty()) {
+            return tl::unexpected(
+                ExportError{QString("Mask record at index %1 has no plugin name")
+                                .arg(i)});
+        }
+
+        // Validate working resolution matches
+        if (!(record->workingResolution == m_config.working_resolution)) {
+            return tl::unexpected(
+                ExportError{QString("Mask record %1 working resolution (%2) "
+                                    "does not match export working resolution (%3)")
+                                .arg(i)
+                                .arg(record->workingResolution.toString())
+                                .arg(m_config.working_resolution.toString())});
+        }
+
+        // Validate ROI matches export ROI
+        const auto& recordRoi = record->roi;
+        const bool recordHasRoi = !recordRoi.isDefault();
+        const bool configHasRoi = m_config.roi.has_value();
+
+        if (recordHasRoi != configHasRoi) {
+            return tl::unexpected(
+                ExportError{QString("Mask record %1 ROI configuration does not match export ROI")
+                                .arg(i)});
+        }
+
+        if (configHasRoi && !(recordRoi.toQRectF() == m_config.roi->toQRectF())) {
+            return tl::unexpected(
+                ExportError{QString("Mask record %1 ROI does not match export ROI")
+                                .arg(i)});
         }
     }
 
@@ -93,7 +104,7 @@ tl::expected<void, ExportError> ExportThread::validateMaskStack() {
 }
 
 void ExportThread::run() {
-    m_receiver->slot_makeProgress(0, tr("Exporting images"));
+    m_receiver->slot_makeProgress(0, tr("Preparing export"));
 
     // Log export configuration to file
     QString configLog = QString("Export Configuration:\n"
@@ -153,169 +164,270 @@ void ExportThread::run() {
         }
     }
 
-    // Setup the ImageProcessor
-    std::vector<ImageProcessor> processors;
-    ImageProcessor& processor = processors.emplace_back();
+    // Setup the image export processor (always executed in step 1)
+    ImageProcessor imageProcessor;
     if (usesResize) {
-        processor.addCommand(std::make_unique<ResizeCommand>(
+        imageProcessor.addCommand(std::make_unique<ResizeCommand>(
             m_config.export_resolution.toQPoint()));
     }
     if (usesRoi) {
-        processor.addCommand(std::make_unique<CropCommand>(
+        imageProcessor.addCommand(std::make_unique<CropCommand>(
             m_config.roi->cropAsQRect(m_config.export_resolution)));
     }
 
     // Setup writing to disk or copying input image
     QString imagePath = m_config.destination + QString("/images");
     if (m_config.copy_images) {
-        processor.addCommand(std::make_unique<CopyFileCommand>(
+        imageProcessor.addCommand(std::make_unique<CopyFileCommand>(
             m_reader->getFileVector(), imagePath));
     } else {
-        processor.addCommand(std::make_unique<WriteToDiskCommand>(
+        imageProcessor.addCommand(std::make_unique<WriteToDiskCommand>(
             imagePath, "", m_config.format, m_reader->getFileVector()));
     }
 
     // Add exif tag only if we have gps data available and didn't copy images
     if (!m_config.copy_images && useExif) {
-        processor.addCommand(std::make_unique<ExifTagCommand>(gpsReader));
+        imageProcessor.addCommand(std::make_unique<ExifTagCommand>(gpsReader));
     }
 
-    // Create a separate processor for mask generation if a mask stack is present.
-    // Masks are generated asynchronously by the plugin thread and have their own
-    // processing pipeline (resize/crop to match mask generation resolution before generation).
-    ImageProcessor &maskProcessor = processors.emplace_back();
-    if (m_config.maskStack && m_config.maskStack->size() > 0 && m_pluginThread) {
-        const auto* record = m_config.maskStack->getRecord(0);
-        if (record) {
+    QVector<MaskRecord> maskRecords;
+    if (m_config.maskStack) {
+        maskRecords = m_config.maskStack->getAllRecords();
+    }
+
+    const int totalSteps = std::max(1, maskRecords.size());
+    m_totalWorkUnits = int(m_keyframes.size()) * totalSteps;
+    m_completedWorkUnits.store(0, std::memory_order_relaxed);
+
+    m_receiver->slot_displayMessage(
+        tr("Starting export with %1 step(s) and %2 image(s) per step.")
+            .arg(totalSteps)
+            .arg(m_keyframes.size()));
+
+    const QString maskPath = m_config.destination + QString("/masks");
+    if (!maskRecords.isEmpty()) {
+        if (!QDir().exists(maskPath) && !QDir().mkpath(maskPath)) {
+            QString errorMsg =
+                tr("Failed to create mask output directory: %1").arg(maskPath);
+            m_receiver->slot_displayMessage(errorMsg);
             if (m_logFile) {
-                m_logFile->addCustomEntry("MaskGeneration", "Adding mask generation to export pipeline");
+                m_logFile->addCustomEntry("MaskOutputDirectory", errorMsg,
+                                          "Error");
             }
-
-            // Resize/crop to the working resolution that the mask generator expects
-            if (record->workingResolution != m_config.original_resolution) {
-                maskProcessor.addCommand(std::make_unique<ResizeCommand>(
-                    record->workingResolution.toQPoint()));
-            }
-            if (usesRoi) {
-                maskProcessor.addCommand(std::make_unique<CropCommand>(
-                    m_config.roi->cropAsQRect(m_config.working_resolution)));
-            }
-
-            // Create the mask command (expensive plugin setup happens in constructor)
-            auto maskCmd = std::make_unique<MaskCommand>(
-                record, m_config.export_resolution,
-                m_config.roi.has_value() ? *m_config.roi : ROI(),
-                m_config.destination, m_pluginThread);
-
-            // Connect PluginThread mask result signal to MaskCommand's callback handler
-            // This allows MaskCommand to receive async results from the plugin thread
-            connect(m_pluginThread, &PluginThread::maskFinished, this,
-                    [maskCmdPtr = maskCmd.get()](const MaskGenerationResult& result) {
-                        if (maskCmdPtr) {
-                            maskCmdPtr->onMaskFinished(result);
-                        }
-                    },
-                    Qt::QueuedConnection);
-
-            maskProcessor.addCommand(std::move(maskCmd));
-
-            // Ensure output directory exists
-            QString maskPath = m_config.destination + QString("/masks");
-            if (!QDir().exists(maskPath) && !QDir().mkpath(maskPath)) {
-                QString errorMsg = tr("Failed to create mask output directory: %1").arg(maskPath);
-                m_receiver->slot_displayMessage(errorMsg);
-                if (m_logFile) {
-                    m_logFile->addCustomEntry("MaskOutputDirectory", errorMsg, "Error");
-                }
-                m_result = ExportResult::failed(errorMsg);
-                return;
-            }
-            if (m_logFile) {
-                m_logFile->addCustomEntry("MaskOutputDirectory", QString("Mask output directory created: %1").arg(maskPath));
-            }
-            maskProcessor.addCommand(std::make_unique<WriteToDiskCommand>(
-                maskPath, "", "png", m_reader->getFileVector()));
+            m_result = ExportResult::failed(errorMsg);
+            return;
+        }
+        if (m_logFile) {
+            m_logFile->addCustomEntry(
+                "MaskOutputDirectory",
+                QString("Mask output directory prepared: %1").arg(maskPath));
         }
     }
 
-    // run the processor to export images
-    SequentialReader* seq_reader =
-        m_reader->createSequentialReader(m_keyframes, Reader::APPLY_NONE);
+    auto createMaskProcessor =
+        [&](const MaskRecord& record, bool mergeWithExisting,
+            QMetaObject::Connection& connection)
+        -> std::unique_ptr<ImageProcessor> {
+        auto processor = std::make_unique<ImageProcessor>();
 
-    // Shared variables for error handling
-    std::atomic<bool> errorOccurred(false);
-    std::mutex errorMutex;
-    std::optional<QString> firstError;
-
-    std::function<void(int*)> writeToDrive = [seq_reader, &processors, this,
-                                              &errorOccurred, &errorMutex,
-                                              &firstError](int* num_imgs) {
-        *num_imgs = 0;
-        cv::Mat image;
-        uint index;
-        while (seq_reader->getNext(image, index)) {
-            if (*m_stopped || errorOccurred.load()) {
-                return;  // user stopped the computation or error occurred ->
-                         // return
-            }
-            if (image.empty())
-                continue;  // broken input image (happens with some codecs)
-            
-            for (ImageProcessor& processor : processors) {
-                ImageContext ctx;
-                ctx.originalImage = image.clone();  // clone to ensure thread safety for plugins
-                ctx.image = image.clone();
-                ctx.index = index;
-                auto res = processor.process(ctx);
-                if (res) {
-                    // something went wrong during export!
-                    // abort here!
-                    // Store the first error message
-                    std::lock_guard<std::mutex> lock(errorMutex);
-                    if (!errorOccurred.exchange(true)) {
-                        firstError = res;
-                        m_receiver->slot_makeProgress(
-                            0, tr("Encountered an error! Aborting..."));
-                    }
-                    return;
-                }
-            }
-            
-            // successfully exported the image
-            *num_imgs += 1;
-            reportProgress();
+        if (record.workingResolution != m_config.original_resolution) {
+            processor->addCommand(std::make_unique<ResizeCommand>(
+                record.workingResolution.toQPoint()));
         }
+
+        if (!record.roi.isDefault()) {
+            processor->addCommand(std::make_unique<CropCommand>(
+                record.roi.cropAsQRect(record.workingResolution)));
+        }
+
+        auto maskCmd = std::make_unique<MaskCommand>(
+            &record, m_config.export_resolution, record.roi, m_config.destination,
+            m_pluginThread, m_stopped);
+
+        MaskCommand* maskCmdPtr = maskCmd.get();
+        connection = connect(
+            m_pluginThread, &PluginThread::maskFinished, this,
+            [maskCmdPtr](const MaskGenerationResult& result) {
+                if (maskCmdPtr) {
+                    maskCmdPtr->onMaskFinished(result);
+                }
+            },
+            Qt::QueuedConnection);
+
+        processor->addCommand(std::move(maskCmd));
+
+        if (mergeWithExisting) {
+            processor->addCommand(std::make_unique<MaskMergeCommand>(
+                maskPath, "png", m_reader->getFileVector()));
+        }
+
+        processor->addCommand(std::make_unique<WriteToDiskCommand>(
+            maskPath, "", "png", m_reader->getFileVector()));
+
+        return processor;
     };
 
-    m_receiver->slot_displayMessage(tr("Starting export..."));
-    // start the computation in multiple worker threads
-    QFutureSynchronizer<void> synchronizer;
-    // use all available threads for now
-    int n_threads = QThread::idealThreadCount();
-    std::vector<int> n_imgs_exported(n_threads, 0);
+    auto executeSweep =
+        [&](const QString& operationLabel,
+            const std::vector<ImageProcessor*>& processors, int stepIndex,
+            int stepCount, int* processedImages) -> std::optional<QString> {
+        SequentialReader* seqReader =
+            m_reader->createSequentialReader(m_keyframes, Reader::APPLY_NONE);
 
-    for (int i = 0; i < n_threads; i++) {
-        synchronizer.addFuture(
-            QtConcurrent::run(writeToDrive, &n_imgs_exported[i]));
-    }
-    synchronizer.waitForFinished();
-    delete seq_reader;
+        std::atomic<bool> errorOccurred(false);
+        std::mutex errorMutex;
+        std::optional<QString> firstError;
 
-    // Check for error after threads finish
-    if (firstError) {
-        m_receiver->slot_displayMessage(*firstError);
-        m_result = ExportResult::failed(*firstError);
-        return;
-    }
+        auto writeToDrive = [seqReader, &processors, this, &errorOccurred,
+                             &errorMutex, &firstError, &operationLabel,
+                             stepIndex, stepCount](int* numImgs) {
+            *numImgs = 0;
+            cv::Mat image;
+            uint index;
+            while (seqReader->getNext(image, index)) {
+                if (*m_stopped || errorOccurred.load()) {
+                    return;
+                }
+                if (image.empty()) {
+                    continue;
+                }
 
-    if (*m_stopped) {
-        m_result = ExportResult::aborted();
-        return;
-    }
+                for (ImageProcessor* processor : processors) {
+                    ImageContext ctx;
+                    ctx.originalImage = image.clone();
+                    ctx.image = image.clone();
+                    ctx.index = index;
+                    auto res = processor->process(ctx);
+                    if (res) {
+                        if (*m_stopped || *res == "ABORTED") {
+                            return;
+                        }
+                        std::lock_guard<std::mutex> lock(errorMutex);
+                        if (!errorOccurred.exchange(true)) {
+                            firstError = res;
+                            m_receiver->slot_makeProgress(
+                                0, tr("Encountered an error! Aborting..."));
+                        }
+                        return;
+                    }
+                }
+
+                *numImgs += 1;
+                reportProgress(operationLabel, stepIndex, stepCount);
+            }
+        };
+
+        QFutureSynchronizer<void> synchronizer;
+        const int nThreads = std::max(1, QThread::idealThreadCount());
+        std::vector<int> processedPerThread(nThreads, 0);
+        for (int i = 0; i < nThreads; ++i) {
+            synchronizer.addFuture(
+                QtConcurrent::run(writeToDrive, &processedPerThread[i]));
+        }
+        synchronizer.waitForFinished();
+        delete seqReader;
+
+        int totalProcessed = 0;
+        for (int v : processedPerThread) {
+            totalProcessed += v;
+        }
+        if (processedImages) {
+            *processedImages = totalProcessed;
+        }
+
+        if (firstError) {
+            return *firstError;
+        }
+
+        return std::nullopt;
+    };
 
     int total_images_exported = 0;
-    for (int i = 0; i < n_threads; i++) {
-        total_images_exported += n_imgs_exported[i];
+
+    // Step 1: always export images, optionally also generate first mask
+    {
+        std::vector<ImageProcessor*> processors;
+        processors.push_back(&imageProcessor);
+
+        std::unique_ptr<ImageProcessor> maskProcessor;
+        QMetaObject::Connection maskConnection;
+
+        if (!maskRecords.isEmpty()) {
+            maskProcessor = createMaskProcessor(maskRecords[0], false, maskConnection);
+            processors.push_back(maskProcessor.get());
+        }
+
+        const QString operationLabel =
+            maskRecords.isEmpty()
+                ? tr("Step 1/%1: Exporting images").arg(totalSteps)
+                : tr("Step 1/%1: Exporting images + mask 1/%2 (%3)")
+                      .arg(totalSteps)
+                      .arg(maskRecords.size())
+                      .arg(maskRecords[0].pluginName);
+
+        int processedImages = 0;
+        auto sweepError = executeSweep(operationLabel, processors, 1, totalSteps,
+                                       &processedImages);
+
+        if (maskConnection) {
+            disconnect(maskConnection);
+        }
+
+        if (sweepError) {
+            m_receiver->slot_displayMessage(*sweepError);
+            m_result = ExportResult::failed(*sweepError);
+            return;
+        }
+
+        if (*m_stopped) {
+            m_result = ExportResult::aborted();
+            m_receiver->slot_displayMessage(tr("Export aborted by user."));
+            return;
+        }
+
+        total_images_exported = processedImages;
+    }
+
+    // Step 2..N: generate additional masks and merge with existing mask on disk
+    for (int i = 1; i < maskRecords.size(); ++i) {
+        if (*m_stopped) {
+            m_result = ExportResult::aborted();
+            return;
+        }
+
+        QMetaObject::Connection maskConnection;
+        auto maskProcessor =
+            createMaskProcessor(maskRecords[i], true, maskConnection);
+
+        std::vector<ImageProcessor*> processors;
+        processors.push_back(maskProcessor.get());
+
+        const QString operationLabel =
+            tr("Step %1/%2: Merging mask %3/%4 (%5)")
+                .arg(i + 1)
+                .arg(totalSteps)
+                .arg(i + 1)
+                .arg(maskRecords.size())
+                .arg(maskRecords[i].pluginName);
+
+        auto sweepError =
+            executeSweep(operationLabel, processors, i + 1, totalSteps, nullptr);
+
+        if (maskConnection) {
+            disconnect(maskConnection);
+        }
+
+        if (sweepError) {
+            m_receiver->slot_displayMessage(*sweepError);
+            m_result = ExportResult::failed(*sweepError);
+            return;
+        }
+
+        if (*m_stopped) {
+            m_result = ExportResult::aborted();
+            m_receiver->slot_displayMessage(tr("Export aborted by user."));
+            return;
+        }
     }
 
     // report broken frames
@@ -331,10 +443,19 @@ void ExportThread::run() {
     }
 }
 
-void ExportThread::reportProgress() {
-    m_progress++;
+void ExportThread::reportProgress(const QString& operation, int stepIndex,
+                                  int totalSteps) {
+    const int completed =
+        m_completedWorkUnits.fetch_add(1, std::memory_order_relaxed) + 1;
+
+    int percentProgress = 100;
+    if (m_totalWorkUnits > 0) {
+        percentProgress = std::clamp((completed * 100) / m_totalWorkUnits, 0, 100);
+    }
+
     if (m_receiver) {
-        int percentProgress = m_progress * 100 / (int)m_keyframes.size();
-        m_receiver->slot_makeProgress(percentProgress, tr("Exporting images"));
+        m_receiver->slot_makeProgress(
+            percentProgress,
+            tr("%1 (%2/%3)").arg(operation).arg(stepIndex).arg(totalSteps));
     }
 }

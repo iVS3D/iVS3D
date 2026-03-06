@@ -16,6 +16,7 @@
 #include <QFile>
 
 #include <memory>
+#include <atomic>
 
 #include <tl/expected.hpp>
 #include <chrono>
@@ -32,6 +33,7 @@
 #include "resizecommand.h"
 #include "writetodiskcommand.h"
 #include "exiftagcommand.h"
+#include "maskmergecommand.h"
 #include "maskstack.h"
 #include "pluginthread.h"
 
@@ -126,11 +128,12 @@ private:
     ExportConfig m_config;
     ExportResult m_result = ExportResult::success();
     std::shared_ptr<LogFile> m_logFile;
-    int m_progress = 0;
+    std::atomic<int> m_completedWorkUnits{0};
+    int m_totalWorkUnits = 0;
     ExportExif* m_exportExif;
     PluginThread* m_pluginThread = nullptr;
 
-    void reportProgress();
+    void reportProgress(const QString& operation, int stepIndex, int totalSteps);
     tl::expected<void, ExportError> validateMaskStack();
 
 protected:
