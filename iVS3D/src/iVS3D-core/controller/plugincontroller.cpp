@@ -8,6 +8,9 @@
 #include <QLabel>
 #include <QVBoxLayout>
 
+using PLUG::InputMetaData;
+using PLUG::SelectionData;
+
 PluginController::PluginController(DataManager* dataManager,
                                    SamplingWidget* samplingWidget,
                                    VideoPlayerController* vpc,

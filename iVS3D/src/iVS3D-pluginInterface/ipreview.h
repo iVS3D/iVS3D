@@ -5,6 +5,8 @@
 #include "opencv2/core.hpp"
 #include "visualization.h"
 
+namespace PLUG {
+
 /**
  * @struct PreviewData
  * @brief Struct containing data required to generate a preview.
@@ -30,6 +32,8 @@ struct PreviewData {
  * signal inherited from IBase to notify the system when a new preview should be
  * generated.
  *
+ * @see @ref plugin_interface_doc "PluginInterface.md"
+ *
  *
  * @author Dominik Wüst
  * @date 2025/12/05
@@ -49,7 +53,9 @@ class IPreview {
      * @return A VisualizationResult containing either the generated
      * Visualization or an Error if the preview generation failed.
      */
-    virtual VisualizationResult generatePreview(const PreviewData& data) = 0;
+    virtual VIS::VisualizationResult generatePreview(const PreviewData& data) = 0;
 };
 
-Q_DECLARE_INTERFACE(IPreview, "iVS3D.IPreview")
+} // namespace PLUG
+
+Q_DECLARE_INTERFACE(PLUG::IPreview, "iVS3D.IPreview")

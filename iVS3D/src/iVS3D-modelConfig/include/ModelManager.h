@@ -265,6 +265,3 @@ private:
 Q_DECLARE_METATYPE(MCFG::ModelManager::ModelState)
 Q_DECLARE_METATYPE(MCFG::ModelManager::ModelEntry)
 Q_DECLARE_METATYPE(QVector<MCFG::ModelManager::ModelEntry>)
-
-// Backward-compatible alias (prefer MCFG::ModelManager in new code).
-using ModelManager = MCFG::ModelManager;

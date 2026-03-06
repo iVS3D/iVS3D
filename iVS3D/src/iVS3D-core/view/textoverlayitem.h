@@ -24,7 +24,7 @@ public:
                     const QFont& font,
                     const QColor& textColor,
                   const QColor& bgColor,
-                  TextAnchor anchor,
+                                    VIS::TextAnchor anchor,
                   qreal padding = 3.0,
                   QGraphicsItem* parent = nullptr)
         : QGraphicsItem(parent)
@@ -79,31 +79,31 @@ private:
         // Compute anchor point within boxRect
         QPointF anchorPoint;
         switch (m_anchor) {
-        case TextAnchor::TopLeft:
+        case VIS::TextAnchor::TopLeft:
             anchorPoint = boxRect.topLeft();
             break;
-        case TextAnchor::TopCenter:
+        case VIS::TextAnchor::TopCenter:
             anchorPoint = QPointF(boxRect.center().x(), boxRect.top());
             break;
-        case TextAnchor::TopRight:
+        case VIS::TextAnchor::TopRight:
             anchorPoint = boxRect.topRight();
             break;
-        case TextAnchor::CenterLeft:
+        case VIS::TextAnchor::CenterLeft:
             anchorPoint = QPointF(boxRect.left(), boxRect.center().y());
             break;
-        case TextAnchor::Center:
+        case VIS::TextAnchor::Center:
             anchorPoint = boxRect.center();
             break;
-        case TextAnchor::CenterRight:
+        case VIS::TextAnchor::CenterRight:
             anchorPoint = QPointF(boxRect.right(), boxRect.center().y());
             break;
-        case TextAnchor::BottomLeft:
+        case VIS::TextAnchor::BottomLeft:
             anchorPoint = boxRect.bottomLeft();
             break;
-        case TextAnchor::BottomCenter:
+        case VIS::TextAnchor::BottomCenter:
             anchorPoint = QPointF(boxRect.center().x(), boxRect.bottom());
             break;
-        case TextAnchor::BottomRight:
+        case VIS::TextAnchor::BottomRight:
             anchorPoint = boxRect.bottomRight();
             break;
         }
@@ -117,7 +117,7 @@ private:
     QFont      m_font;
     QColor     m_textColor;
     QColor     m_bgColor;
-    TextAnchor m_anchor;
+    VIS::TextAnchor m_anchor;
     qreal      m_padding;
     QRectF     m_rect;   // background rect in item coordinates
 };

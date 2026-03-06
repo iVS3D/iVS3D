@@ -19,10 +19,10 @@
 #include "visualization.h"
 
 void drawOverlay(QGraphicsScene* scene, QGraphicsItem* parent,
-                 const RectOverlay& overlay);
+                 const VIS::RectOverlay& overlay);
 
 void drawOverlay(QGraphicsScene* scene, QGraphicsItem* parent,
-                 const TextOverlay& overlay);
+                 const VIS::TextOverlay& overlay);
 
 void drawOverlay(QGraphicsScene* scene, QGraphicsItem* parent,
-                 const ImageOverlay& overlay);
+                 const VIS::ImageOverlay& overlay);

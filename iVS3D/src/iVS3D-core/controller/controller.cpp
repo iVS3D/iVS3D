@@ -640,7 +640,7 @@ uint Controller::loadMetaDataFromPath(QString path)
 {
     int n = m_dataManager->getModelInputPictures()->loadMetaData(QStringList(path));
     if (n > 0) {
-        InputMetaData inputMetaData;
+        PLUG::InputMetaData inputMetaData;
         inputMetaData.metaData = m_dataManager->getModelInputPictures()->getReader()->getMetaData();
         if (m_pluginThread) {
             m_pluginThread->onMetaDataLoaded(inputMetaData);

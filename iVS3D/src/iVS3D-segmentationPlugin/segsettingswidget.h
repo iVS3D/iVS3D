@@ -11,10 +11,10 @@ class SegmentationSettingsWidget : public QWidget {
     Q_OBJECT
 
 public:
-    explicit SegmentationSettingsWidget(ModelManager& manager,
+    explicit SegmentationSettingsWidget(MCFG::ModelManager& manager,
                                         QWidget* parent = nullptr);
 
-    ModelSettingsWidget* modelSettingsWidget() const { return m_modelSettingsWidget; }
+    MCFG::ModelSettingsWidget* modelSettingsWidget() const { return m_modelSettingsWidget; }
 
     void setOverlayAlpha(float alpha);
     float overlayAlpha() const;
@@ -27,7 +27,7 @@ public slots:
                              float overlayAlpha);
 
 private:
-    ModelSettingsWidget* m_modelSettingsWidget = nullptr;
+    MCFG::ModelSettingsWidget* m_modelSettingsWidget = nullptr;
     QSlider* m_alphaSlider = nullptr;
     QLabel* m_alphaValue = nullptr;
 };

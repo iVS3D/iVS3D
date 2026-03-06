@@ -92,7 +92,7 @@ VideoPlayer::~VideoPlayer() {
     delete ui;
 }
 
-void VideoPlayer::showVisualization(const Visualization& vis) {
+void VideoPlayer::showVisualization(const VIS::Visualization& vis) {
     
     assert(m_imageItem != nullptr); // must have an image to overlay on!
 
@@ -121,10 +121,10 @@ void VideoPlayer::showVisualization(const Visualization& vis) {
                 QTransform::fromTranslate(width, 0)
                     .scale(image_viewport.width() * view.style.relativeSize.x(), image_viewport.height() * view.style.relativeSize.y())); // scale from [0,1] to viewport size
             
-            TextOverlay titleOverlay;
+            VIS::TextOverlay titleOverlay;
             titleOverlay.text = view.title;
             titleOverlay.position = QPointF(0.5, 0.02); // top center
-            titleOverlay.anchor = TextAnchor::TopCenter;
+            titleOverlay.anchor = VIS::TextAnchor::TopCenter;
             titleOverlay.style.fontSize = 16;
             titleOverlay.style.textColor = Qt::white;
             titleOverlay.style.backgroundColor = Qt::darkGray;
@@ -133,7 +133,7 @@ void VideoPlayer::showVisualization(const Visualization& vis) {
 
         // create a root element correctly scaled and translated for this view
         auto *view_root = new QGraphicsItemGroup(m_visItemGroup);
-        auto &viewport = (view.style.viewport == ViewportType::RegionOfInterest) ? roi_viewport : image_viewport;
+        auto &viewport = (view.style.viewport == VIS::ViewportType::RegionOfInterest) ? roi_viewport : image_viewport;
 
         view_root->setTransform(
             QTransform::fromTranslate(viewport.x() + width, viewport.y())

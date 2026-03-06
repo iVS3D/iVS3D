@@ -48,7 +48,7 @@
  * @author Daniel Brommer
  * @author Boitumelo Ruf
  */
-class GeoMap : public IBase, public ISelection
+class GeoMap : public PLUG::IBase, public PLUG::ISelection
 {
     Q_OBJECT
 
@@ -56,7 +56,7 @@ class GeoMap : public IBase, public ISelection
     Q_PLUGIN_METADATA(IID "iVS3D.IBase")
 
     // declare this as implementation of IBase and ISelection interfaces
-    Q_INTERFACES(IBase ISelection)
+    Q_INTERFACES(PLUG::IBase PLUG::ISelection)
 
     //--- METHOD DECLARATION ---//
 
@@ -80,7 +80,7 @@ class GeoMap : public IBase, public ISelection
      *
      * @return The QWidget with the plugin settings
      */
-    SettingsWidgetResult getSettingsWidget() override;
+    PLUG::SettingsWidgetResult getSettingsWidget() override;
 
     /**
      * @brief getName returns the display name for the plugin. This name is presented to the user.
@@ -89,16 +89,16 @@ class GeoMap : public IBase, public ISelection
     QString getName() const override;
 
     QMap<QString, QVariant> getSettings() const override;
-    ApplySettingsResult applySettings(
+    PLUG::ApplySettingsResult applySettings(
         const QMap<QString, QVariant>& settings) override;
-    InputLoadedResult onInputLoaded(const InputData& input) override;
-    MetaDataLoadedResult onMetaDataLoaded(
-        const InputMetaData& inputMetaData) override;
+    PLUG::InputLoadedResult onInputLoaded(const PLUG::InputData& input) override;
+    PLUG::MetaDataLoadedResult onMetaDataLoaded(
+      const PLUG::InputMetaData& inputMetaData) override;
     void onSelectedImagesChanged(
         const std::vector<uint>& selectedImages) override;
     void onIndexChanged(uint index) override;
 
-    SelectionResult selectImages(const SelectionData& data,
+    PLUG::SelectionResult selectImages(const PLUG::SelectionData& data,
                                  volatile bool& cancelFlag) override;
 
   signals:

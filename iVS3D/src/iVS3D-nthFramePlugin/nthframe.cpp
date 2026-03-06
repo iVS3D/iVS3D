@@ -21,6 +21,15 @@ constexpr auto DESCRIPTION_STYLE =
 constexpr auto SETTING_KEY_N = "N";
 constexpr auto SETTING_KEY_KEEP_ISOLATED = "KeepIsolated";
 
+using PLUG::ApplySettingsResult;
+using PLUG::Error;
+using PLUG::ErrorCode;
+using PLUG::InputData;
+using PLUG::InputLoadedResult;
+using PLUG::SelectionData;
+using PLUG::SelectionResult;
+using PLUG::SettingsWidgetResult;
+
 NthFrame::NthFrame() : IBase() {
     // Install translator for localization support
     QLocale locale = qApp->property("translation").toLocale();

@@ -231,6 +231,3 @@ private:
 };
 
 } // namespace MCFG
-
-// Backward-compatible alias (prefer MCFG::ModelSettingsWidget in new code).
-using ModelSettingsWidget = MCFG::ModelSettingsWidget;

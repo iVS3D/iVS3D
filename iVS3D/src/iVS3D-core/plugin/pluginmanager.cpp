@@ -49,7 +49,7 @@ std::shared_ptr<QWidget> PluginManager::getSettingsWidget(const QString& pluginN
     return it->settingsWidget;
 }
 
-std::optional<Error> PluginManager::getSettingsWidgetError(
+std::optional<PLUG::Error> PluginManager::getSettingsWidgetError(
     const QString& pluginName) const {
     auto it = m_plugins.find(pluginName);
     if (it == m_plugins.end()) {
@@ -58,11 +58,11 @@ std::optional<Error> PluginManager::getSettingsWidgetError(
     return it->settingsWidgetError;
 }
 
-ApplySettingsResult PluginManager::applyPluginSettings(
+PLUG::ApplySettingsResult PluginManager::applyPluginSettings(
     const QString& pluginName,
     const QMap<QString, QVariant>& settings) const {
     if (!m_pluginThread) {
-        return tl::unexpected(Error(ErrorCode::RuntimeError, "PluginThread not available"));
+        return tl::unexpected(PLUG::Error(PLUG::ErrorCode::RuntimeError, "PluginThread not available"));
     }
     return m_pluginThread->applyPluginSettings(pluginName, settings);
 }
@@ -86,8 +86,8 @@ std::shared_ptr<PluginThread> PluginManager::getPluginThread() const {
     return m_pluginThread;
 }
 
-QVector<QPair<QString, Error>> PluginManager::loadSettingsWidgets() {
-    QVector<QPair<QString, Error>> errors;
+QVector<QPair<QString, PLUG::Error>> PluginManager::loadSettingsWidgets() {
+    QVector<QPair<QString, PLUG::Error>> errors;
 
     for (auto it = m_plugins.begin(); it != m_plugins.end(); ++it) {
         PluginHandle& handle = it.value();
@@ -108,7 +108,7 @@ QVector<QPair<QString, Error>> PluginManager::loadSettingsWidgets() {
             handle.settingsWidgetError = std::nullopt;
         } else {
             handle.settingsWidgetError = settingsWidgetResult.error();
-            errors.append(QPair<QString, Error>(handle.name(), settingsWidgetResult.error()));
+            errors.append(QPair<QString, PLUG::Error>(handle.name(), settingsWidgetResult.error()));
         }
     }
 
@@ -155,16 +155,16 @@ void PluginManager::loadPlugins() {
             continue;
         }
 
-        handle.base = qobject_cast<IBase*>(handle.qobject);
+        handle.base = qobject_cast<PLUG::IBase*>(handle.qobject);
         if (!handle.base) {
             handle.loader->unload();
             delete handle.loader;
             continue;
         }
 
-        handle.preview = qobject_cast<IPreview*>(handle.qobject);
-        handle.mask = qobject_cast<IMask*>(handle.qobject);
-        handle.selection = qobject_cast<ISelection*>(handle.qobject);
+        handle.preview = qobject_cast<PLUG::IPreview*>(handle.qobject);
+        handle.mask = qobject_cast<PLUG::IMask*>(handle.qobject);
+        handle.selection = qobject_cast<PLUG::ISelection*>(handle.qobject);
 
         m_plugins.insert(handle.name(), handle);
         // print info like name and supported interfaces

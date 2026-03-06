@@ -10,8 +10,25 @@
 #include "opencv2/core.hpp"
 
 /**
+ * @defgroup Visualization Visualization
+ * @brief Data model and style primitives for preview rendering in iVS3D.
+ *
+ * This group contains all overlay/view/result types in namespace VIS.
+ */
+
+/**
+ * @namespace VIS
+ * @brief Visualization data model namespace for plugin preview rendering.
+ * @ingroup Visualization
+ *
+ * See @ref plugin_interface_doc "PluginInterface.md" for integration details.
+ */
+namespace VIS {
+
+/**
  * @struct RectStyle
  * @brief Style settings for rendering rectangles.
+ * @ingroup Visualization
  */
 struct RectStyle {
     QColor strokeColor = Qt::green;  // Default color: Green
@@ -25,6 +42,7 @@ struct RectStyle {
  * rectangle is defined in the normalized [0,1] plane and will be projected to
  * the image dimensions during rendering. The strokeWidth is defined in screen
  * space pixels and remains constant regardless of image size.
+ * @ingroup Visualization
  */
 struct RectOverlay {
     QRectF rectangle;  // Rectangle coordinates in [0,1] normalized space
@@ -35,6 +53,7 @@ struct RectOverlay {
  * @struct TextStyle
  * @brief Style settings for rendering text. All settings are in screen space
  * pixels and remain constant regardless of image size.
+ * @ingroup Visualization
  */
 struct TextStyle {
     QColor textColor = Qt::white;        // Default text color: White
@@ -47,6 +66,7 @@ struct TextStyle {
 /**
  * @enum TextAnchor
  * @brief Anchor positions for text overlays.
+ * @ingroup Visualization
  */
 enum class TextAnchor {
     TopLeft,
@@ -66,6 +86,7 @@ enum class TextAnchor {
  * defined in the normalized [0,1] plane and will be projected to the image
  * dimensions during rendering. The anchor defines which part of the text aligns
  * to the specified position.
+ * @ingroup Visualization
  */
 struct TextOverlay {
     QString text;      // Text content to display
@@ -77,6 +98,7 @@ struct TextOverlay {
 /**
  * @struct ImageStyle
  * @brief Style settings for rendering images.
+ * @ingroup Visualization
  */
 struct ImageStyle {
     float opacity = 1.0f;  // Default opacity: fully opaque
@@ -89,12 +111,18 @@ struct ImageStyle {
  * image will be drawn over the base image with the specified style. If
  * required, the image is resized to match the base image dimensions during
  * rendering.
+ * @ingroup Visualization
  */
 struct ImageOverlay {
     cv::Mat image;     // Image to overlay
     ImageStyle style;  // Style for rendering the image
 };
 
+/**
+ * @typedef OverlayItem
+ * @brief Variant type for all supported overlay primitives.
+ * @ingroup Visualization
+ */
 using OverlayItem = std::variant<RectOverlay, TextOverlay, ImageOverlay>;
 
 /**
@@ -103,6 +131,7 @@ using OverlayItem = std::variant<RectOverlay, TextOverlay, ImageOverlay>;
  * the region of interest is enabled in the video player. In that case,
  * FullImage shows the entire image, while RegionOfInterest only shows the area
  * defined by the region of interest.
+ * @ingroup Visualization
  */
 enum class ViewportType {
     FullImage,        // show the entire image
@@ -112,6 +141,12 @@ enum class ViewportType {
 /**
  * @struct ViewStyle
  * @brief Style settings for a view.
+ *
+ * The view can be mapped either to the full image or to the currently active
+ * ROI viewport via `viewport`. The `relativeSize` value scales the view
+ * against the selected viewport size (e.g. `(0.5, 0.5)` renders the view at
+ * half width and half height of the mapped viewport).
+ * @ingroup Visualization
  */
 struct ViewStyle {
     QColor backgroundColor =
@@ -126,10 +161,31 @@ struct ViewStyle {
 
 /**
  * @struct View
- * @brief Represents a single view in the visualization, containing a title,
- * style settings, and a list of overlay items to render. The view can display
- * multiple overlays such as rectangles, text, and images on top of the base
- * image or the selected region of interest, depending on the ViewportType.
+ * @brief Represents one render target inside a plugin-generated visualization.
+ *
+ * A `View` is the basic building block emitted by `PLUG::IPreview`
+ * implementations. A visualization may contain one or many views.
+ *
+ * Coordinate model:
+ * - Overlays in `overlays` use a local normalized coordinate system in
+ *   $[0,1]$ within this view.
+ * - The host maps these local coordinates to either the full image or the ROI
+ *   according to `style.viewport`.
+ *
+ * View mapping and size:
+ * - `style.viewport == ViewportType::FullImage`: local space maps to the
+ *   complete source image.
+ * - `style.viewport == ViewportType::RegionOfInterest`: local space maps to
+ *   the ROI only.
+ * - `style.relativeSize` scales the view relative to its mapped viewport.
+ *
+ * Content:
+ * - `overlays` contains one or more `OverlayItem`s (e.g. text, images,
+ *   rectangles).
+ * @ingroup Visualization
+ * 
+ * @author Dominik Wüst (dominik.wuest@iosb.fraunhofer.de)
+ * @date March 2026
  */
 struct View {
     QString title;                      // Title of the view
@@ -139,9 +195,24 @@ struct View {
 
 /**
  * @struct Visualization
- * @brief Represents the complete visualization consisting of multiple views.
- * Each view can contain various overlays and has its own style settings. iVS3D
- * will manage the layout of these views when displaying the visualization.
+ * @brief Preview visualization container returned by `PLUG::IPreview` plugins.
+ *
+ * A `Visualization` is generated by plugins implementing
+ * `PLUG::IPreview::generatePreview()` to display information in iVS3D.
+ * It consists of one or more `View` entries in `views`.
+ *
+ * Each contained view:
+ * - has its own local normalized coordinate space $[0,1]$,
+ * - can target either full image or ROI mapping,
+ * - can be scaled independently,
+ * - can contain multiple overlay items (text, image overlays, boxes, ...).
+ *
+ * iVS3D manages final placement/layout of all views on screen.
+ * @ingroup Visualization
+ * @see @ref plugin_interface_doc "PluginInterface.md"
+ * 
+ * @author Dominik Wüst (dominik.wuest@iosb.fraunhofer.de)
+ * @date March 2026
  */
 struct Visualization {
     std::vector<View> views;  // Views to visualize
@@ -151,5 +222,8 @@ struct Visualization {
  * @typedef VisualizationResult
  * @brief Type alias for the result of a visualization operation, which can be
  * either a successful Visualization or an Error indicating failure.
+ * @ingroup Visualization
  */
-using VisualizationResult = tl::expected<Visualization, Error>;
+using VisualizationResult = tl::expected<Visualization, PLUG::Error>;
+
+} // namespace VIS

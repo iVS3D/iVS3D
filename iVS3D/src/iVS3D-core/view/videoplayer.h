@@ -61,7 +61,7 @@ public:
 
     ~VideoPlayer();
 
-    void showVisualization(const Visualization &vis);
+    void showVisualization(const VIS::Visualization &vis);
 
     void clearVisualization();
 

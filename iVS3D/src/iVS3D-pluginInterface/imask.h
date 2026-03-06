@@ -7,10 +7,13 @@
 #include "ierror.h"
 #include "opencv2/core.hpp"
 
+namespace PLUG {
+
 /**
  * @typedef MaskResult
  * @brief Type alias for the result of a mask generation operation, which can be
  * either a successful cv::Mat mask or an Error indicating failure.
+ * @ingroup Plugin
  */
 using MaskResult = tl::expected<cv::Mat, Error>;
 
@@ -34,6 +37,9 @@ struct MaskData {
  * based on provided settings. The generated masks are exported alongside the
  * sampled images for use in 3D reconstruction.
  *
+ * @ingroup Plugin
+ * @see @ref plugin_interface_doc "PluginInterface.md"
+ *
  * @date 2025/12/28
  * @author Dominik Wüst
  */
@@ -54,4 +60,6 @@ class IMask {
     virtual MaskResult generateMask(const MaskData& data) = 0;
 };
 
-Q_DECLARE_INTERFACE(IMask, "iVS3D.IMask")
+} // namespace PLUG
+
+Q_DECLARE_INTERFACE(PLUG::IMask, "iVS3D.IMask")
