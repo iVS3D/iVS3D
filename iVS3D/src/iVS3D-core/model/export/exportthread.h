@@ -14,6 +14,7 @@
 #include <fstream>
 #include <QFutureSynchronizer>
 #include <QFile>
+#include <QStringList>
 
 #include <memory>
 #include <atomic>
@@ -41,6 +42,10 @@
 
 struct ExportError {
     QString message;
+};
+
+struct ExportValidationResult {
+    QStringList warnings;
 };
 
 struct ExportConfig {
@@ -120,6 +125,9 @@ public:
 
     ExportResult getResult() const;
 
+    static tl::expected<ExportValidationResult, ExportError>
+    validateMaskStack(const ExportConfig& config, PluginThread* pluginThread);
+
 private:
     Progressable* m_receiver;
     Reader* m_reader;
@@ -134,7 +142,6 @@ private:
     PluginThread* m_pluginThread = nullptr;
 
     void reportProgress(const QString& operation, int stepIndex, int totalSteps);
-    tl::expected<void, ExportError> validateMaskStack();
 
 protected:
     void run() override;

@@ -50,6 +50,7 @@ void OutputWidget::enableReconstruct(bool enabled)
 
 void OutputWidget::showProgress()
 {
+    m_progressW->slot_clearWarnings();
     m_layout->removeWidget(m_exportW);
     m_exportW->setVisible(false);
     m_progressW->setVisible(true);
@@ -58,6 +59,7 @@ void OutputWidget::showProgress()
 
 void OutputWidget::showExportOptions()
 {
+    m_progressW->slot_clearWarnings();
     m_layout->removeWidget(m_progressW);
     m_progressW->setVisible(false);
     m_exportW->setVisible(true);
@@ -126,6 +128,16 @@ void OutputWidget::slot_displayProgress(int progress, QString currentOperation)
 void OutputWidget::slot_displayMessage(QString message)
 {
     m_progressW->slot_displayMessage(message);
+}
+
+void OutputWidget::slot_displayWarning(QString warning)
+{
+    m_progressW->slot_displayWarning(warning);
+}
+
+void OutputWidget::slot_clearWarnings()
+{
+    m_progressW->slot_clearWarnings();
 }
 
 void OutputWidget::slot_pathChanged(const QString &path)

@@ -141,6 +141,17 @@ public slots:
      */
     void slot_displayMessage(QString message);
 
+    /**
+     * @brief [slot] slot_displayWarning appends a warning to the warning list
+     * @param warning Warning text
+     */
+    void slot_displayWarning(QString warning);
+
+    /**
+     * @brief [slot] slot_clearWarnings clears all currently shown warnings
+     */
+    void slot_clearWarnings();
+
 private slots:
     void slot_pathChanged(const QString &path);
     void slot_addAuto();

@@ -13,6 +13,27 @@ ExportExecutor::ExportExecutor(QObject* parent, DataManager* dataManager, std::s
 void ExportExecutor::startExport(const ExportConfig& config, std::shared_ptr<LogFile> logFile){
     m_stopped = false;
 
+    const auto validation =
+        ExportThread::validateMaskStack(config, m_pluginThread.get());
+    if (!validation) {
+        slot_displayMessage(validation.error().message);
+        if (logFile) {
+            logFile->addCustomEntry("MaskStackValidation",
+                                    validation.error().message,
+                                    "Error");
+        }
+        emit sig_exportFinished(ExportResult::failed(validation.error().message));
+        return;
+    }
+
+    for (const QString& warning : validation->warnings) {
+        emit sig_warning(warning);
+        if (logFile) {
+            logFile->addCustomEntry("MaskStackValidation", warning,
+                                    "Warning");
+        }
+    }
+
     ModelInputPictures* mip = m_dataManager->getModelInputPictures();
     // cause mip loses its boundary attribute in a magical and unkown way
     mip->setBoundaries(m_boundaries);

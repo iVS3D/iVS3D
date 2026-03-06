@@ -42,21 +42,30 @@ ExportThread::~ExportThread() {
 
 ExportResult ExportThread::getResult() const { return m_result; }
 
-tl::expected<void, ExportError> ExportThread::validateMaskStack() {
-    if (!m_config.maskStack) {
-        return {};  // No mask stack, validation passes
+tl::expected<ExportValidationResult, ExportError> ExportThread::validateMaskStack(
+    const ExportConfig& config, PluginThread* pluginThread) {
+    ExportValidationResult validationResult;
+
+    if (!config.maskStack) {
+        return validationResult;  // No mask stack, validation passes
     }
 
-    const auto& maskStack = *m_config.maskStack;
+    const auto& maskStack = *config.maskStack;
 
     if (maskStack.size() == 0) {
-        return {};  // Explicitly empty stack is valid
+        return validationResult;  // Explicitly empty stack is valid
     }
 
-    if (!m_pluginThread) {
+    if (!pluginThread) {
         return tl::unexpected(ExportError{
             "Mask export requested, but PluginThread is not available"});
     }
+
+    const ROI exportMaskRoi = config.roi.value_or(ROI());
+    const bool exportHasRoi = !exportMaskRoi.isDefault();
+
+    int roiMismatchCount = 0;
+    QStringList roiMismatchPlugins;
 
     for (int i = 0; i < maskStack.size(); ++i) {
         const auto* record = maskStack.getRecord(i);
@@ -72,35 +81,32 @@ tl::expected<void, ExportError> ExportThread::validateMaskStack() {
                                 .arg(i)});
         }
 
-        // Validate working resolution matches
-        if (!(record->workingResolution == m_config.working_resolution)) {
-            return tl::unexpected(
-                ExportError{QString("Mask record %1 working resolution (%2) "
-                                    "does not match export working resolution (%3)")
-                                .arg(i)
-                                .arg(record->workingResolution.toString())
-                                .arg(m_config.working_resolution.toString())});
-        }
+        // Working resolution and ROI mismatches are allowed:
+        // - mask computation uses each record's stored working resolution
+        // - ROI for export is always taken from ExportConfig
 
-        // Validate ROI matches export ROI
-        const auto& recordRoi = record->roi;
-        const bool recordHasRoi = !recordRoi.isDefault();
-        const bool configHasRoi = m_config.roi.has_value();
-
-        if (recordHasRoi != configHasRoi) {
-            return tl::unexpected(
-                ExportError{QString("Mask record %1 ROI configuration does not match export ROI")
-                                .arg(i)});
-        }
-
-        if (configHasRoi && !(recordRoi.toQRectF() == m_config.roi->toQRectF())) {
-            return tl::unexpected(
-                ExportError{QString("Mask record %1 ROI does not match export ROI")
-                                .arg(i)});
+        const bool recordHasRoi = !record->roi.isDefault();
+        const bool roiMismatch =
+            (recordHasRoi != exportHasRoi) ||
+            (exportHasRoi && record->roi.toQRectF() != exportMaskRoi.toQRectF());
+        if (roiMismatch) {
+            ++roiMismatchCount;
+            roiMismatchPlugins.push_back(record->pluginName);
         }
     }
 
-    return {};
+    if (roiMismatchCount > 0) {
+        validationResult.warnings.push_back(
+            QObject::tr("Warning: %1 mask stack %2 use a different ROI than the current export ROI. "
+                        "Export will use the current ROI, so resulting masks may differ from preview. "
+                        "Affected plugins: %3")
+                .arg(roiMismatchCount)
+                .arg(roiMismatchCount == 1 ? QObject::tr("entry")
+                                           : QObject::tr("entries"))
+                .arg(roiMismatchPlugins.join(", ")));
+    }
+
+    return validationResult;
 }
 
 void ExportThread::run() {
@@ -122,14 +128,17 @@ void ExportThread::run() {
         m_logFile->addCustomEntry("ExportConfiguration", configLog);
     }
 
-    // Validate mask stack if present
+    // Validate mask stack if present (safety check; main validation is done
+    // before starting this thread)
     if (m_config.maskStack) {
-        const auto validation = validateMaskStack();
+        const auto validation = validateMaskStack(m_config, m_pluginThread);
         if (!validation) {
             m_result = ExportResult::failed(validation.error().message);
             m_receiver->slot_displayMessage(validation.error().message);
             if (m_logFile) {
-                m_logFile->addCustomEntry("MaskStackValidation", validation.error().message, "Error");
+                m_logFile->addCustomEntry("MaskStackValidation",
+                                          validation.error().message,
+                                          "Error");
             }
             return;
         }
@@ -195,6 +204,9 @@ void ExportThread::run() {
         maskRecords = m_config.maskStack->getAllRecords();
     }
 
+    const ROI exportMaskRoi = m_config.roi.value_or(ROI());
+    const bool exportHasRoi = !exportMaskRoi.isDefault();
+
     const int totalSteps = std::max(1, maskRecords.size());
     m_totalWorkUnits = int(m_keyframes.size()) * totalSteps;
     m_completedWorkUnits.store(0, std::memory_order_relaxed);
@@ -235,13 +247,14 @@ void ExportThread::run() {
                 record.workingResolution.toQPoint()));
         }
 
-        if (!record.roi.isDefault()) {
+        if (exportHasRoi) {
             processor->addCommand(std::make_unique<CropCommand>(
-                record.roi.cropAsQRect(record.workingResolution)));
+                exportMaskRoi.cropAsQRect(record.workingResolution)));
         }
 
         auto maskCmd = std::make_unique<MaskCommand>(
-            &record, m_config.export_resolution, record.roi, m_config.destination,
+            &record, m_config.export_resolution, exportMaskRoi,
+            m_config.destination,
             m_pluginThread, m_stopped);
 
         MaskCommand* maskCmdPtr = maskCmd.get();
@@ -357,12 +370,24 @@ void ExportThread::run() {
             processors.push_back(maskProcessor.get());
         }
 
+        m_receiver->slot_displayMessage(
+            tr("Starting step 1/%1: exporting %2 image(s) at resolution %3.")
+                .arg(totalSteps)
+                .arg(m_keyframes.size())
+                .arg(m_config.export_resolution.toString()));
+
+        if (!maskRecords.isEmpty()) {
+            m_receiver->slot_displayMessage(
+                tr("Starting step 1/%1 mask plugin: %2 (working resolution: %3).")
+                    .arg(totalSteps)
+                    .arg(maskRecords[0].pluginName)
+                    .arg(maskRecords[0].workingResolution.toString()));
+        }
+
         const QString operationLabel =
             maskRecords.isEmpty()
-                ? tr("Step 1/%1: Exporting images").arg(totalSteps)
-                : tr("Step 1/%1: Exporting images + mask 1/%2 (%3)")
-                      .arg(totalSteps)
-                      .arg(maskRecords.size())
+                ? tr("Exporting images")
+                : tr("Exporting images + generating mask (%1)")
                       .arg(maskRecords[0].pluginName);
 
         int processedImages = 0;
@@ -402,12 +427,15 @@ void ExportThread::run() {
         std::vector<ImageProcessor*> processors;
         processors.push_back(maskProcessor.get());
 
-        const QString operationLabel =
-            tr("Step %1/%2: Merging mask %3/%4 (%5)")
+        m_receiver->slot_displayMessage(
+            tr("Starting step %1/%2: mask plugin %3 (working resolution: %4).")
                 .arg(i + 1)
                 .arg(totalSteps)
-                .arg(i + 1)
-                .arg(maskRecords.size())
+                .arg(maskRecords[i].pluginName)
+                .arg(maskRecords[i].workingResolution.toString()));
+
+        const QString operationLabel =
+            tr("Generating + merging mask (%1)")
                 .arg(maskRecords[i].pluginName);
 
         auto sweepError =
@@ -454,8 +482,10 @@ void ExportThread::reportProgress(const QString& operation, int stepIndex,
     }
 
     if (m_receiver) {
-        m_receiver->slot_makeProgress(
-            percentProgress,
-            tr("%1 (%2/%3)").arg(operation).arg(stepIndex).arg(totalSteps));
+        m_receiver->slot_makeProgress(percentProgress,
+                                      tr("Step %1/%2 - %3")
+                                          .arg(stepIndex)
+                                          .arg(totalSteps)
+                                          .arg(operation));
     }
 }
