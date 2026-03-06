@@ -378,9 +378,9 @@ tl::expected<cv::Mat, NN::NeuralError> SegmentationPlugin::runMasking(
     return inferenceTensor
         .map([&classes](const int64_t& value) -> uint8_t {
             if (value >= 0 && value < static_cast<int64_t>(classes.size())) {
-                return classes[value].selected ? 255 : 0;
+                return classes[value].selected ? 0 : 255;
             }
-            return 0;
+            return 255;  // treat out-of-range class ids as unselected (background)
         })
         .and_then(NN::Util::bind_toCvMat());
 }

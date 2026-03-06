@@ -7,8 +7,16 @@
 #include <QFileInfo>
 #include <QSet>
 
+namespace MCFG {
+
 tl::expected<ModelConfig, ModelConfig::Error> ModelConfig::loadFromFile(
     const QString& jsonPath) {
+    if (!QFile::exists(jsonPath)) {
+        return tl::unexpected(
+            Error{ErrorCode::ConfigFileNotFound,
+                  QString("Config file not found: %1").arg(jsonPath)});
+    }
+
     QFile file(jsonPath);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         return tl::unexpected(
@@ -74,31 +82,39 @@ tl::expected<ModelConfig, ModelConfig::Error> ModelConfig::loadFromFile(
     for (const auto& cls_val : obj["classes"].toArray()) {
         QJsonObject cls_obj = cls_val.toObject();
         ModelConfig::ClassInfo cls;
-        cls.name = cls_obj["name"].toString();
 
-        // Load color for this class
-        auto c = cls_obj["color"].toArray();
-        if (c.size() == 3) {
-            cls.color = QColor(c[0].toInt(), c[1].toInt(), c[2].toInt());
-        } else {
-            // Default color if not specified
-            cls.color = QColor(128, 128, 128);
-        }
-        
         // Determine class ID
         if (cls_obj.contains("id")) {
             cls.id = static_cast<ModelConfig::ClassId>(cls_obj["id"].toInt());
         } else {
             cls.id = autoId++;
         }
-        
+
         // Check for duplicate IDs
         if (seenIds.contains(cls.id)) {
             return tl::unexpected(
                 Error{ErrorCode::DuplicateClassIds,
-                      QString("Duplicate class ID found: %1").arg(cls.id)});
+                      QObject::tr("Duplicate class ID found: %1").arg(cls.id)});
         }
         seenIds.insert(cls.id);
+
+        // Load class name or use ID-based default name
+        if (cls_obj.contains("name")) {
+            cls.name = cls_obj["name"].toString();
+        } else {
+            cls.name = QObject::tr("Unknown <%1>").arg(cls.id);
+        }
+
+        // Load color for this class
+        auto c = cls_obj["color"].toArray();
+        if (c.size() == 3) {
+            cls.color = QColor(c[0].toInt(), c[1].toInt(), c[2].toInt());
+        } else {
+            // Deterministic pseudo-random color from HSV wheel (seeded by class id)
+            const quint32 seed = static_cast<quint32>(cls.id);
+            const int hue = static_cast<int>((seed * 2654435761u) % 360u); // spread IDs over hue wheel
+            cls.color = QColor::fromHsv(hue, 200, 230);
+        }
         
         cfg.classes_.push_back(cls);
     }
@@ -170,3 +186,5 @@ void ModelConfig::setNormalizeTo01(bool normalize) noexcept {
 void ModelConfig::setInputAlignment(uint alignment) noexcept {
     inputAlignment_ = alignment;
 }
+
+} // namespace MCFG

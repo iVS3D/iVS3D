@@ -6,6 +6,8 @@
 #include <QSet>
 #include <QJsonArray>
 
+namespace MCFG {
+
 ModelManager::ModelManager(QString modelDir)
     : modelDir_(std::move(modelDir)), nameFilter_() {
     refresh();
@@ -309,3 +311,5 @@ void ModelManager::onInputAlignmentRequested(const QString& modelName, uint alig
         }
     }
 }
+
+} // namespace MCFG
