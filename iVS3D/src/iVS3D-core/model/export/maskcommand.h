@@ -48,7 +48,8 @@ public:
      * @param pluginThread The PluginThread for async processing
      */
     MaskCommand(const MaskRecord* record, Resolution exportResolution, ROI roi,
-                QString folder, PluginThread* pluginThread);
+                QString folder, PluginThread* pluginThread,
+                volatile bool* stopped = nullptr);
 
     /**
      * @brief Requests mask generation and waits for result before writing to disk.
@@ -69,6 +70,7 @@ private:
     ROI m_roi;
     QString m_folder;
     PluginThread* m_pluginThread;
+    volatile bool* m_stopped = nullptr;
     QString m_pluginName;
     cv::Size m_exportSize;
     bool m_initialized = false;
@@ -104,7 +106,8 @@ private:
      *                   generation but will catch genuine failures (crashes, GPU errors).
      * @return Expected with the mask on success, or unexpected with error message on failure
      */
-    tl::expected< cv::Mat, QString > waitForMask(uint imageIndex, int timeoutMs = 30000);
+    tl::expected< cv::Mat, QString > waitForMask(uint imageIndex,
+                                                 int timeoutMs = 30000);
 };
 
 #endif  // MASKCOMMAND_H

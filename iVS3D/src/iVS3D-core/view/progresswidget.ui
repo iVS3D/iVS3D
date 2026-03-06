@@ -66,13 +66,35 @@
      </property>
     </spacer>
    </item>
-   <item>
-    <widget class="QLabel" name="label_message">
-     <property name="text">
-      <string/>
-     </property>
-    </widget>
-   </item>
+    <item>
+     <widget class="QLabel" name="label_warningsTitle">
+      <property name="text">
+      <string>⚠ Export log / warnings</string>
+         </property>
+         <property name="styleSheet">
+      <string notr="true">font-weight: 700; color: #B00020;</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QListWidget" name="listWidget_warnings">
+      <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+         <horstretch>0</horstretch>
+         <verstretch>1</verstretch>
+        </sizepolicy>
+      </property>
+        <property name="verticalScrollBarPolicy">
+         <enum>Qt::ScrollBarAsNeeded</enum>
+        </property>
+        <property name="horizontalScrollBarPolicy">
+         <enum>Qt::ScrollBarAlwaysOff</enum>
+        </property>
+        <property name="wordWrap">
+         <bool>true</bool>
+        </property>
+     </widget>
+    </item>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>

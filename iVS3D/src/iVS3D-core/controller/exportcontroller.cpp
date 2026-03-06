@@ -308,6 +308,10 @@ void ExportController::slot_export() {
             &ExportController::slot_exportFinished);
     connect(m_exportExec, &ExportExecutor::sig_progress, m_outputWidget,
             &OutputWidget::slot_displayProgress);
+        connect(m_exportExec, &ExportExecutor::sig_message, m_outputWidget,
+            &OutputWidget::slot_displayMessage);
+        connect(m_exportExec, &ExportExecutor::sig_warning, m_outputWidget,
+            &OutputWidget::slot_displayWarning);
     connect(m_outputWidget, &OutputWidget::sig_abort, m_exportExec,
             &ExportExecutor::slot_abort);
     m_outputWidget->showProgress();  // swap OutputWidget to display progress
@@ -354,6 +358,10 @@ void ExportController::slot_exportAborted() {
                &ExportController::slot_exportFinished);
     disconnect(m_exportExec, &ExportExecutor::sig_progress, m_outputWidget,
                &OutputWidget::slot_displayProgress);
+    disconnect(m_exportExec, &ExportExecutor::sig_message, m_outputWidget,
+               &OutputWidget::slot_displayMessage);
+    disconnect(m_exportExec, &ExportExecutor::sig_warning, m_outputWidget,
+               &OutputWidget::slot_displayWarning);
     disconnect(m_outputWidget, &OutputWidget::sig_abort, m_exportExec,
                &ExportExecutor::slot_abort);
     m_outputWidget->showExportOptions();  // swap OutputWidget to display result
@@ -368,6 +376,10 @@ void ExportController::slot_exportFinished(ExportResult result) {
                &ExportController::slot_exportFinished);
     disconnect(m_exportExec, &ExportExecutor::sig_progress, m_outputWidget,
                &OutputWidget::slot_displayProgress);
+    disconnect(m_exportExec, &ExportExecutor::sig_message, m_outputWidget,
+               &OutputWidget::slot_displayMessage);
+    disconnect(m_exportExec, &ExportExecutor::sig_warning, m_outputWidget,
+               &OutputWidget::slot_displayWarning);
     disconnect(m_outputWidget, &OutputWidget::sig_abort, m_exportExec,
                &ExportExecutor::slot_abort);
     m_outputWidget->showExportOptions();  // swap OutputWidget to display result

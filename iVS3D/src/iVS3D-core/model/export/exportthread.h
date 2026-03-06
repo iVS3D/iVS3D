@@ -14,8 +14,10 @@
 #include <fstream>
 #include <QFutureSynchronizer>
 #include <QFile>
+#include <QStringList>
 
 #include <memory>
+#include <atomic>
 
 #include <tl/expected.hpp>
 #include <chrono>
@@ -32,6 +34,7 @@
 #include "resizecommand.h"
 #include "writetodiskcommand.h"
 #include "exiftagcommand.h"
+#include "maskmergecommand.h"
 #include "maskstack.h"
 #include "pluginthread.h"
 
@@ -39,6 +42,10 @@
 
 struct ExportError {
     QString message;
+};
+
+struct ExportValidationResult {
+    QStringList warnings;
 };
 
 struct ExportConfig {
@@ -118,6 +125,9 @@ public:
 
     ExportResult getResult() const;
 
+    static tl::expected<ExportValidationResult, ExportError>
+    validateMaskStack(const ExportConfig& config, PluginThread* pluginThread);
+
 private:
     Progressable* m_receiver;
     Reader* m_reader;
@@ -126,12 +136,12 @@ private:
     ExportConfig m_config;
     ExportResult m_result = ExportResult::success();
     std::shared_ptr<LogFile> m_logFile;
-    int m_progress = 0;
+    std::atomic<int> m_completedWorkUnits{0};
+    int m_totalWorkUnits = 0;
     ExportExif* m_exportExif;
     PluginThread* m_pluginThread = nullptr;
 
-    void reportProgress();
-    tl::expected<void, ExportError> validateMaskStack();
+    void reportProgress(const QString& operation, int stepIndex, int totalSteps);
 
 protected:
     void run() override;

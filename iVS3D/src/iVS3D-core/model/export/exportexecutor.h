@@ -78,6 +78,12 @@ signals:
     void sig_exportAborted();
 
     /**
+     * @brief [signal] sig_warning is emitted for non-fatal export warnings.
+     * @param warning Warning message text
+     */
+    void sig_warning(QString warning);
+
+    /**
      * @brief [signal] sig_exportFinished is emitted after an export finished.
      * @param result Is @a 0 if export finished without problems, greater @a 0 otherwise
      */
