@@ -12,6 +12,7 @@
 #include <QEvent>
 #include <QMouseEvent>
 
+namespace MCFG {
 
 ModelSettingsWidget::ModelSettingsWidget(
     ModelManager& manager, QWidget* parent)
@@ -20,9 +21,9 @@ ModelSettingsWidget::ModelSettingsWidget(
     static bool firstInstance = true;
     if (firstInstance) {
         // Register metatypes for use in signals/slots across threads
-        qRegisterMetaType<ModelManager::ModelState>("ModelManager::ModelState");
-        qRegisterMetaType<QVector<ModelConfig::ClassInfo>>("QVector<ModelConfig::ClassInfo>");
-        qRegisterMetaType<QVector<ModelManager::ModelEntry>>("QVector<ModelManager::ModelEntry>");
+        qRegisterMetaType<ModelManager::ModelState>("MCFG::ModelManager::ModelState");
+        qRegisterMetaType<QVector<ModelConfig::ClassInfo>>("QVector<MCFG::ModelConfig::ClassInfo>");
+        qRegisterMetaType<QVector<ModelManager::ModelEntry>>("QVector<MCFG::ModelManager::ModelEntry>");
         firstInstance = false;
     }
     setupUi();
@@ -804,3 +805,5 @@ void ModelSettingsWidget::onModelsListUpdated(const QVector<ModelManager::ModelE
     // Refresh the combo box display using cached data
     refreshModelList();
 }
+
+} // namespace MCFG

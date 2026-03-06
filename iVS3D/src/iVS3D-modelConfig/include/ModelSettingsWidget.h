@@ -1,5 +1,12 @@
 #pragma once
 
+/**
+ * @file ModelSettingsWidget.h
+ * @brief Qt widget for selecting models and per-class runtime settings.
+ * @author Dominik Wüst
+ * @date March 2026
+ */
+
 #include <QWidget>
 #include <QComboBox>
 #include <QLineEdit>
@@ -15,6 +22,8 @@
 
 #include "ModelManager.h"
 
+namespace MCFG {
+
 /**
  * @class ModelSettingsWidget
  * @brief Reusable UI widget for selecting detection models and configuring class selection.
@@ -27,6 +36,13 @@
  *
  * The widget automatically handles model state (Ready, MissingModel, InvalidConfig, etc.)
  * and provides appropriate feedback to the user.
+ *
+ * The underlying model-config format is documented in @ref modelconfig_readme "ModelConfig.md".
+ *
+ * @ingroup ModelConfig
+ * 
+ * @author Dominik Wüst (dominik.wuest@iosb.fraunhofer.de)
+ * @date March 2026
  */
 class ModelSettingsWidget : public QWidget {
     Q_OBJECT
@@ -39,6 +55,7 @@ public:
      */
     explicit ModelSettingsWidget(ModelManager& manager,
                                           QWidget* parent = nullptr);
+    /** @brief Destructor. */
     ~ModelSettingsWidget() = default;
 
     /**
@@ -212,3 +229,8 @@ private:
     bool m_blockSignals = false;
     bool m_configurationSectionExpanded = false;
 };
+
+} // namespace MCFG
+
+// Backward-compatible alias (prefer MCFG::ModelSettingsWidget in new code).
+using ModelSettingsWidget = MCFG::ModelSettingsWidget;

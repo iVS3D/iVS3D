@@ -7,8 +7,16 @@
 #include <QFileInfo>
 #include <QSet>
 
+namespace MCFG {
+
 tl::expected<ModelConfig, ModelConfig::Error> ModelConfig::loadFromFile(
     const QString& jsonPath) {
+    if (!QFile::exists(jsonPath)) {
+        return tl::unexpected(
+            Error{ErrorCode::ConfigFileNotFound,
+                  QString("Config file not found: %1").arg(jsonPath)});
+    }
+
     QFile file(jsonPath);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         return tl::unexpected(
@@ -178,3 +186,5 @@ void ModelConfig::setNormalizeTo01(bool normalize) noexcept {
 void ModelConfig::setInputAlignment(uint alignment) noexcept {
     inputAlignment_ = alignment;
 }
+
+} // namespace MCFG
