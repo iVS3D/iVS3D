@@ -16,8 +16,22 @@
 #include <cmath>
 #include <float.h>
 
+// Set to 1 to enable partial marker styling based on selected/total ratio.
+#ifndef GEOMAP_ENABLE_PARTIAL_SELECTION
+#define GEOMAP_ENABLE_PARTIAL_SELECTION 1
+#endif
+
 using GpsDataList = QList<QPair<QPointF, bool>>;
 Q_DECLARE_METATYPE(GpsDataList)
+
+struct GpsPointState {
+    QPointF point;
+    bool used = false;
+    qreal ratio = 0.0;
+};
+
+using GpsPointStateList = QList<GpsPointState>;
+Q_DECLARE_METATYPE(GpsPointStateList)
 
 /**
  * @class MapHandler
@@ -44,12 +58,12 @@ class MapHandler : public QObject
      */
     void addPoints(const GpsDataList& m_gpsData);
 
-    void updatePoints(const GpsDataList& m_changedPoints);
+    void updatePoints(const GpsPointStateList& changedPoints);
 
     void setPolygon(const QPolygonF& poly);
 
     void replaceData(const GpsDataList& gpsData, const QPolygonF& polygon);
-    void updatePointsAndPolygon(const GpsDataList& changedPoints,
+    void updatePointsAndPolygon(const GpsPointStateList& changedPoints,
                                 const QPolygonF& polygon);
 
     /**
@@ -58,9 +72,10 @@ class MapHandler : public QObject
      * @param name ObjectName of the point
      * @param used @a true if the point is used @a false otherwise
      */
-    void emitCircleSignal(const QGeoCoordinate& coordinate, QString name, bool used)
+    void emitCircleSignal(const QGeoCoordinate& coordinate, QString name,
+                          bool used, qreal ratio)
     {
-        Q_EMIT circleSignal(coordinate, name, used);
+        Q_EMIT circleSignal(coordinate, name, used, ratio);
     }
     /**
      * @brief emitAdjustMapCenter Method to emit the corresponding signal
@@ -99,6 +114,16 @@ class MapHandler : public QObject
     {
         Q_EMIT setPoint(index, used);
     }
+
+    void emitSetPointState(const int index, bool used, qreal ratio)
+    {
+        Q_EMIT setPointState(index, used, ratio);
+    }
+
+    void emitSetPartialSelectionEnabled(bool enabled)
+    {
+      Q_EMIT setPartialSelectionEnabled(enabled);
+    }
     /**
      * @brief emitGetMapItems Method to emit the corresponding signal
      */
@@ -117,7 +142,8 @@ class MapHandler : public QObject
      * @param name ObjectName of the point
      * @param used @a true if the point is used @a false otherwise
      */
-    void circleSignal(const QGeoCoordinate& coordinate, QString name, bool used);
+    void circleSignal(const QGeoCoordinate& coordinate, QString name, bool used,
+                      qreal ratio);
     /**
      * @brief adjustMap Used to center the map at the given coordinate
      * @param coordinate Center coordinate
@@ -141,6 +167,8 @@ class MapHandler : public QObject
      * @param used @a true if the point is used @a false otherwise
      */
     void setPoint(const int index, bool used);
+    void setPointState(const int index, bool used, qreal ratio);
+    void setPartialSelectionEnabled(bool enabled);
     void setPointHighlight(const int index, bool highlighted);
     /**
      * @brief getMapItems Used to signal that the map needs to return the current map items
@@ -177,6 +205,7 @@ class MapHandler : public QObject
     void onQmlSelectionForward();
 
     void setCurrentIndex(uint index);
+    void setPartialSelectionMode(bool enabled);
 
   private:
     /// Used to update the polygon on the map, signal the gps class the new polygon and change
@@ -203,6 +232,8 @@ class MapHandler : public QObject
   private:
     /// GPS points used or not
     QMap<QPointF, bool> mGpsMap;
+    /// Ratio of selected images for each unique GPS point.
+    QMap<QPointF, qreal> mPointSelectionRatio;
 
     /// List of GPS data in the order of acquisition
     QList<QPointF> mOrderedGpsList;
@@ -223,6 +254,7 @@ class MapHandler : public QObject
     int mCurrentStackPos = -1;
     int mCurrentSourceIndex = -1;
     int mCurrentMapItemIndex = -1;
+    bool mPartialSelectionEnabled = GEOMAP_ENABLE_PARTIAL_SELECTION != 0;
 };
 
 #endif // IVS3D_MAPHANDLER_H

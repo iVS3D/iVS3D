@@ -9,6 +9,7 @@ Item {
     id: base
     visible: true
     anchors.fill: parent
+    property bool partialSelectionEnabled: true
     property var polygonVertexItems: []
     property var polygonSegmentItems: []
     signal gpsClicked(string msg)
@@ -63,6 +64,8 @@ Item {
                     o.coordinate = coordinate
                     o.objectName = name
                     o.isUsed = used
+                    o.selectionRatio = ratio
+                    o.partialSelectionEnabled = base.partialSelectionEnabled
                     mapToken.addMapItem(o)
                 }
             }
@@ -117,6 +120,27 @@ Item {
                 if (!item)
                     return
                 item.isUsed = used
+                item.selectionRatio = used ? 1.0 : 0.0
+            }
+
+            onSetPointState : {
+                var item = mapToken.mapItems[index]
+                if (!item)
+                    return
+                item.isUsed = used
+                item.selectionRatio = ratio
+            }
+
+            onSetPartialSelectionEnabled : {
+                base.partialSelectionEnabled = enabled
+                for (var i = 0; i < mapToken.mapItems.length; ++i) {
+                    var item = mapToken.mapItems[i]
+                    if (!item)
+                        continue
+                    if (item.partialSelectionEnabled === undefined)
+                        continue
+                    item.partialSelectionEnabled = enabled
+                }
             }
 
             onSetPointHighlight : {

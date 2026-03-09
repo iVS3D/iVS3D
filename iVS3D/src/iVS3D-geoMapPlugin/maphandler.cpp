@@ -20,45 +20,76 @@ MapHandler::MapHandler(QObject* parent)
     mPolygon = QGeoPolygon();
 }
 
+void MapHandler::setPartialSelectionMode(bool enabled)
+{
+    if (mPartialSelectionEnabled != enabled) {
+        mPartialSelectionEnabled = enabled;
+    }
+    emitSetPartialSelectionEnabled(enabled);
+}
+
 //==================================================================================================
 void MapHandler::addPoints(const GpsDataList& gpsData)
 {
+    mGpsMap.clear();
+    mOrderedGpsList.clear();
+    mPointSelectionRatio.clear();
+
     // Keep source-index mapping (one entry per frame/index), even if
     // consecutive frames share the same GPS point.
     mSourceIndexToPoint.clear();
     mSourceIndexToPoint.reserve(gpsData.size());
 
-    //--- loop over gps data and insert unique points into map
+    QMap<QPointF, int> pointTotalCount;
+    QMap<QPointF, int> pointSelectedCount;
+
+    //--- loop over gps data and accumulate per-point selected/total counts
     for (QPair<QPointF, bool> point : gpsData)
     {
         mSourceIndexToPoint.push_back(point.first);
 
-        if (mGpsMap.contains(point.first)) {
-            // keep latest "used" state for this shared map point
-            mGpsMap[point.first] = point.second;
-            continue;
+        if (!mGpsMap.contains(point.first)) {
+            mGpsMap.insert(point.first, false);
+            mOrderedGpsList.push_back(point.first);
         }
 
-        mGpsMap.insert(point.first, point.second);
-        mOrderedGpsList.push_back(point.first);
+        pointTotalCount[point.first] += 1;
+        if (point.second) {
+            pointSelectedCount[point.first] += 1;
+        }
+    }
+
+    for (const QPointF& point : mOrderedGpsList) {
+        const int totalCount = pointTotalCount.value(point, 0);
+        const int selectedCount = pointSelectedCount.value(point, 0);
+        const bool used = selectedCount > 0;
+        const qreal ratio =
+            (totalCount > 0) ? (qreal(selectedCount) / qreal(totalCount)) : 0.0;
+        mGpsMap[point] = used;
+        mPointSelectionRatio[point] = ratio;
     }
 
     drawGpsDataOnMap();
 }
 
-void MapHandler::updatePoints(const GpsDataList& m_changedPoints)
+void MapHandler::updatePoints(const GpsPointStateList& changedPoints)
 {
     // update all points that changed
-    for (auto gpsPoint : m_changedPoints) {
-        if (mGpsMap.contains(gpsPoint.first)) {
+    for (const GpsPointState& pointState : changedPoints) {
+        if (mGpsMap.contains(pointState.point)) {
             // update whether the point is selected or not
-            mGpsMap[gpsPoint.first] = gpsPoint.second;
+            mGpsMap[pointState.point] = pointState.used;
+            mPointSelectionRatio[pointState.point] = pointState.ratio;
             // get the index of the point in the qml map
-            int idx = mMapItems[gpsPoint.first];
+            int idx = mMapItems[pointState.point];
             // emit signal to update the corresponding circle
             // IMPORTANT: This signal is handled in QML and is
             // very expensive to compute! see map.qml
-            emitSetPoint(idx, gpsPoint.second);
+#if GEOMAP_ENABLE_PARTIAL_SELECTION
+            emitSetPointState(idx, pointState.used, pointState.ratio);
+#else
+            emitSetPoint(idx, pointState.used);
+#endif
         }
     }
 
@@ -88,6 +119,7 @@ void MapHandler::replaceData(const GpsDataList& gpsData,
     mSourceIndexToPoint.clear();
     mChangedPoints.clear();
     mMapItems.clear();
+    mPointSelectionRatio.clear();
     mPolyStack.clear();
     mCurrentStackPos = -1;
     mPolygon = QGeoPolygon();
@@ -99,7 +131,7 @@ void MapHandler::replaceData(const GpsDataList& gpsData,
     mCurrentStackPos = mPolyStack.size() - 1;
 }
 
-void MapHandler::updatePointsAndPolygon(const GpsDataList& changedPoints,
+void MapHandler::updatePointsAndPolygon(const GpsPointStateList& changedPoints,
                                         const QPolygonF& polygon) {
     mPolygon = QGeoPolygon();
     for (int i = 0; i < polygon.size(); i++) {
@@ -115,6 +147,8 @@ void MapHandler::drawGpsDataOnMap()
     if (mGpsMap.empty())
         return;
 
+    emitSetPartialSelectionEnabled(mPartialSelectionEnabled);
+
     //--- draw gps points on map
     QMapIterator<QPointF, bool> iter(mGpsMap);
     while (iter.hasNext())
@@ -128,7 +162,14 @@ void MapHandler::drawGpsDataOnMap()
         qlonglong* pointLongLong = (qlonglong*)&longitude;
 
         QString posId = QString::number(*pointLatLong) + "x" + QString::number(*pointLongLong);
-        this->emitCircleSignal(QGeoCoordinate(latitude, longitude), posId, iter.value());
+    #if GEOMAP_ENABLE_PARTIAL_SELECTION
+        const qreal ratio = mPointSelectionRatio.value(
+            iter.key(), iter.value() ? 1.0 : 0.0);
+    #else
+        const qreal ratio = iter.value() ? 1.0 : 0.0;
+    #endif
+        this->emitCircleSignal(QGeoCoordinate(latitude, longitude), posId,
+                       iter.value(), ratio);
     }
     this->emitGetMapItems();
 
@@ -157,6 +198,7 @@ void MapHandler::onQmlGpsClicked(const QString& text)
 
     QPointF gpsPoint(*pointLatDouble, *pointLongDouble);
     mGpsMap[gpsPoint] = !mGpsMap[gpsPoint];
+    mPointSelectionRatio[gpsPoint] = mGpsMap[gpsPoint] ? 1.0 : 0.0;
     emit gpsClicked(gpsPoint, mGpsMap[gpsPoint]);
 }
 
