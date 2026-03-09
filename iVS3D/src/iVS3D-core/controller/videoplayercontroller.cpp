@@ -159,14 +159,18 @@ void VideoPlayerController::slot_showFirstImage() {
     m_imageIndex = m_iterator->getFirst(m_dataManager->getModelInputPictures());
     showImage();
     m_timeline->selectFrame(m_imageIndex);
-    m_pluginThread->onIndexChanged(m_imageIndex);
+    if (m_pluginThread) {
+        m_pluginThread->onIndexChanged(m_imageIndex);
+    }
 }
 
 void VideoPlayerController::slot_showLastImage() {
     m_imageIndex = m_iterator->getLast(m_dataManager->getModelInputPictures());
     showImage();
     m_timeline->selectFrame(m_imageIndex);
-    m_pluginThread->onIndexChanged(m_imageIndex);
+    if (m_pluginThread) {
+        m_pluginThread->onIndexChanged(m_imageIndex);
+    }
 }
 
 void VideoPlayerController::slot_showPreviousImage() {
@@ -174,7 +178,9 @@ void VideoPlayerController::slot_showPreviousImage() {
         m_dataManager->getModelInputPictures(), m_imageIndex, m_stepsize);
     showImage();
     m_timeline->selectFrame(m_imageIndex);
-    m_pluginThread->onIndexChanged(m_imageIndex);
+    if (m_pluginThread) {
+        m_pluginThread->onIndexChanged(m_imageIndex);
+    }
 }
 
 void VideoPlayerController::slot_showNextImage() {
@@ -182,7 +188,9 @@ void VideoPlayerController::slot_showNextImage() {
                                        m_imageIndex, m_stepsize);
     showImage();
     m_timeline->selectFrame(m_imageIndex);
-    m_pluginThread->onIndexChanged(m_imageIndex);
+    if (m_pluginThread) {
+        m_pluginThread->onIndexChanged(m_imageIndex);
+    }
 }
 
 void VideoPlayerController::slot_toggleKeyframe() {
@@ -254,7 +262,9 @@ void VideoPlayerController::slot_changeStepSize(unsigned int stepsize) {
 
 void VideoPlayerController::slot_changeIndex(unsigned int index) {
     m_imageIndex = index;
-    m_pluginThread->onIndexChanged(index);
+    if (m_pluginThread) {
+        m_pluginThread->onIndexChanged(index);
+    }
     showImage();
 }
 
@@ -401,7 +411,8 @@ void VideoPlayerController::slot_receiveImage(const ImageRequest& request,
 
     // request visualization if preview plugin is available and image is still
     // the one on screen
-    if (m_currentPreviewPlugin && (m_imageIndexOnScreen == result.idx)) {
+    if (m_pluginThread && m_currentPreviewPlugin &&
+        (m_imageIndexOnScreen == result.idx)) {
         m_pluginThread->requestPreview(*m_currentPreviewPlugin,
                                       {m_imageIndexOnScreen, croppedImage});
     }
@@ -424,7 +435,8 @@ void VideoPlayerController::slot_receiveVisualization(
 }
 
 void VideoPlayerController::slot_refreshPreview(bool clearOldPreview) {
-    if (m_imageIndexOnScreen == UINT_MAX || m_currentImage.empty() || !m_currentPreviewPlugin) {
+    if (!m_pluginThread || m_imageIndexOnScreen == UINT_MAX ||
+        m_currentImage.empty() || !m_currentPreviewPlugin) {
         return;
     }
     if (clearOldPreview) {
@@ -456,7 +468,9 @@ void VideoPlayerController::slot_timerNextImage() {
         } else {
             showImage();
         }
-        m_pluginThread->onIndexChanged(m_imageIndex);
+        if (m_pluginThread) {
+            m_pluginThread->onIndexChanged(m_imageIndex);
+        }
     }
 }
 

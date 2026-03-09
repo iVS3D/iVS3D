@@ -89,7 +89,15 @@ void NthFrame::onCudaChanged(bool enabled) {
 }
 
 InputLoadedResult NthFrame::onInputLoaded(const InputData& input) {
-    m_numFrames = input.reader ? input.reader->getPicCount() : 0;
+    if (!input.reader) {
+        m_numFrames = 0;
+        m_fps = 30;
+        m_n = m_fps;
+        emit syncSettingsWidget(m_n, m_keepIsolated);
+        return {};
+    }
+
+    m_numFrames = input.reader->getPicCount();
     if (input.reader->getFPS() > 0) {
         m_fps = round(input.reader->getFPS());
     } else {

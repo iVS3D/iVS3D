@@ -6,9 +6,15 @@ enable_testing()
 # Find Qt and QtTest
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Test)
 
+# Process Qt resources
+qt5_add_resources(TEST_QRC_SRC_FILES
+    "${CMAKE_CURRENT_LIST_DIR}/../modelconfig_translations.qrc"
+)
+
 # Add the test executable
 add_executable(${TARGET_NAME}
     ModelManagerTest.cpp
+    ${TEST_QRC_SRC_FILES}
 )
 
 # Define the test data directory path for the test

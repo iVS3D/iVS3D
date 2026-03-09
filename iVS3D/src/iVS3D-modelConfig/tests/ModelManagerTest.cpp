@@ -5,6 +5,8 @@
 
 #include "../include/ModelManager.h"
 
+using MCFG::ModelManager;
+
 class ModelManagerTest : public QObject
 {
     Q_OBJECT

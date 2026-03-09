@@ -12,6 +12,9 @@
 #include <ModelSettingsWidget.h>
 #include <ModelManager.h>
 
+using MCFG::ModelManager;
+using MCFG::ModelSettingsWidget;
+
 class ExampleMainWindow : public QMainWindow {
     Q_OBJECT
 

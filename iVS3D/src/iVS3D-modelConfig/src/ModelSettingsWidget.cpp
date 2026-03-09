@@ -14,6 +14,11 @@
 #include <QCoreApplication>
 #include <QTranslator>
 
+// Initialize resources outside of any namespace to avoid symbol name mangling
+static void initModelConfigResources() {
+    Q_INIT_RESOURCE(modelconfig_translations);
+}
+
 namespace {
 std::unique_ptr<QTranslator> g_modelConfigTranslator;
 bool g_modelConfigTranslatorInstalled = false;
@@ -25,7 +30,12 @@ ModelSettingsWidget::ModelSettingsWidget(
     ModelManager& manager, QWidget* parent)
     : QWidget(parent), m_manager(manager)
 {
-    Q_INIT_RESOURCE(modelconfig_translations);
+    // Initialize resources when first widget is created
+    static bool resourcesInitialized = false;
+    if (!resourcesInitialized) {
+        initModelConfigResources();
+        resourcesInitialized = true;
+    }
 
     static bool firstInstance = true;
     if (firstInstance) {

@@ -9,13 +9,11 @@ set(HEADER_FILES
     ${CORE_HEADER_FILES}
     ${PLUGIN_HEADER_FILES}
     ${RESOURCE_HEADER_FILES}
-    "${CMAKE_CURRENT_LIST_DIR}/itransform_stub.h"
 )
 set(SRC_FILES 
     ${CORE_SRC_FILES}
     ${PLUGIN_SRC_FILES}
     "${CMAKE_CURRENT_LIST_DIR}/tst_exportcontroller.cpp"
-    "${CMAKE_CURRENT_LIST_DIR}/itransform_stub.cpp"
 )
 set(UI_FILES
     ${CORE_UI_FILES}

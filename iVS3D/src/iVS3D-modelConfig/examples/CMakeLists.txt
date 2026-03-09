@@ -5,9 +5,15 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
+# Process Qt resources
+qt5_add_resources(EXAMPLE_QRC_SRC_FILES
+    "${CMAKE_CURRENT_LIST_DIR}/../modelconfig_translations.qrc"
+)
+
 # Usage Example - demonstrates how to use ModelSettingsWidget
 add_executable(ModelSettingsWidget_Example
     gui_example.cpp
+    ${EXAMPLE_QRC_SRC_FILES}
 )
 
 target_link_libraries(ModelSettingsWidget_Example
