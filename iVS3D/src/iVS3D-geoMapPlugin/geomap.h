@@ -103,10 +103,11 @@ class GeoMap : public PLUG::IBase, public PLUG::ISelection
 
   signals:
     void syncMapData(const GpsDataList& gpsData, const QPolygonF& polygon);
-    void syncMapPointUpdates(const GpsDataList& changedGpsData,
+    void syncMapPointUpdates(const GpsPointStateList& changedGpsData,
                              const QPolygonF& polygon);
     void syncMapPolygon(const QPolygonF& polygon);
     void syncCurrentIndex(uint index);
+    void syncPartialSelectionMode(bool enabled);
 
   public slots:
 
@@ -126,6 +127,8 @@ class GeoMap : public PLUG::IBase, public PLUG::ISelection
 
   private:
     std::unique_ptr<QWidget> createSettingsWidget();
+    void loadPersistentSettings();
+    void savePersistentSettings() const;
 
     void readMetaData(MetaData* metaData);
     /// these are the localy stored keyframes
@@ -153,6 +156,7 @@ class GeoMap : public PLUG::IBase, public PLUG::ISelection
 
     /// Flag indicating if GPS data is available
     bool mIsGpsAvailable = false;
+    bool mPartialSelectionEnabled = GEOMAP_ENABLE_PARTIAL_SELECTION != 0;
 };
 
 #endif // IVS3D_GEOMAPPLUGIN_H

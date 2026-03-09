@@ -1,11 +1,13 @@
 #include "geomap.h"
 
 #include <QLocale>
+#include <QCheckBox>
 #include <QDebug>
 #include <QMessageBox>
 #include <QQmlContext>
 #include <QQmlEngine>
 #include <QQuickView>
+#include <QSettings>
 #include <QSpacerItem>
 
 #include "../iVS3D-core/model/metaData/metadata.h"
@@ -24,6 +26,11 @@ using PLUG::SettingsWidgetResult;
 
 namespace {
 constexpr int MAP_POINT_UPDATE_THRESHOLD = 100000;
+
+const QString ORG_NAME = "Fraunhofer-IOSB";
+const QString APP_NAME = "iVS3D";
+const QString SETTINGS_GROUP = "geoMapPlugin";
+const QString SETTINGS_PARTIAL_SELECTION_KEY = "partialSelectionEnabled";
 }
 
 GeoMap::GeoMap() : IBase() {
@@ -33,7 +40,10 @@ GeoMap::GeoMap() : IBase() {
     qApp->installTranslator(translator);
 
     qRegisterMetaType<GpsDataList>("GpsDataList");
+    qRegisterMetaType<GpsPointStateList>("GpsPointStateList");
     qRegisterMetaType<QPolygonF>("QPolygonF");
+
+    loadPersistentSettings();
     qDebug() << "[GeoMap] Plugin constructed";
 }
 
@@ -123,11 +133,73 @@ void GeoMap::onSelectedImagesChanged(
         }
     }
 
-    GpsDataList changedGpsData;
-    for (int i = 0; i < mGpsData.size(); i++) {
-        if (mGpsData[i].second != oldGpsData[i].second) {
-            changedGpsData.append(mGpsData[i]);
+    auto buildPointStateList = [](const GpsDataList& gpsData) {
+        QList<QPointF> points;
+        QList<int> selectedCounts;
+        QList<int> totalCounts;
+
+        for (const auto& entry : gpsData) {
+            const int pointIndex = points.indexOf(entry.first);
+            if (pointIndex < 0) {
+                points.append(entry.first);
+                selectedCounts.append(entry.second ? 1 : 0);
+                totalCounts.append(1);
+                continue;
+            }
+
+            totalCounts[pointIndex] += 1;
+            if (entry.second) {
+                selectedCounts[pointIndex] += 1;
+            }
         }
+
+        GpsPointStateList pointStates;
+        pointStates.reserve(points.size());
+        for (int i = 0; i < points.size(); i++) {
+            GpsPointState state;
+            state.point = points[i];
+            state.used = selectedCounts[i] > 0;
+            state.ratio = totalCounts[i] > 0
+                              ? qreal(selectedCounts[i]) / qreal(totalCounts[i])
+                              : 0.0;
+            pointStates.append(state);
+        }
+        return pointStates;
+    };
+
+    const GpsPointStateList oldPointStates = buildPointStateList(oldGpsData);
+    const GpsPointStateList newPointStates = buildPointStateList(mGpsData);
+
+    GpsPointStateList changedGpsData;
+    for (const GpsPointState& newState : newPointStates) {
+        bool foundOldState = false;
+        bool oldUsed = false;
+        qreal oldRatio = 0.0;
+
+        for (const GpsPointState& oldState : oldPointStates) {
+            if (oldState.point == newState.point) {
+                foundOldState = true;
+                oldUsed = oldState.used;
+                oldRatio = oldState.ratio;
+                break;
+            }
+        }
+
+        if (!foundOldState) {
+            changedGpsData.append(newState);
+            continue;
+        }
+
+        if (oldUsed != newState.used) {
+            changedGpsData.append(newState);
+            continue;
+        }
+
+#if GEOMAP_ENABLE_PARTIAL_SELECTION
+        if (qAbs(oldRatio - newState.ratio) > 0.000001) {
+            changedGpsData.append(newState);
+        }
+#endif
     }
 
     if (changedGpsData.isEmpty()) {
@@ -275,6 +347,11 @@ std::unique_ptr<QWidget> GeoMap::createSettingsWidget() {
                      &MapHandler::setPolygon, Qt::QueuedConnection);
     QObject::connect(this, &GeoMap::syncCurrentIndex, mapHandler,
                      &MapHandler::setCurrentIndex, Qt::QueuedConnection);
+    QObject::connect(this, &GeoMap::syncPartialSelectionMode, mapHandler,
+                     &MapHandler::setPartialSelectionMode,
+                     Qt::QueuedConnection);
+
+    emit syncPartialSelectionMode(mPartialSelectionEnabled);
 
     mapHandler->emitAdjustMapCenter(
         QGeoCoordinate(49.01554184059616, 8.425800420583966));
@@ -288,11 +365,26 @@ std::unique_ptr<QWidget> GeoMap::createSettingsWidget() {
 
     QPushButton* helpButton =
         new QPushButton(QObject::tr("Help"), mapWidget.get());
+    QCheckBox* partialSelectionCheckBox =
+        new QCheckBox(QObject::tr("Partial selection visualization"),
+                      mapWidget.get());
+    partialSelectionCheckBox->setChecked(mPartialSelectionEnabled);
+    QObject::connect(partialSelectionCheckBox, &QCheckBox::toggled, this,
+                     [this](bool enabled) {
+                         if (mPartialSelectionEnabled == enabled) {
+                             return;
+                         }
+
+                         mPartialSelectionEnabled = enabled;
+                         savePersistentSettings();
+                         emit syncPartialSelectionMode(enabled);
+                     });
 
     QHBoxLayout* buttonLayout = new QHBoxLayout();
     buttonLayout->setSpacing(3);
     buttonLayout->setContentsMargins(3, 3, 3, 3);
     buttonLayout->addWidget(resetButton);
+    buttonLayout->addWidget(partialSelectionCheckBox);
     buttonLayout->addSpacerItem(
         new QSpacerItem(20, 20, QSizePolicy::MinimumExpanding,
                         QSizePolicy::Minimum));
@@ -312,6 +404,24 @@ std::unique_ptr<QWidget> GeoMap::createSettingsWidget() {
     });
 
     return mapWidget;
+}
+
+void GeoMap::loadPersistentSettings() {
+    QSettings settings(ORG_NAME, APP_NAME);
+    settings.beginGroup(SETTINGS_GROUP);
+    mPartialSelectionEnabled =
+        settings.value(SETTINGS_PARTIAL_SELECTION_KEY,
+                       GEOMAP_ENABLE_PARTIAL_SELECTION != 0)
+            .toBool();
+    settings.endGroup();
+}
+
+void GeoMap::savePersistentSettings() const {
+    QSettings settings(ORG_NAME, APP_NAME);
+    settings.beginGroup(SETTINGS_GROUP);
+    settings.setValue(SETTINGS_PARTIAL_SELECTION_KEY,
+                      mPartialSelectionEnabled);
+    settings.endGroup();
 }
 
 void GeoMap::readMetaData(MetaData* metaData) {
