@@ -19,7 +19,7 @@
 #include <QGroupBox>
 #include <memory>
 #include <QMetaType>
-
+#include <memory>
 #include "ModelManager.h"
 
 namespace MCFG {

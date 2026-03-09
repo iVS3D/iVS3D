@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file>translations/modelconfig_de.qm</file>
+        <file>translations/modelconfig_en.qm</file>
+    </qresource>
+</RCC>

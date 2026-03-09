@@ -5,6 +5,8 @@
 
 #include <QCoreApplication>
 #include <QObject>
+#include <QTranslator>
+#include <memory>
 #include <optional>
 
 #include "ibase.h"
@@ -73,6 +75,7 @@ class SegmentationPlugin : public PLUG::IBase, public PLUG::IMask, public PLUG::
 
     QString m_currentModelName;
     NN::NeuralNetPtr m_currentModel;
+    std::unique_ptr<QTranslator> m_segmentationTranslator;
 
     // cache for the last inference result (if any and valid)
     struct SegmentationCache {

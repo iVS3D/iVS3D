@@ -11,6 +11,13 @@
 #include <QGroupBox>
 #include <QEvent>
 #include <QMouseEvent>
+#include <QCoreApplication>
+#include <QTranslator>
+
+namespace {
+std::unique_ptr<QTranslator> g_modelConfigTranslator;
+bool g_modelConfigTranslatorInstalled = false;
+}  // namespace
 
 namespace MCFG {
 
@@ -18,14 +25,28 @@ ModelSettingsWidget::ModelSettingsWidget(
     ModelManager& manager, QWidget* parent)
     : QWidget(parent), m_manager(manager)
 {
+    Q_INIT_RESOURCE(modelconfig_translations);
+
     static bool firstInstance = true;
     if (firstInstance) {
         // Register metatypes for use in signals/slots across threads
         qRegisterMetaType<ModelManager::ModelState>("MCFG::ModelManager::ModelState");
         qRegisterMetaType<QVector<ModelConfig::ClassInfo>>("QVector<MCFG::ModelConfig::ClassInfo>");
         qRegisterMetaType<QVector<ModelManager::ModelEntry>>("QVector<MCFG::ModelManager::ModelEntry>");
+
         firstInstance = false;
     }
+
+    if (!g_modelConfigTranslatorInstalled) {
+        QLocale locale = qApp->property("translation").toLocale();
+        g_modelConfigTranslator = std::make_unique<QTranslator>();
+        if (g_modelConfigTranslator->load(
+                locale, "modelconfig", "_", ":/translations", ".qm")) {
+            qApp->installTranslator(g_modelConfigTranslator.get());
+            g_modelConfigTranslatorInstalled = true;
+        }
+    }
+
     setupUi();
     setupManagerConnections();
     
@@ -73,7 +94,7 @@ void ModelSettingsWidget::setupUi()
     m_searchEdit->setMaximumWidth(150);
     
     m_invertButton = new QPushButton(tr("Invert"), this);
-    m_invertButton->setMaximumWidth(80);
+    m_invertButton->setMaximumWidth(140);
     
     classHeaderLayout->addWidget(classLabel);
     classHeaderLayout->addStretch();

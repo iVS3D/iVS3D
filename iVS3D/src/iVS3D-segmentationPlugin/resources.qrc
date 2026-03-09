@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file>translations/segmentation_de.qm</file>
+        <file>translations/segmentation_en.qm</file>
+    </qresource>
+</RCC>
