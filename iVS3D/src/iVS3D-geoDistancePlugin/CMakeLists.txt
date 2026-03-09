@@ -1,5 +1,15 @@
 set(TARGET_NAME GeoDistance)
 
+# Qt
+find_package(QT NAMES Qt5 REQUIRED COMPONENTS Core Gui Widgets Concurrent Positioning)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Gui Widgets Concurrent Positioning)
+set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
+
+# Add paths to linker search and installed rpath.
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+
 # set include directories
 include_directories(SYSTEM
     ${Qt${QT_VERSION_MAJOR}Core_INCLUDE_DIRS}
@@ -62,14 +72,15 @@ add_library(${TARGET_NAME} SHARED
     ${TS_FILES}
 )
 target_link_libraries(${TARGET_NAME}
+    PRIVATE
     iVS3D-pluginInterface
     Qt${QT_VERSION_MAJOR}::Core
     Qt${QT_VERSION_MAJOR}::Widgets
     Qt${QT_VERSION_MAJOR}::Gui
     Qt${QT_VERSION_MAJOR}::Concurrent
     Qt${QT_VERSION_MAJOR}::Positioning
-    Qt${QT_VERSION_MAJOR}::Quick
     ${OpenCV_LIBRARIES} 
+    tl-expected
 )
 
 # add defines
