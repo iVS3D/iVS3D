@@ -35,6 +35,7 @@ add_executable(${TARGET_NAME}
     ${SRC_FILES}
 )
 add_test(${TARGET_NAME} ${TARGET_NAME})
+ivs3d_configure_test_runtime(${TARGET_NAME})
 target_link_libraries(${TARGET_NAME}
     iVS3D-pluginInterface
     iVS3D::Ffmpeg

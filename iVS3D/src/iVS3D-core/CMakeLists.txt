@@ -65,7 +65,7 @@ if(WIN32)
 endif()
 
 # define executable
-add_executable(${TARGET_NAME} WIN32
+add_executable(${TARGET_NAME} #WIN32
     ${HEADER_FILES}
     ${SRC_FILES}
     ${UI_FILES}
