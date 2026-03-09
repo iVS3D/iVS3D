@@ -50,6 +50,14 @@ std::optional<Error> SegmentationPlugin::ensureModelReady() {
 }
 
 SegmentationPlugin::SegmentationPlugin() {
+    QLocale locale = qApp->property("translation").toLocale();
+
+    m_segmentationTranslator = std::make_unique<QTranslator>();
+    if (m_segmentationTranslator->load(
+            locale, "segmentation", "_", ":/translations", ".qm")) {
+        qApp->installTranslator(m_segmentationTranslator.get());
+    }
+
     m_overlayAlpha = 0.5f;  // Default overlay alpha
     m_modelManager.setNameFilter("Segmentation_*");
 }
