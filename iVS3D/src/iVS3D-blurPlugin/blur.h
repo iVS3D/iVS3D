@@ -113,7 +113,7 @@ private:
     QLabel* m_infoLabel = nullptr;
     BlurAlgorithm* m_usedBlur = nullptr;
     int m_windowSize = 30;
-    double m_localDeviation = 5.0;
+    double m_localDeviation = 95.0;
     std::vector<BlurAlgorithm*> m_blurAlgorithms = {};
 
     // Local cache (invalidated on algorithm/input change)

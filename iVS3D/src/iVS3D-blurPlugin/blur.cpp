@@ -78,13 +78,7 @@ ApplySettingsResult Blur::applySettings(
     QString usedAlgo =
         settings.value(USED_BLUR, m_usedBlur->getName()).toString();
 
-    // Backward compatibility: old projects used 1..200 (%) with meaningful
-    // values typically near 100. New UI uses an inverted 0.0..10.0 scale.
-    if (localDeviation > 10.0) {
-        localDeviation = std::clamp(100.0 - localDeviation, 0.0, 10.0);
-    }
-
-    if (windowSize < 1 || localDeviation < 0.0 || localDeviation > 10.0) {
+    if (windowSize < 1 || localDeviation < 0.0 || localDeviation > 200.0) {
         return tl::make_unexpected(
             Error(ErrorCode::InvalidInput, tr("Invalid blur settings")));
     }
@@ -142,7 +136,7 @@ void Blur::onIndexChanged(uint index) {
 
 VisualizationResult Blur::generatePreview(const PreviewData& data) {
     cv::Mat debugImage;
-    m_usedBlur->calcOneBluriness(data.image, &debugImage);
+    auto blur = m_usedBlur->calcOneBluriness(data.image, &debugImage);
     
     // Process the debug image to create a visualization overlay
     // 1. find minimum and maximum value for normalization
@@ -179,7 +173,7 @@ VisualizationResult Blur::generatePreview(const PreviewData& data) {
     }
     {
         auto& view = vis.views.emplace_back();
-        view.title = tr("Edge Detection (min: %1, max: %2)").arg(minVal, 0, 'f', 2).arg(maxVal, 0, 'f', 2);
+        view.title = tr("Edge Detection (sharpness: %1)").arg(blur, 0, 'f', 2);
         view.style.backgroundColor = Qt::transparent;
         view.style.viewport = ViewportType::RegionOfInterest;
         ImageOverlay overlay;
@@ -200,14 +194,14 @@ VisualizationResult Blur::generatePreview(const PreviewData& data) {
         view.overlays.push_back(overlay);
 
         TextOverlay textOverlayMax;
-        textOverlayMax.text = tr("Edge (%1)").arg(maxVal, 0, 'f', 2);
+        textOverlayMax.text = tr("Edge");
         textOverlayMax.position = QPointF(0.3, 0.15);
         textOverlayMax.anchor = TextAnchor::TopLeft;
         view.overlays.push_back(textOverlayMax);
         
 
         TextOverlay textOverlayMin;
-        textOverlayMin.text = tr("Smooth (%1)").arg(minVal, 0, 'f', 2);
+        textOverlayMin.text = tr("Smooth");
         textOverlayMin.position = QPointF(0.3, 0.95);
         textOverlayMin.anchor = TextAnchor::BottomLeft;
         view.overlays.push_back(textOverlayMin);
@@ -265,7 +259,7 @@ void Blur::slot_wsChanged(int ws) {
 }
 
 void Blur::slot_ldChanged(double ld) {
-    m_localDeviation = std::clamp(ld, 0.0, 10.0);
+    m_localDeviation = std::clamp(ld, 0.0, 200.0);
     emit syncSettingsWidget(m_usedBlur->getName(), m_windowSize,
                             m_localDeviation, currentInfoText());
     emit updatePreview(true);
@@ -328,11 +322,11 @@ std::unique_ptr<QWidget> Blur::createSettingsWidget() {
     ld->layout()->setSpacing(0);
     ld->layout()->setContentsMargins(0, 0, 0, 0);
     ld->layout()->addWidget(
-        new QLabel(tr("Sharpness tolerance (%)"), settingsWidget.get()));
+        new QLabel(tr("Sharpness deviation (%)"), settingsWidget.get()));
 
     m_spinBoxLD = new QDoubleSpinBox(settingsWidget.get());
     m_spinBoxLD->setMinimum(0.0);
-    m_spinBoxLD->setMaximum(10.0);
+    m_spinBoxLD->setMaximum(200.0);
     m_spinBoxLD->setSingleStep(0.1);
     m_spinBoxLD->setDecimals(1);
     m_spinBoxLD->setAlignment(Qt::AlignRight);
@@ -342,8 +336,8 @@ std::unique_ptr<QWidget> Blur::createSettingsWidget() {
     settingsWidget->layout()->addWidget(ld);
 
     QLabel* localDeviation =
-        new QLabel(tr("Sharpness tolerance relative to the local median "
-                      "(0.0 = strict, 10.0 = permissive)."),
+        new QLabel(tr("Sharpness deviation relative to the local median "
+                      "(Higher values will remove more images)."),
                    settingsWidget.get());
     localDeviation->setStyleSheet(DESCRIPTION_STYLE);
     localDeviation->setWordWrap(true);
@@ -372,7 +366,7 @@ std::unique_ptr<QWidget> Blur::createSettingsWidget() {
                 m_comboBoxBlur->setCurrentIndex(idx);
             }
             m_spinBoxWS->setValue(windowSize);
-            m_spinBoxLD->setValue(std::clamp(localDeviation, 0.0, 10.0));
+            m_spinBoxLD->setValue(std::clamp(localDeviation, 0.0, 200.0));
             m_infoLabel->setText(infoText);
         },
         Qt::QueuedConnection);
@@ -439,7 +433,7 @@ std::vector<uint> Blur::sampleKeyframes(Reader* reader,
             continue;
         }
 
-        const double ratio = 1.0 - (m_localDeviation / 100.0);
+        const double ratio = m_localDeviation / 100.0;
         if (m_cachedBlurValues[idx] >= med * ratio) {
             sampledImages.push_back(idx);
         }
