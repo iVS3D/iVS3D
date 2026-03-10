@@ -38,12 +38,12 @@
     </message>
     <message>
         <location filename="../blur.cpp" line="268"/>
-        <source>Local threshold (%)</source>
+        <source>Sharpness tolerance (%)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../blur.cpp" line="284"/>
-        <source>Keep images whose sharpness is at least this percent of the local median.</source>
+        <source>Sharpness tolerance relative to the local median (95..110 is usually reasonable).</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
