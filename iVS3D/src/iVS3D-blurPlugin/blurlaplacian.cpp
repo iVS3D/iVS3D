@@ -38,6 +38,7 @@ static double laplacianCPU(const cv::Mat &image, cv::Mat* debugImage = nullptr) 
     cv::Scalar mean, stddev;
     cv::meanStdDev(lap, mean, stddev);
     if (debugImage) {
+        lap = cv::abs(lap);
         *debugImage = lap;
     }
     return stddev[0] * stddev[0];
@@ -105,6 +106,7 @@ static double laplacianCUDA(const cv::Mat &image, cv::Mat* debugImage) {
 
     if (debugImage) {
         cv::Mat h_lap32f;
+        cv::cuda::abs(d_lap32f, d_lap32f, tlsStream());
         d_lap32f.download(h_lap32f, tlsStream());
         tlsStream().waitForCompletion();
         *debugImage = h_lap32f;
