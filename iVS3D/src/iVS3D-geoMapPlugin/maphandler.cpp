@@ -1,5 +1,4 @@
 #include "maphandler.h"
-#include <QDebug>
 
 // Define < to use QPointF in QMap
 inline bool operator<(const QPointF& lhs, const QPointF& rhs)
@@ -173,13 +172,16 @@ void MapHandler::drawGpsDataOnMap()
     }
     this->emitGetMapItems();
 
-    //--- draw trace
+    //--- draw trace: build the full ordered path and send it in one shot
     QPointF avgGpsPnt(0, 0);
-    for (QPointF point : mOrderedGpsList)
+    QVariantList traceCoords;
+    traceCoords.reserve(mOrderedGpsList.size());
+    for (const QPointF& point : mOrderedGpsList)
     {
         avgGpsPnt += point;
-        this->emitCreatePolyline(QGeoCoordinate(point.x(), point.y()));
+        traceCoords.append(QVariant::fromValue(QGeoCoordinate(point.x(), point.y())));
     }
+    this->emitSetTracePath(traceCoords);
 
     //--- center map around average gps point
     avgGpsPnt /= mOrderedGpsList.size();
@@ -270,7 +272,6 @@ void MapHandler::onQmlSelectionForward()
 //==================================================================================================
 void MapHandler::newMapItems()
 {
-    qDebug() << "[GeoMap][MapHandler] newMapItems polygon size:" << mPolygon.size();
     QGeoPath path = QGeoPath(mPolygon.path());
     emitSetMapSelect(path);
     QVariantList coordinates;
@@ -323,7 +324,6 @@ QPointF MapHandler::pointAtGeo(int index)
 //==================================================================================================
 void MapHandler::onQmlMapClicked(const QString& text)
 {
-    qDebug() << "[GeoMap][MapHandler] onQmlMapClicked:" << text;
     // Get clicked gps point
     QStringList position = text.split("x");
     double latitude      = position[0].toDouble();
@@ -334,16 +334,12 @@ void MapHandler::onQmlMapClicked(const QString& text)
     if (mPolygon.size() < 2)
     {
         mPolygon.addCoordinate(currentCoord);
-        qDebug() << "[GeoMap][MapHandler] add first/second point, size now:"
-                 << mPolygon.size();
     }
     // Add line back to the starting point
     else if (mPolygon.size() == 2)
     {
         mPolygon.addCoordinate(currentCoord);
         mPolygon.addCoordinate(mPolygon.coordinateAt(0));
-        qDebug() << "[GeoMap][MapHandler] close polygon, size now:"
-                 << mPolygon.size();
     }
     else
     {
@@ -410,13 +406,9 @@ void MapHandler::onQmlMapClicked(const QString& text)
         {
             mPolygon.insertCoordinate(nearestLineIndex + 1, currentCoord);
         }
-        qDebug() << "[GeoMap][MapHandler] insert/replace polygon point, size now:"
-                 << mPolygon.size();
     }
     mPolyStack.append(mPolygon);
     mCurrentStackPos++;
-    qDebug() << "[GeoMap][MapHandler] emitting polygon update, size:"
-             << mPolygon.size();
     newMapItems();
 }
 

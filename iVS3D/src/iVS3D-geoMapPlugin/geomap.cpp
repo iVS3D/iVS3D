@@ -2,7 +2,6 @@
 
 #include <QLocale>
 #include <QCheckBox>
-#include <QDebug>
 #include <QMessageBox>
 #include <QQmlContext>
 #include <QQmlEngine>
@@ -44,11 +43,9 @@ GeoMap::GeoMap() : IBase() {
     qRegisterMetaType<QPolygonF>("QPolygonF");
 
     loadPersistentSettings();
-    qDebug() << "[GeoMap] Plugin constructed";
 }
 
 SettingsWidgetResult GeoMap::getSettingsWidget() {
-    qDebug() << "[GeoMap] getSettingsWidget()";
     auto widget = createSettingsWidget();
     if (!widget) {
         return tl::make_unexpected(Error(
@@ -68,7 +65,6 @@ QMap<QString, QVariant> GeoMap::getSettings() const {
 
 ApplySettingsResult GeoMap::applySettings(
     const QMap<QString, QVariant>& settings) {
-    qDebug() << "[GeoMap] applySettings keys:" << settings.keys();
     if (!settings.contains(NAME_Polygon)) {
         return {};
     }
@@ -81,13 +77,11 @@ ApplySettingsResult GeoMap::applySettings(
     }
 
     mPolygon = polygonVariant.value<QPolygonF>();
-    qDebug() << "[GeoMap] Restored polygon with points:" << mPolygon.size();
     emit syncMapPolygon(mPolygon);
     return {};
 }
 
 InputLoadedResult GeoMap::onInputLoaded(const InputData& input) {
-    qDebug() << "[GeoMap] onInputLoaded reader valid:" << (input.reader != nullptr);
     mReader = input.reader;
     mMetaData.clear();
     mGpsData.clear();
@@ -107,16 +101,12 @@ MetaDataLoadedResult GeoMap::onMetaDataLoaded(
 
     mPolygon = QPolygonF();
     readMetaData(metaData);
-    qDebug() << "[GeoMap] onMetaDataLoaded gpsAvailable:" << mIsGpsAvailable
-             << "gpsPoints:" << mGpsData.size();
     emit syncMapData(mGpsData, mPolygon);
     return {};
 }
 
 void GeoMap::onSelectedImagesChanged(
     const std::vector<uint>& selectedImages) {
-    qDebug() << "[GeoMap] onSelectedImagesChanged count:"
-             << static_cast<int>(selectedImages.size());
     if (!mIsGpsAvailable || mGpsData.empty()) {
         return;
     }
@@ -206,8 +196,6 @@ void GeoMap::onSelectedImagesChanged(
         return;
     }
 
-    qDebug() << "[GeoMap] changed GPS points:" << changedGpsData.size();
-
     if (changedGpsData.length() < MAP_POINT_UPDATE_THRESHOLD) {
         emit syncMapPointUpdates(changedGpsData, mPolygon);
     } else {
@@ -217,9 +205,6 @@ void GeoMap::onSelectedImagesChanged(
 
 SelectionResult GeoMap::selectImages(const SelectionData& data,
                                      volatile bool& cancelFlag) {
-    qDebug() << "[GeoMap] selectImages input count:"
-             << static_cast<int>(data.selectedIndices.size())
-             << "polygon points:" << mPolygon.size();
     if (!mIsGpsAvailable) {
         return data.selectedIndices;
     }
@@ -253,14 +238,10 @@ SelectionResult GeoMap::selectImages(const SelectionData& data,
 
     mPolygon = QPolygonF();
     emit syncMapPolygon(mPolygon);
-
-    qDebug() << "[GeoMap] selectImages output count:"
-             << static_cast<int>(selected.size());
     return selected;
 }
 
 void GeoMap::onGpsClicked(QPointF gpsPoint, bool used) {
-    qDebug() << "[GeoMap] onGpsClicked point:" << gpsPoint << "used:" << used;
     if (!mIsGpsAvailable) {
         return;
     }
@@ -281,7 +262,6 @@ void GeoMap::onGpsClicked(QPointF gpsPoint, bool used) {
 }
 
 void GeoMap::onGpsSelected(QPolygonF polyF) {
-    qDebug() << "[GeoMap] onGpsSelected polygon points:" << polyF.size();
     if (!mIsGpsAvailable) {
         return;
     }
@@ -289,12 +269,10 @@ void GeoMap::onGpsSelected(QPolygonF polyF) {
 }
 
 void GeoMap::onIndexChanged(uint index) {
-    qDebug() << "[GeoMap] onIndexChanged index:" << index;
     emit syncCurrentIndex(index);
 }
 
 std::unique_ptr<QWidget> GeoMap::createSettingsWidget() {
-    qDebug() << "[GeoMap] createSettingsWidget()";
     auto mapWidget = std::make_unique<QWidget>(nullptr);
     mapWidget->setLayout(new QVBoxLayout());
     mapWidget->layout()->setSpacing(3);
@@ -430,7 +408,6 @@ void GeoMap::readMetaData(MetaData* metaData) {
     mIsGpsAvailable = false;
 
     if (!metaData) {
-        qDebug() << "[GeoMap] readMetaData: metadata pointer is null";
         return;
     }
 
@@ -439,11 +416,9 @@ void GeoMap::readMetaData(MetaData* metaData) {
         if (!metaName.startsWith("GPS")) {
             continue;
         }
-        qDebug() << "[GeoMap] Found metadata track:" << metaName;
 
         MetaDataReader* metaReader = metaData->loadMetaData(metaName);
         if (!metaReader) {
-            qDebug() << "[GeoMap] Failed to load metadata reader for" << metaName;
             continue;
         }
 
@@ -458,11 +433,9 @@ void GeoMap::readMetaData(MetaData* metaData) {
 
         if (!mGpsData.isEmpty()) {
             mIsGpsAvailable = true;
-            qDebug() << "[GeoMap] Loaded GPS points:" << mGpsData.size();
             return;
         }
     }
-    qDebug() << "[GeoMap] No valid GPS metadata found";
 }
 
 std::vector<unsigned int> GeoMap::getKeyframesFromGps() const {

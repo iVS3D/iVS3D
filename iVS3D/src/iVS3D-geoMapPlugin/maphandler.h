@@ -94,6 +94,14 @@ class MapHandler : public QObject
         Q_EMIT createPolyline(coordinate);
     }
     /**
+     * @brief emitSetTracePath Sends the full ordered GPS trace path to the QML map in one shot.
+     * @param coordinates List of QGeoCoordinate values wrapped as QVariant.
+     */
+    void emitSetTracePath(const QVariantList& coordinates)
+    {
+        Q_EMIT setTracePath(coordinates);
+    }
+    /**
      * @brief emitSetMapSelect Method to emit the corresponding signal
      * @param path QGeoPath with the perimeter of the current polygon
      */
@@ -155,6 +163,12 @@ class MapHandler : public QObject
      * @param coordinate New coordinate added to the polyline
      */
     void createPolyline(const QGeoCoordinate& coordinate);
+    /**
+     * @brief setTracePath Replaces the entire GPS trace path on the map in one call.
+     *        Coordinates are ordered by image index via mOrderedGpsList.
+     * @param coordinates List of QGeoCoordinate values as QVariant.
+     */
+    void setTracePath(const QVariantList& coordinates);
     /**
      * @brief emitSetMapSelect Used to updated the current user selected polygon on the map
      * @param path QGeoPath with the perimeter of the current polygon

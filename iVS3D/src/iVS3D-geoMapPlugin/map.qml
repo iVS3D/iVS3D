@@ -12,6 +12,7 @@ Item {
     property bool partialSelectionEnabled: true
     property var polygonVertexItems: []
     property var polygonSegmentItems: []
+    property var traceSegmentItems: []
     signal gpsClicked(string msg)
     signal qmlClosed()
     signal mapClicked(string geo)
@@ -34,6 +35,14 @@ Item {
             polygonSegmentItems[i].destroy()
         }
         polygonSegmentItems = []
+    }
+
+    function clearTraceSegmentItems() {
+        for (var i = 0; i < traceSegmentItems.length; ++i) {
+            mapToken.removeMapItem(traceSegmentItems[i])
+            traceSegmentItems[i].destroy()
+        }
+        traceSegmentItems = []
     }
 
 
@@ -73,14 +82,20 @@ Item {
                 mapToken.center = coordinate
             }
 
-            onCreatePolyline : {
-                mapPolyline.addCoordinate(coordinate)
-                mapPolyline.visible = true
+            onSetTracePath : {
+                var traceCoords = coordinates ? coordinates : []
+                clearTraceSegmentItems()
+                for (var i = 1; i < traceCoords.length; ++i) {
+                    var seg = traceSegmentComponent.createObject(mapToken)
+                    seg.addCoordinate(traceCoords[i - 1])
+                    seg.addCoordinate(traceCoords[i])
+                    mapToken.addMapItem(seg)
+                    traceSegmentItems.push(seg)
+                }
             }
 
             onSetMapSelect : {
-                // Legacy path signal (kept for compatibility/debug)
-                console.log("[GeoMap][QML] onSetMapSelect (QGeoPath) received")
+                // Legacy path signal (kept for compatibility)
             }
 
             onSetMapSelectCoordinates : {
@@ -105,12 +120,6 @@ Item {
                     }
                 }
                 selectGPS.visible = selectGPS.path.length > 1
-                if (selectGPS.path.length > 0) {
-                    console.log("[GeoMap][QML] first polygon point:",
-                                selectGPS.path[0].latitude,
-                                selectGPS.path[0].longitude)
-                }
-                console.log("[GeoMap][QML] onSetMapSelectCoordinates points:", selectGPS.path.length)
             }
 
             onSetPoint : {
@@ -157,20 +166,12 @@ Item {
             onClearMap : {
                 clearPolygonVertexItems()
                 clearPolygonSegmentItems()
+                clearTraceSegmentItems()
                 while (mapToken.mapItems.length > 0) {
                     mapToken.removeMapItem(mapToken.mapItems[0])
                 }
-                mapPolyline.path = []
-                mapPolyline.visible = false
                 selectGPS.path = []
             }
-        }
-
-        MapPolyline {
-            id: mapPolyline
-            visible: false
-            line.width: 3
-            line.color: 'black'
         }
 
         MapPolyline {
@@ -207,6 +208,15 @@ Item {
             }
         }
 
+        Component {
+            id: traceSegmentComponent
+            MapPolyline {
+                z: 50
+                line.width: 2
+                line.color: "black"
+            }
+        }
+
 
         MouseArea {
             enabled: true
@@ -217,7 +227,6 @@ Item {
                     return
                 var cord = mapToken.toCoordinate(Qt.point(mouse.x,mouse.y))
                 var string = cord.latitude + 'x' + cord.longitude
-                console.log("[GeoMap][QML] right click:", string)
                 handler.onQmlMapClicked(string)
             }
         }
