@@ -9,6 +9,7 @@
 #include <QScrollArea>
 #include <QFrame>
 #include <QSpacerItem>
+#include <QMap>
 
 #include "maskstack.h"
 
@@ -69,17 +70,22 @@ private:
     struct ItemWidgets {
         QWidget* container = nullptr;
         QLabel* title = nullptr;
+        QLabel* resolutionLabel = nullptr;
         QLabel* details = nullptr;
         QPushButton* removeButton = nullptr;
+        QPushButton* expandButton = nullptr;
+        bool isExpanded = false;
         int id = -1;
     };
 
     QListWidget* m_list = nullptr;
     QPushButton* m_clearButton = nullptr;
+    QMap<int, ItemWidgets> m_itemWidgets;
 
     // Helpers
     QWidget* createListItem(const MaskRecord& record, ItemWidgets& outWidgets);
     QString formatDetails(const MaskRecord& record) const;
+    void toggleItemExpanded(int id);
 
     void connectSelectionSignals();
 };
