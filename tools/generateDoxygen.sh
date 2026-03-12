@@ -1,13 +1,62 @@
 #!/bin/bash
-set -e
+set -euo pipefail
 
 # Get the directory of the script
 SCRIPT_DIR=$(dirname "$(realpath "$0")")
 echo "Script directory: $SCRIPT_DIR"
 
-cd $SCRIPT_DIR/..
+cd "$SCRIPT_DIR/.."
+PROJECT_ROOT=$(pwd)
 
+# Staging directory for markdown preprocessing (keeps source docs unchanged)
+STAGING_DIR=$(mktemp -d "${TMPDIR:-/tmp}/ivs3d-doxygen-md.XXXXXX")
+trap 'rm -rf "$STAGING_DIR"' EXIT
 
+stage_markdown_sources() {
+    mkdir -p "$STAGING_DIR/doc"
+    cp "$PROJECT_ROOT/README.md" "$STAGING_DIR/README.md"
+    cp -a "$PROJECT_ROOT/doc/." "$STAGING_DIR/doc/"
+}
+
+preprocess_mermaid_diagrams() {
+    # Mermaid CLI is required for converting Mermaid code fences to SVG.
+    if ! command -v mmdc &> /dev/null; then
+        echo "Mermaid CLI (mmdc) is not installed. Install @mermaid-js/mermaid-cli to enable Mermaid rendering."
+        exit 1
+    fi
+
+    local puppeteer_config="$STAGING_DIR/puppeteer-config.json"
+    cat > "$puppeteer_config" <<'JSON'
+{
+  "args": ["--no-sandbox", "--disable-setuid-sandbox"]
+}
+JSON
+
+    local processed_files=0
+    local md_file
+    while IFS= read -r -d '' md_file; do
+        if ! grep -Eq '^```[[:space:]]*mermaid([[:space:]]|$)' "$md_file"; then
+            continue
+        fi
+
+        echo "Rendering Mermaid diagrams in $md_file"
+        mmdc \
+            -i "$md_file" \
+            -o "$md_file" \
+            -t neutral \
+            -b transparent \
+            -p "$puppeteer_config"
+
+        processed_files=$((processed_files + 1))
+    done < <(
+        {
+            printf '%s\0' "$STAGING_DIR/README.md"
+            find "$STAGING_DIR/doc" -type f -name '*.md' -print0
+        }
+    )
+
+    echo "Mermaid preprocessing complete: transformed $processed_files markdown file(s)."
+}
 
 # Check if doxygen is installed
 if ! command -v doxygen &> /dev/null; then
@@ -19,8 +68,91 @@ fi
 VERSION=$(git describe --tags --abbrev=0)
 echo "Generating docs for version $VERSION"
 
+# Prepare staged markdown and render Mermaid diagrams as SVG files
+stage_markdown_sources
+preprocess_mermaid_diagrams
+
 # Use a template Doxyfile.in and substitute @PROJECT_VERSION@
-sed "s/@PROJECT_VERSION@/$VERSION/" $SCRIPT_DIR/templates/Doxyfile.template > Doxyfile
+ESCAPED_VERSION=${VERSION//&/\\&}
+sed "s|@PROJECT_VERSION@|$ESCAPED_VERSION|" "$SCRIPT_DIR/templates/Doxyfile.template" > Doxyfile
+
+# Override markdown-related paths so Doxygen uses staged files only.
+export DOXYFILE_PATH="$PROJECT_ROOT/Doxyfile"
+export DOXY_INPUT_README="$STAGING_DIR/README.md"
+export DOXY_INPUT_LICENSE="$PROJECT_ROOT/LICENSE"
+export DOXY_INPUT_LOGO="$PROJECT_ROOT/iVS3D.png"
+export DOXY_INPUT_SRC="$PROJECT_ROOT/iVS3D/src"
+export DOXY_INPUT_DOC="$STAGING_DIR/doc"
+export DOXY_MAINPAGE="$STAGING_DIR/README.md"
+export DOXY_IMAGE_PATH_DOC="$STAGING_DIR/doc"
+export DOXY_IMAGE_PATH_ROOT="$PROJECT_ROOT"
+export DOXY_STRIP_PATH_STAGE="$STAGING_DIR"
+export DOXY_STRIP_PATH_ROOT="$PROJECT_ROOT"
+
+python3 <<'PY'
+import os
+import re
+from pathlib import Path
+
+doxyfile = Path(os.environ["DOXYFILE_PATH"])
+content = doxyfile.read_text(encoding="utf-8").splitlines()
+
+new_input_block = [
+    f'INPUT                  = "{os.environ["DOXY_INPUT_README"]}" \\\\',
+    f'                         "{os.environ["DOXY_INPUT_LICENSE"]}" \\\\',
+    f'                         "{os.environ["DOXY_INPUT_LOGO"]}" \\\\',
+    f'                         "{os.environ["DOXY_INPUT_SRC"]}" \\\\',
+    f'                         "{os.environ["DOXY_INPUT_DOC"]}"',
+]
+
+new_lines = []
+i = 0
+while i < len(content):
+    line = content[i]
+    stripped_line = line.lstrip()
+
+    if re.match(r"^INPUT\s*=", stripped_line):
+        new_lines.extend(new_input_block)
+        i += 1
+        while i < len(content):
+            next_line = content[i]
+            stripped = next_line.lstrip()
+            if not stripped:
+                break
+            if stripped.startswith("#"):
+                break
+            if "=" in stripped:
+                break
+            i += 1
+        continue
+
+    if re.match(r"^USE_MDFILE_AS_MAINPAGE\s*=", stripped_line):
+        new_lines.append(f'USE_MDFILE_AS_MAINPAGE = "{os.environ["DOXY_MAINPAGE"]}"')
+        i += 1
+        continue
+
+    if re.match(r"^IMAGE_PATH\s*=", stripped_line):
+        new_lines.append(
+            f'IMAGE_PATH             = "{os.environ["DOXY_IMAGE_PATH_DOC"]}" "{os.environ["DOXY_IMAGE_PATH_ROOT"]}"'
+        )
+        i += 1
+        continue
+
+    if re.match(r"^STRIP_FROM_PATH\s*=", stripped_line):
+        new_lines.append(
+            f'STRIP_FROM_PATH        = "{os.environ["DOXY_STRIP_PATH_STAGE"]}" "{os.environ["DOXY_STRIP_PATH_ROOT"]}"'
+        )
+        i += 1
+        continue
+
+    new_lines.append(line)
+    i += 1
+
+doxyfile.write_text("\n".join(new_lines) + "\n", encoding="utf-8")
+PY
+
+# Remove stale documentation artifacts from previous runs.
+rm -rf "$PROJECT_ROOT/generated_doc"
 
 # Run doxygen
 doxygen Doxyfile
