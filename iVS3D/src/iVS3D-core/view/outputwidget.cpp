@@ -66,11 +66,6 @@ void OutputWidget::showExportOptions()
     m_layout->addWidget(m_exportW);
 }
 
-void OutputWidget::enableCreateFilesWidget(bool enable)
-{
-    m_exportW->enableCreateFilesWidget(enable);
-}
-
 void OutputWidget::setResolutionList(QStringList resList, int idx)
 {
     m_exportW->setResolutionList(resList,idx);

@@ -69,14 +69,6 @@ void ExportWidget::on_spinBox_altitude_valueChanged(double d) {
     emit sig_altitudeChanged(d);
 }
 
-void ExportWidget::enableCreateFilesWidget(bool enable) {
-    if (enable) {
-        ui->label_transforms->show();
-    } else {
-        ui->label_transforms->hide();
-    }
-}
-
 void ExportWidget::setResolutionList(QStringList resList, int idx) {
     Q_ASSERT(!resList.empty());
     Q_ASSERT(idx >= 0);

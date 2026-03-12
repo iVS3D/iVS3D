@@ -69,12 +69,6 @@ public:
      */
     void enableReconstruct(bool enabled);
 
-    /**
-     * @brief disableCreateFilesWidget will disable the create files for widget
-     * @param @a true shows the widget, @a false will hide it
-     */
-    void enableCreateFilesWidget(bool enable);
-
     void setResolutionList(QStringList resList, int idx);
     void setResolution(QString resolution);
     void setResolutionValid(bool valid);
