@@ -14,62 +14,62 @@
         <translation>Laden des Neuronalen Netzes gescheitert: %1</translation>
     </message>
     <message>
-        <location filename="../segplugin.cpp" line="77"/>
+        <location filename="../segplugin.cpp" line="71"/>
         <source>No detection models found in the models directory.</source>
         <translation>Keine passenden Modelle gefunden.</translation>
     </message>
     <message>
-        <location filename="../segplugin.cpp" line="137"/>
+        <location filename="../segplugin.cpp" line="131"/>
         <source>selectedModel is required in settings.</source>
         <translation>selectedModel wird in den Einstellungen benötigt.</translation>
     </message>
     <message>
-        <location filename="../segplugin.cpp" line="144"/>
+        <location filename="../segplugin.cpp" line="138"/>
         <source>Failed to parse selected model from settings.</source>
         <translation>Laden des ausgewählten Modells aus den Einstellungen fehlgeschlagen.</translation>
     </message>
     <message>
-        <location filename="../segplugin.cpp" line="167"/>
-        <location filename="../segplugin.cpp" line="221"/>
+        <location filename="../segplugin.cpp" line="161"/>
+        <location filename="../segplugin.cpp" line="215"/>
         <source>An error occurred during model inference:
 %1</source>
         <translation>Bei der Inferenz des Modells ist ein Fehler aufgetreten:
 %1</translation>
     </message>
     <message>
-        <location filename="../segplugin.cpp" line="177"/>
-        <location filename="../segplugin.cpp" line="261"/>
+        <location filename="../segplugin.cpp" line="171"/>
+        <location filename="../segplugin.cpp" line="255"/>
         <source>An error occurred during mask computation.
 %1</source>
         <translation>Beim berechnen der Maske ist ein Fehler aufgetreten:
 %1</translation>
     </message>
     <message>
-        <location filename="../segplugin.cpp" line="215"/>
+        <location filename="../segplugin.cpp" line="209"/>
         <source>Ran out of memory during inference!
 Lower the working resolution to reduce memory usage.</source>
         <translation>Nicht genügend GPU Speicher für die Inferenz!
 Reduzieren Sie die Arbeitsauflösung um den Speicherbedarf zu senken.</translation>
     </message>
     <message>
-        <location filename="../segplugin.cpp" line="240"/>
+        <location filename="../segplugin.cpp" line="234"/>
         <source>An error occurred during colorization.
 %1</source>
         <translation>Beim Einfärben ist ein Fehler aufgetreten:
 %1</translation>
     </message>
     <message>
-        <location filename="../segplugin.cpp" line="279"/>
+        <location filename="../segplugin.cpp" line="273"/>
         <source>Segmentation Preview (inference time: %1 ms)</source>
         <translation>Segmentierungsvorschau (Inferenzdauer: %1ms)</translation>
     </message>
     <message>
-        <location filename="../segplugin.cpp" line="282"/>
+        <location filename="../segplugin.cpp" line="276"/>
         <source>Segmentation Preview (cached)</source>
         <translation>Segmentierungsvorschau (gespeichert)</translation>
     </message>
     <message>
-        <location filename="../segplugin.cpp" line="296"/>
+        <location filename="../segplugin.cpp" line="290"/>
         <source>Segmentation Mask</source>
         <translation>Segmentierungsmaske</translation>
     </message>

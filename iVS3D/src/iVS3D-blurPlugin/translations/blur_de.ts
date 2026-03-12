@@ -70,14 +70,6 @@
         <translation>Anzahl der Bilder auf jeder Seite für das lokale Fenster</translation>
     </message>
     <message>
-        <source>Sharpness tolerance (%)</source>
-        <translation type="vanished">Schärfetoleranz (%)</translation>
-    </message>
-    <message>
-        <source>Sharpness tolerance relative to the local median (95..110 is usually reasonable).</source>
-        <translation type="vanished">Schärfetoleranz relativ zum lokalen Median (95..110 ist üblicherweise sinnvoll).</translation>
-    </message>
-    <message>
         <location filename="../blur.cpp" line="63"/>
         <source>Blur detection</source>
         <translation>Unscharfe Bilder detektieren</translation>
@@ -112,13 +104,6 @@
         <location filename="../blur.cpp" line="442"/>
         <source>Blur progress</source>
         <translation>Unschärfe Berechnung Fortschritt</translation>
-    </message>
-</context>
-<context>
-    <name>BlurAlgorithm</name>
-    <message>
-        <source>Calculate blur for frame </source>
-        <translation type="vanished">Berechne Schärfewert für Bild </translation>
     </message>
 </context>
 </TS>

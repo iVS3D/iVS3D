@@ -14,58 +14,58 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../segplugin.cpp" line="77"/>
+        <location filename="../segplugin.cpp" line="71"/>
         <source>No detection models found in the models directory.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../segplugin.cpp" line="137"/>
+        <location filename="../segplugin.cpp" line="131"/>
         <source>selectedModel is required in settings.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../segplugin.cpp" line="144"/>
+        <location filename="../segplugin.cpp" line="138"/>
         <source>Failed to parse selected model from settings.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../segplugin.cpp" line="167"/>
-        <location filename="../segplugin.cpp" line="221"/>
+        <location filename="../segplugin.cpp" line="161"/>
+        <location filename="../segplugin.cpp" line="215"/>
         <source>An error occurred during model inference:
 %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../segplugin.cpp" line="177"/>
-        <location filename="../segplugin.cpp" line="261"/>
+        <location filename="../segplugin.cpp" line="171"/>
+        <location filename="../segplugin.cpp" line="255"/>
         <source>An error occurred during mask computation.
 %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../segplugin.cpp" line="215"/>
+        <location filename="../segplugin.cpp" line="209"/>
         <source>Ran out of memory during inference!
 Lower the working resolution to reduce memory usage.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../segplugin.cpp" line="240"/>
+        <location filename="../segplugin.cpp" line="234"/>
         <source>An error occurred during colorization.
 %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../segplugin.cpp" line="279"/>
+        <location filename="../segplugin.cpp" line="273"/>
         <source>Segmentation Preview (inference time: %1 ms)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../segplugin.cpp" line="282"/>
+        <location filename="../segplugin.cpp" line="276"/>
         <source>Segmentation Preview (cached)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../segplugin.cpp" line="296"/>
+        <location filename="../segplugin.cpp" line="290"/>
         <source>Segmentation Mask</source>
         <translation type="unfinished"></translation>
     </message>
