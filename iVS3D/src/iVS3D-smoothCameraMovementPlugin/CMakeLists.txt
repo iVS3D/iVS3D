@@ -104,15 +104,17 @@ add_library(${TARGET_NAME} SHARED
     ${TS_FILES}
 )
 target_link_libraries(${TARGET_NAME}
+    PRIVATE
     iVS3D-pluginInterface
     Qt${QT_VERSION_MAJOR}::Core
     Qt${QT_VERSION_MAJOR}::Widgets
     Qt${QT_VERSION_MAJOR}::Gui
     Qt${QT_VERSION_MAJOR}::Concurrent
     Qt${QT_VERSION_MAJOR}::Positioning
-    ${OpenCV_LIBRARIES} 
+    ${OpenCV_LIBRARIES}
     ${CUDA_LIBRARIES}
     ${CUDNN_LIBRARIES}
+    tl-expected
 )
 
 # add defines

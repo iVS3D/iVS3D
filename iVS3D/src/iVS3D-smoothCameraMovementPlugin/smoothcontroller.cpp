@@ -1,29 +1,126 @@
 #include "smoothcontroller.h"
 
-SmoothController::SmoothController() {
+#include <QDebug>
+#include <QElapsedTimer>
+#include <QHBoxLayout>
+#include <QLocale>
+#include <QSignalBlocker>
+#include <QVBoxLayout>
+
+using PLUG::ApplySettingsResult;
+using PLUG::Error;
+using PLUG::ErrorCode;
+using PLUG::InputData;
+using PLUG::InputLoadedResult;
+using PLUG::SelectionData;
+using PLUG::SelectionResult;
+using PLUG::SettingsWidgetResult;
+
+CameraMovement::CameraMovement()
+    : IBase()
+{
     QLocale locale = qApp->property("translation").toLocale();
-    QTranslator *translator = new QTranslator();
+    QTranslator* translator = new QTranslator();
     translator->load(locale, "smoothCameraMovement", "_", ":/translations",
                      ".qm");
     qApp->installTranslator(translator);
 }
 
-QWidget *SmoothController::getSettingsWidget(QWidget *parent) {
-    if (!m_settingsWidget) {
-        createSettingsWidget(parent);
+SettingsWidgetResult CameraMovement::getSettingsWidget()
+{
+    auto widget = createSettingsWidget();
+    if (!widget) {
+        return tl::make_unexpected(Error(
+            ErrorCode::ResourceUnavailable,
+            tr("Failed to create CameraMovement settings widget.")));
     }
-    return m_settingsWidget;
+    return widget;
 }
 
-std::vector<uint> SmoothController::sampleImages(
-    const std::vector<uint> &imageList, Progressable *receiver,
-    volatile bool *stopped, bool useCuda, LogFileParent *logFile) {
+QString CameraMovement::getName() const { return PLUGIN_NAME; }
+
+QMap<QString, QVariant> CameraMovement::getSettings() const
+{
+    QMap<QString, QVariant> settings;
+    settings.insert(SETTINGS_SELECTOR_THRESHOLD, m_selectorThreshold);
+    return settings;
+}
+
+ApplySettingsResult CameraMovement::applySettings(
+    const QMap<QString, QVariant>& settings)
+{
+    bool ok = true;
+    const double threshold =
+        settings.value(SETTINGS_SELECTOR_THRESHOLD, m_selectorThreshold)
+            .toDouble(&ok);
+
+    if (!ok || threshold < 0.0) {
+        return tl::make_unexpected(
+            Error(ErrorCode::InvalidInput,
+                  tr("Invalid movement threshold setting.")));
+    }
+
+    m_selectorThreshold = threshold;
+    emit syncSettingsWidget(m_selectorThreshold);
+    return {};
+}
+
+InputLoadedResult CameraMovement::onInputLoaded(const InputData& input)
+{
+    if (!input.reader) {
+        return tl::make_unexpected(
+            Error(ErrorCode::InvalidInput, tr("Reader is null.")));
+    }
+
+    m_reader = input.reader;
+
+    const cv::Mat testPic = m_reader->getPic(0);
+    if (testPic.empty()) {
+        return tl::make_unexpected(
+            Error(ErrorCode::InvalidInput, tr("Input contains no readable frame.")));
+    }
+
+    m_inputResolution.setX(testPic.cols);
+    m_inputResolution.setY(testPic.rows);
+
+    const int picCount = m_reader->getPicCount();
+    int size[2] = {picCount, picCount};
+    m_bufferMat = cv::SparseMat(2, size, CV_32F);
+    m_bufferMat.clear();
+
+    emit syncSettingsWidget(m_selectorThreshold);
+    return {};
+}
+
+void CameraMovement::onCudaChanged(bool enabled) { m_useCuda = enabled; }
+
+SelectionResult CameraMovement::selectImages(const SelectionData& data,
+                                             volatile bool& cancelFlag)
+{
+    const std::vector<uint>& imageList = data.selectedIndices;
+
+    if (imageList.empty()) {
+        return std::vector<uint>{};
+    }
     if (imageList.size() == 1) {
         return imageList;
     }
 
+    if (data.reader) {
+        m_reader = data.reader;
+    }
+    if (!m_reader) {
+        return tl::make_unexpected(
+            Error(ErrorCode::InvalidInput, tr("Reader is null.")));
+    }
+
     // invalidate buffer if working resolution changed
     cv::Mat tstImg = m_reader->getPic(0);
+    if (tstImg.empty()) {
+        return tl::make_unexpected(
+            Error(ErrorCode::InvalidInput, tr("Input contains no readable frame.")));
+    }
+
     if (m_inputResolution.x() != tstImg.cols ||
         m_inputResolution.y() != tstImg.rows) {
         m_bufferMat.clear();
@@ -31,11 +128,8 @@ std::vector<uint> SmoothController::sampleImages(
         m_inputResolution.setY(tstImg.rows);
     }
 
-    // ---------- create all neccessary components ------------
-    reportProgress(tr("Excluding buffered values from computation list"), 0,
-                   receiver);
-    // create a vector that containst only indices that need to be gathered
-    // (futureFrames + indices with buffered values = imageList)
+    reportProgress(tr("Excluding buffered values from computation list"), 0);
+
     std::vector<uint> futureFrames;
     for (uint imageListIdx = 0; imageListIdx < imageList.size() - 1;
          imageListIdx++) {
@@ -48,15 +142,22 @@ std::vector<uint> SmoothController::sampleImages(
         }
     }
     futureFrames.erase(std::unique(futureFrames.begin(), futureFrames.end()),
-                       futureFrames.end());  // remove duplicates
+                       futureFrames.end());
 
-    reportProgress(tr("Creating calculation units"), 0, receiver);
-    std::tuple<ImageGatherer *, FlowCalculator *, KeyframeSelector *>
-        components = Factory::instance().createComponents(
-            futureFrames, m_reader, useCuda, m_selectorThreshold);
-    ImageGatherer *imageGatherer = std::get<0>(components);
-    FlowCalculator *flowCalculator = std::get<1>(components);
-    KeyframeSelector *keyframeSelector = std::get<2>(components);
+    reportProgress(tr("Creating calculation units"), 0);
+    std::tuple<ImageGatherer*, FlowCalculator*, KeyframeSelector*> components =
+        Factory::instance().createComponents(futureFrames, m_reader, m_useCuda,
+                                             m_selectorThreshold);
+
+    std::unique_ptr<ImageGatherer> imageGatherer(std::get<0>(components));
+    std::unique_ptr<FlowCalculator> flowCalculator(std::get<1>(components));
+    std::unique_ptr<KeyframeSelector> keyframeSelector(std::get<2>(components));
+
+    if (!imageGatherer || !flowCalculator || !keyframeSelector) {
+        return tl::make_unexpected(
+            Error(ErrorCode::ResourceUnavailable,
+                  tr("Failed to create camera movement components.")));
+    }
 
     std::vector<double> flowValues = {};
     auto fromIter = imageList.begin();
@@ -64,42 +165,37 @@ std::vector<uint> SmoothController::sampleImages(
     std::future<void> flowCalcHandler;
     std::future<QPair<cv::Mat, cv::Mat>> imageGatherHandler;
 
-    // ----------- algorithms definition ------------
-    // gather image pair
     std::function<QPair<cv::Mat, cv::Mat>(uint, uint)> gatherImagePairStatic =
-        [imageGatherer](uint fromIdx, uint toIdx) {
+        [ig = imageGatherer.get()](uint fromIdx, uint toIdx) {
             QElapsedTimer timer;
             timer.start();
             QPair<cv::Mat, cv::Mat> matPair =
-                imageGatherer->gatherImagePair(fromIdx, toIdx);
+                ig->gatherImagePair(fromIdx, toIdx);
             qDebug() << "gatherDuration=" << timer.elapsed() << "ms";
             return matPair;
         };
 
-    // flow calculation
     std::function<void(cv::Mat, cv::Mat)> calcFlowStatic =
-        [flowCalculator, &flowValues](cv::Mat fromMat, cv::Mat toMat) {
+        [fc = flowCalculator.get(), &flowValues](cv::Mat fromMat, cv::Mat toMat) {
             QElapsedTimer timer;
             timer.start();
-            // muliplication with down sample factor corrects the reduced
-            // resolution
-            double flowValue = flowCalculator->calculateFlow(fromMat, toMat);
+            double flowValue = fc->calculateFlow(fromMat, toMat);
             flowValues.push_back(flowValue);
             qDebug() << "flowDuration=" << timer.elapsed()
                      << "ms\tvalue=" << flowValue;
         };
 
-    // -------------- iterate through all available frame pairs ---------------
     uint usedBufferedValues = 0;
-    logFile->startTimer(LF_TIMER_CORE);
+    if (data.logFile) {
+        data.logFile->startTimer(LF_TIMER_CORE);
+    }
+
     while (toIter < imageList.end()) {
-        // Aborts calculations as result of user interaction
-        if (*stopped) {
+        if (cancelFlag) {
             qDebug() << "Execution was stopped.";
             break;
         }
 
-        // ----------- exectution ------------
         double bufferedMovement = 0.0;
         if (m_bufferMat.size() != 0) {
             bufferedMovement = m_bufferMat.value<double>(*fromIter, *toIter);
@@ -111,127 +207,87 @@ std::vector<uint> SmoothController::sampleImages(
             flowCalcHandler = std::async(std::launch::async, calcFlowStatic,
                                          matPair.first, matPair.second);
         } else {
-            // use buffered flow value
             flowValues.push_back(bufferedMovement);
             usedBufferedValues++;
         }
-        // -------- progress and debug ------------
+
         int progress =
             ((toIter - imageList.begin()) * 100) / (int)imageList.size();
         QString currOp = tr("Calculating flow between frame ") +
                          QString::number(*fromIter) + tr(" and ") +
                          QString::number(*toIter);
-        reportProgress(currOp, progress, receiver);
-        // ----------------------------------------
+        reportProgress(currOp, progress);
+
         fromIter = std::next(fromIter, 1);
         toIter = std::next(toIter, 1);
     }
     if (flowCalcHandler.valid()) flowCalcHandler.wait();
-    logFile->stopTimer();
-    logFile->addCustomEntry(LF_CE_VALUE_USED_BUFFERED, usedBufferedValues,
-                            LF_CE_TYPE_ADDITIONAL_INFO);
 
-    // ------------ select keyframes ----------------
-    logFile->startTimer(LF_SELECT_FRAMES);
-    if (flowValues.size() == imageList.size() + 1) {
-        return {};
+    if (data.logFile) {
+        data.logFile->stopTimer();
+        data.logFile->addCustomEntry(LF_CE_VALUE_USED_BUFFERED, usedBufferedValues,
+                                     LF_CE_TYPE_ADDITIONAL_INFO);
     }
-    std::vector<uint> keyframes =
-        keyframeSelector->select(imageList, flowValues, stopped);
-    logFile->stopTimer();
 
-    // -------- update buffer --------------
-    logFile->startTimer(LF_TIMER_BUFFER);
-    for (uint flowValuesIdx = 0; flowValuesIdx < flowValues.size() - 1;
+    if (data.logFile) {
+        data.logFile->startTimer(LF_SELECT_FRAMES);
+    }
+
+    if (flowValues.size() == imageList.size() + 1) {
+        return std::vector<uint>{};
+    }
+
+    std::vector<uint> keyframes =
+        keyframeSelector->select(imageList, flowValues, &cancelFlag);
+
+    if (data.logFile) {
+        data.logFile->stopTimer();
+    }
+
+    if (data.logFile) {
+        data.logFile->startTimer(LF_TIMER_BUFFER);
+    }
+
+    for (uint flowValuesIdx = 0;
+         flowValuesIdx + 1 < flowValues.size() && flowValuesIdx + 1 < imageList.size();
          flowValuesIdx++) {
         int progress = (100.0f * flowValues.size()) / (flowValuesIdx + 1);
-        reportProgress(tr("Buffering values"), progress, receiver);
+        reportProgress(tr("Buffering values"), progress);
         if (m_bufferMat.ref<double>(imageList[flowValuesIdx],
                                     imageList[flowValuesIdx + 1]) <= 0.0)
             m_bufferMat.ref<double>(imageList[flowValuesIdx],
                                     imageList[flowValuesIdx + 1]) =
                 flowValues[flowValuesIdx];
-        // DEBUG write flow values in logFile
-        //        logFile->addCustomEntry(LF_CE_NAME_FLOWVALUE,
-        //        flowValues[flowValuesIdx], LF_CE_TYPE_DEBUG);
     }
 
-    emit updateBuffer(sendBuffer());
-    logFile->stopTimer();
+    if (data.logFile) {
+        data.logFile->stopTimer();
+    }
 
     return keyframes;
 }
 
-QString SmoothController::getName() const { return PLUGIN_NAME; }
-
-QMap<QString, QVariant> SmoothController::sendBuffer() {
-    QVariant bufferVariant = bufferMatToVariant(m_bufferMat);
-    QMap<QString, QVariant> bufferMap;
-    bufferMap.insert(BUFFER_NAME, bufferVariant);
-    return bufferMap;
+void CameraMovement::reportProgress(const QString& op, int progress)
+{
+    emit updateProgress(progress, op);
 }
 
-void SmoothController::initialize(Reader *reader,
-                                  QMap<QString, QVariant> buffer,
-                                  signalObject *sigObj) {
-    if (m_settingsWidget) {
-        m_settingsWidget->deleteLater();
-        m_settingsWidget = nullptr;
-    }
-
-    m_sigObj = sigObj;
-
-    m_reader = reader;
-    cv::Mat testPic = reader->getPic(0);
-    m_inputResolution.setX(testPic.cols);
-    m_inputResolution.setY(testPic.rows);
-
-    int picCount = reader->getPicCount();
-    int size[2] = {picCount, picCount};
-    m_bufferMat = cv::SparseMat(2, size, CV_32F);
-    recreateBufferMatrix(buffer);
+void CameraMovement::slot_selectorThresholdChanged(double value)
+{
+    m_selectorThreshold = value;
 }
 
-void SmoothController::setSettings(QMap<QString, QVariant> settings) {
-    m_selectorThreshold =
-        settings.find(SETTINGS_SELECTOR_THRESHOLD).value().toDouble();
-}
+std::unique_ptr<QWidget> CameraMovement::createSettingsWidget()
+{
+    auto settingsWidget = std::make_unique<QWidget>(nullptr);
 
-QMap<QString, QVariant> SmoothController::generateSettings(
-    Progressable *receiver, bool useCuda, volatile bool *stopped) {
-    (void)receiver;
-    (void)useCuda;
-    (void)stopped;
-    return getSettings();
-}
-
-QMap<QString, QVariant> SmoothController::getSettings() {
-    QMap<QString, QVariant> settings;
-    settings.insert(SETTINGS_SELECTOR_THRESHOLD, m_selectorThreshold);
-    return settings;
-}
-
-void SmoothController::reportProgress(QString op, int progress,
-                                      Progressable *receiver) {
-    QMetaObject::invokeMethod(receiver, "slot_makeProgress",
-                              Qt::DirectConnection, Q_ARG(int, progress),
-                              Q_ARG(QString, op));
-}
-
-void SmoothController::displayMessage(QString txt, Progressable *receiver) {
-    QMetaObject::invokeMethod(receiver, "slot_displayMessage",
-                              Qt::DirectConnection, Q_ARG(QString, txt));
-}
-
-void SmoothController::createSettingsWidget(QWidget *parent) {
-    // selector layout
-    QWidget *selectorLayout = new QWidget(parent);
-    selectorLayout->setLayout(new QHBoxLayout(parent));
+    QWidget* selectorLayout = new QWidget(settingsWidget.get());
+    selectorLayout->setLayout(new QHBoxLayout(selectorLayout));
     selectorLayout->layout()->addWidget(new QLabel(SELECTOR_LABEL_TEXT));
-    selectorLayout->layout()->setMargin(0);
+    selectorLayout->layout()->setContentsMargins(0, 0, 0, 0);
     selectorLayout->layout()->setSpacing(0);
-    // selector spinBox
-    m_selectorThresholdSpinBox = new QDoubleSpinBox(parent);
+
+    m_selectorThresholdSpinBox = new QDoubleSpinBox(settingsWidget.get());
     m_selectorThresholdSpinBox->setValue(m_selectorThreshold);
     m_selectorThresholdSpinBox->setDecimals(2);
     m_selectorThresholdSpinBox->setMinimum(0.0);
@@ -240,88 +296,35 @@ void SmoothController::createSettingsWidget(QWidget *parent) {
     m_selectorThresholdSpinBox->setAlignment(Qt::AlignRight);
     QObject::connect(m_selectorThresholdSpinBox,
                      QOverload<double>::of(&QDoubleSpinBox::valueChanged), this,
-                     [this](double v) { m_selectorThreshold = v; });
+                     &CameraMovement::slot_selectorThresholdChanged);
     selectorLayout->layout()->addWidget(m_selectorThresholdSpinBox);
-    // selector description
-    QLabel *selectorLabel = new QLabel(SELECTOR_DESCRIPTION);
+
+    QLabel* selectorLabel = new QLabel(SELECTOR_DESCRIPTION);
     selectorLabel->setStyleSheet(DESCRIPTION_STYLE);
     selectorLabel->setWordWrap(true);
 
-    // create main widget
-    m_settingsWidget = new QWidget(parent);
-    m_settingsWidget->setLayout(new QVBoxLayout(parent));
-    m_settingsWidget->layout()->setSpacing(0);
-    m_settingsWidget->layout()->setMargin(0);
-    // add elements
-    m_settingsWidget->layout()->addWidget(selectorLayout);
-    m_settingsWidget->layout()->addWidget(selectorLabel);
+    settingsWidget->setLayout(new QVBoxLayout(settingsWidget.get()));
+    settingsWidget->layout()->setSpacing(0);
+    settingsWidget->layout()->setContentsMargins(0, 0, 0, 0);
+    settingsWidget->layout()->addWidget(selectorLayout);
+    settingsWidget->layout()->addWidget(selectorLabel);
 
-    m_settingsWidget->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
-    m_settingsWidget->adjustSize();
-}
+    QObject::connect(this, &CameraMovement::syncSettingsWidget, settingsWidget.get(),
+                     [this](double threshold) {
+                         if (m_selectorThresholdSpinBox) {
+                             QSignalBlocker blocker(m_selectorThresholdSpinBox);
+                             m_selectorThresholdSpinBox->setValue(threshold);
+                         }
+                     },
+                     Qt::QueuedConnection);
 
-void SmoothController::recreateBufferMatrix(QMap<QString, QVariant> buffer) {
-    // recreate bufferMatrix if the matrix is empty
-    m_bufferMat.clear();
-    if (buffer.size() != 0) {
-        // Get the QMap from Variant
-        QMapIterator<QString, QVariant> mapIt(buffer);
-        // Find movementBased buffer in the buffer
-        while (mapIt.hasNext()) {
-            mapIt.next();
-            if (mapIt.key().compare(BUFFER_NAME) == 0) {
-                stringToBufferMat(mapIt.value().toString());
-                break;
-            }
-        }
-    }
-}
+    QObject::connect(settingsWidget.get(), &QObject::destroyed, this, [this]() {
+        m_selectorThresholdSpinBox = nullptr;
+    });
 
-void SmoothController::stringToBufferMat(QString string) {
-    QStringList entryStrList = string.split(DELIMITER_ENTITY);
+    emit syncSettingsWidget(m_selectorThreshold);
 
-    for (const QString nzEntity : entryStrList) {
-        QStringList coorStr = nzEntity.split(DELIMITER_COORDINATE);
-        // check format "x|y|value"
-        if (coorStr.size() != 3) {
-            continue;
-        }
-        bool convertionCheck;
-        int x = coorStr[0].toInt(&convertionCheck);
-        if (!convertionCheck) {
-            continue;
-        }
-        int y = coorStr[1].toInt(&convertionCheck);
-        if (!convertionCheck) {
-            continue;
-        }
-        double value = coorStr[2].toDouble(&convertionCheck);
-        if (!convertionCheck) {
-            continue;
-        }
-
-        // set entry in recreated buffer matrix
-        m_bufferMat.ref<double>(x, y) = value;
-    }
-}
-
-QVariant SmoothController::bufferMatToVariant(cv::SparseMat bufferMat) {
-    std::stringstream matStream;
-    const int *size = bufferMat.size();
-
-    for (cv::SparseMatConstIterator it = bufferMat.begin();
-         it != bufferMat.end(); it++) {
-        const cv::SparseMat::Node *node = it.node();
-        uint x = node->idx[0];
-        uint y = node->idx[1];
-        double value = bufferMat.value<double>(x, y);
-        if (value >= 0) {
-            matStream << x << DELIMITER_COORDINATE << y << DELIMITER_COORDINATE
-                      << value
-                      << ((x + 1 < (uint)*size) ? DELIMITER_ENTITY : "");
-        }
-    }
-
-    std::string matString = matStream.str();
-    return QVariant(QString::fromStdString(matString));
+    settingsWidget->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+    settingsWidget->adjustSize();
+    return settingsWidget;
 }
