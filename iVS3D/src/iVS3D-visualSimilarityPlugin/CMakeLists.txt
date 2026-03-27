@@ -32,7 +32,6 @@ find_package(OpenCV 4.7 REQUIRED COMPONENTS
 # set header files
 set(HEADER_FILES
     "${CMAKE_CURRENT_LIST_DIR}/visualSimilarity.h"
-    "${CMAKE_CURRENT_LIST_DIR}/../iVS3D-core/cvmat_qmetadata.h"
 )
 
 # set source files
@@ -73,16 +72,17 @@ add_library(${TARGET_NAME} SHARED
     ${TS_FILES}
 )
 target_link_libraries(${TARGET_NAME}
+    PRIVATE
     iVS3D-pluginInterface
     Qt${QT_VERSION_MAJOR}::Core
     Qt${QT_VERSION_MAJOR}::Widgets
     Qt${QT_VERSION_MAJOR}::Gui
     Qt${QT_VERSION_MAJOR}::Concurrent
     Qt${QT_VERSION_MAJOR}::Positioning
-    ${OpenCV_LIBRARIES} 
+    ${OpenCV_LIBRARIES}
+    NeuralNet
+    tl-expected
 )
-
-target_link_libraries(${TARGET_NAME} NeuralNet)
 
 # add defines
 target_compile_definitions(${TARGET_NAME} PRIVATE 
