@@ -69,10 +69,10 @@ ExportController::ExportController(OutputWidget *outputWidget,
     // set the default output format depending on the input type (images /
     // video)
     if (m_dataManager->getModelInputPictures()->getReader()->isDir()) {
-        m_outputWidget->enableFormat(EXPORT_FORMAT_SAME_AS_INPUT, true);
-        m_outputWidget->setOutputFormat(EXPORT_FORMAT_SAME_AS_INPUT);
+        m_outputWidget->enableFormat(ExportFormat::SameAsInput, true);
+        m_outputWidget->setOutputFormat(ExportFormat::SameAsInput);
     } else {
-        m_outputWidget->enableFormat(EXPORT_FORMAT_SAME_AS_INPUT, false);
+        m_outputWidget->enableFormat(ExportFormat::SameAsInput, false);
         m_outputWidget->setOutputFormat("png");
     }
 }
@@ -145,10 +145,11 @@ void ExportController::setOriginalAltitude(double altitude) {
     m_altitude_original = altitude;
     m_altitude_current = m_altitude_original;
     updateFormatOptions();
-    m_outputWidget->setOutputFormat(
-        m_dataManager->getModelInputPictures()->getReader()->isDir()
-            ? EXPORT_FORMAT_SAME_AS_INPUT
-            : "png");
+    if (m_dataManager->getModelInputPictures()->getReader()->isDir()) {
+        m_outputWidget->setOutputFormat(ExportFormat::SameAsInput);
+    } else {
+        m_outputWidget->setOutputFormat("png");
+    }
 }
 
 void ExportController::slot_reconstruct() {
@@ -329,7 +330,7 @@ void ExportController::slot_export() {
     config.roi = m_roi;
     config.copy_images =
         canCopyImages() &&
-        (m_outputWidget->getExportFormat() == EXPORT_FORMAT_SAME_AS_INPUT);
+        (m_outputWidget->getExportFormatEnum() == ExportFormat::SameAsInput);
     config.maskStack = m_maskStack.get();
 
     // start export
@@ -616,7 +617,7 @@ bool ExportController::canCopyImages() {
 }
 
 void ExportController::updateFormatOptions() {
-    m_outputWidget->enableFormat(EXPORT_FORMAT_SAME_AS_INPUT, canCopyImages());
+    m_outputWidget->enableFormat(ExportFormat::SameAsInput, canCopyImages());
 }
 
 bool ExportController::createShortcutplusBatch(QString reconstructDir,

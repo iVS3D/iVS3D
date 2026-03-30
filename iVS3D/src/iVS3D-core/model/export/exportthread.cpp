@@ -190,6 +190,7 @@ void ExportThread::run() {
         imageProcessor.addCommand(std::make_unique<CopyFileCommand>(
             m_reader->getFileVector(), imagePath));
     } else {
+        qDebug() << m_config.format;
         imageProcessor.addCommand(std::make_unique<WriteToDiskCommand>(
             imagePath, "", m_config.format, m_reader->getFileVector()));
     }

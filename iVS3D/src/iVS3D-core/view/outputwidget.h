@@ -67,7 +67,9 @@ public:
     void setResolutionValid(bool valid);
 
     QString getExportFormat();
+    ExportFormat getExportFormatEnum();
     bool setOutputFormat(QString format);
+    bool setOutputFormat(ExportFormat format);
 
     /**
      * @brief setAltitudeVisible will show or hide the altitude selector
@@ -83,6 +85,7 @@ public:
 
     double getAltitude();
     void enableFormat(QString format, bool enable);
+    void enableFormat(ExportFormat format, bool enable);
 
     std::shared_ptr<MaskStackView> getMaskStackView();
 

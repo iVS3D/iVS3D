@@ -10,7 +10,15 @@
 #include "applicationsettings.h" // used to determin text color depending on GUI style
 #include "maskstackview.h"
 
-#define EXPORT_FORMAT_SAME_AS_INPUT "same as input"
+enum class ExportFormat {
+    SameAsInput,
+    Png,
+    Jpg,
+    Unknown,
+};
+
+QString toExportFormatKey(ExportFormat format);
+ExportFormat exportFormatFromKey(const QString &formatKey);
 
 namespace Ui {
 class ExportWidget;
@@ -74,7 +82,9 @@ public:
     void setResolutionValid(bool valid);
 
     QString getExportFormat();
+    ExportFormat getExportFormatEnum();
     bool setOutputFormat(QString format);
+    bool setOutputFormat(ExportFormat format);
 
     /**
      * @brief setAltitudeVisible will show or hide the altitude selector
@@ -91,6 +101,7 @@ public:
     double getAltitude();
 
     void enableFormat(QString format, bool enable);
+    void enableFormat(ExportFormat format, bool enable);
 
 signals:
 

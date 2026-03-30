@@ -86,12 +86,27 @@ QString OutputWidget::getExportFormat()
     return m_exportW->getExportFormat();
 }
 
+ExportFormat OutputWidget::getExportFormatEnum()
+{
+    return m_exportW->getExportFormatEnum();
+}
+
 bool OutputWidget::setOutputFormat(QString format)
 {
     return m_exportW->setOutputFormat(format);
 }
 
+bool OutputWidget::setOutputFormat(ExportFormat format)
+{
+    return m_exportW->setOutputFormat(format);
+}
+
 void OutputWidget::enableFormat(QString format, bool enable)
+{
+    m_exportW->enableFormat(format, enable);
+}
+
+void OutputWidget::enableFormat(ExportFormat format, bool enable)
 {
     m_exportW->enableFormat(format, enable);
 }
