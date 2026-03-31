@@ -70,6 +70,26 @@ If($CUDA_VERSION){
     $CUDNN_BIN_PATH = "C:\Program Files\NVIDIA\CUDNN\8.8.0\bin"
   }
   Copy-Item -Path "${CUDNN_BIN_PATH}\*.dll" -Destination "."
+
+  $excludedDllPath = Join-Path $PSScriptRoot "excluded-dlls.txt"
+  if (Test-Path -LiteralPath $excludedDllPath) {
+    Write-Host "`nRemoving dlls listed in excluded-dlls.txt"
+    $excludedDlls = Get-Content -Path $excludedDllPath |
+      ForEach-Object { $_.Trim() } |
+      Where-Object { $_ -and -not $_.StartsWith("#") }
+
+    foreach ($dllName in $excludedDlls) {
+      $dllPath = Join-Path "." $dllName
+      if (Test-Path -LiteralPath $dllPath) {
+        Remove-Item -LiteralPath $dllPath -Force
+        Write-Host "Removed $dllName"
+      } else {
+        Write-Host "Skipped $dllName (not present)"
+      }
+    }
+  } else {
+    Write-Host "No excluded-dlls.txt found. Skipping cuda exclusion cleanup."
+  }
 }
 
 # add Onnxruntime dependencies
