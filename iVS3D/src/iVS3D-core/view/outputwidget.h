@@ -31,7 +31,7 @@ public:
      * @param parent (ui-)class which holds this OutputWidget
      * @param title name of the Widget on the MainWindow
      */
-    explicit OutputWidget(QWidget *parent = nullptr, QString title = "Output", QStringList transformList = QStringList());
+    explicit OutputWidget(QWidget *parent = nullptr, QString title = "Output");
 
     /**
      * @brief setOutputPath sets the path text in the output folder text field
@@ -62,31 +62,14 @@ public:
      */
     void showExportOptions();
 
-    /**
-     * @brief getSelectedITransformMasks getter for all selected masks that should be exported
-     * @return returns list of all masks to be exported
-     */
-    std::vector<bool> getSelectedITransformMasks();
-
-    /**
-     * @brief setSelectedITransformMasks setter for masks that should be exported
-     * @param selection masks to select
-     * @return @a true if set successful
-     */
-    bool setSelectedITransformMasks(std::vector<bool> selection);
-
-    /**
-     * @brief disableCreateFilesWidget will disable the create files for widget on the exportWidget
-     * @param @a true shows the widget, @a false will hide it
-     */
-    void enableCreateFilesWidget(bool enable);
-
     void setResolutionList(QStringList resList, int idx);
     void setResolution(QString resolution);
     void setResolutionValid(bool valid);
 
     QString getExportFormat();
+    ExportFormat getExportFormatEnum();
     bool setOutputFormat(QString format);
+    bool setOutputFormat(ExportFormat format);
 
     /**
      * @brief setAltitudeVisible will show or hide the altitude selector
@@ -102,6 +85,9 @@ public:
 
     double getAltitude();
     void enableFormat(QString format, bool enable);
+    void enableFormat(ExportFormat format, bool enable);
+
+    std::shared_ptr<MaskStackView> getMaskStackView();
 
 signals:
     /**
@@ -151,6 +137,17 @@ public slots:
      * @param message QString holds the message
      */
     void slot_displayMessage(QString message);
+
+    /**
+     * @brief [slot] slot_displayWarning appends a warning to the warning list
+     * @param warning Warning text
+     */
+    void slot_displayWarning(QString warning);
+
+    /**
+     * @brief [slot] slot_clearWarnings clears all currently shown warnings
+     */
+    void slot_clearWarnings();
 
 private slots:
     void slot_pathChanged(const QString &path);

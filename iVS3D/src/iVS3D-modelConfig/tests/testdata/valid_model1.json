@@ -1,0 +1,23 @@
+{
+  "modelPath": "valid_model1.onnx",
+  "mean": [0.485, 0.456, 0.406],
+  "std": [0.229, 0.224, 0.225],
+  "inputAlignment": 32,
+  "classes": [
+    {
+      "id": 1,
+      "name": "person",
+      "color": [255, 0, 0]
+    },
+    {
+      "id": 2,
+      "name": "car",
+      "color": [0, 255, 0]
+    },
+    {
+      "id": 3,
+      "name": "bicycle",
+      "color": [0, 0, 255]
+    }
+  ]
+}

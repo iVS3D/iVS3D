@@ -1,24 +1,31 @@
 #include "geodistance.h"
 
-// Qt
+#include <QCoreApplication>
+#include <QDebug>
+#include <QHBoxLayout>
+#include <QLabel>
+#include <QLocale>
+#include <QSignalBlocker>
 #include <QTranslator>
 #include <QtMath>
 
-// iVS3D-core
 #include "../iVS3D-core/model/metaData/metadata.h"
 
+using PLUG::ApplySettingsResult;
+using PLUG::Error;
+using PLUG::ErrorCode;
+using PLUG::InputData;
+using PLUG::InputLoadedResult;
+using PLUG::InputMetaData;
+using PLUG::MetaDataLoadedResult;
+using PLUG::SelectionData;
+using PLUG::SelectionResult;
+using PLUG::SettingsWidgetResult;
 
 //==================================================================================================
 GeoDistance::GeoDistance()
-    : mpSigObj(nullptr)
-    , mpReader(nullptr)
-    , mpSamplingWidget(nullptr)
-    , mBuffer({})
-    , mMetaData({})
-    , mGpsData({})
-    , mIsGpsAvailable(false)
+    : IBase()
 {
-    //--- load and install translations
     QLocale locale = qApp->property("translation").toLocale();
     QTranslator* translator = new QTranslator();
     translator->load(locale, "geodistance", "_", ":/translations", ".qm");
@@ -26,19 +33,15 @@ GeoDistance::GeoDistance()
 }
 
 //==================================================================================================
-GeoDistance::~GeoDistance()
+SettingsWidgetResult GeoDistance::getSettingsWidget()
 {
-
-}
-
-//==================================================================================================
-QWidget* GeoDistance::getSettingsWidget(QWidget* parent)
-{
-    //--- if settings widget is not yet created, do so
-    if (!mpSamplingWidget)
-        createSettingsWidget(parent);
-    mpAltitudeCheckBox->setVisible(mAltitudeExisting);
-    return mpSamplingWidget;
+    auto widget = createSettingsWidget();
+    if (!widget) {
+        return tl::make_unexpected(Error(
+            ErrorCode::ResourceUnavailable,
+            tr("Failed to create GeoDistance settings widget.")));
+    }
+    return widget;
 }
 
 //==================================================================================================
@@ -48,199 +51,201 @@ QString GeoDistance::getName() const
 }
 
 //==================================================================================================
-std::vector<uint> GeoDistance::sampleImages(const std::vector<uint>& imageList,
-                                       Progressable* receiver, volatile bool* stopped,
-                                       bool useCuda, LogFileParent* logFile)
+QMap<QString, QVariant> GeoDistance::getSettings() const
 {
-    std::vector<uint> ret;
-    if (!mIsGpsAvailable) {
+    QMap<QString, QVariant> settings;
+    settings.insert(NAME_Distance, mDistance);
+    settings.insert(NAME_Altitude, mUseAltitude);
+    return settings;
+}
+
+//==================================================================================================
+ApplySettingsResult GeoDistance::applySettings(
+    const QMap<QString, QVariant>& settings)
+{
+    const double distance = settings.value(NAME_Distance, mDistance).toDouble();
+    const bool useAltitude = settings.value(NAME_Altitude, mUseAltitude).toBool();
+
+    if (distance < 0.0) {
+        return tl::make_unexpected(
+            Error(ErrorCode::InvalidInput,
+                  tr("Distance must be greater than or equal to 0.")));
+    }
+
+    mDistance = distance;
+    mUseAltitude = useAltitude;
+
+    emit syncSettingsWidget(mDistance, mUseAltitude, mAltitudeExisting);
+    return {};
+}
+
+//==================================================================================================
+InputLoadedResult GeoDistance::onInputLoaded(const InputData& input)
+{
+    mReader = input.reader;
+    mMetaData.clear();
+    mGpsData.clear();
+    mIsGpsAvailable = false;
+    mAltitudeExisting = false;
+    emit syncSettingsWidget(mDistance, mUseAltitude, mAltitudeExisting);
+    return {};
+}
+
+//==================================================================================================
+MetaDataLoadedResult GeoDistance::onMetaDataLoaded(
+    const InputMetaData& inputMetaData)
+{
+    MetaData* metaData = inputMetaData.metaData;
+    if (!metaData && mReader) {
+        metaData = mReader->getMetaData();
+    }
+
+    readMetaData(metaData);
+    emit syncSettingsWidget(mDistance, mUseAltitude, mAltitudeExisting);
+    return {};
+}
+
+//==================================================================================================
+void GeoDistance::onSelectedImagesChanged(
+    const std::vector<uint>& selectedImages)
+{
+    if (!mIsGpsAvailable || mGpsData.isEmpty()) {
+        return;
+    }
+
+    for (auto& gpsPoint : mGpsData) {
+        gpsPoint.second = false;
+    }
+
+    for (uint idx : selectedImages) {
+        if (idx < static_cast<uint>(mGpsData.size())) {
+            mGpsData[int(idx)].second = true;
+        }
+    }
+}
+
+//==================================================================================================
+SelectionResult GeoDistance::selectImages(const SelectionData& data,
+                                          volatile bool& cancelFlag)
+{
+    const std::vector<uint>& imageList = data.selectedIndices;
+    if (!mIsGpsAvailable || imageList.empty()) {
+        return imageList;
+    }
+    if (cancelFlag) {
         return imageList;
     }
 
-    int prevIndex = 0;
-    mGpsData.replace(0, QPair<QPointF, bool> (mGpsData.at(0).first, true));
-    ret.push_back(imageList[0]);
+    std::vector<uint> ret;
+    ret.reserve(imageList.size());
+
+    for (auto& gpsPoint : mGpsData) {
+        gpsPoint.second = false;
+    }
+
+    const int firstIndex = int(imageList.front());
+    if (firstIndex < 0 || firstIndex >= mGpsData.size()) {
+        return imageList;
+    }
+
+    int prevIndex = firstIndex;
+    mGpsData[prevIndex].second = true;
+    ret.push_back(imageList.front());
 
     double currentDistance = 0;
-    // first image will always be a keyframe
-    for (int i = 1; i < imageList.size(); i++) {
-        QPointF current = mGpsData.at(imageList[i]).first;
-        int currentIndex = imageList[i];
-        if (imageList[i] != i) {
-            for (int k = imageList[i - 1] + 1; k < imageList[i]; k++) {
-                // mGpsData has to be filled with all gps values. Values that aren't in the imageList are added here as false -> unused values
-                mGpsData.replace(k, QPair<QPointF, bool> (mGpsData.at(k).first, false));
-            }
+    for (int i = 1; i < int(imageList.size()); i++) {
+        if (cancelFlag) {
+            break;
         }
-        currentDistance += distanceBetweenPoints(prevIndex, currentIndex);
 
-        prevIndex = currentIndex;
-        // if total distance between images is lower then the selected deviation it won't be selected
-        if (currentDistance < mDistance) {
-            mGpsData.replace(i, QPair<QPointF, bool>(current, false));
+        const int currentIndex = int(imageList[size_t(i)]);
+        if (currentIndex < 0 || currentIndex >= mGpsData.size()) {
             continue;
         }
 
-        mGpsData.replace(i, QPair<QPointF, bool>(current, true));
-        currentDistance = 0;
-        ret.push_back(imageList[i]);
-    }
-    if (imageList.back() != mpReader->getPicCount()) {
-        for (int i = imageList.back(); i < mpReader->getPicCount(); i++) {
-            // mGpsData has to be filled with all gps values. Values that aren't in the imageList are added here
-            mGpsData.append(QPair<QPointF, bool> (mGpsData.at(i).first, false));
+        currentDistance += distanceBetweenPoints(prevIndex, currentIndex);
+
+        prevIndex = currentIndex;
+        if (currentDistance < mDistance) {
+            mGpsData[currentIndex].second = false;
+            continue;
         }
-    }
 
+        mGpsData[currentIndex].second = true;
+        currentDistance = 0;
+        ret.push_back(imageList[size_t(i)]);
+    }
     return ret;
-
 }
 
 //==================================================================================================
-void GeoDistance::initialize(Reader* reader, QMap<QString, QVariant> buffer, signalObject* sigObj)
+std::unique_ptr<QWidget> GeoDistance::createSettingsWidget()
 {
-    //--- assign member variables
-    mpReader = reader;
-    mBuffer  = buffer;
-    mpSigObj = sigObj;
+    auto widget = std::make_unique<QWidget>(nullptr);
+    widget->setLayout(new QVBoxLayout());
+    widget->layout()->setSpacing(10);
+    widget->layout()->setContentsMargins(0, 0, 0, 0);
+    widget->layout()->setAlignment(Qt::AlignTop);
 
-    //--- clear existing data
-    mGpsData.clear();
-    mIsGpsAvailable = false;
+    auto* labelDescription = new QLabel(tr("This plugin uses the geo location "
+                                           "provided in the meta data to "
+                                           "calculate the distance between "
+                                           "images. An image is selected as a "
+                                           "new keyframe, if the distance to "
+                                           "the previous keyframe is greater "
+                                           "than the specified threshold."));
+    labelDescription->setStyleSheet(DESCRIPTION_STYLE);
+    labelDescription->setWordWrap(true);
+    labelDescription->setMinimumWidth(50);
+    labelDescription->setMargin(10);
+    widget->layout()->addWidget(labelDescription);
 
-    //--- connect to signals from iVS3D-core
-    connect(mpSigObj, SIGNAL(sig_newMetaData()), this, SLOT(onNewMetaData()));
-    connect(mpSigObj, SIGNAL(sig_keyframesChanged(std::vector<uint>)),
-            this, SLOT(onKeyframesChanged(std::vector<uint>)));
-
-    //--- Get reader of metadata. if reader is not available, return
-    MetaData* metaDataReader = mpReader->getMetaData();
-    if (metaDataReader == nullptr)
-        return;
-
-    //--- get meta data from reader, if Empty return
-    QStringList metaData = metaDataReader->availableMetaData();
-    if (metaData.size() == 0)
-        return;
-
-    readMetaData();
-}
-
-//==================================================================================================
-void GeoDistance::setSettings(QMap<QString, QVariant> settings)
-{
-    QMap<QString, QVariant>::iterator iterator = settings.find(NAME_Distance);
-    if (iterator != settings.end()) {
-        mDistance = iterator.value().toDouble();
-        mpSpinBoxDist->setValue(mDistance);
-    }
-
-    iterator = settings.find(NAME_Altitude);
-    if (iterator != settings.end()) {
-        mUseAltitude = iterator.value().toBool();
-        mpAltitudeCheckBox->setChecked(mUseAltitude);
-    }
-
-}
-
-//==================================================================================================
-QMap<QString, QVariant> GeoDistance::getSettings()
-{
-    QString valueDev = QString::number(mDistance);
-    QMap<QString, QVariant> settings;
-    settings.insert(NAME_Distance, valueDev);
-    settings.insert(NAME_Altitude, mUseAltitude);
-    return settings;
-
-}
-
-//==================================================================================================
-QMap<QString, QVariant> GeoDistance::generateSettings(Progressable* receiver, bool useCuda,
-                                                 volatile bool* stopped)
-{
-    return QMap<QString, QVariant>();
-}
-
-//==================================================================================================
-void GeoDistance::onNewMetaData()
-{
-    //--- clear all items that might have already been drawn on map
-    mGpsData.clear();
-    readMetaData();
-}
-
-//==================================================================================================
-void GeoDistance::onKeyframesChanged(std::vector<uint> keyframes)
-{
-    //--- Check if its the current keyframe list
-    if (keyframes == getKeyframesFromGps())
-    {
-        return;
-    }
-
-    for (int gpsIndex = 0; gpsIndex < mGpsData.length(); gpsIndex++)
-    {
-        mGpsData[gpsIndex].second = false;
-    }
-
-    if (keyframes.size() == 0 || !mIsGpsAvailable)
-    {
-        return;
-    }
-
-    for (int index : keyframes)
-    {
-        mGpsData[index].second = true;
-    }
-}
-
-//==================================================================================================
-void GeoDistance::createSettingsWidget(QWidget* parent)
-{
-    //--- create the sampling widget
-    mpSamplingWidget = new QWidget(parent);
-    mpSamplingWidget->setLayout(new QVBoxLayout());
-    mpSamplingWidget->layout()->setSpacing(10);
-    mpSamplingWidget->layout()->setMargin(0);
-    mpSamplingWidget->layout()->setAlignment(Qt::AlignTop);
-
-    QLabel *LabelDescription = new QLabel(tr("This plugin uses the geo location provided in the meta data to calculate the distance between images. An image is selected as a new keyframe, if the distance to the previous keyframe is greater than the specified threshold."));
-    LabelDescription->setStyleSheet(DESCRIPTION_STYLE);
-    LabelDescription->setWordWrap(true);
-    LabelDescription->setMinimumWidth(50);
-    LabelDescription->setMargin(10);
-    mpSamplingWidget->layout()->addWidget(LabelDescription);
-
-    QWidget* spinBoxWidget = new QWidget(parent);
-    spinBoxWidget->setLayout(new QHBoxLayout(parent));
+    auto* spinBoxWidget = new QWidget(widget.get());
+    spinBoxWidget->setLayout(new QHBoxLayout());
     spinBoxWidget->layout()->setSpacing(0);
-    spinBoxWidget->layout()->setMargin(0);
+    spinBoxWidget->layout()->setContentsMargins(0, 0, 0, 0);
     spinBoxWidget->layout()->addWidget(new QLabel(tr("Select distance in meter")));
 
-    mpSpinBoxDist = new QDoubleSpinBox(parent);
-    mpSpinBoxDist->setMinimum(0);
-    mpSpinBoxDist->setMaximum(1000);
-    mpSpinBoxDist->setDecimals(2);
-    mpSpinBoxDist->setValue(mDistance);
-    mpSpinBoxDist->setSingleStep(0.5);
-    mpSpinBoxDist->setAlignment(Qt::AlignRight);
-    spinBoxWidget->layout()->addWidget(mpSpinBoxDist);
+    mSpinBoxDist = new QDoubleSpinBox(widget.get());
+    mSpinBoxDist->setMinimum(0.0);
+    mSpinBoxDist->setMaximum(1000.0);
+    mSpinBoxDist->setDecimals(2);
+    mSpinBoxDist->setValue(mDistance);
+    mSpinBoxDist->setSingleStep(0.5);
+    mSpinBoxDist->setAlignment(Qt::AlignRight);
+    spinBoxWidget->layout()->addWidget(mSpinBoxDist);
     spinBoxWidget->setToolTip(tr("The minimum distance between two consecutive keyframes."));
-    QObject::connect(mpSpinBoxDist, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &GeoDistance::slot_distChanged);
-    mpSamplingWidget->layout()->addWidget(spinBoxWidget);
+    QObject::connect(mSpinBoxDist, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+                     this, &GeoDistance::slot_distChanged);
+    widget->layout()->addWidget(spinBoxWidget);
 
+    mAltitudeCheckBox = new QCheckBox(widget.get());
+    mAltitudeCheckBox->setText(tr("Include altitude in calculation"));
+    mAltitudeCheckBox->setChecked(mUseAltitude);
+    mAltitudeCheckBox->setVisible(mAltitudeExisting);
+    QObject::connect(mAltitudeCheckBox, &QCheckBox::clicked,
+                     this, &GeoDistance::slot_altitudeCheckChanged);
+    widget->layout()->addWidget(mAltitudeCheckBox);
 
-    mpAltitudeCheckBox = new QCheckBox(parent);
-    mpAltitudeCheckBox->setText(tr("Include altitude in calculation"));
-    QObject::connect(mpAltitudeCheckBox, &QCheckBox::clicked, this, &GeoDistance::slot_altitudeCheckChanged);
-    if (!mAltitudeExisting) {
-        mpAltitudeCheckBox->setVisible(false);
-    }
-    mpSamplingWidget->layout()->addWidget(mpAltitudeCheckBox);
+    QObject::connect(this, &GeoDistance::syncSettingsWidget, widget.get(),
+                     [this](double distance, bool useAltitude,
+                            bool altitudeVisible) {
+                         if (mSpinBoxDist) {
+                             QSignalBlocker blocker(mSpinBoxDist);
+                             mSpinBoxDist->setValue(distance);
+                         }
+                         if (mAltitudeCheckBox) {
+                             QSignalBlocker blocker(mAltitudeCheckBox);
+                             mAltitudeCheckBox->setChecked(useAltitude);
+                             mAltitudeCheckBox->setVisible(altitudeVisible);
+                         }
+                     });
 
-    mpSamplingWidget->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
-    mpSamplingWidget->adjustSize();
+    emit syncSettingsWidget(mDistance, mUseAltitude, mAltitudeExisting);
 
+    widget->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+    widget->adjustSize();
+    return widget;
 }
 
 void GeoDistance::slot_distChanged(double n)
@@ -254,36 +259,44 @@ void GeoDistance::slot_altitudeCheckChanged(bool check)
 }
 
 //==================================================================================================
-void GeoDistance::readMetaData()
+void GeoDistance::readMetaData(MetaData* metaData)
 {
-    MetaData* metaData     = mpReader->getMetaData();
+    mMetaData.clear();
+    mGpsData.clear();
+    mIsGpsAvailable = false;
+    mAltitudeExisting = false;
+
+    if (!metaData) {
+        return;
+    }
+
     QStringList metaReader = metaData->availableMetaData();
-    for (QString metaName : metaReader)
+    for (const QString& metaName : metaReader)
     {
         if (metaName.startsWith("GPS"))
         {
-            mMetaData = metaData->loadMetaData(metaName)->getAllMetaData();
+            MetaDataReader* reader = metaData->loadMetaData(metaName);
+            if (!reader) {
+                continue;
+            }
+
+            mMetaData = reader->getAllMetaData();
+            if (mMetaData.isEmpty()) {
+                continue;
+            }
 
             QHash<QString, QVariant> metaHash = mMetaData[0].toHash();
-            QHash<QString, QVariant>::iterator iter = metaHash.find("GPSAltitude");
-            if (iter == metaHash.end()) {
-                mAltitudeExisting = false;
-            }
-            else {
-                mAltitudeExisting = true;
-            }
-
-            if (mpAltitudeCheckBox) {
-                mpAltitudeCheckBox->setVisible(mAltitudeExisting);
-            }
+            mAltitudeExisting = metaHash.contains("GPSAltitude");
 
 
-            // Initial all frames are keyframes
-            for (QVariant var : mMetaData)
+            for (const QVariant& var : mMetaData)
             {
-                mGpsData.append(QPair<QPointF, bool>(gpsHashToLatLong(var), true));
+                bool ok = false;
+                const QPointF point = gpsHashToLatLong(var, &ok);
+                mGpsData.append(QPair<QPointF, bool>(point, ok));
             }
-            mIsGpsAvailable = true;
+
+            mIsGpsAvailable = !mGpsData.isEmpty();
 
             return;
         }
@@ -291,78 +304,84 @@ void GeoDistance::readMetaData()
 }
 
 //==================================================================================================
-std::vector<unsigned int> GeoDistance::getKeyframesFromGps()
+QPointF GeoDistance::gpsHashToLatLong(const QVariant& hash, bool* ok) const
 {
-    std::vector<unsigned int> keyframes;
-    for (int i = 0; i < mGpsData.size(); i++)
-    {
-        if (mGpsData[i].second)
-        {
-            keyframes.push_back(i);
-        }
-    }
-    return keyframes;
-}
-
-//==================================================================================================
-QPointF GeoDistance::gpsHashToLatLong(QVariant hash)
-{
+    bool latitudeOk = false;
+    bool longitudeOk = false;
     QHash<QString, QVariant> gpsHash = hash.toHash();
-    double latitude_abs = gpsHash.find("GPSLatitude").value().toDouble();
-    double longitude_abs = gpsHash.find("GPSLongitude").value().toDouble();
-    double latitude = (gpsHash.find("GPSLatitudeRef").value().toString() == "N") ? latitude_abs : latitude_abs * -1;
-    double longitude = (gpsHash.find("GPSLongitudeRef").value().toString() == "E") ? longitude_abs : longitude_abs * -1;
+
+    const double latitudeAbs = gpsHash.value("GPSLatitude").toDouble(&latitudeOk);
+    const double longitudeAbs = gpsHash.value("GPSLongitude").toDouble(&longitudeOk);
+    const QString latitudeRef = gpsHash.value("GPSLatitudeRef").toString();
+    const QString longitudeRef = gpsHash.value("GPSLongitudeRef").toString();
+
+    const bool validRef = (latitudeRef == "N" || latitudeRef == "S") &&
+                          (longitudeRef == "E" || longitudeRef == "W");
+    const bool valid = latitudeOk && longitudeOk && validRef;
+    if (ok) {
+        *ok = valid;
+    }
+    if (!valid) {
+        return QPointF();
+    }
+
+    const double latitude = (latitudeRef == "N") ? latitudeAbs : -latitudeAbs;
+    const double longitude = (longitudeRef == "E") ? longitudeAbs : -longitudeAbs;
     return QPointF(latitude, longitude);
 }
 
 //==================================================================================================
-QGeoCoordinate GeoDistance::gpsHashtoGeoCo(QVariant hash)
+QGeoCoordinate GeoDistance::gpsHashToGeoCo(const QVariant& hash) const
 {
-    QHash<QString, QVariant> gpsHash = hash.toHash();
-    double latitude_abs = gpsHash.find("GPSLatitude").value().toDouble();
-    double longitude_abs = gpsHash.find("GPSLongitude").value().toDouble();
-    double latitude = (gpsHash.find("GPSLatitudeRef").value().toString() == "N") ? latitude_abs : latitude_abs * -1;
-    double longitude = (gpsHash.find("GPSLongitudeRef").value().toString() == "E") ? longitude_abs : longitude_abs * -1;
-    if (!mAltitudeExisting) {
-        return QGeoCoordinate(latitude, longitude);
+    bool ok = false;
+    const QPointF latLong = gpsHashToLatLong(hash, &ok);
+    if (!ok) {
+        return QGeoCoordinate();
     }
-    double altitude_abs = gpsHash.find("GPSAltitude").value().toDouble();
-    double altitude = (gpsHash.find("GPSAltitudeRef").value().toString() == "0") ? altitude_abs : altitude_abs * -1;
 
-    return QGeoCoordinate(latitude, longitude, altitude);
+    if (!mAltitudeExisting || !mUseAltitude) {
+        return QGeoCoordinate(latLong.x(), latLong.y());
+    }
+
+    QHash<QString, QVariant> gpsHash = hash.toHash();
+    const double altitudeAbs = gpsHash.value("GPSAltitude").toDouble();
+    const QString altitudeRef = gpsHash.value("GPSAltitudeRef").toString();
+    const double altitude = (altitudeRef == "0") ? altitudeAbs : -altitudeAbs;
+
+    return QGeoCoordinate(latLong.x(), latLong.y(), altitude);
 }
 
-double GeoDistance::distanceBetweenPoints(int first, int second)
+double GeoDistance::distanceBetweenPoints(int first, int second) const
 {
-    QGeoCoordinate firstGPS = gpsHashtoGeoCo(mMetaData.at(first));
-        QGeoCoordinate secondGPS = gpsHashtoGeoCo(mMetaData.at(second));
-        QPointF firstLatLong = QPointF(firstGPS.latitude(), firstGPS.longitude());
-        QPointF secondLatLong = QPointF(secondGPS.latitude(), secondGPS.longitude());
-        double distance = greatCircleDistance(firstLatLong, secondLatLong);
-        if (!mAltitudeExisting || !mUseAltitude) {
-            return distance;
-        }
-        double pow = qPow(distance, 2);
-        double sqrt = qSqrt(qPow(distance, 2));
-        double pow2 = qPow(firstGPS.altitude() - secondGPS.altitude(), 2);
-        double euclidDistance = qSqrt(qPow(distance, 2) + qPow(firstGPS.altitude() - secondGPS.altitude(), 2));
-        return euclidDistance;
+    if (first < 0 || second < 0 || first >= mMetaData.size() ||
+        second >= mMetaData.size()) {
+        return 0.0;
+    }
+
+    const QGeoCoordinate firstGPS = gpsHashToGeoCo(mMetaData.at(first));
+    const QGeoCoordinate secondGPS = gpsHashToGeoCo(mMetaData.at(second));
+    const QPointF firstLatLong(firstGPS.latitude(), firstGPS.longitude());
+    const QPointF secondLatLong(secondGPS.latitude(), secondGPS.longitude());
+    const double distance = greatCircleDistance(firstLatLong, secondLatLong);
+    if (!mAltitudeExisting || !mUseAltitude) {
+        return distance;
+    }
+
+    return qSqrt(qPow(distance, 2) +
+                 qPow(firstGPS.altitude() - secondGPS.altitude(), 2));
 
 }
 
-double GeoDistance::greatCircleDistance(QPointF first, QPointF second)
+double GeoDistance::greatCircleDistance(QPointF first, QPointF second) const
 {
-    // caculate distance between to points using the haversine formula
-    // earth radius in meters
     const int r = 6371008;
-    // convert latitude and longitude to radiant
-    double lat1 = first.x() * (M_PI / 180);
-    double lat2 = second.x() * (M_PI / 180);
-    double latDiff = (second.x() - first.x()) * (M_PI / 180);
-    double longDiff = (second.y() - first.y()) * (M_PI / 180);
-    // calculate haversine
-    double a = pow(sin(latDiff/2), 2) + cos(lat1) * cos(lat2) * pow(sin(longDiff/2), 2);
-    double distance = 2 * r * asin(sqrt(a));
+    const double lat1 = first.x() * (M_PI / 180);
+    const double lat2 = second.x() * (M_PI / 180);
+    const double latDiff = (second.x() - first.x()) * (M_PI / 180);
+    const double longDiff = (second.y() - first.y()) * (M_PI / 180);
+    const double a = pow(sin(latDiff / 2), 2) +
+                     cos(lat1) * cos(lat2) * pow(sin(longDiff / 2), 2);
+    const double distance = 2 * r * asin(sqrt(a));
     return distance;
 
 }

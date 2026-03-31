@@ -1,135 +1,84 @@
 #include "samplingwidget.h"
+
 #include "applicationsettings.h"
 
-SamplingWidget::SamplingWidget(QWidget *parent, QStringList algorithmList, QStringList transformList) :
-    QWidget(parent),
-    ui(new Ui::SamplingWidget)
-{
+SamplingWidget::SamplingWidget(QWidget* parent)
+    : QWidget(parent), ui(new Ui::SamplingWidget) {
     ui->setupUi(this);
-    m_placeholder = new QWidget(parent);
-    m_placeholder->setVisible(false);
+
+    connect(ui->comboBoxAlgo, &QComboBox::currentTextChanged, this,
+            &SamplingWidget::slot_selectedPluginChanged);
 
     // setup area for algo settings widget
-    m_algoSettings = new QWidget(this);
+    m_currentPluginSettings = new QWidget(this);
     ui->scrollAreaWidgetContents->setLayout(new QVBoxLayout(this));
-    ui->scrollAreaWidgetContents->layout()->setContentsMargins(0,0,0,0);
-    ui->scrollAreaWidgetContents->layout()->addWidget(m_algoSettings);
+    ui->scrollAreaWidgetContents->layout()->setContentsMargins(0, 0, 0, 0);
+    ui->scrollAreaWidgetContents->layout()->addWidget(m_currentPluginSettings);
 
-    // add algorithms
-    ui->comboBoxAlgo->addItems(algorithmList);
-    ui->comboBoxAlgo->insertSeparator(algorithmList.size());
-    m_separatorIdx = algorithmList.size();
-    ui->comboBoxAlgo->addItems(transformList);
-    connect(ui->comboBoxAlgo, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &SamplingWidget::slot_selectedAlgoChanged);
-    connect(ui->pushButton, &QPushButton::pressed, this, &SamplingWidget::slot_startSamplingPressed);
+    m_startSelectionBtn = new QPushButton(tr("Start Selection"), this);
+    m_startSelectionBtn->setVisible(false);
+    connect(m_startSelectionBtn, &QPushButton::pressed, this,
+            &SamplingWidget::slot_startSamplingPressed);
 
-    m_cbPreviewTransform = new QCheckBox(tr("Enable preview"), parent);
-    m_cbPreviewTransform->setVisible(false);
-    connect(m_cbPreviewTransform, &QCheckBox::stateChanged, this, &SamplingWidget::slot_enablePreviewChanged);
+    m_previewCB = new QCheckBox(tr("Enable preview"), this);
+    m_previewCB->setVisible(false);
+    connect(m_previewCB, &QCheckBox::stateChanged, this,
+            &SamplingWidget::slot_enablePreviewChanged);
 
-    // disable generate Settings buttons
-    ui->label_3->setVisible(false);
-    //
+    m_addMaskBtn = new QPushButton(tr("Add Mask"), this);
+    m_addMaskBtn->setVisible(false);
+    connect(m_addMaskBtn, &QPushButton::pressed, this,
+            &SamplingWidget::slot_addMaskPressed);
 
-    connect(ui->comboBoxResolution, &QComboBox::currentTextChanged, [=](const QString& text) { emit sig_resChanged(text); });
-}
+    connect(ui->comboBoxResolution, &QComboBox::currentTextChanged,
+            [=](const QString& text) { emit sig_resChanged(text); });
 
-SamplingWidget::~SamplingWidget()
-{
-    disconnect(ui->comboBoxAlgo, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &SamplingWidget::slot_selectedAlgoChanged);
-    disconnect(ui->pushButton, &QPushButton::pressed, this, &SamplingWidget::slot_startSamplingPressed);
+    m_previewSpinner = new SpinnerIcon(this);
+    m_previewSpinner->setVisible(false);
 
-    delete ui;
-    delete m_cbPreviewTransform;
-}
-
-void SamplingWidget::showAlgorithmSettings(QWidget *algoSettings)
-{
-    ui->scrollAreaWidgetContents->layout()->replaceWidget(m_algoSettings, algoSettings);
-    m_algoSettings->setVisible(false);
-    algoSettings->setVisible(true);
-    m_algoSettings = algoSettings;
-}
-
-
-int SamplingWidget::getSelectedAlgorithm()
-{
-    return ui->comboBoxAlgo->currentIndex();
-}
-
-int SamplingWidget::getSelctedType()
-{
-    int idx = ui->comboBoxAlgo->currentIndex();
-    if(idx < m_separatorIdx){
-        return 1; // Algorithm
-    } else {
-        return 0; // Transformable
+    QHBoxLayout* layout = ui->btnLayout;
+    std::vector<QWidget*> btns = {m_startSelectionBtn, m_addMaskBtn,
+                                  m_previewCB, m_previewSpinner};
+    for (QWidget* btn : btns) {
+        layout->addWidget(btn);
     }
 }
 
-void SamplingWidget::setAlgorithm(int idx)
-{
-    ui->comboBoxAlgo->setCurrentIndex(idx);
-}
+SamplingWidget::~SamplingWidget() { delete ui; }
 
-void SamplingWidget::disablePreview()
-{
-    m_cbPreviewTransform->setChecked(false);
-}
-
-void SamplingWidget::slot_selectedAlgoChanged(int idx)
-{
-    if(idx<m_separatorIdx){
-        emit sig_selectedAlgorithmChanged(idx);
-        showSamplingBtns();
-    } else if(idx > m_separatorIdx){
-        emit sig_selectedTransformChanged(idx-m_separatorIdx-1);
-        showTransformBtns();
-    } else {
-        showAlgorithmSettings(m_placeholder);
-        showNoBtns();
+void SamplingWidget::showPluginSettings(QWidget* settingsWidget) {
+    if (!settingsWidget) {
+        return;
     }
+    if (m_currentPluginSettings == settingsWidget) {
+        settingsWidget->setVisible(true);
+        return;
+    }
+
+    ui->scrollAreaWidgetContents->layout()->replaceWidget(
+        m_currentPluginSettings, settingsWidget);
+    m_currentPluginSettings->setVisible(false);
+    settingsWidget->setVisible(true);
+    m_currentPluginSettings = settingsWidget;
 }
 
-void SamplingWidget::slot_startSamplingPressed()
-{
-    emit sig_startSampling();
-}
+void SamplingWidget::slot_startSamplingPressed() { emit sig_startSampling(); }
 
-void SamplingWidget::slot_enablePreviewChanged(bool enabled)
-{
+void SamplingWidget::slot_enablePreviewChanged(bool enabled) {
     emit sig_enablePreviewChanged(enabled);
 }
 
-void SamplingWidget::showSamplingBtns()
-{
-    HIDE_WIDGET(m_cbPreviewTransform)
-//    ui->label_2->setVisible(true);
-//    ui->label_3->setVisible(true);
-//    ui->pushButton_2->setVisible(true);
-    SHOW_WIDGET(ui->pushButton);
-//    ui->radioButton->setVisible(true);
-//    ui->addAuto->setVisible(true);
+void SamplingWidget::slot_addMaskPressed() {
+    emit sig_addMask();
 }
 
-void SamplingWidget::showTransformBtns()
-{
-    ui->label_3->setVisible(false);
-//    ui->pushButton_2->setVisible(false);
-    HIDE_WIDGET(ui->pushButton);
-    SHOW_WIDGET(m_cbPreviewTransform);
-//    ui->radioButton->setVisible(false);
+void SamplingWidget::slot_selectedPluginChanged(QString name) {
+    emit sig_selectedPluginChanged(name);
 }
 
-void SamplingWidget::showNoBtns()
-{
-    ui->pushButton->setEnabled(false);
-}
-
-void SamplingWidget::setResolutionList(QStringList resList, int idx)
-{
+void SamplingWidget::setResolutionList(QStringList resList, int idx) {
     Q_ASSERT(!resList.empty());
-    Q_ASSERT(idx>=0);
+    Q_ASSERT(idx >= 0);
     Q_ASSERT(idx < resList.size());
 
     ui->comboBoxResolution->clear();
@@ -137,27 +86,83 @@ void SamplingWidget::setResolutionList(QStringList resList, int idx)
     ui->comboBoxResolution->setCurrentIndex(idx);
 }
 
-void SamplingWidget::setResolution(QString resolution)
-{
+void SamplingWidget::setResolution(QString resolution) {
     ui->comboBoxResolution->setEditText(resolution);
 }
 
-void SamplingWidget::setResolutionValid(bool valid)
-{
+void SamplingWidget::setResolutionValid(bool valid) {
     QPalette colorPalette = ui->comboBoxResolution->palette();
     if (valid) {
         ApplicationSettings as = ApplicationSettings::instance();
         if (as.getColorTheme() == DARK) {
-            //darkstyle on
+            // darkstyle on
             colorPalette.setColor(QPalette::Text, Qt::white);
-        }
-        else {
-            //darkstyle off
+        } else {
+            // darkstyle off
             colorPalette.setColor(QPalette::Text, Qt::black);
         }
-    }
-    else {
+    } else {
         colorPalette.setColor(QPalette::Text, Qt::red);
     }
     ui->comboBoxResolution->setPalette(colorPalette);
+}
+
+void SamplingWidget::setPluginList(const QStringList& pluginNames) {
+    ui->comboBoxAlgo->clear();
+    ui->comboBoxAlgo->addItems(pluginNames);
+}
+
+void SamplingWidget::setSelectedPlugin(const QString& pluginName) {
+    int index = ui->comboBoxAlgo->findText(pluginName);
+    if (index != -1) {
+        ui->comboBoxAlgo->setCurrentIndex(index);
+    }
+}
+
+void SamplingWidget::setPluginActionVisible(PluginActions action,
+                                            bool visible) {
+    switch (action) {
+        case PluginActions::START_SELECTION:
+            m_startSelectionBtn->setVisible(visible);
+            break;
+        case PluginActions::PREVIEW_TOGGLE:
+            m_previewCB->setVisible(visible);
+            m_previewSpinner->setVisible(visible);
+            break;
+        case PluginActions::ADD_MASK:
+            m_addMaskBtn->setVisible(visible);
+            break;
+        case PluginActions::ALL_ACTIONS:
+            m_startSelectionBtn->setVisible(visible);
+            m_previewCB->setVisible(visible);
+            m_previewSpinner->setVisible(visible);
+            m_addMaskBtn->setVisible(visible);
+            break;
+
+        default:
+            break;
+    }
+}
+
+void SamplingWidget::setPreviewEnabled(bool enabled) {
+    m_previewCB->setChecked(enabled);
+}
+
+bool SamplingWidget::isPreviewEnabled() const {
+    return m_previewCB->isChecked();
+}
+
+void SamplingWidget::setPreviewState(const PreviewState& state) {
+    switch (state) {
+        case PreviewState::Idle:
+            m_previewSpinner->setSpinning(false);
+            m_previewSpinner->setText("");
+            break;
+        case PreviewState::Processing:
+            m_previewSpinner->setSpinning(true);
+            m_previewSpinner->setText(tr("Generating preview..."));
+            break;
+        default:
+            break;
+    }
 }

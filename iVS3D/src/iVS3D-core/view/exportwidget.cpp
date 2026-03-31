@@ -2,14 +2,57 @@
 
 #include "ui_exportwidget.h"
 
-ExportWidget::ExportWidget(QWidget *parent, QStringList transformList)
+namespace {
+
+int findFormatIndex(QComboBox *comboBox, const QString &formatKey) {
+    for (int idx = 0; idx < comboBox->count(); ++idx) {
+        if (comboBox->itemData(idx, Qt::UserRole).toString() == formatKey) {
+            return idx;
+        }
+    }
+    return -1;
+}
+
+}  // namespace
+
+QString toExportFormatKey(ExportFormat format) {
+    switch (format) {
+        case ExportFormat::SameAsInput:
+            return QStringLiteral("same as input");
+        case ExportFormat::Png:
+            return QStringLiteral("png");
+        case ExportFormat::Jpg:
+            return QStringLiteral("jpg");
+        default:
+            return QString();
+    }
+}
+
+ExportFormat exportFormatFromKey(const QString &formatKey) {
+    if (formatKey == QStringLiteral("same as input")) {
+        return ExportFormat::SameAsInput;
+    }
+    if (formatKey == QStringLiteral("png")) {
+        return ExportFormat::Png;
+    }
+    if (formatKey == QStringLiteral("jpg")) {
+        return ExportFormat::Jpg;
+    }
+    return ExportFormat::Unknown;
+}
+
+ExportWidget::ExportWidget(QWidget *parent)
     : QWidget(parent), ui(new Ui::ExportWidget) {
     ui->setupUi(this);
-    for (const auto &t : transformList) {
-        auto *cb = new QCheckBox(t);
-        m_checkboxes.push_back(cb);
-        ui->verticalLayout_transforms->addWidget(cb);
-    }
+    ui->comboBox_format->setItemData(
+        0, toExportFormatKey(ExportFormat::SameAsInput), Qt::UserRole);
+    ui->comboBox_format->setItemData(1, toExportFormatKey(ExportFormat::Png),
+                                     Qt::UserRole);
+    ui->comboBox_format->setItemData(2, toExportFormatKey(ExportFormat::Jpg),
+                                     Qt::UserRole);
+
+    m_maskStackView = std::make_shared<MaskStackView>(this);
+    ui->verticalLayout_transforms->addWidget(m_maskStackView.get());
 
     connect(ui->comboBox_resolution, &QComboBox::currentTextChanged,
             [=](const QString &text) { emit sig_resChanged(text); });
@@ -19,10 +62,11 @@ ExportWidget::ExportWidget(QWidget *parent, QStringList transformList)
 }
 
 ExportWidget::~ExportWidget() {
-    for (auto cb : m_checkboxes) {
-        delete cb;
-    }
     delete ui;
+}
+
+std::shared_ptr<MaskStackView> ExportWidget::getMaskStackView() {
+    return m_maskStackView;
 }
 
 void ExportWidget::setOutputPath(QString path) { ui->lineEdit->setText(path); }
@@ -45,14 +89,6 @@ void ExportWidget::enableExportPathEditable(bool enabled) {
 }
 
 void ExportWidget::enableReconstruct(bool enabled) { (void)enabled; }
-
-std::vector<bool> ExportWidget::getSelectedITransforms() {
-    std::vector<bool> transforms;
-    for (const auto &cb : m_checkboxes) {
-        transforms.push_back(cb->isChecked());
-    }
-    return transforms;
-}
 
 void ExportWidget::on_pushButton_browse_clicked() {
     QString newPath = QFileDialog::getExistingDirectory(
@@ -77,24 +113,6 @@ void ExportWidget::on_lineEdit_textChanged(const QString &text) {
 
 void ExportWidget::on_spinBox_altitude_valueChanged(double d) {
     emit sig_altitudeChanged(d);
-}
-
-bool ExportWidget::setSelectedITransforms(std::vector<bool> selection) {
-    if (m_checkboxes.size() != selection.size()) {
-        return false;
-    }
-    for (int i = 0; i < (int)m_checkboxes.size(); i++) {
-        m_checkboxes[i]->setChecked(selection[i]);
-    }
-    return true;
-}
-
-void ExportWidget::enableCreateFilesWidget(bool enable) {
-    if (enable) {
-        ui->label_transforms->show();
-    } else {
-        ui->label_transforms->hide();
-    }
 }
 
 void ExportWidget::setResolutionList(QStringList resList, int idx) {
@@ -129,16 +147,28 @@ void ExportWidget::setResolutionValid(bool valid) {
 }
 
 QString ExportWidget::getExportFormat() {
-    return ui->comboBox_format->currentText();
+    return toExportFormatKey(getExportFormatEnum());
+}
+
+ExportFormat ExportWidget::getExportFormatEnum() {
+    return exportFormatFromKey(
+        ui->comboBox_format->currentData(Qt::UserRole).toString());
 }
 
 bool ExportWidget::setOutputFormat(QString format) {
-    int idx = ui->comboBox_format->findText(format);
+    int idx = findFormatIndex(ui->comboBox_format, format);
+    if (idx < 0) {
+        idx = ui->comboBox_format->findText(format);
+    }
     if (idx >= 0) {
         ui->comboBox_format->setCurrentIndex(idx);
         return true;
     }
     return false;
+}
+
+bool ExportWidget::setOutputFormat(ExportFormat format) {
+    return setOutputFormat(toExportFormatKey(format));
 }
 
 void ExportWidget::setAltitudeVisible(bool visible) {
@@ -176,7 +206,10 @@ double ExportWidget::getAltitude() {
 }
 
 void ExportWidget::enableFormat(QString format, bool enable) {
-    int idx = ui->comboBox_format->findText(format);
+    int idx = findFormatIndex(ui->comboBox_format, format);
+    if (idx < 0) {
+        idx = ui->comboBox_format->findText(format);
+    }
     if (idx >= 0)
     {
         if (enable) {
@@ -195,4 +228,8 @@ void ExportWidget::enableFormat(QString format, bool enable) {
                 ui->comboBox_format->setCurrentIndex(idx == 0 ? 1 : 0);
         }
     }
+}
+
+void ExportWidget::enableFormat(ExportFormat format, bool enable) {
+    enableFormat(toExportFormatKey(format), enable);
 }

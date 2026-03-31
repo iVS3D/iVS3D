@@ -27,9 +27,9 @@ namespace NN {
  * @date August 2025
  */
 enum class ErrorCode {
-    InvalidArgument,
-    OutOfMemory,
-    RuntimeError
+    InvalidArgument = 0,
+    OutOfMemory = 1,
+    RuntimeError = 2
 };
 
 

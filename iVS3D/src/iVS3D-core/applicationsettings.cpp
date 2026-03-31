@@ -42,6 +42,13 @@ bool ApplicationSettings::setLocale(QLocale locale)
     return true;
 }
 
+QString ApplicationSettings::getDefaultPluginName() { return m_defaultPluginName; }
+
+void ApplicationSettings::setDefaultPluginName(const QString& pluginName) {
+    m_defaultPluginName = pluginName;
+    saveSettings();
+}
+
 void ApplicationSettings::setInterpolateMetaData(bool interpolateMetaData)
 {
     m_interpolateMetaData = interpolateMetaData;
@@ -67,6 +74,7 @@ void ApplicationSettings::loadSettings()
     m_createLogs = settings.value(stringContainer::createLogsIdentifier).value<bool>();
     m_interpolateMetaData = settings.value(stringContainer::interpolateIdentifier).value<bool>();
     m_locale = settings.value(stringContainer::localeIdentifier).value<QLocale>();
+    m_defaultPluginName = settings.value(stringContainer::defaultPluginIdentifier, m_defaultPluginName).value<QString>();
 }
 
 void ApplicationSettings::saveSettings()
@@ -86,6 +94,7 @@ void ApplicationSettings::saveSettings()
     settings.setValue(stringContainer::reconstructSoftwareIdentifier, reconstructMap);
     settings.setValue(stringContainer::createLogsIdentifier, m_createLogs);
     settings.setValue(stringContainer::localeIdentifier, m_locale);
+    settings.setValue(stringContainer::defaultPluginIdentifier, m_defaultPluginName);
 }
 
 

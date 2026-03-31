@@ -2,12 +2,15 @@ set(TARGET_NAME iVS3D-core)
 
 # set header, source and form files
 file(GLOB_RECURSE HEADER_FILES
+    CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_LIST_DIR}/*.h"
 )
 file(GLOB_RECURSE SRC_FILES
+    CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_LIST_DIR}/*.cpp"
 )
 file(GLOB_RECURSE UI_FILES
+    CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_LIST_DIR}/*.ui"
 )
 
@@ -62,7 +65,7 @@ if(WIN32)
 endif()
 
 # define executable
-add_executable(${TARGET_NAME} WIN32
+add_executable(${TARGET_NAME} #WIN32
     ${HEADER_FILES}
     ${SRC_FILES}
     ${UI_FILES}
@@ -81,6 +84,7 @@ target_link_libraries(${TARGET_NAME}
     Qt${QT_VERSION_MAJOR}::Concurrent
     Qt${QT_VERSION_MAJOR}::Positioning
     Qt${QT_VERSION_MAJOR}::Svg
+    tl-expected
 )
 
 # add defines

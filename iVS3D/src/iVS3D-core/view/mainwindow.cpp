@@ -19,7 +19,7 @@
 
 
 
-MainWindow::MainWindow(QWidget *parent, ColorTheme theme, int cuda, bool createLog, bool interpolateMetaData, QList<QLocale> locales, QLocale selectedLocale, QStringList algorithmList, QStringList transformList, QWidget *otsWidget)
+MainWindow::MainWindow(QWidget *parent, ColorTheme theme, int cuda, bool createLog, bool interpolateMetaData, QList<QLocale> locales, QLocale selectedLocale, QWidget *otsWidget)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
@@ -32,8 +32,8 @@ MainWindow::MainWindow(QWidget *parent, ColorTheme theme, int cuda, bool createL
     m_videoplayer = new VideoPlayer(this, theme);
     m_timeline = new Timeline(this);
     m_inputWidget = new InfoWidget(this, "Input", theme);
-    m_samplingWidget = new SamplingWidget(this, algorithmList, transformList);
-    m_outputWidget = new OutputWidget(this, "Output", transformList);
+    m_samplingWidget = new SamplingWidget(this);
+    m_outputWidget = new OutputWidget(this, "Output");
     m_autoWidget = new AutomaticWidget(this);
     m_autoWidget->setVisible(false);
 

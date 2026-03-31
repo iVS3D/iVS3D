@@ -50,10 +50,23 @@ public slots:
      */
     void slot_displayMessage(QString message);
 
+    /**
+     * @brief slot_displayWarning appends a warning in the warning area
+     * @param warning Warning text
+     */
+    void slot_displayWarning(QString warning);
+
+    /**
+     * @brief slot_clearWarnings removes all warning entries
+     */
+    void slot_clearWarnings();
+
 private slots:
     void on_pushButton_abort_clicked();
 
 private:
+    void appendLogEntry(const QString& text, bool isWarning);
+
     Ui::ProgressWidget *ui;
 };
 

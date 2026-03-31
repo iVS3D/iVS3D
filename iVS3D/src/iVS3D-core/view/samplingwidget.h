@@ -3,7 +3,10 @@
 
 #include <QWidget>
 #include <QCheckBox>
+#include <QPushButton>
 #include "ui_samplingwidget.h"
+
+#include "spinnericon.h"
 
 
 namespace Ui {
@@ -48,56 +51,43 @@ public:
      *
      * @see IAlgorithm, ITransform
      */
-    explicit SamplingWidget(QWidget *parent = nullptr, QStringList algorithmList = QStringList("no algorithm"), QStringList transformList = QStringList(""));
+    explicit SamplingWidget(QWidget *parent = nullptr);
     ~SamplingWidget();
 
     /**
      * @brief showAlgorithmSettings shows the given QWidget to the user.
      * @param algoSettings the QWidget to display
      */
-    void showAlgorithmSettings(QWidget *algoSettings);
-
-
-    /**
-     * @brief getSelectedAlgorithm returns the currently selected Algorithm
-     * @return int wich corresponds to the index in the pluginlist
-     */
-    int getSelectedAlgorithm();
-
-    /**
-     * @brief getSelctedType returns the type of the curently selected Algorithm
-     * @return @a 1 if algorithm, @a 0 if transformation
-     */
-    int getSelctedType();
-
-    /**
-     * @brief setAlgorithm sets the currently selceted algoritm to the algorithm corresponding to the index
-     * @param idx the index in the pluginList
-     */
-    void setAlgorithm(int idx);
-
-    void disablePreview();
+    void showPluginSettings(QWidget* settingsWidget);
 
     void setResolutionList(QStringList resList, int idx);
     void setResolution(QString resolution);
     void setResolutionValid(bool valid);
 
+    void setPluginList(const QStringList& pluginNames);
+    void setSelectedPlugin(const QString& pluginName);
+
+    enum PluginActions {
+        PREVIEW_TOGGLE = 0,
+        ADD_MASK = 1,
+        START_SELECTION = 2,
+        ALL_ACTIONS = 4
+    };
+    void setPluginActionVisible(PluginActions action, bool visible);
+
+    void setPreviewEnabled(bool enabled);
+    bool isPreviewEnabled() const;
+
+    enum class PreviewState {
+        Idle,
+        Processing,
+    };
+    void setPreviewState(const PreviewState& state);
+
 
 signals:
 
-    /**
-     * @brief [signal] sig_selectedAlgorithmChanged(...) is emitted on dropdown index changed to an IAlgorithm
-     * instance. @see IAlgorithm
-     * @param idx The index of the new algorithm refering to algorithmList given to constructor
-     */
-    void sig_selectedAlgorithmChanged(int idx);
-
-    /**
-     * @brief [signal] sig_selectedTransformChanged(...) is emitted on dropdown index changed to an ITransfrom
-     * instance. @see ITransfrom
-     * @param idx The index of the new transform refering to transformList
-     */
-    void sig_selectedTransformChanged(int idx);
+    void sig_selectedPluginChanged(QString name);
 
     /**
      * @brief [signal] sig_startSampling(...) is emitted on start sampling button pressed.
@@ -116,24 +106,22 @@ signals:
      */
     void sig_resChanged(QString resolution);
 
+    void sig_addMask();
+
 private slots:
-    void slot_selectedAlgoChanged(int idx);
     void slot_startSamplingPressed();
     void slot_enablePreviewChanged(bool enabled);
+    void slot_addMaskPressed();
+    void slot_selectedPluginChanged(QString name);
 
 private:
     Ui::SamplingWidget *ui;
-    QWidget *m_algoSettings;
-    QWidget *m_placeholder;
-    QCheckBox *m_cbPreviewTransform;
-    int m_separatorIdx;
+    QWidget* m_currentPluginSettings = nullptr;
 
-    void showSamplingBtns();
-    void showTransformBtns();
-    void showNoBtns();
+    QPushButton* m_startSelectionBtn = nullptr;
+    QCheckBox* m_previewCB = nullptr;
+    QPushButton* m_addMaskBtn = nullptr;
+    SpinnerIcon* m_previewSpinner = nullptr;
 };
-
-#define HIDE_WIDGET(W) ui->gridLayout->removeWidget(W); W->setVisible(false);
-#define SHOW_WIDGET(W) ui->gridLayout->addWidget(W,3,2); W->setVisible(true);
 
 #endif // SAMPLINGWIDGET_H

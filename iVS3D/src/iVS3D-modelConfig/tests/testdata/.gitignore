@@ -1,0 +1,2 @@
+# allow onnx files in this directoy
+!*.onnx

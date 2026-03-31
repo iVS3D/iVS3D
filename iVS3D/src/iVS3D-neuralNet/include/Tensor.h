@@ -222,6 +222,7 @@ namespace NN
          * @param scale The scale factor to apply to the input data (default: 1.0).
          * @param mean The mean values to subtract from each channel (default: empty vector).
          * @param std The standard deviation values to divide each channel by (default: empty vector).
+         * @param gridSize The grid size for resizing. If >1, the input image will be resized to the next multiple of gridSize (default: 1).
          * @return tl::expected<Tensor, NeuralError> A Tensor in CHW layout or an error object.
          *
          * @details
@@ -243,7 +244,7 @@ namespace NN
          * The resulting Tensor will be of type float32. Its shape will be squeezed, i.e. leading dimensions of size 1 and dynamic dimensions will be removed.
          *
          */
-        static tl::expected<Tensor, NeuralError> fromCvMat(const cv::Mat &mat, const Shape &shape, float scale = 1.0f, std::vector<float> mean = {}, std::vector<float> std = {});
+        static tl::expected<Tensor, NeuralError> fromCvMat(const cv::Mat &mat, const Shape &shape, float scale = 1.0f, std::vector<float> mean = {}, std::vector<float> std = {}, int gridSize = 1);
 
         /**
          * @brief Create a new Tensor object from a vector of cv::Mat objects. The cv::Mat objects must have the same size and type.
@@ -274,6 +275,8 @@ namespace NN
          * @param shape The desired shape of the Tensor.
          * @param scale The scale factor to apply to the input data (default: 1.0).
          * @param mean The mean values to subtract from each channel (default: empty vector).
+         * @param std The standard deviation values to divide each channel by (default: empty vector).
+         * @param gridSize The grid size for resizing. If >1, the input images will be resized to the next multiple of gridSize (default: 1).
          * @return tl::expected<Tensor, NeuralError> A Tensor object containing the stacked cv::Mat data in NCHW layout or an error object.
          *
          * @details
@@ -290,7 +293,7 @@ namespace NN
          * 4. If a mean vector is provided, it will be subtracted per-channel.
          * 5. If a std vector is provided, each channel will be divided by the corresponding std value.
          */
-        static tl::expected<Tensor, NeuralError> fromCvMats(const std::vector<cv::Mat> &mats, const Shape &shape, float scale = 1.0f, std::vector<float> mean = {}, std::vector<float> std = {});
+        static tl::expected<Tensor, NeuralError> fromCvMats(const std::vector<cv::Mat> &mats, const Shape &shape, float scale = 1.0f, std::vector<float> mean = {}, std::vector<float> std = {}, int gridSize = 1);
 
         /**
          * @brief Create a new Tensor object from a given data vector and shape. The number of elements in the vector must match shapeNumElements(shape).
@@ -823,7 +826,7 @@ namespace NN
         /**
          * @brief Preprocess a cv::Mat to match the given shape by resizing, color conversion from BGR to RGB, and scaling.
          */
-        static cv::Mat preprocessCvMat(const cv::Mat &mat, const Shape &shape, float scale)
+        static cv::Mat preprocessCvMat(const cv::Mat &mat, const Shape &shape, float scale, int gridSize)
         {
             cv::Mat tmp;
             const cv::Mat *matPtr = &mat; // points to the mat were currently working with
@@ -837,11 +840,27 @@ namespace NN
 
             // resize if necessary
             cv::Size size(shape[shape.size() - 2], shape[shape.size() - 1]);
-            if (size != cv::Size(-1,-1) && size != matPtr->size())
-            {
-                cv::resize(*matPtr, tmp, size, 0, 0, cv::INTER_AREA);
-                matPtr = &tmp;
+            
+            // a specific size is requested in the shape and the image does not match this yet
+            if (size == cv::Size(-1,-1)) {
+                // size is dynamic, so we do not resize here, unless a gridSize > 1 is requested
+                if (gridSize > 1) {
+                    cv::Size newSize(
+                        ((matPtr->cols + gridSize - 1) / gridSize) * gridSize,
+                        ((matPtr->rows + gridSize - 1) / gridSize) * gridSize);
+                    cv::resize(*matPtr, tmp, newSize, 0, 0, cv::INTER_AREA);
+                    matPtr = &tmp;
+                }
             }
+            else {
+                // size is static, so we resize to the requested size
+                if (size != matPtr->size())
+                {
+                    cv::resize(*matPtr, tmp, size, 0, 0, cv::INTER_AREA);
+                    matPtr = &tmp;
+                }
+            }
+
 
             // convert to float and apply scale
             matPtr->convertTo(tmp, CV_32F, scale);
@@ -851,9 +870,9 @@ namespace NN
         /**
          * @brief Preprocess a cv::Mat to match the given shape by resizing, color conversion from BGR to RGB, scaling, and applying mean and std.
          */
-        static cv::Mat preprocessCvMat(const cv::Mat &mat, const Shape &shape, float scale, const std::vector<float> &mean, const std::vector<float> &std)
+        static cv::Mat preprocessCvMat(const cv::Mat &mat, const Shape &shape, float scale, const std::vector<float> &mean, const std::vector<float> &std, int gridSize)
         {
-            cv::Mat tmp = preprocessCvMat(mat, shape, scale); // first do the basic preprocessing
+            cv::Mat tmp = preprocessCvMat(mat, shape, scale, gridSize); // first do the basic preprocessing
 
             // check if mean and std are provided and have the correct size
             assert(mean.size() == tmp.channels());

@@ -1,20 +1,18 @@
 #include "videoreader.h"
+#include <string>
 
 VideoReader::VideoReader(const QString &path,
                          std::shared_ptr<ReaderParams> readerParams)
     : m_path(path.toUtf8().constData()), m_readerParams(readerParams) {
     QFileInfo info(path);
-    if (!info.isFile()) {
-        m_isValid = false;
-        return;
-    }
+    m_isValid = false;
+    if (!info.isFile()) return;
 
-    openFormatContext();
-    selectVideoStream();
-    openCodec();
-    createSWS();
+    if (openFormatContext() > 0) return;
+    if (selectVideoStream() > 0) return;
+    if (openCodec() > 0) return;
+    if (createSWS() > 0) return;
 
-    // Create SwsContext for conversion
     // validate the given readerParams, initialize if necessary!
     uint w = m_codecContext->width;
     uint h = m_codecContext->height;
@@ -26,6 +24,11 @@ VideoReader::VideoReader(const QString &path,
         Q_ASSERT(!m_readerParams->getOriginalResolution().isValid());
         m_readerParams->initialize(res);
     }
+
+    if (w < 10 || h < 10) {
+        return;
+    }
+
     m_isValid = true;
 
     // reduce framecount when frames are corrupted at the end
@@ -37,50 +40,88 @@ VideoReader::VideoReader(const QString &path,
 }
 
 VideoReader::~VideoReader() {
-    sws_freeContext(m_swsContext);
-    avformat_free_context(m_formatContext);
+
+    // 1) free buffered frames
+    for (auto &kv : m_buffer) {
+        if (kv.second) {
+            av_frame_free(&kv.second);
+        }
+    }
+    m_buffer.clear();
+
+    // 2) free scaler
+    if (m_swsContext) {
+        sws_freeContext(m_swsContext);
+        m_swsContext = nullptr;
+    }
+
+    // 3) free decoder
+    if (m_codecContext) {
+        avcodec_free_context(&m_codecContext); // sets to nullptr
+    }
+
+    // 4) CLOSE input (this releases the Windows file lock)
+    if (m_formatContext) {
+        avformat_close_input(&m_formatContext); // sets to nullptr
+    }
+
+    // DO NOT call avformat_free_context() after avformat_close_input().
 }
 
-void VideoReader::openFormatContext() {
+
+int VideoReader::openFormatContext() {
     m_formatContext = avformat_alloc_context();
-    assert(m_formatContext);
-    avformat_open_input(&m_formatContext, m_path.c_str(), NULL, NULL);
+    if (!m_formatContext) return -1;
+    int inout_res = avformat_open_input(&m_formatContext, m_path.c_str(), NULL, NULL);
+    if (inout_res < 0) return inout_res;
     printf("Format %s, duration %ld us\n", m_formatContext->iformat->long_name,
            m_formatContext->duration);
-    avformat_find_stream_info(m_formatContext, NULL);
+    int find_res = avformat_find_stream_info(m_formatContext, NULL);
+    if (find_res < 0) return find_res;
+
+    return 0;
 }
 
-void VideoReader::selectVideoStream() {
+int VideoReader::selectVideoStream() {
     for (m_streamId = 0; m_streamId < m_formatContext->nb_streams;
          m_streamId++) {
         AVStream *stream = m_formatContext->streams[m_streamId];
+        if (!stream) continue;
         AVCodecParameters *codecParams = stream->codecpar;
+        if (!codecParams) continue;
         const AVCodec *codec = avcodec_find_decoder(codecParams->codec_id);
+        if (!codec) continue;
         AVMediaType codecType = codecParams->codec_type;
         if (codecType == AVMEDIA_TYPE_VIDEO) {
             m_frameCount = stream->nb_frames;
             m_avgVideoFPS = stream->avg_frame_rate;
             m_startTimestamp = stream->start_time;
             m_streamTimeBase = stream->time_base;
-            break;
+            return 0;
         }
     }
+    return -1;
 }
 
-void VideoReader::openCodec() {
+int VideoReader::openCodec() {
     AVCodecParameters *codecParams =
         m_formatContext->streams[m_streamId]->codecpar;
+    if (!codecParams) return -1;
     const AVCodec *codec = avcodec_find_decoder(codecParams->codec_id);
+    if (!codec) return -1;
     m_codecContext = avcodec_alloc_context3(codec);
-    assert(m_codecContext);
+    if (!m_codecContext) return -1;
     printf("Codec: %s\n", codec->name);
-    avcodec_parameters_to_context(m_codecContext, codecParams);
+    int param_res = avcodec_parameters_to_context(m_codecContext, codecParams);
+    if (param_res < 0) return param_res;
     AVDictionary *notFoundOptions = nullptr;
-    avcodec_open2(m_codecContext, codec, &notFoundOptions);
-    // TODO: display not found options
+    int open_res = avcodec_open2(m_codecContext, codec, &notFoundOptions);
+    if (open_res < 0) return open_res;
+
+    return 0;
 }
 
-void VideoReader::createSWS() {
+int VideoReader::createSWS() {
     AVPixelFormat pixFormat = m_codecContext->pix_fmt;
     // replaceDeprecatedPixFmt(pixFormat);
     int m_outW = m_codecContext->width;
@@ -89,7 +130,9 @@ void VideoReader::createSWS() {
         sws_getContext(m_codecContext->width, m_codecContext->height, pixFormat,
                        m_outW, m_outH, AVPixelFormat::AV_PIX_FMT_BGR24,
                        SWS_BILINEAR, NULL, NULL, NULL);
-    assert(m_swsContext);
+    if (!m_swsContext) return -1;
+
+    return 0;
 }
 
 void VideoReader::addMetaData(MetaData *md) { m_md = md; }
@@ -116,15 +159,18 @@ cv::Mat VideoReader::getPic(unsigned int index, PictureProcessingFlags flags) {
             av_rescale_q(index,
                          AVRational{m_avgVideoFPS.den, m_avgVideoFPS.num},
                          m_streamTimeBase);
-        av_seek_frame(m_formatContext, m_streamId, timeStampInStreamTime,
+        int seek_res = av_seek_frame(m_formatContext, m_streamId, timeStampInStreamTime,
                       AVSEEK_FLAG_BACKWARD);
+        if (seek_res < 0)
+            return cv::Mat();
     }
 
     // sequential read until index is reached
     while (iter == m_buffer.end()) {
         if (m_buffer.size() > m_avgVideoFPS.num / m_avgVideoFPS.den) {
             for (auto &d_iter : m_buffer) {
-                av_frame_free(&d_iter.second);
+                if (d_iter.second)
+                    av_frame_free(&d_iter.second);
             }
             m_buffer.clear();
         }
@@ -148,6 +194,8 @@ cv::Mat VideoReader::getPic(unsigned int index, PictureProcessingFlags flags) {
         }
     }
     cv::Mat img = avFrame2CvMat(iter->second);
+    if (img.empty())
+        return cv::Mat();
 
     // apply processing
     if (flags & PictureProcessingFlags::APPLY_RESIZING) {
@@ -170,7 +218,9 @@ int VideoReader::decodeNextPkg() {
         av_packet_free(&packet);
         return read_res;
     }
-    avcodec_send_packet(m_codecContext, packet);
+    int send_res = avcodec_send_packet(m_codecContext, packet);
+    // TODO: handle error properly, this assert is triggered in some videos
+    //assert(send_res == 0 && "Error sending packet for decoding"); 
 
     int receive_res = 0;
     while (receive_res == 0) {
@@ -237,14 +287,13 @@ SequentialReader *VideoReader::createSequentialReader(
 }
 
 cv::Mat VideoReader::avFrame2CvMat(const AVFrame *av_f) {
-    const Resolution res = m_readerParams->getOriginalResolution();
-    const uint w = res.getWidth();
-    const uint h = res.getHeight();
-
+    const int h = m_codecContext->coded_height;
+    const int w = m_codecContext->coded_width;
     cv::Mat cv_f(h, w, CV_8UC3);
     const int cv_lineSize = cv_f.step1();
-    sws_scale(m_swsContext, av_f->data, av_f->linesize, 0,
-              m_codecContext->height, &cv_f.data, &cv_lineSize);
-
+    const int out_h = sws_scale(m_swsContext, av_f->data, av_f->linesize, 0,
+              h, &cv_f.data, &cv_lineSize);
+    if (out_h != h)
+        return cv::Mat();
     return cv_f;
 }

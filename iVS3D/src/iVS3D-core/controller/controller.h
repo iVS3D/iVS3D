@@ -11,8 +11,6 @@
 #include "DataManager.h"
 #include "openexecutor.h"
 #include "applicationsettings.h"
-#include "automaticexecutor.h"
-#include "automaticexecsettings.h"
 #include "stackcontroller.h"
 
 #include "view/mainwindow.h"
@@ -20,14 +18,13 @@
 #include "view/reconstructiontoolsdialog.h"
 
 #include "controller/exportcontroller.h"
-#include "controller/algorithmcontroller.h"
 #include "controller/videoplayercontroller.h"
-#include "controller/automaticcontroller.h"
 
 #include "colmapwrapper.h"
 
-#include "plugin/algorithmmanager.h"
-#include "plugin/transformmanager.h"
+#include "pluginmanager.h"
+#include "plugincontroller.h"
+#include "pluginthread.h"
 
 #include <QObject>
 #include <QWidget>
@@ -159,12 +156,12 @@ private slots:
     void slot_editCrop();
     void slot_useCropChanged(int checkstate);
     void slot_altitudeChanged(double altitude);
+    void slot_restorePluginSettings(int recordId);
 
 private:
     VideoPlayerController *m_videoPlayerController;
-    AlgorithmController* m_algorithmController;
+    PluginController* m_pluginController;
     ExportController *m_exportController;
-    AutomaticController* m_automaticController;
     StackController *m_stackController;
     MainWindow* m_mainWindow;
     DataManager* m_dataManager;
@@ -186,14 +183,16 @@ private:
      */
     void onSuccessfulOpen();
     void setInputWidgetInfo();
-    void displayPluginSettings();
     void onFailedOpen();
     uint loadMetaDataFromPath(QString path);
     bool loadInputDataFromPath(QString path);
     void setAltitude();
+    void loadPluginSettingsWidgets();
     // plugin runtime
     QElapsedTimer m_timer;
 
+    std::shared_ptr<MaskStack> m_stack;
+    std::shared_ptr<PluginThread> m_pluginThread;
 
 };
 

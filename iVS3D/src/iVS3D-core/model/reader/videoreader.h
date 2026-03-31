@@ -4,12 +4,12 @@
 #include <QMutex>
 #include <QMutexLocker>
 #include <QObject>
+#include <QFileInfo>
 #include <iostream>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/videoio.hpp>
 
-#include "algorithmmanager.h"
 #include "reader.h"
 #include "readerfactory.h"
 #include "readerparams.h"
@@ -160,10 +160,10 @@ class VideoReader : public Reader
 
     // private helper functions
     cv::Mat avFrame2CvMat(const AVFrame* av_f);
-    void openFormatContext();
-    void selectVideoStream();
-    void openCodec();
-    void createSWS();
+    int openFormatContext();
+    int selectVideoStream();
+    int openCodec();
+    int createSWS();
     int decodeNextPkg();
 };
 

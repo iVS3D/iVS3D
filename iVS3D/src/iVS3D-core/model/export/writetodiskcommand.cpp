@@ -36,7 +36,7 @@ std::optional<QString> WriteToDiskCommand::execute(ImageContext &ctx)
         return "ERROR: failed to remove existing file '" + ctx.filename + "'!";
     }
     
-    if (!cv::imwrite(ctx.filename.toStdString(), ctx.image, {cv::IMWRITE_JPEG_QUALITY, 100})) {
+    if (!cv::imwrite(ctx.filename.toStdString(), ctx.image)) {
         return "ERROR: failed to export image: " + ctx.filename;
     }
 

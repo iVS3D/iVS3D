@@ -1,467 +1,533 @@
 #include "geomap.h"
 
-// Qt
+#include <QLocale>
+#include <QCheckBox>
 #include <QMessageBox>
 #include <QQmlContext>
 #include <QQmlEngine>
 #include <QQuickView>
-#include <QTranslator>
-#include <QtMath>
+#include <QSettings>
+#include <QSpacerItem>
 
-// iVS3D-core
 #include "../iVS3D-core/model/metaData/metadata.h"
 
+using PLUG::ApplySettingsResult;
+using PLUG::Error;
+using PLUG::ErrorCode;
+using PLUG::IBase;
+using PLUG::InputData;
+using PLUG::InputLoadedResult;
+using PLUG::InputMetaData;
+using PLUG::MetaDataLoadedResult;
+using PLUG::SelectionData;
+using PLUG::SelectionResult;
+using PLUG::SettingsWidgetResult;
 
-//==================================================================================================
-GeoMap::GeoMap()
-    : mpSigObj(nullptr)
-    , mpReader(nullptr)
-    , mpQuickViewContainerWidget(nullptr)
-    , mpMapWidget(nullptr)
-    , mpMapHandler(nullptr)
-    , mBuffer({})
-    , mMetaData({})
-    , mGpsData({})
-    , mPolygon()
-    , mIsQmlMapInitialized(false)
-    , mIsGpsAvailable(false)
-{
-    //--- load and install translations
+namespace {
+constexpr int MAP_POINT_UPDATE_THRESHOLD = 100000;
+
+const QString ORG_NAME = "Fraunhofer-IOSB";
+const QString APP_NAME = "iVS3D";
+const QString SETTINGS_GROUP = "geoMapPlugin";
+const QString SETTINGS_PARTIAL_SELECTION_KEY = "partialSelectionEnabled";
+}
+
+GeoMap::GeoMap() : IBase() {
     QLocale locale = qApp->property("translation").toLocale();
     QTranslator* translator = new QTranslator();
     translator->load(locale, "geomap", "_", ":/translations", ".qm");
     qApp->installTranslator(translator);
+
+    qRegisterMetaType<GpsDataList>("GpsDataList");
+    qRegisterMetaType<GpsPointStateList>("GpsPointStateList");
+    qRegisterMetaType<QPolygonF>("QPolygonF");
+
+    loadPersistentSettings();
 }
 
-//==================================================================================================
-GeoMap::~GeoMap()
-{
-    if (mpQuickViewContainerWidget)
-        mpQuickViewContainerWidget->deleteLater();
-}
-
-//==================================================================================================
-QWidget* GeoMap::getSettingsWidget(QWidget* parent)
-{
-    if (!mpMapWidget) {
-        //--- if settings widget is not yet created, do so
-        createSettingsWidget(parent);
-    } else {
-        //--- otherwise make sure to update the selected frames
-        // this means drawing mGpsData to the map
-        reinitializeQmlMap();
+SettingsWidgetResult GeoMap::getSettingsWidget() {
+    auto widget = createSettingsWidget();
+    if (!widget) {
+        return tl::make_unexpected(Error(
+            ErrorCode::ResourceUnavailable,
+            tr("Failed to create GeoMap settings widget.")));
     }
-
-    return mpMapWidget;
+    return widget;
 }
 
-//==================================================================================================
-QString GeoMap::getName() const
-{
-    return tr("GeoMap");
-}
+QString GeoMap::getName() const { return tr("GeoMap"); }
 
-//==================================================================================================
-std::vector<uint> GeoMap::sampleImages(const std::vector<uint>& imageList,
-                                       Progressable* receiver, volatile bool* stopped,
-                                       bool useCuda, LogFileParent* logFile)
-{
-    if (!mIsGpsAvailable) {
-        return imageList;
-    }
-
-    // get all frames inside the polygon from the map
-    auto frames_inside_polygon = this->getFramesInsidePolygon();
-
-    std::vector<uint> ret;
-    ret.resize(imageList.size());
-
-    // intersect given images (selection from previous algorithms) and images selected on map
-    auto end = std::set_intersection(
-        imageList.begin(),imageList.end(),
-        frames_inside_polygon.begin(),frames_inside_polygon.end(),
-        ret.begin()
-    );
-    auto size = end - ret.begin();
-    ret.resize(size);
-
-    mPolygon = QPolygonF();
-    mpMapHandler->setPolygon(mPolygon);
-
-    return ret;
-}
-
-//==================================================================================================
-void GeoMap::initialize(Reader* reader, QMap<QString, QVariant> buffer, signalObject* sigObj)
-{
-    //--- assign member variables
-    mpReader = reader;
-    mBuffer  = buffer;
-    mpSigObj = sigObj;
-
-    //--- clear existing data
-    mGpsData.clear();
-    mIsGpsAvailable = false;
-
-    //--- connect to signals from iVS3D-core
-    connect(mpSigObj, SIGNAL(sig_newMetaData()), this, SLOT(onNewMetaData()));
-    connect(mpSigObj, SIGNAL(sig_keyframesChanged(std::vector<uint>)),
-            this, SLOT(onKeyframesChanged(std::vector<uint>)));
-
-    //--- Get reader of metadata. if reader is not available, return
-    MetaData* metaDataReader = mpReader->getMetaData();
-    if (metaDataReader == nullptr)
-        return;
-
-    //--- get meta data from reader, if Empty return
-    QStringList metaData = metaDataReader->availableMetaData();
-    if (metaData.size() == 0)
-        return;
-
-    readMetaData();
-}
-
-//==================================================================================================
-void GeoMap::setSettings(QMap<QString, QVariant> settings)
-{
-    //mPolygon = settings.find(NAME_Polygon).value().value<QPolygonF>();
-    //mpMapHandler->setPolygon(mPolygon);
-}
-
-//==================================================================================================
-QMap<QString, QVariant> GeoMap::getSettings()
-{
-    auto settings = QMap<QString, QVariant>();
+QMap<QString, QVariant> GeoMap::getSettings() const {
+    QMap<QString, QVariant> settings;
     settings[NAME_Polygon] = QVariant::fromValue(mPolygon);
     return settings;
 }
 
-//==================================================================================================
-QMap<QString, QVariant> GeoMap::generateSettings(Progressable* receiver, bool useCuda,
-                                                 volatile bool* stopped)
-{
-    return QMap<QString, QVariant>();
-}
-
-//==================================================================================================
-void GeoMap::onGpsClicked(QPointF gpsPoint, bool used)
-{
-    //--- if no gps is available, return
-    if (!mIsGpsAvailable)
-        return;
-
-    QPair<QPointF, bool> current(gpsPoint, !used);
-    int currentIndex = mGpsData.indexOf(current);
-    while (currentIndex != -1)
-    {
-        mGpsData[currentIndex] = QPair<QPointF, bool>(current.first, used);
-        currentIndex           = mGpsData.indexOf(current, currentIndex);
+ApplySettingsResult GeoMap::applySettings(
+    const QMap<QString, QVariant>& settings) {
+    if (!settings.contains(NAME_Polygon)) {
+        return {};
     }
 
-    emit updateKeyframes(getKeyframesFromGps());
+    const QVariant polygonVariant = settings.value(NAME_Polygon);
+    if (!polygonVariant.canConvert<QPolygonF>()) {
+        return tl::make_unexpected(Error(
+            ErrorCode::InvalidInput,
+            tr("Invalid polygon setting for GeoMap plugin.")));
+    }
+
+    mPolygon = polygonVariant.value<QPolygonF>();
+    emit syncMapPolygon(mPolygon);
+    return {};
 }
 
-//==================================================================================================
-void GeoMap::onNewMetaData()
-{
-    //--- clear all items that might have already been drawn on map
+InputLoadedResult GeoMap::onInputLoaded(const InputData& input) {
+    mReader = input.reader;
+    mMetaData.clear();
     mGpsData.clear();
     mPolygon = QPolygonF();
-    readMetaData();
+    mIsGpsAvailable = false;
 
-    if (mpQuickViewContainerWidget)
-        reinitializeQmlMap();
+    emit syncMapData(mGpsData, mPolygon);
+    return {};
 }
 
-//==================================================================================================
-void GeoMap::onKeyframesChanged(std::vector<uint> keyframes)
-{
-    // nothing to visualize without gps data
-    if (!mIsGpsAvailable)
-    {
+MetaDataLoadedResult GeoMap::onMetaDataLoaded(
+    const InputMetaData& inputMetaData) {
+    MetaData* metaData = inputMetaData.metaData;
+    if (!metaData && mReader) {
+        metaData = mReader->getMetaData();
+    }
+
+    mPolygon = QPolygonF();
+    readMetaData(metaData);
+    emit syncMapData(mGpsData, mPolygon);
+    return {};
+}
+
+void GeoMap::onSelectedImagesChanged(
+    const std::vector<uint>& selectedImages) {
+    if (!mIsGpsAvailable || mGpsData.empty()) {
         return;
     }
 
-    // gps map already have the new keyframes, this happens
-    // if the map caused the change -> nothing to update
-    if(keyframes == getKeyframesFromGps()) {
+    const GpsDataList oldGpsData = mGpsData;
+
+    for (auto& gpsEntry : mGpsData) {
+        gpsEntry.second = false;
+    }
+
+    for (uint index : selectedImages) {
+        if (index < static_cast<uint>(mGpsData.size())) {
+            mGpsData[int(index)].second = true;
+        }
+    }
+
+    auto buildPointStateList = [](const GpsDataList& gpsData) {
+        QList<QPointF> points;
+        QList<int> selectedCounts;
+        QList<int> totalCounts;
+
+        for (const auto& entry : gpsData) {
+            const int pointIndex = points.indexOf(entry.first);
+            if (pointIndex < 0) {
+                points.append(entry.first);
+                selectedCounts.append(entry.second ? 1 : 0);
+                totalCounts.append(1);
+                continue;
+            }
+
+            totalCounts[pointIndex] += 1;
+            if (entry.second) {
+                selectedCounts[pointIndex] += 1;
+            }
+        }
+
+        GpsPointStateList pointStates;
+        pointStates.reserve(points.size());
+        for (int i = 0; i < points.size(); i++) {
+            GpsPointState state;
+            state.point = points[i];
+            state.used = selectedCounts[i] > 0;
+            state.ratio = totalCounts[i] > 0
+                              ? qreal(selectedCounts[i]) / qreal(totalCounts[i])
+                              : 0.0;
+            pointStates.append(state);
+        }
+        return pointStates;
+    };
+
+    const GpsPointStateList oldPointStates = buildPointStateList(oldGpsData);
+    const GpsPointStateList newPointStates = buildPointStateList(mGpsData);
+
+    GpsPointStateList changedGpsData;
+    for (const GpsPointState& newState : newPointStates) {
+        bool foundOldState = false;
+        bool oldUsed = false;
+        qreal oldRatio = 0.0;
+
+        for (const GpsPointState& oldState : oldPointStates) {
+            if (oldState.point == newState.point) {
+                foundOldState = true;
+                oldUsed = oldState.used;
+                oldRatio = oldState.ratio;
+                break;
+            }
+        }
+
+        if (!foundOldState) {
+            changedGpsData.append(newState);
+            continue;
+        }
+
+        if (oldUsed != newState.used) {
+            changedGpsData.append(newState);
+            continue;
+        }
+
+#if GEOMAP_ENABLE_PARTIAL_SELECTION
+        if (qAbs(oldRatio - newState.ratio) > 0.000001) {
+            changedGpsData.append(newState);
+        }
+#endif
+    }
+
+    if (changedGpsData.isEmpty()) {
         return;
     }
-    // create a copy of the old list
-    QList<QPair<QPointF, bool>> oldGpsData = mGpsData;
 
-    // reset all frames to unselected
-    for (int gpsIndex = 0; gpsIndex < mGpsData.length(); gpsIndex++)
-    {
-        mGpsData[gpsIndex].second = false;
+    if (changedGpsData.length() < MAP_POINT_UPDATE_THRESHOLD) {
+        emit syncMapPointUpdates(changedGpsData, mPolygon);
+    } else {
+        emit syncMapData(mGpsData, mPolygon);
     }
-
-    // select the new keyframes
-    for (int index : keyframes)
-    {
-        mGpsData[index].second = true;
-    }
-
-    // find all keyframes that changed
-    QList<QPair<QPointF, bool>> changedGpsData;
-    for (int gpsIndex = 0; gpsIndex < mGpsData.length(); gpsIndex++) {
-        if(mGpsData[gpsIndex].second != oldGpsData[gpsIndex].second) {
-            changedGpsData.append(mGpsData[gpsIndex]);
-        }
-    }
-
-
-
-    // only if the map exists and is currently visible, update it!
-    if (mpQuickViewContainerWidget && mpMapWidget && mpMapWidget->isVisible())
-    {
-        // updating individual qml items is expensive, so only do it if there are few items to update!
-        // The boundary is heavily dependent on hardware, i.e.
-        // - on low-end laptop, for 100+ points, it is faster to redraw from scratch
-        // - on high-end desktop, 100k points to update is still similar speed to redrawing
-        if (changedGpsData.length() < 100000) {
-            mpMapHandler->updatePoints(changedGpsData);
-            mpMapHandler->setPolygon(mPolygon);
-        } else {
-            reinitializeQmlMap(); // oterwise just draw the map from scratch!
-        }
-    }
-
-
-/*
-    // only if the map exists and is currently visible, redraw it!
-    if (mpQuickViewContainerWidget && mpMapWidget && mpMapWidget->isVisible())
-    {
-        reinitializeQmlMap();
-    }*/
 }
 
-//==================================================================================================
-void GeoMap::createSettingsWidget(QWidget* parent)
-{
-    mpMapWidget = new QWidget(parent);
-    mpMapWidget->setLayout(new QVBoxLayout());
-    mpMapWidget->layout()->setSpacing(3);
-    mpMapWidget->layout()->setMargin(3);
+SelectionResult GeoMap::selectImages(const SelectionData& data,
+                                     volatile bool& cancelFlag) {
+    if (!mIsGpsAvailable) {
+        return data.selectedIndices;
+    }
 
-    //--- initialize qml map
-    initializeQmlMap();
+    if (cancelFlag) {
+        return data.selectedIndices;
+    }
 
+    auto framesInsidePolygon = getFramesInsidePolygon();
 
+    if (cancelFlag) {
+        return data.selectedIndices;
+    }
 
-    //--- add Reset Button
-    QPushButton* pResetButton = new QPushButton(QObject::tr("Reset selection"), mpMapWidget);
-    QObject::connect(pResetButton, &QPushButton::clicked, [&]() {
-        mpMapHandler->onQmlDeleteSelection();
+    auto selectedIndices = data.selectedIndices;
+    if (!std::is_sorted(selectedIndices.begin(), selectedIndices.end())) {
+        std::sort(selectedIndices.begin(), selectedIndices.end());
+    }
+    if (!std::is_sorted(framesInsidePolygon.begin(), framesInsidePolygon.end())) {
+        std::sort(framesInsidePolygon.begin(), framesInsidePolygon.end());
+    }
+
+    std::vector<uint> selected;
+    selected.resize(selectedIndices.size());
+
+    auto end = std::set_intersection(
+        selectedIndices.begin(), selectedIndices.end(),
+        framesInsidePolygon.begin(), framesInsidePolygon.end(),
+        selected.begin());
+    selected.resize(size_t(end - selected.begin()));
+
+    mPolygon = QPolygonF();
+    emit syncMapPolygon(mPolygon);
+    return selected;
+}
+
+void GeoMap::onGpsClicked(QPointF gpsPoint, bool used) {
+    if (!mIsGpsAvailable) {
+        return;
+    }
+
+    bool updated = false;
+    for (auto& gpsEntry : mGpsData) {
+        if (gpsEntry.first == gpsPoint) {
+            gpsEntry.second = used;
+            updated = true;
+        }
+    }
+
+    if (!updated) {
+        return;
+    }
+
+    emit updateSelectedImages(getKeyframesFromGps());
+}
+
+void GeoMap::onGpsSelected(QPolygonF polyF) {
+    if (!mIsGpsAvailable) {
+        return;
+    }
+    mPolygon = std::move(polyF);
+}
+
+void GeoMap::onIndexChanged(uint index) {
+    emit syncCurrentIndex(index);
+}
+
+std::unique_ptr<QWidget> GeoMap::createSettingsWidget() {
+    auto mapWidget = std::make_unique<QWidget>(nullptr);
+    mapWidget->setLayout(new QVBoxLayout());
+    mapWidget->layout()->setSpacing(3);
+    mapWidget->layout()->setContentsMargins(3, 3, 3, 3);
+
+    QQuickView* quickView = new QQuickView();
+    auto* mapHandler = new MapHandler(mapWidget.get());
+    QWidget* quickViewContainerWidget =
+        QWidget::createWindowContainer(quickView, mapWidget.get());
+
+    quickView->engine()->clearComponentCache();
+    quickView->rootContext()->setContextProperty("handler", mapHandler);
+    quickView->setSource(QUrl("qrc:/map.qml"));
+    dynamic_cast<QVBoxLayout*>(mapWidget->layout())
+        ->insertWidget(0, quickViewContainerWidget);
+
+    if (!quickView->errors().isEmpty()) {
+        return nullptr;
+    }
+
+    QObject* qmlRoot = quickView->rootObject();
+    if (!qmlRoot) {
+        return nullptr;
+    }
+
+    QObject::connect(qmlRoot, SIGNAL(gpsClicked(QString)),
+                     mapHandler, SLOT(onQmlGpsClicked(QString)));
+    QObject::connect(qmlRoot, SIGNAL(mapClicked(QString)),
+                     mapHandler, SLOT(onQmlMapClicked(QString)));
+    QObject::connect(qmlRoot, SIGNAL(mapItems(QVariant)),
+                     mapHandler, SLOT(onQmlMapItems(QVariant)));
+    QObject::connect(qmlRoot, SIGNAL(deleteSelection()),
+                     mapHandler, SLOT(onQmlDeleteSelection()));
+    QObject::connect(qmlRoot, SIGNAL(selectionBack()),
+                     mapHandler, SLOT(onQmlSelectionBack()));
+    QObject::connect(qmlRoot, SIGNAL(selectionForward()),
+                     mapHandler, SLOT(onQmlSelectionForward()));
+
+    QObject::connect(mapHandler, &MapHandler::gpsClicked,
+                     this, &GeoMap::onGpsClicked, Qt::QueuedConnection);
+    QObject::connect(mapHandler, &MapHandler::gpsSelected,
+                     this, &GeoMap::onGpsSelected, Qt::QueuedConnection);
+
+    QObject::connect(this, &GeoMap::syncMapData, mapHandler,
+                     &MapHandler::replaceData, Qt::QueuedConnection);
+    QObject::connect(this, &GeoMap::syncMapPointUpdates, mapHandler,
+                     &MapHandler::updatePointsAndPolygon,
+                     Qt::QueuedConnection);
+    QObject::connect(this, &GeoMap::syncMapPolygon, mapHandler,
+                     &MapHandler::setPolygon, Qt::QueuedConnection);
+    QObject::connect(this, &GeoMap::syncCurrentIndex, mapHandler,
+                     &MapHandler::setCurrentIndex, Qt::QueuedConnection);
+    QObject::connect(this, &GeoMap::syncPartialSelectionMode, mapHandler,
+                     &MapHandler::setPartialSelectionMode,
+                     Qt::QueuedConnection);
+
+    emit syncPartialSelectionMode(mPartialSelectionEnabled);
+
+    mapHandler->emitAdjustMapCenter(
+        QGeoCoordinate(49.01554184059616, 8.425800420583966));
+
+    emit syncMapData(mGpsData, mPolygon);
+
+    QPushButton* resetButton =
+        new QPushButton(QObject::tr("Reset selection"), mapWidget.get());
+    QObject::connect(resetButton, &QPushButton::clicked, mapHandler,
+                     &MapHandler::onQmlDeleteSelection);
+
+    QPushButton* helpButton =
+        new QPushButton(QObject::tr("Help"), mapWidget.get());
+    QCheckBox* partialSelectionCheckBox =
+        new QCheckBox(QObject::tr("Partial selection visualization"),
+                      mapWidget.get());
+    partialSelectionCheckBox->setChecked(mPartialSelectionEnabled);
+    QObject::connect(partialSelectionCheckBox, &QCheckBox::toggled, this,
+                     [this](bool enabled) {
+                         if (mPartialSelectionEnabled == enabled) {
+                             return;
+                         }
+
+                         mPartialSelectionEnabled = enabled;
+                         savePersistentSettings();
+                         emit syncPartialSelectionMode(enabled);
+                     });
+
+    QHBoxLayout* buttonLayout = new QHBoxLayout();
+    buttonLayout->setSpacing(3);
+    buttonLayout->setContentsMargins(3, 3, 3, 3);
+    buttonLayout->addWidget(resetButton);
+    buttonLayout->addWidget(partialSelectionCheckBox);
+    buttonLayout->addSpacerItem(
+        new QSpacerItem(20, 20, QSizePolicy::MinimumExpanding,
+                        QSizePolicy::Minimum));
+    buttonLayout->addWidget(helpButton);
+    mapWidget->layout()->addItem(buttonLayout);
+
+    QObject::connect(helpButton, &QPushButton::clicked, [mapWidget = mapWidget.get()]() {
+        QMessageBox::about(
+            mapWidget, "GeoMap Plugin",
+            QObject::tr("Select a group of keyframes by using right "
+                        "mouse button to draw an encapsulating polygon."
+                        "\n\n"
+                        "Select or deselect individual keyframes by "
+                        "clicking with the left mouse button "
+                        "on the location markings.\n\n"
+                        "A combination of both is also allowed."));
     });
 
-    //--- add Help Button
-    QPushButton* pHelpButton = new QPushButton(QObject::tr("Help"), mpMapWidget);
-
-    //--- add Layout with Buttons
-    QHBoxLayout* pHLayout = new QHBoxLayout();
-    pHLayout->layout()->setSpacing(3);
-    pHLayout->layout()->setMargin(3);
-    pHLayout->addWidget(pResetButton);
-    pHLayout->addSpacerItem(new QSpacerItem(20, 20, QSizePolicy::MinimumExpanding, QSizePolicy::Minimum));
-    pHLayout->addWidget(pHelpButton);
-    mpMapWidget->layout()->addItem(pHLayout);
-
-    //--- connect help button to message box
-    QObject::connect(pHelpButton, &QPushButton::clicked, [&]()
-                     { QMessageBox::about(mpMapWidget, "GeoMap Plugin",
-                                          QObject::tr("Select a group of keyframes by using right "
-                                                      "mouse button to draw an encapsulating polygon."
-                                                      "\n\n"
-                                                      "Select or deselect individual keyframes by "
-                                                      "clicking with the left mouse button "
-                                                      "on the location markings.\n\n"
-                                                      "A combination of both is also allowed.")); });
-
+    return mapWidget;
 }
 
-//==================================================================================================
-void GeoMap::onGpsSelected(QPolygonF polyF)
-{
-    //--- if no gps is available, return
-    if (!mIsGpsAvailable)
+void GeoMap::loadPersistentSettings() {
+    QSettings settings(ORG_NAME, APP_NAME);
+    settings.beginGroup(SETTINGS_GROUP);
+    mPartialSelectionEnabled =
+        settings.value(SETTINGS_PARTIAL_SELECTION_KEY,
+                       GEOMAP_ENABLE_PARTIAL_SELECTION != 0)
+            .toBool();
+    settings.endGroup();
+}
+
+void GeoMap::savePersistentSettings() const {
+    QSettings settings(ORG_NAME, APP_NAME);
+    settings.beginGroup(SETTINGS_GROUP);
+    settings.setValue(SETTINGS_PARTIAL_SELECTION_KEY,
+                      mPartialSelectionEnabled);
+    settings.endGroup();
+}
+
+void GeoMap::readMetaData(MetaData* metaData) {
+    mMetaData.clear();
+    mGpsData.clear();
+    mIsGpsAvailable = false;
+
+    if (!metaData) {
         return;
+    }
 
-    mPolygon = polyF;
-}
+    const QStringList available = metaData->availableMetaData();
+    for (const QString& metaName : available) {
+        if (!metaName.startsWith("GPS")) {
+            continue;
+        }
 
-//==================================================================================================
-void GeoMap::readMetaData()
-{
-    MetaData* metaData     = mpReader->getMetaData();
-    QStringList metaReader = metaData->availableMetaData();
-    for (QString metaName : metaReader)
-    {
-        if (metaName.startsWith("GPS"))
-        {
-            mMetaData = metaData->loadMetaData(metaName)->getAllMetaData();
+        MetaDataReader* metaReader = metaData->loadMetaData(metaName);
+        if (!metaReader) {
+            continue;
+        }
 
-            // Initial all frames are keyframes
-            for (QVariant var : mMetaData)
-            {
-                mGpsData.append(QPair<QPointF, bool>(gpsHashToLatLong(var), true));
+        mMetaData = metaReader->getAllMetaData();
+        for (const QVariant& var : mMetaData) {
+            bool ok = false;
+            const QPointF point = gpsHashToLatLong(var, &ok);
+            if (ok) {
+                mGpsData.append(QPair<QPointF, bool>(point, true));
             }
-            mIsGpsAvailable = true;
+        }
 
+        if (!mGpsData.isEmpty()) {
+            mIsGpsAvailable = true;
             return;
         }
     }
 }
 
-//==================================================================================================
-std::vector<unsigned int> GeoMap::getKeyframesFromGps()
-{
+std::vector<unsigned int> GeoMap::getKeyframesFromGps() const {
     std::vector<unsigned int> keyframes;
-    for (int i = 0; i < mGpsData.size(); i++)
-    {
-        if (mGpsData[i].second)
-        {
-            keyframes.push_back(i);
+    for (int i = 0; i < mGpsData.size(); i++) {
+        if (mGpsData[i].second) {
+            keyframes.push_back(static_cast<unsigned int>(i));
         }
     }
     return keyframes;
 }
 
-std::vector<unsigned int> GeoMap::getFramesInsidePolygon()
-{
-    // If polygon has length 0 no points are inside
-    if (mPolygon.length() == 0)
-    {
+std::vector<unsigned int> GeoMap::getFramesInsidePolygon() const {
+    if (mPolygon.length() == 0) {
         return std::vector<unsigned int>();
     }
 
     std::vector<unsigned int> keyframes;
-    // mPolygon is the perimeter of the polygon drwan on the map
-    for (int i = 0; i < mGpsData.size(); i++)
-    {
-        // Check for every gps point, if it's inside the polygon and set the mPointInsidePolygon list accordingly
-        QPointF point = mGpsData[i].first;
-        if (mPolygon.containsPoint(point, Qt::OddEvenFill))
-        {
-            keyframes.push_back(i);
+    for (int i = 0; i < mGpsData.size(); i++) {
+        if (mPolygon.containsPoint(mGpsData[i].first, Qt::OddEvenFill)) {
+            keyframes.push_back(static_cast<unsigned int>(i));
         }
     }
     return keyframes;
 }
 
-//==================================================================================================
-QPointF GeoMap::gpsHashToLatLong(QVariant hash)
-{
+QPointF GeoMap::gpsHashToLatLong(const QVariant& hash, bool* ok) const {
+    bool valid = true;
     QHash<QString, QVariant> gpsHash = hash.toHash();
-    double latitude_abs              = gpsHash.find("GPSLatitude").value().toDouble();
-    double longitude_abs             = gpsHash.find("GPSLongitude").value().toDouble();
-    double latitude                  = (gpsHash.find("GPSLatitudeRef").value().toString() == "N")
-                                         ? latitude_abs
-                                         : latitude_abs * -1;
-    double longitude                 = (gpsHash.find("GPSLongitudeRef").value().toString() == "E")
-                                         ? longitude_abs
-                                         : longitude_abs * -1;
+
+    bool latitudeOk = false;
+    bool longitudeOk = false;
+    const double latitudeAbs =
+        gpsHash.value("GPSLatitude").toDouble(&latitudeOk);
+    const double longitudeAbs =
+        gpsHash.value("GPSLongitude").toDouble(&longitudeOk);
+
+    const QString latitudeRef = gpsHash.value("GPSLatitudeRef").toString();
+    const QString longitudeRef = gpsHash.value("GPSLongitudeRef").toString();
+
+    valid &= latitudeOk && longitudeOk;
+    valid &= (latitudeRef == "N" || latitudeRef == "S");
+    valid &= (longitudeRef == "E" || longitudeRef == "W");
+
+    if (ok) {
+        *ok = valid;
+    }
+    if (!valid) {
+        return QPointF();
+    }
+
+    const double latitude =
+        (latitudeRef == "N") ? latitudeAbs : -latitudeAbs;
+    const double longitude =
+        (longitudeRef == "E") ? longitudeAbs : -longitudeAbs;
     return QPointF(latitude, longitude);
 }
 
-//==================================================================================================
-QGeoCoordinate GeoMap::gpsHashtoGeoCo(QVariant hash)
-{
-    QPointF latLong = gpsHashToLatLong(hash);
-
+QGeoCoordinate GeoMap::gpsHashtoGeoCo(const QVariant& hash) const {
+    bool ok = false;
+    QPointF latLong = gpsHashToLatLong(hash, &ok);
+    if (!ok) {
+        return QGeoCoordinate();
+    }
     return QGeoCoordinate(latLong.x(), latLong.y());
 }
 
-//==================================================================================================
-void GeoMap::initializeQmlMap()
-{
-    //--- initialize qml map
-    QQuickView* pQuickView     = new QQuickView();
-    mpQuickViewContainerWidget = QWidget::createWindowContainer(pQuickView, mpMapWidget);
-    mpMapHandler.reset(new MapHandler());
-    pQuickView->engine()->clearComponentCache();
-    pQuickView->rootContext()->setContextProperty("handler", mpMapHandler.get());
-    pQuickView->setSource(QUrl("qrc:/map.qml"));
-
-    //--- insert QuickView container widget at top
-    dynamic_cast<QVBoxLayout*>(mpMapWidget->layout())
-      ->insertWidget(0, mpQuickViewContainerWidget);
-
-    if (!pQuickView->errors().isEmpty())
-    {
-        qCritical() << pQuickView->errors();
+double GeoMap::distanceBetweenPoints(int first, int second) const {
+    if (first < 0 || second < 0 || first >= mMetaData.size() ||
+        second >= mMetaData.size()) {
+        return 0.0;
     }
-    else
-    {
-        //--- make connections to qml map
 
-        QObject* qmlRoot = pQuickView->rootObject();
-        QObject::connect(qmlRoot, SIGNAL(gpsClicked(QString)),
-                         mpMapHandler.get(), SLOT(onQmlGpsClicked(QString)));
-        QObject::connect(qmlRoot, SIGNAL(mapClicked(QString)),
-                         mpMapHandler.get(), SLOT(onQmlMapClicked(QString)));
-        QObject::connect(qmlRoot, SIGNAL(mapItems(QVariant)),
-                         mpMapHandler.get(), SLOT(onQmlMapItems(QVariant)));
-
-        QObject::connect(qmlRoot, SIGNAL(deleteSelection()),
-                         mpMapHandler.get(), SLOT(onQmlDeleteSelection()));
-        QObject::connect(qmlRoot, SIGNAL(selectionBack()),
-                         mpMapHandler.get(), SLOT(onQmlSelectionBack()));
-        QObject::connect(qmlRoot, SIGNAL(selectionForward()),
-                         mpMapHandler.get(), SLOT(onQmlSelectionForward()));
-
-        QObject::connect(mpMapHandler.get(), &MapHandler::gpsClicked,
-                         this, &GeoMap::onGpsClicked);
-        QObject::connect(mpMapHandler.get(), &MapHandler::gpsSelected,
-                         this, &GeoMap::onGpsSelected);
-
-        //--- set default map center to IOSB
-        mpMapHandler->emitAdjustMapCenter(QGeoCoordinate(49.01554184059616, 8.425800420583966));
-
-        //--- set initial polygon
-        mpMapHandler->setPolygon(mPolygon);
-
-        //--- draw available data onto map
-        mpMapHandler->addPoints(mGpsData);
-    }
-}
-
-//==================================================================================================
-void GeoMap::reinitializeQmlMap()
-{
-    //--- remove old map widget
-    mpMapWidget->layout()->removeWidget(mpQuickViewContainerWidget);
-    if (mpQuickViewContainerWidget)
-        delete mpQuickViewContainerWidget;
-
-    //--- initialize map
-    initializeQmlMap();
-}
-
-double GeoMap::distanceBetweenPoints(int first, int second)
-{
     QGeoCoordinate firstGPS = gpsHashtoGeoCo(mMetaData.at(first));
-        QGeoCoordinate secondGPS = gpsHashtoGeoCo(mMetaData.at(second));
-        QPointF firstLatLong = QPointF(firstGPS.latitude(), firstGPS.longitude());
-        QPointF secondLatLong = QPointF(secondGPS.latitude(), secondGPS.longitude());
-        double distance = greatCircleDistance(firstLatLong, secondLatLong);
-        return distance;
-
+    QGeoCoordinate secondGPS = gpsHashtoGeoCo(mMetaData.at(second));
+    QPointF firstLatLong(firstGPS.latitude(), firstGPS.longitude());
+    QPointF secondLatLong(secondGPS.latitude(), secondGPS.longitude());
+    return greatCircleDistance(firstLatLong, secondLatLong);
 }
 
-double GeoMap::greatCircleDistance(QPointF first, QPointF second)
-{
-    // caculate distance between to points using the haversine formula
-    // earth radius in meters
-    const int r = 6371008;
-    // convert latitude and longitude to radiant
-    double lat1 = first.x() * (M_PI / 180);
-    double lat2 = second.x() * (M_PI / 180);
-    double latDiff = (second.x() - first.x()) * (M_PI / 180);
-    double longDiff = (second.y() - first.y()) * (M_PI / 180);
-    // calculate haversine
-    double a = pow(sin(latDiff/2), 2) + cos(lat1) * cos(lat2) * pow(sin(longDiff/2), 2);
-    double distance = 2 * r * asin(sqrt(a));
-    return distance;
+double GeoMap::greatCircleDistance(QPointF first, QPointF second) const {
+    const int earthRadiusM = 6371008;
+    constexpr double pi = 3.14159265358979323846;
 
+    const double lat1 = first.x() * (pi / 180.0);
+    const double lat2 = second.x() * (pi / 180.0);
+    const double latDiff = (second.x() - first.x()) * (pi / 180.0);
+    const double longDiff = (second.y() - first.y()) * (pi / 180.0);
+
+    const double a = std::pow(std::sin(latDiff / 2.0), 2.0) +
+                     std::cos(lat1) * std::cos(lat2) *
+                         std::pow(std::sin(longDiff / 2.0), 2.0);
+    const double distance = 2.0 * earthRadiusM * std::asin(std::sqrt(a));
+    return distance;
 }

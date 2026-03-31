@@ -1,23 +1,20 @@
-#include "view/mainwindow.h"
-#include "controller.h"
-#include "nouicontroller.h"
-#include "stringcontainer.h"
+#include <stdio.h>
 
 #include <QApplication>
+#include <QFlags>
 #include <QLocale>
 #include <QTranslator>
 #include <QVBoxLayout>
-#include "view/darkstyle/DarkStyle.h"
-#include "cvmat_qmetadata.h"
-
-#include <QFlags>
-#include <QTranslator>
-
-#include <stdio.h>
 #include <iostream>
 
+#include "controller.h"
+#include "cvmat_qmetadata.h"
+#include "stringcontainer.h"
+#include "view/darkstyle/DarkStyle.h"
+#include "view/mainwindow.h"
+
 #if defined(Q_OS_WIN)
-    #include <Windows.h>
+#include <Windows.h>
 #endif
 
 #ifndef IVS3D_VER
@@ -34,18 +31,17 @@
 #endif
 
 #if defined(Q_OS_LINUX)
-    #include "translations.h"
+#include "translations.h"
 #endif
 
-void ignoreMessages(QtMsgType type, const QMessageLogContext &context, const QString &msg)
-{
-    (void) type;
-    (void) context;
-    (void) msg;
+void ignoreMessages(QtMsgType type, const QMessageLogContext& context,
+                    const QString& msg) {
+    (void)type;
+    (void)context;
+    (void)msg;
 }
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char* argv[]) {
     qRegisterMetaType<cv::Mat>("cvMat");
     qRegisterMetaType<ImageList>("ImageList");
     qRegisterMetaType<QStringList>("QStringList");
@@ -55,93 +51,75 @@ int main(int argc, char *argv[])
     qRegisterMetaType<Resolution>("Resolution");
     qRegisterMetaType<ROI>("ROI");
     qRegisterMetaType<ExportResult>("ExportResult");
-    qRegisterMetaType<TransformResult>("TransformResult");
-    
-    QCommandLineParser parser;
-    QCommandLineOption noGUI("nogui", "Executes in terminal mode without the GUI. In this case auto settings file (-a), input (-i) and output (-o) need to be provided.");
-    QCommandLineOption inputPath(QStringList() << "i" << "in", "Load input from <path>.", "path");
-    QCommandLineOption autoPath(QStringList() << "a" << "auto", "Load settings from <path>.", "path");
-    QCommandLineOption outputPath(QStringList() << "o" << "out", "Save result to <path>.", "path");
-    QCommandLineOption logPath(QStringList() << "l" << "log", "Log resulsts and process information to <path>.", "path");
+    qRegisterMetaType<QVector<uint>>("QVector<uint>");
 
-    parser.setApplicationDescription("intelligent video sampler 3d is designed to process image sequences and videos for 3d reconstruction. "
-                                     "enhance reconstruction quality by filtering out blurry images and masking dynamic objects such as people or cars. "
-                                     "speedup the reconstruction process by ignoring similar images and using only frames with significant camera movement in between. "
-                                     "use colmap on the local system or a remote server to reconstruct a 3d model from your input sequene. \n\n"
-                                     "Build date: " + QString(QUOTE(IVS3D_DAT)));
+    QCommandLineParser parser;
+    QCommandLineOption inputPath(QStringList() << "i" << "in",
+                                 "Load input from <path>.", "path");
+    QCommandLineOption autoPath(QStringList() << "a" << "auto",
+                                "Load settings from <path>.", "path");
+    QCommandLineOption outputPath(QStringList() << "o" << "out",
+                                  "Save result to <path>.", "path");
+    QCommandLineOption logPath(
+        QStringList() << "l" << "log",
+        "Log resulsts and process information to <path>.", "path");
+
+    parser.setApplicationDescription(
+        "intelligent video sampler 3d is designed to process image sequences "
+        "and videos for 3d reconstruction. "
+        "enhance reconstruction quality by filtering out blurry images and "
+        "masking dynamic objects such as people or cars. "
+        "speedup the reconstruction process by ignoring similar images and "
+        "using only frames with significant camera movement in between. "
+        "use colmap on the local system or a remote server to reconstruct a 3d "
+        "model from your input sequene. \n\n"
+        "Build date: " +
+        QString(QUOTE(IVS3D_DAT)));
     parser.addHelpOption();
     parser.addVersionOption();
     parser.addOption(autoPath);
     parser.addOption(inputPath);
     parser.addOption(outputPath);
-    parser.addOption(noGUI);
     parser.addOption(logPath);
 
     QStringList arguments;
-    for(int i = 0; i < argc; ++i){
+    for (int i = 0; i < argc; ++i) {
         arguments << argv[i];
     }
 
-    if(!arguments.contains("--nogui")){
-        QApplication a( argc, argv );
-        a.setApplicationName("iVS3D");
-        a.setApplicationVersion(QString(QUOTE(IVS3D_VER)));
-        parser.process(a);
-        qApp->setProperty(stringContainer::UIIdentifier, true);
-        qApp->setProperty("translation", ApplicationSettings::instance().getLocale());
-        qDebug() << "Locale: " << qApp->property("translation").toLocale();
-        QTranslator* translator = new QTranslator();
-        translator->load(qApp->property("translation").toLocale(), "core", "_", ":/translations", ".qm");
-        a.installTranslator(translator);
+    QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+    QApplication a(argc, argv);
+    a.setApplicationName("iVS3D");
+    a.setApplicationVersion(QString(QUOTE(IVS3D_VER)));
+    parser.process(a);
+    qApp->setProperty(stringContainer::UIIdentifier, true);
+    qApp->setProperty("translation",
+                      ApplicationSettings::instance().getLocale());
+    qDebug() << "Locale: " << qApp->property("translation").toLocale();
+    QTranslator* translator = new QTranslator();
+    translator->load(qApp->property("translation").toLocale(), "core", "_",
+                     ":/translations", ".qm");
+    a.installTranslator(translator);
 
 #if defined(Q_OS_WIN)
-        QDir appDir(QApplication::applicationDirPath());
-        QApplication::addLibraryPath(appDir.absolutePath());
+    QDir appDir(QApplication::applicationDirPath());
+    QApplication::addLibraryPath(appDir.absolutePath());
 
-        QStringList dirs = {"bin", "qml", "plugins" };
-        for(auto dir : dirs){
-            QDir d(QApplication::applicationDirPath());
-            if(d.cd(dir)) QApplication::addLibraryPath(d.absolutePath());
-            else qDebug() << "Missing library directory: " << dir;
-        }
-        qDebug() << "Library search paths: " << QApplication::libraryPaths();
-#endif
-        Controller *mainController = new Controller(parser.value(inputPath), parser.value(autoPath), parser.value(outputPath), parser.value(logPath));
-
-        auto res = a.exec();
-        delete mainController;
-        return res;
+    QStringList dirs = {"bin", "qml", "plugins"};
+    for (auto dir : dirs) {
+        QDir d(QApplication::applicationDirPath());
+        if (d.cd(dir))
+            QApplication::addLibraryPath(d.absolutePath());
+        else
+            qDebug() << "Missing library directory: " << dir;
     }
-    else {
-        //Disable all Messages comming from Qt
-        qInstallMessageHandler(ignoreMessages);
-        QCoreApplication a( argc, argv );
-        a.setApplicationName("iVS3D");
-        a.setApplicationVersion(QString(QUOTE(IVS3D_VER)));
-        parser.process(a);
-        qApp->setProperty(stringContainer::UIIdentifier, false);
-        qApp->setProperty("translation", ApplicationSettings::instance().getLocale());
-        qDebug() << "Locale: " << qApp->property("translation").toLocale();
-        QTranslator* translator = new QTranslator();
-        translator->load(qApp->property("translation").toLocale(), "core", "_", ":/translations", ".qm");
-        a.installTranslator(translator);
-
-#if defined(Q_OS_WIN)
-        QDir appDir(QCoreApplication::applicationDirPath());
-        QCoreApplication::addLibraryPath(appDir.absolutePath());
-
-        QStringList dirs = {"bin", "qml", "plugins" };
-        for(auto dir : dirs){
-            QDir d(QCoreApplication::applicationDirPath());
-            if(d.cd(dir)) QCoreApplication::addLibraryPath(d.absolutePath());
-            else qDebug() << "Missing library directory: " << dir;
-        }
-        qDebug() << "Library search paths: " << QCoreApplication::libraryPaths();
+    qDebug() << "Library search paths: " << QApplication::libraryPaths();
 #endif
+    Controller* mainController =
+        new Controller(parser.value(inputPath), parser.value(autoPath),
+                       parser.value(outputPath), parser.value(logPath));
 
-        noUIController* noUI = new noUIController(parser.value(inputPath), parser.value(autoPath), parser.value(outputPath), parser.value(logPath));
-        QTimer::singleShot(0, noUI, SLOT(exec()));
-        return a.exec();
-    }
-
+    auto res = a.exec();
+    delete mainController;
+    return res;
 }

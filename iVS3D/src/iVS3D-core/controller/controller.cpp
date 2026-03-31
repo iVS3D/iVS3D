@@ -1,15 +1,15 @@
 #include "controller.h"
 #include "roiselect.h"
+#include "pluginthread.h"
+#include <iostream>
 
 
 Controller::Controller(QString inputPath, QString settingsPath, QString outputPath, QString logPath)
         : m_colmapWrapper(new lib3d::ots::ColmapWrapper)
 {
     m_videoPlayerController = nullptr;
-    m_algorithmController = nullptr;
+    m_pluginController = nullptr;
     m_stackController = nullptr;
-    QStringList algorithms = AlgorithmManager::instance().getAlgorithmNames();
-    QStringList transforms = TransformManager::instance().getTransformList();
     int useCuda = -1;
     ApplicationSettings::CUDA_ERR_CODE cuda_err_code;
     if(ApplicationSettings::instance().getCudaAvailable(&cuda_err_code)){
@@ -42,10 +42,10 @@ Controller::Controller(QString inputPath, QString settingsPath, QString outputPa
                 interpolateMetaData,
                 locales,
                 selectedLocale,
-                algorithms,
-                transforms,
                 otsWidget
                 );
+
+    m_mainWindow->getSamplingWidget()->setPluginList(PluginManager::instance().getPluginNames());
 
     m_mainWindow->enableUndo(false);
     m_mainWindow->enableRedo(false);
@@ -56,10 +56,7 @@ Controller::Controller(QString inputPath, QString settingsPath, QString outputPa
 
     m_colmapWrapper->getOrCreateUiControlsFactory()->updateIconTheme(otsTheme);
 
-    if(AlgorithmManager::instance().getAlgorithmCount() + TransformManager::instance().getTransformCount() >0){
-        displayPluginSettings();
-    }
-    TransformManager::instance().enableCuda(ApplicationSettings::instance().getUseCuda());
+    PluginManager::instance().enableCuda(ApplicationSettings::instance().getUseCuda());
 
     LogManager::instance().toggleLog(ApplicationSettings::instance().getCreateLogs());
 
@@ -96,7 +93,7 @@ Controller::Controller(QString inputPath, QString settingsPath, QString outputPa
 
     connect(this, &Controller::sig_hasStatusMessage, m_mainWindow, &MainWindow::slot_displayStatusMessage);
 
-    m_automaticController = new AutomaticController(m_mainWindow->getOutputWidget(), m_mainWindow->getAutoWidget(), m_mainWindow->getSamplingWidget(), m_dataManager);
+    loadPluginSettingsWidgets();
 
     m_mainWindow->show();
 
@@ -117,16 +114,45 @@ Controller::Controller(QString inputPath, QString settingsPath, QString outputPa
         m_mainWindow->getOutputWidget()->setOutputPath(outputPath);
     }
 
-    //Disable 'create files for' widget when no transform plugins are found
-    m_mainWindow->getOutputWidget()->enableCreateFilesWidget(TransformManager::instance().getTransformCount() != 0);
     MetaDataManager::instance().interpolateMissingMetaData(interpolateMetaData);
 
+    m_pluginThread = PluginManager::instance().getPluginThread();
 }
 
 Controller::~Controller()
 {
     delete m_colmapWrapper;
-    TransformManager::instance().exit();
+    if (m_videoPlayerController) {
+        delete m_videoPlayerController;
+    }
+    if (m_pluginController) {
+        delete m_pluginController;
+    }
+    if (m_stackController) {
+        delete m_stackController;
+    }
+}
+
+void Controller::loadPluginSettingsWidgets() {
+    auto errors = PluginManager::instance().loadSettingsWidgets();
+    if (errors.empty()) {
+        return;
+    }
+
+    QStringList lines;
+    for (const auto& item : errors) {
+        lines.append(QString("- %1: %2").arg(item.first, item.second.message));
+    }
+
+    const QString summary =
+        tr("Some plugin settings widgets could not be loaded (%1).")
+            .arg(errors.size());
+    emit sig_hasStatusMessage(summary);
+
+    std::cerr << "[WARNING] " << summary.toStdString() << std::endl;
+    for (const auto& line : lines) {
+        std::cerr << "  " << line.toStdString() << std::endl;
+    }
 }
 
 void Controller::slot_openInputFolder()
@@ -290,9 +316,7 @@ void Controller::slot_changeColorTheme(ColorTheme theme)
 void Controller::slot_changeUseCuda(bool useCuda)
 {
     ApplicationSettings::instance().setUseCuda(useCuda);
-    if(!m_exporting){
-        TransformManager::instance().enableCuda(ApplicationSettings::instance().getUseCuda());
-    }
+    PluginManager::instance().enableCuda(ApplicationSettings::instance().getUseCuda());
     emit sig_hasStatusMessage(useCuda ? tr("CUDA enabled") : tr("CUDA disabled"));
 }
 
@@ -354,13 +378,11 @@ void Controller::slot_openFinished(int result)
 void Controller::slot_exportStarted()
 {
     m_exporting = true;
-    TransformManager::instance().enableCuda(false);
 }
 
 void Controller::slot_exportFinished()
 {
     m_exporting = false;
-    TransformManager::instance().enableCuda(ApplicationSettings::instance().getUseCuda());
     m_dataManager->getHistory()->slot_save();
 }
 
@@ -459,6 +481,34 @@ void Controller::slot_altitudeChanged(double altitude)
     m_dataManager->getModelInputPictures()->setAltitude(altitude);
 }
 
+void Controller::slot_restorePluginSettings(int id) {
+
+    const MaskRecord *record = m_stack->getRecordById(id);
+
+    m_mainWindow->getSamplingWidget()->setResolution(record->workingResolution.toString());
+    slot_workingResolutionChanged(record->workingResolution.toString());
+    std::shared_ptr<ReaderParams> params = m_dataManager->getModelInputPictures()->getReaderParams();
+    bool valid = params->setRoi(record->roi);
+    params->setUseRoi(!record->roi.isDefault());
+    m_mainWindow->getVideoPlayer()->setCropStatus(params->getUseRoi());
+    m_videoPlayerController->slot_mipChanged();
+    if (m_exportController) {
+        m_exportController->slot_roiChanged(params->getUseRoi() ? std::optional<ROI>(params->getRoi()) : std::nullopt);
+    }
+    auto applySettingsResult =
+        PluginManager::instance().applyPluginSettings(record->pluginName,
+                                                      record->pluginSettings);
+    if (!applySettingsResult) {
+        QMessageBox msgBox;
+        msgBox.setText(tr("Error restoring plugin settings for plugin '") + record->pluginName + tr("': ") + applySettingsResult.error().message);
+        msgBox.exec();
+    }
+    if (m_pluginController) {
+        m_mainWindow->getSamplingWidget()->setSelectedPlugin(record->pluginName);
+        m_pluginController->slot_selectPlugin(record->pluginName);
+    }
+}
+
 void Controller::createOpenMessage(int numPics)
 {
     m_mainWindow->getVideoPlayer()->updateRoi();
@@ -548,18 +598,6 @@ void Controller::setInputWidgetInfo() {
     setAltitude();
 }
 
-void Controller::displayPluginSettings()
-{
-    SamplingWidget *samplingW = m_mainWindow->getSamplingWidget();
-    QWidget *settingsW;
-    if(AlgorithmManager::instance().getAlgorithmCount()>0){
-        settingsW = AlgorithmManager::instance().getSettingsWidget(samplingW,0);
-    }else {
-        settingsW = TransformManager::instance().getSettingsWidget(samplingW,0);
-    }
-    samplingW->showAlgorithmSettings(settingsW);
-}
-
 void Controller::onFailedOpen()
 {
     // --- called after image data has been loaded succesfully
@@ -578,10 +616,9 @@ void Controller::onFailedOpen()
         delete m_videoPlayerController;
         m_videoPlayerController = nullptr;
     }
-    if(m_algorithmController) {
-        disconnect(m_algorithmController, &AlgorithmController::sig_hasStatusMessage, m_mainWindow, &MainWindow::slot_displayStatusMessage);
-        delete m_algorithmController;
-        m_algorithmController = nullptr;
+    if(m_pluginController) {
+        delete m_pluginController;
+        m_pluginController = nullptr;
     }
     if (m_exportController)
     {
@@ -589,7 +626,6 @@ void Controller::onFailedOpen()
         delete m_exportController;
         m_exportController = nullptr;
     }
-    m_automaticController->disableAutoWidget();
 
     QMessageBox msgBox;
     msgBox.setText(tr("Failed to load input data. Possible causes are:\n"
@@ -604,7 +640,11 @@ uint Controller::loadMetaDataFromPath(QString path)
 {
     int n = m_dataManager->getModelInputPictures()->loadMetaData(QStringList(path));
     if (n > 0) {
-        AlgorithmManager::instance().notifyNewMetaData();
+        PLUG::InputMetaData inputMetaData;
+        inputMetaData.metaData = m_dataManager->getModelInputPictures()->getReader()->getMetaData();
+        if (m_pluginThread) {
+            m_pluginThread->onMetaDataLoaded(inputMetaData);
+        }
         //Update the info widget
         setInputWidgetInfo();
         QString msg = tr("Loaded ") + QString::number(n) + tr(" meta data feature") + QString(n > 1 ? tr("s") : "");
@@ -694,11 +734,6 @@ void Controller::onSuccessfulOpen()
 
     //init plugins and notify about current keyframes
     Reader* currentReader = m_dataManager->getModelInputPictures()->getReader();
-    AlgorithmManager::instance().initializePlugins(currentReader, m_dataManager->getModelAlgorithm()->getPluginBuffer());
-    AlgorithmManager::instance().notifyKeyframesChanged(m_dataManager->getModelInputPictures()->getAllKeyframes(false));
-    if (currentReader->getMetaData() != nullptr && currentReader->getMetaData()->availableMetaData().size() > 0) {
-        AlgorithmManager::instance().notifyNewMetaData();
-    }
 
     // remove old controllers if existing
 
@@ -707,9 +742,8 @@ void Controller::onSuccessfulOpen()
         disconnect(m_videoPlayerController, &VideoPlayerController::sig_hasStatusMessage, m_mainWindow, &MainWindow::slot_displayStatusMessage);
         delete m_videoPlayerController;
     }
-    if(m_algorithmController) {
-        disconnect(m_algorithmController, &AlgorithmController::sig_hasStatusMessage, m_mainWindow, &MainWindow::slot_displayStatusMessage);
-        delete m_algorithmController;
+    if(m_pluginController) {
+        delete m_pluginController;
     }
     if (m_exportController) {
         disconnect(m_exportController, &ExportController::sig_hasStatusMessage, m_mainWindow, &MainWindow::slot_displayStatusMessage);
@@ -723,37 +757,27 @@ void Controller::onSuccessfulOpen()
     // --- create new controllers for video player, export and image sampling
     // --- using the new data (in dataManager) and connect to main window
 
-    // AlgorithmController manages input widget and algorithm used widgets and delegates image sampling
-    m_algorithmController = new AlgorithmController(m_dataManager, m_mainWindow->getSamplingWidget());
-    connect(m_algorithmController, &AlgorithmController::sig_hasStatusMessage, m_mainWindow, &MainWindow::slot_displayStatusMessage);
+    m_stack = std::make_shared<MaskStack>();
 
     // VideoPlayerControler manages video player and timeline
-    m_videoPlayerController = new VideoPlayerController(this, m_mainWindow->getVideoPlayer(), m_mainWindow->getTimeline(), m_dataManager, m_algorithmController);
+    m_videoPlayerController = new VideoPlayerController(this, m_mainWindow->getVideoPlayer(), m_mainWindow->getTimeline(), m_dataManager, m_pluginThread);
     connect(m_videoPlayerController, &VideoPlayerController::sig_hasStatusMessage, m_mainWindow, &MainWindow::slot_displayStatusMessage);
     connect(m_mainWindow, &MainWindow::sig_deleteAllKeyframes, m_videoPlayerController, &VideoPlayerController::slot_deleteAllKeyframes);
     connect(m_mainWindow, &MainWindow::sig_deleteKeyframesBoundaries, m_videoPlayerController, &VideoPlayerController::slot_deleteKeyframes);
     connect(m_mainWindow, &MainWindow::sig_resetBoundaries, m_videoPlayerController, &VideoPlayerController::slot_resetBoundaries);
 
-    connect(m_algorithmController, &AlgorithmController::sig_stopPlay, m_videoPlayerController, &VideoPlayerController::slot_stopPlay);
-
     // ExportController manages algorithm used widget and reconstruct widget and delegates export of images and 3d-reconstruction
-    m_exportController = new ExportController(m_mainWindow->getOutputWidget(), m_dataManager, m_colmapWrapper);
-
+    m_exportController = new ExportController(m_mainWindow->getOutputWidget(), m_dataManager, m_colmapWrapper, m_pluginThread, m_stack);
     connect(m_exportController, &ExportController::sig_hasStatusMessage, m_mainWindow, &MainWindow::slot_displayStatusMessage);
     connect(m_exportController, &ExportController::sig_stopPlay, m_videoPlayerController, &VideoPlayerController::slot_stopPlay);
     connect(m_exportController, &ExportController::sig_exportStarted, this, &Controller::slot_exportStarted);
     connect(m_exportController, &ExportController::sig_exportFinished, this, &Controller::slot_exportFinished);
     connect(m_exportController, &ExportController::sig_exportAborted, this, &Controller::slot_exportFinished);
-    connect(m_videoPlayerController, &VideoPlayerController::sig_read, m_exportController, &ExportController::slot_nextImageOnPlayer);
-
-    //AutoExecutor is used for the automatic Execution
-    m_automaticController->setExporController(m_exportController);
-    connect(m_automaticController->autoExec(), &AutomaticExecutor::sig_stopPlay, m_videoPlayerController, &VideoPlayerController::slot_stopPlay);
-    connect(m_automaticController->autoExec(), &AutomaticExecutor::sig_hasStatusMessage, m_mainWindow, &MainWindow::slot_displayStatusMessage);
+    //connect(m_videoPlayerController, &VideoPlayerController::sig_read, m_exportController, &ExportController::slot_nextImageOnPlayer);
 
 
     setInputWidgetInfo(); // initialize input widget with information about new input data
-    m_mainWindow->getSamplingWidget()->setAlgorithm(0);
+
     if(m_mainWindow->getInputEnabled()) m_mainWindow->enableOpenMetaData(true);
     m_mainWindow->enableTools(true);
 
@@ -764,9 +788,25 @@ void Controller::onSuccessfulOpen()
     connect(m_videoPlayerController, &VideoPlayerController::sig_toggleKeyframe, m_stackController, &StackController::slot_toggleKeyframe);
     connect(m_videoPlayerController, &VideoPlayerController::sig_deleteAllKeyframes, m_stackController, &StackController::slot_deleteAllKeyframes);
     connect(m_videoPlayerController, &VideoPlayerController::sig_deleteKeyframes, m_stackController, &StackController::slot_deleteKeyframes);
-    connect(m_algorithmController, &AlgorithmController::sig_algorithmFinished, m_stackController, &StackController::slot_algorithmFinished);
-    connect(m_algorithmController, &AlgorithmController::sig_keyframesChangedByPlugin, m_stackController, &StackController::slot_keyframesChangedByPlugin);
     connect(m_exportController, &ExportController::sig_exportFinished, m_stackController, &StackController::slot_exportFinished);
+
+    // AlgorithmController manages input widget and algorithm used widgets and delegates image sampling
+    m_pluginController = new PluginController(m_dataManager, m_mainWindow->getSamplingWidget(), m_videoPlayerController, m_stackController, m_pluginThread, m_stack);
+    connect(m_mainWindow->getOutputWidget()->getMaskStackView().get(), &MaskStackView::sig_recordSelected, this, &Controller::slot_restorePluginSettings);
+
+    // Connect export state to plugin preview/sampling control
+    connect(m_exportController, &ExportController::sig_exportStarted,
+            m_pluginController, &PluginController::slot_pausePreview);
+    connect(m_exportController, &ExportController::sig_exportStarted,
+            m_pluginController, &PluginController::slot_disableSampling);
+    connect(m_exportController, &ExportController::sig_exportFinished,
+            m_pluginController, &PluginController::slot_resumePreview);
+    connect(m_exportController, &ExportController::sig_exportFinished,
+            m_pluginController, &PluginController::slot_enableSampling);
+    connect(m_exportController, &ExportController::sig_exportAborted,
+            m_pluginController, &PluginController::slot_resumePreview);
+    connect(m_exportController, &ExportController::sig_exportAborted,
+            m_pluginController, &PluginController::slot_enableSampling);
 
     // update the working resolution, roi, etc
     std::shared_ptr<ReaderParams> params = m_dataManager->getModelInputPictures()->getReaderParams();

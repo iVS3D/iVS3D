@@ -1,8 +1,8 @@
 #include "outputwidget.h"
 
-OutputWidget::OutputWidget(QWidget *parent, QString title, QStringList transformList) : QWidget(parent)
+OutputWidget::OutputWidget(QWidget *parent, QString title) : QWidget(parent)
 {
-    m_exportW = new ExportWidget(this, transformList);
+    m_exportW = new ExportWidget(this);
     m_exportW->setVisible(true);
     m_progressW = new ProgressWidget(this);
     m_progressW->setVisible(false);
@@ -50,6 +50,7 @@ void OutputWidget::enableReconstruct(bool enabled)
 
 void OutputWidget::showProgress()
 {
+    m_progressW->slot_clearWarnings();
     m_layout->removeWidget(m_exportW);
     m_exportW->setVisible(false);
     m_progressW->setVisible(true);
@@ -58,25 +59,11 @@ void OutputWidget::showProgress()
 
 void OutputWidget::showExportOptions()
 {
+    m_progressW->slot_clearWarnings();
     m_layout->removeWidget(m_progressW);
     m_progressW->setVisible(false);
     m_exportW->setVisible(true);
     m_layout->addWidget(m_exportW);
-}
-
-std::vector<bool> OutputWidget::getSelectedITransformMasks()
-{
-    return m_exportW->getSelectedITransforms();
-}
-
-bool OutputWidget::setSelectedITransformMasks(std::vector<bool> selection)
-{
-    return m_exportW->setSelectedITransforms(selection);
-}
-
-void OutputWidget::enableCreateFilesWidget(bool enable)
-{
-    m_exportW->enableCreateFilesWidget(enable);
 }
 
 void OutputWidget::setResolutionList(QStringList resList, int idx)
@@ -99,7 +86,17 @@ QString OutputWidget::getExportFormat()
     return m_exportW->getExportFormat();
 }
 
+ExportFormat OutputWidget::getExportFormatEnum()
+{
+    return m_exportW->getExportFormatEnum();
+}
+
 bool OutputWidget::setOutputFormat(QString format)
+{
+    return m_exportW->setOutputFormat(format);
+}
+
+bool OutputWidget::setOutputFormat(ExportFormat format)
 {
     return m_exportW->setOutputFormat(format);
 }
@@ -107,6 +104,15 @@ bool OutputWidget::setOutputFormat(QString format)
 void OutputWidget::enableFormat(QString format, bool enable)
 {
     m_exportW->enableFormat(format, enable);
+}
+
+void OutputWidget::enableFormat(ExportFormat format, bool enable)
+{
+    m_exportW->enableFormat(format, enable);
+}
+
+std::shared_ptr<MaskStackView> OutputWidget::getMaskStackView() {
+    return m_exportW->getMaskStackView();
 }
 
 void OutputWidget::setAltitudeVisible(bool visible)
@@ -132,6 +138,16 @@ void OutputWidget::slot_displayProgress(int progress, QString currentOperation)
 void OutputWidget::slot_displayMessage(QString message)
 {
     m_progressW->slot_displayMessage(message);
+}
+
+void OutputWidget::slot_displayWarning(QString warning)
+{
+    m_progressW->slot_displayWarning(warning);
+}
+
+void OutputWidget::slot_clearWarnings()
+{
+    m_progressW->slot_clearWarnings();
 }
 
 void OutputWidget::slot_pathChanged(const QString &path)

@@ -71,22 +71,49 @@ namespace NN
         /**
          * @brief Perform inference on the given input Tensor using the ONNX model.
          * @param input The input Tensor to the neural network. This tensor must have the correct shape and data type expected by the model.
-         * @return tl::expected<Tensor, NeuralError> The output Tensor or an error object.
+         * @return tl::expected<std::vector<Tensor>, NeuralError> The output Tensor or an error object.
          */
-        tl::expected<Tensor, NeuralError> infer(const Tensor& input) override;
+        tl::expected<std::vector<Tensor>, NeuralError> infer(const Tensor& input) override;
+
+        /**
+         * @brief Get the number of inputs of the neural network.
+         * @return size_t The number of inputs.
+         */
+        size_t inputCount() const override;
+
+        /**
+         * @brief Get the number of outputs of the neural network.
+         * @return size_t The number of outputs.
+         */
+        size_t outputCount() const override;
 
         /**
          * @brief Get the input shape of the neural network.
+         * @param idx The index of the input to query (default is 0). Valid indices are in the range [0, inputCount()).
          * @return Shape The shape of the input tensor expected by the model.
          */
-        Shape inputShape() const override;
+        Shape inputShape(size_t idx = 0) const override;
         
         /**
          * @brief Get the output shape of the neural network.
+         * @param idx The index of the output to query (default is 0). Valid indices are in the range [0, outputCount()).
          * @return Shape The shape of the output tensor produced by the model.
          */
-        Shape outputShape() const override;
+        Shape outputShape(size_t idx = 0) const override;
 
+        /**
+         * @brief Get the name of the input tensor.
+         * @param idx The index of the input to query (default is 0). Valid indices are in the range [0, inputCount()).
+         * @return std::string The name of the input tensor.
+         */
+        std::string inputName(size_t idx = 0) const override;
+
+        /**
+         * @brief Get the name of the output tensor.
+         * @param idx The index of the output to query (default is 0). Valid indices are in the range [0, outputCount()).
+         * @return std::string The name of the output tensor.
+         */
+        std::string outputName(size_t idx = 0) const override;
         /**
          * @brief Get the GPU ID used by the neural network if it is configured to use GPU.
          * @return int The GPU ID, or -1 if the neural network does not use GPU.
@@ -99,10 +126,10 @@ namespace NN
         Ort::Session m_session{ nullptr };
         Ort::AllocatorWithDefaultOptions m_allocator;
 
-        std::vector<int64_t> m_inputShape;
-        std::vector<int64_t> m_outputShape;
+        std::vector<int64_t> m_inputShape; // for now only one input is supported!
+        std::vector<std::vector<int64_t>> m_outputShapes;
         std::string m_inputName;
-        std::string m_outputName;
+        std::vector<std::string> m_outputNames;
         int m_gpuId;
 
         tl::expected<Ort::Value, NeuralError> tensorToOrtValue(const Tensor& tensor, std::optional<std::vector<int64_t>> shapeOverride = std::nullopt) const;

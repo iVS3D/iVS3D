@@ -6,13 +6,32 @@
 #include <QGeoPolygon>
 #include <QLineF>
 #include <QList>
+#include <QMetaType>
 #include <QObject>
 #include <QPointF>
 #include <QPolygonF>
 #include <QQuickItem>
+#include <QVariantList>
 #include <QtGlobal>
 #include <cmath>
 #include <float.h>
+
+// Set to 1 to enable partial marker styling based on selected/total ratio.
+#ifndef GEOMAP_ENABLE_PARTIAL_SELECTION
+#define GEOMAP_ENABLE_PARTIAL_SELECTION 1
+#endif
+
+using GpsDataList = QList<QPair<QPointF, bool>>;
+Q_DECLARE_METATYPE(GpsDataList)
+
+struct GpsPointState {
+    QPointF point;
+    bool used = false;
+    qreal ratio = 0.0;
+};
+
+using GpsPointStateList = QList<GpsPointState>;
+Q_DECLARE_METATYPE(GpsPointStateList)
 
 /**
  * @class MapHandler
@@ -32,16 +51,20 @@ class MapHandler : public QObject
     //--- METHOD DECLARATION ---//
 
   public:
-    explicit MapHandler();
+    explicit MapHandler(QObject* parent = nullptr);
 
     /**
      * @brief addPoints Adds all given gps values as points on the map
      */
-    void addPoints(const QList<QPair<QPointF, bool>>& m_gpsData);
+    void addPoints(const GpsDataList& m_gpsData);
 
-    void updatePoints(const QList<QPair<QPointF, bool>>& m_changedPoints);
+    void updatePoints(const GpsPointStateList& changedPoints);
 
     void setPolygon(const QPolygonF& poly);
+
+    void replaceData(const GpsDataList& gpsData, const QPolygonF& polygon);
+    void updatePointsAndPolygon(const GpsPointStateList& changedPoints,
+                                const QPolygonF& polygon);
 
     /**
      * @brief emitCircleSignal Method to emit the corresponding signal
@@ -49,9 +72,10 @@ class MapHandler : public QObject
      * @param name ObjectName of the point
      * @param used @a true if the point is used @a false otherwise
      */
-    void emitCircleSignal(const QGeoCoordinate& coordinate, QString name, bool used)
+    void emitCircleSignal(const QGeoCoordinate& coordinate, QString name,
+                          bool used, qreal ratio)
     {
-        Q_EMIT circleSignal(coordinate, name, used);
+        Q_EMIT circleSignal(coordinate, name, used, ratio);
     }
     /**
      * @brief emitAdjustMapCenter Method to emit the corresponding signal
@@ -70,12 +94,24 @@ class MapHandler : public QObject
         Q_EMIT createPolyline(coordinate);
     }
     /**
+     * @brief emitSetTracePath Sends the full ordered GPS trace path to the QML map in one shot.
+     * @param coordinates List of QGeoCoordinate values wrapped as QVariant.
+     */
+    void emitSetTracePath(const QVariantList& coordinates)
+    {
+        Q_EMIT setTracePath(coordinates);
+    }
+    /**
      * @brief emitSetMapSelect Method to emit the corresponding signal
      * @param path QGeoPath with the perimeter of the current polygon
      */
     void emitSetMapSelect(const QGeoPath& path)
     {
         Q_EMIT setMapSelect(path);
+    }
+    void emitSetMapSelectCoordinates(const QVariantList& coordinates)
+    {
+        Q_EMIT setMapSelectCoordinates(coordinates);
     }
     /**
      * @brief emitSetPoint Method to emit the corresponding signal
@@ -85,6 +121,16 @@ class MapHandler : public QObject
     void emitSetPoint(const int index, bool used)
     {
         Q_EMIT setPoint(index, used);
+    }
+
+    void emitSetPointState(const int index, bool used, qreal ratio)
+    {
+        Q_EMIT setPointState(index, used, ratio);
+    }
+
+    void emitSetPartialSelectionEnabled(bool enabled)
+    {
+      Q_EMIT setPartialSelectionEnabled(enabled);
     }
     /**
      * @brief emitGetMapItems Method to emit the corresponding signal
@@ -104,7 +150,8 @@ class MapHandler : public QObject
      * @param name ObjectName of the point
      * @param used @a true if the point is used @a false otherwise
      */
-    void circleSignal(const QGeoCoordinate& coordinate, QString name, bool used);
+    void circleSignal(const QGeoCoordinate& coordinate, QString name, bool used,
+                      qreal ratio);
     /**
      * @brief adjustMap Used to center the map at the given coordinate
      * @param coordinate Center coordinate
@@ -117,20 +164,31 @@ class MapHandler : public QObject
      */
     void createPolyline(const QGeoCoordinate& coordinate);
     /**
+     * @brief setTracePath Replaces the entire GPS trace path on the map in one call.
+     *        Coordinates are ordered by image index via mOrderedGpsList.
+     * @param coordinates List of QGeoCoordinate values as QVariant.
+     */
+    void setTracePath(const QVariantList& coordinates);
+    /**
      * @brief emitSetMapSelect Used to updated the current user selected polygon on the map
      * @param path QGeoPath with the perimeter of the current polygon
      */
     void setMapSelect(const QGeoPath& path);
+    void setMapSelectCoordinates(const QVariantList& coordinates);
     /**
      * @brief emitSetPoint Used to update a points oppacity
      * @param index Index of the point based on the list of map items from the qml map
      * @param used @a true if the point is used @a false otherwise
      */
     void setPoint(const int index, bool used);
+    void setPointState(const int index, bool used, qreal ratio);
+    void setPartialSelectionEnabled(bool enabled);
+    void setPointHighlight(const int index, bool highlighted);
     /**
      * @brief getMapItems Used to signal that the map needs to return the current map items
      */
     void getMapItems();
+    void clearMap();
 
   signals:
     /**
@@ -160,6 +218,9 @@ class MapHandler : public QObject
 
     void onQmlSelectionForward();
 
+    void setCurrentIndex(uint index);
+    void setPartialSelectionMode(bool enabled);
+
   private:
     /// Used to update the polygon on the map, signal the gps class the new polygon and change
     /// opacity of changed points on the map
@@ -178,15 +239,20 @@ class MapHandler : public QObject
     /// returns QPoint with x = min distance from line segment (a,b) to newPoint; y = t with nearest
     /// point to newPoint at A+t*(B-A)
     QPointF minDistance(QPointF A, QPointF B, QPointF newPoint);
+    void applyCurrentIndexHighlight();
 
     //--- METHOD DECLARATION ---//
 
   private:
     /// GPS points used or not
     QMap<QPointF, bool> mGpsMap;
+    /// Ratio of selected images for each unique GPS point.
+    QMap<QPointF, qreal> mPointSelectionRatio;
 
     /// List of GPS data in the order of acquisition
     QList<QPointF> mOrderedGpsList;
+    /// Maps source frame index to GPS point (keeps duplicates).
+    QList<QPointF> mSourceIndexToPoint;
 
     /// The current polygon
     QGeoPolygon mPolygon;
@@ -200,6 +266,9 @@ class MapHandler : public QObject
     QList<QGeoPolygon> mPolyStack;
 
     int mCurrentStackPos = -1;
+    int mCurrentSourceIndex = -1;
+    int mCurrentMapItemIndex = -1;
+    bool mPartialSelectionEnabled = GEOMAP_ENABLE_PARTIAL_SELECTION != 0;
 };
 
 #endif // IVS3D_MAPHANDLER_H

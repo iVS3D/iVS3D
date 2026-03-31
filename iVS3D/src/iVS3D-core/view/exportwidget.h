@@ -8,8 +8,17 @@
 #include <QDoubleSpinBox>
 
 #include "applicationsettings.h" // used to determin text color depending on GUI style
+#include "maskstackview.h"
 
-#define EXPORT_FORMAT_SAME_AS_INPUT "same as input"
+enum class ExportFormat {
+    SameAsInput,
+    Png,
+    Jpg,
+    Unknown,
+};
+
+QString toExportFormatKey(ExportFormat format);
+ExportFormat exportFormatFromKey(const QString &formatKey);
 
 namespace Ui {
 class ExportWidget;
@@ -40,9 +49,10 @@ public:
      * @brief Creates an ExportWidget with the given QWidget as parent.
      * @param parent The parent for displaying
      */
-    explicit ExportWidget(QWidget *parent = nullptr, QStringList transformList = QStringList());
+    explicit ExportWidget(QWidget *parent = nullptr);
     ~ExportWidget();
 
+    std::shared_ptr<MaskStackView> getMaskStackView();
     /**
      * @brief setOutputPath sets the text in the path text box to given path.
      * @param path the path to display
@@ -67,31 +77,14 @@ public:
      */
     void enableReconstruct(bool enabled);
 
-    /**
-     * @brief getSelectedITransforms returns a list with @a list[i] = @a true if @a iTransform[i] is selected.
-     * @return The list
-     */
-    std::vector<bool> getSelectedITransforms();
-
-    /**
-     * @brief setSelectedITransforms selects the @a iTransform[i] if @a selected[i] = @a true.
-     * @param selection the iTransforms selection
-     * @return @a true if selection.size matches iTransform.count
-     */
-    bool setSelectedITransforms(std::vector<bool> selection);
-
-    /**
-     * @brief disableCreateFilesWidget will disable the create files for widget
-     * @param @a true shows the widget, @a false will hide it
-     */
-    void enableCreateFilesWidget(bool enable);
-
     void setResolutionList(QStringList resList, int idx);
     void setResolution(QString resolution);
     void setResolutionValid(bool valid);
 
     QString getExportFormat();
+    ExportFormat getExportFormatEnum();
     bool setOutputFormat(QString format);
+    bool setOutputFormat(ExportFormat format);
 
     /**
      * @brief setAltitudeVisible will show or hide the altitude selector
@@ -108,6 +101,7 @@ public:
     double getAltitude();
 
     void enableFormat(QString format, bool enable);
+    void enableFormat(ExportFormat format, bool enable);
 
 signals:
 
@@ -153,9 +147,10 @@ private slots:
 
 private:
     Ui::ExportWidget *ui;
-    std::vector<QCheckBox*> m_checkboxes;
 
     QDoubleSpinBox *m_altitudeSpinBox;
+
+    std::shared_ptr<MaskStackView> m_maskStackView;
 
 };
 

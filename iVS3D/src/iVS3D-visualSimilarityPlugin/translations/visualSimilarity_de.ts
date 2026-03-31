@@ -64,7 +64,7 @@
     </message>
     <message>
         <source>&lt;div style=&apos;border: 2px solid red; padding: 10px;&apos;&gt;&lt;p&gt;&lt;b&gt;%1&lt;/b&gt;&lt;/p&gt;&lt;p&gt;%2&lt;/p&gt;&lt;/div&gt;&lt;br&gt;&lt;p&gt;%3&lt;/p&gt;&lt;code&gt;%4&lt;/code&gt;&lt;br&gt;&lt;br&gt;&lt;p&gt;%5 &lt;a href=&apos;https://github.com/iVS3D/iVS3D-models&apos;&gt;%6&lt;/a&gt;.&lt;/p&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;div style=&apos;border: 2px solid red; padding: 10px;&apos;&gt;&lt;p&gt;&lt;b&gt;%1&lt;/b&gt;&lt;/p&gt;&lt;p&gt;%2&lt;/p&gt;&lt;/div&gt;&lt;br&gt;&lt;p&gt;%3&lt;/p&gt;&lt;code&gt;%4&lt;/code&gt;&lt;br&gt;&lt;br&gt;&lt;p&gt;%5 &lt;a href=&apos;https://github.com/iVS3D/iVS3D-models&apos;&gt;%6&lt;/a&gt;.&lt;/p&gt;</translation>
     </message>
     <message>
         <source>ERROR:</source>

@@ -9,13 +9,14 @@
 #include "view/reconstructdialog.h"
 #include "view/cropexport.h"
 #include "view/emptyfolderdialog.h"
-#include "plugin/transformmanager.h"
 #include "logfile.h"
 #include "logmanager.h"
 #include "stringcontainer.h"
 #include "model/metaData/gpsreader.h"
 
 #include "colmapwrapper.h"
+#include "maskstack.h"
+#include "pluginthread.h"
 
 #include <QObject>
 #include <QDebug>
@@ -27,6 +28,7 @@
 #include <QMessageBox>
 
 #include <QElapsedTimer>
+#include <memory>
 
 // --- default resolutions in dropbox ---
 #define RESOLUTION_LIST "2560 x 1440 (QHD)|1920 x 1080 (FHD)|1280 x 720 (HD)|1280 x 1024 (HD*)|640 x 480"
@@ -55,7 +57,7 @@ public:
      * @param outputWidget
      * @param dataManager
      */
-    ExportController(OutputWidget *outputWidget, DataManager *dataManager, lib3d::ots::ColmapWrapper *colmap);
+    ExportController(OutputWidget *outputWidget, DataManager *dataManager, lib3d::ots::ColmapWrapper *colmap, std::shared_ptr<PluginThread> pluginThread, std::shared_ptr<MaskStack> maskStack = nullptr);
 
 
     /**
@@ -150,6 +152,14 @@ public slots:
     void slot_altitudeChanged(double altitude);
 
     void slot_roiChanged(std::optional<ROI> roi);
+
+private slots:
+    /**
+     * @brief slot_onMaskStackChanged is triggered when the mask stack changes
+     * It updates the export settings accordingly
+     */
+    void slot_onMaskStackChanged();
+    
 private:
     /**
      * @brief startReconstruct handles starting reconstruct software, preparing its start-arguments, creating batch-files and project-file
@@ -169,7 +179,7 @@ private:
     void updateFormatOptions();
     bool canCopyImages();
 
-    LogFile *m_lfExport;
+    std::shared_ptr<LogFile> m_lfExport;
     DataManager *m_dataManager;
 
     Resolution m_originalResolution;
@@ -191,6 +201,9 @@ private:
 
     double m_altitude_original = 0.0;
     double m_altitude_current = 0.0;
+
+    std::shared_ptr<MaskStack> m_maskStack;
+    std::shared_ptr<PluginThread> m_pluginThread;
 
 };
 

@@ -1,7 +1,5 @@
 add_subdirectory(ApplicationSettings)
 add_subdirectory(DataManagerAndMip)
-add_subdirectory(ExportController)
-add_subdirectory(ExportThread)
 add_subdirectory(LogFile)
 add_subdirectory(ModelInputIterator)
 add_subdirectory(OpenExecutor)

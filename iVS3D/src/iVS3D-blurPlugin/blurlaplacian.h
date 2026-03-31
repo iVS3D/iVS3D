@@ -35,7 +35,7 @@ public:
 
 protected:
     QString m_name = "Laplacian Filter";
-    double singleCalculation(const cv::Mat &image) override;
+    double singleCalculation(const cv::Mat &image, cv::Mat* debugImage = nullptr) override;
 
 };
 

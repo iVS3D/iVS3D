@@ -3,12 +3,12 @@
 
 
 #include <QCoreApplication>
+#include <memory>
 
 
 #include "progressable.h"
 #include "DataManager.h"
 #include "exportthread.h"
-#include "itransform.h"
 #include "logfile.h"
 #include "stringcontainer.h"
 
@@ -43,8 +43,9 @@ public:
      * @brief ExportExecutor creates an executor operating on the data provided by given DataManager.
      * @param parent The parent for the QObject
      * @param dataManager The DataManager to access images for export
+     * @param pluginThread The PluginThread to use for export processing
      */
-    explicit ExportExecutor(QObject* parent, DataManager* dataManager);
+    explicit ExportExecutor(QObject* parent, DataManager* dataManager, std::shared_ptr<PluginThread> pluginThread);
 
     /**
      * @brief startExport starts a new Export with the currently selected keyframes in ModelInputPictures provided by the DataManager.
@@ -52,7 +53,7 @@ public:
      * @param name The output name
      * @param iTransformCopies The ITransform instances to create additional export images
      */
-    void startExport(const ExportConfig& config, LogFile *logFile);
+    void startExport(const ExportConfig& config, std::shared_ptr<LogFile> logFile);
 
 public slots:
     /**
@@ -77,6 +78,12 @@ signals:
     void sig_exportAborted();
 
     /**
+     * @brief [signal] sig_warning is emitted for non-fatal export warnings.
+     * @param warning Warning message text
+     */
+    void sig_warning(QString warning);
+
+    /**
      * @brief [signal] sig_exportFinished is emitted after an export finished.
      * @param result Is @a 0 if export finished without problems, greater @a 0 otherwise
      */
@@ -90,6 +97,7 @@ private:
     QObject* m_parent;
 
     QPoint m_boundaries = QPoint(0, 0);
+    std::shared_ptr<PluginThread> m_pluginThread;
 };
 
 #endif // EXPORTEXECUTOR_H

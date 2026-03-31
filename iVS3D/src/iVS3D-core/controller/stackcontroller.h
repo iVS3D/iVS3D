@@ -6,6 +6,7 @@
 #include "operationstack.h"
 #include "samplingwidget.h"
 #include "exportcontroller.h"
+#include "pluginmanager.h"
 
 
 class StackController : public QObject
@@ -17,6 +18,9 @@ public:
     ~StackController();
     void select();
 
+    void addToStack(const QString& pluginName,
+                    const QMap<QString, QVariant>& settings,
+                    const QString& settingsString);
 
 private:
     OperationStack* m_opStack;
@@ -24,7 +28,12 @@ private:
     SamplingWidget* m_samplingWidget;
     ExportController* m_exportController;
     void deleteInvalidFuture(int exportFlag = 0);
-    QMap<QString, QPair<int, QMap<QString, QVariant>>> m_algoSettings;
+
+    struct StackEntry {
+        QString pluginName;
+        QMap<QString, QVariant> pluginSettings;
+    };
+    QMap<QString, StackEntry> m_algoSettings;
 
 
 public slots:
@@ -33,7 +42,7 @@ public slots:
     void slot_deleteAllKeyframes();
     void slot_rowClicked(int row);
     void slot_clearClicked();
-    void slot_algorithmFinished(int index);
+    void slot_pluginFinished(QString name);
     void slot_keyframesChangedByPlugin(QString pluginName);
     void slot_exportFinished(QMap<QString, QVariant> settings);
 };

@@ -1,4 +1,5 @@
 #include "stackcontroller.h"
+#include "pluginmanager.h"
 
 StackController::StackController(OperationStack* opStack, History* mipHistory, SamplingWidget* samplingWidget, ExportController* exportController)
 {
@@ -64,15 +65,24 @@ void StackController::slot_rowClicked(int row)
 {   
     QString itemString = m_opStack->getItemString(row);
     if(m_algoSettings.contains(itemString)) {
-        QPair<int, QMap<QString, QVariant>> algoData = m_algoSettings.value(itemString);
+        auto algoData = m_algoSettings.value(itemString);
         //-1 == Export
-        if (algoData.first == -1) {
-            m_exportController->setOutputSettings(algoData.second);
+        if (algoData.pluginName == "Export") {
+            m_exportController->setOutputSettings(algoData.pluginSettings);
         }
         //Regular sampling
-        else {
-            AlgorithmManager::instance().setSettings(algoData.first, algoData.second);
-            m_samplingWidget->setAlgorithm(algoData.first);
+        else if (PluginManager::instance().hasPlugin(algoData.pluginName)) {
+            auto result =
+                PluginManager::instance().applyPluginSettings(
+                    algoData.pluginName, algoData.pluginSettings);
+            assert(result.has_value()); // should not fail
+
+            m_samplingWidget->setSelectedPlugin(algoData.pluginName);
+            auto settingsWidget =
+                PluginManager::instance().getSettingsWidget(algoData.pluginName);
+            if (settingsWidget) {
+                m_samplingWidget->showPluginSettings(settingsWidget.get());
+            }
         }
 
     }
@@ -88,17 +98,30 @@ void StackController::slot_clearClicked()
     select();
 }
 
-void StackController::slot_algorithmFinished(int index)
+void StackController::addToStack(const QString& pluginName,
+                                 const QMap<QString, QVariant>& settings,
+                                 const QString& settingsString)
 {
     deleteInvalidFuture();
-    QMap<QString, QVariant> settings = AlgorithmManager::instance().getSettings(index);
-    QString name;
-    name = AlgorithmManager::instance().getPluginNameToIndex(index);
-    if (settings.isEmpty()) {
-        name.append(tr("  -  Generated settings"));
+    QString uiText = pluginName;
+
+    uiText.append(" - ");
+    uiText.append(settingsString);
+    m_opStack->addEntry(uiText);
+    m_algoSettings.insert(uiText, {pluginName, settings});
+}
+
+void StackController::slot_pluginFinished(QString name)
+{
+    deleteInvalidFuture();
+    if (!PluginManager::instance().hasPlugin(name)) {
+        return;
     }
-    else {
-        name.append(" - ");
+    QMap<QString, QVariant> settings =
+        PluginManager::instance().getPluginSettings(name);
+    QString uiText = name;
+
+    uiText.append(" - ");
         QMapIterator<QString, QVariant> iter(settings);
         while(iter.hasNext()) {
            iter.next();
@@ -106,13 +129,11 @@ void StackController::slot_algorithmFinished(int index)
            if (iter.value().toString() == "") {
                continue;
            }
-           name.append(identifier);
+           uiText.append(identifier);
         }
-        name.chop(2);
-
-    } 
-    m_opStack->addEntry(name);
-    m_algoSettings.insert(name, {index, settings});
+        uiText.chop(2);
+    m_opStack->addEntry(uiText);
+    m_algoSettings.insert(uiText, {name, settings});
 }
 
 void StackController::slot_keyframesChangedByPlugin(QString pluginName)
@@ -141,5 +162,5 @@ void StackController::slot_exportFinished(QMap<QString, QVariant> settings)
     name.chop(2);
 
     m_opStack->addEntry(name);
-    m_algoSettings.insert(name, {-1, settings});
+    m_algoSettings.insert(name, {"Export", settings});
 }

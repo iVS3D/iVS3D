@@ -8,34 +8,27 @@
  * @brief Plugin to remove keyframes if no camera movement was detected.
  */
 
-#include <QCheckBox>
-#include <QComboBox>
 #include <QCoreApplication>
 #include <QDoubleSpinBox>
-#include <QDoubleValidator>
 #include <QLabel>
 #include <QLayout>
-#include <QLineEdit>
 #include <QObject>
-#include <QPushButton>
-#include <QSpacerItem>
-#include <QThreadPool>
+#include <QPoint>
 #include <QTranslator>
+#include <QVariant>
 #include <QWidget>
-#include <QtConcurrent/QtConcurrentMap>
 #include <algorithm>
 #include <future>
-#include <iomanip>
-#include <iostream>
-#include <numeric>
+#include <memory>
 #include <opencv2/core/mat.hpp>
 #include <opencv2/video.hpp>
 #include <vector>
 
 #include "factory.h"
 #include "flowcalculator.h"
-#include "ialgorithm.h"
+#include "ibase.h"
 #include "imagegatherer.h"
+#include "iselection.h"
 #include "reader.h"
 
 #define PLUGIN_NAME QObject::tr("Smooth camera movement")
@@ -49,14 +42,6 @@
     "color: rgb(58, 58, 58); border-left: 6px solid  rgb(58, 58, 58); " \
     "border-top-right-radius: 5px; border-bottom-right-radius: 5px; "   \
     "background-color: lightblue;"
-#define INFO_STYLE                                                      \
-    "color: rgb(58, 58, 58); border-left: 6px solid  rgb(58, 58, 58); " \
-    "border-top-right-radius: 5px; border-bottom-right-radius: 5px; "   \
-    "background-color: lightGreen;"
-// buffer
-#define BUFFER_NAME "SmoothCameraMovementBuffer"
-#define DELIMITER_COORDINATE "|"
-#define DELIMITER_ENTITY ","
 // settings
 #define SETTINGS_SELECTOR_THRESHOLD "Selector threshold"
 // log file
@@ -71,148 +56,57 @@
 #define LF_TIMER_SELECTION "Keyframe selection"
 
 /**
- * @class StationaryCamera
+ * @class CameraMovement
  *
  * @ingroup StationaryCameraPlugin
  *
- * @brief The StationaryCamera class implements the IAlgorithm interface and
- * provides an algorithm to remove keyframes at positions where no movement of
- * the camera was detected
+ * @brief Implements smooth camera movement keyframe selection using `PLUG::IBase` + `PLUG::ISelection`.
  *
  * @author Dominic Zahn
  *
  * @date 2022/3/13
  */
-class SmoothController : public IAlgorithm {
+class CameraMovement : public PLUG::IBase, public PLUG::ISelection {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "iVS3D.IAlgorithm")  // implement interface as plugin,
-                                               // use the iid as identifier
-    Q_INTERFACES(
-        IAlgorithm)  // declare this as implementation of IAlgorithm interface
+    Q_PLUGIN_METADATA(IID "iVS3D.IBase")
+    Q_INTERFACES(PLUG::IBase PLUG::ISelection)
 
    public:
-    /**
-     * @brief StationaryCamera Constructor sets default values for member
-     * variables
-     */
-    SmoothController();
-    ~SmoothController() {}
+    CameraMovement();
+    ~CameraMovement() override = default;
 
-    /**
-     * @brief getSettingsWidget creates a Widget, which can be used to change
-     * the algorithm parameters and returns it
-     * @param parent is the parent of the newly created SettingsWidget
-     * @return a settingWidget, which can be used to change the algorithm
-     * parameters
-     */
-    QWidget *getSettingsWidget(QWidget *parent) override;
-
-    /**
-     * @brief sampleImages selects keyframe if the camera is currently not
-     * stationary
-     * @param reader gives the method access to the video/image sequence, which
-     * should be used
-     * @param imageList is a preselection of frames
-     * @param receiver is a progressable, which displays the already made
-     * progress
-     * @param stopped Pointer to a bool indication if user wants to stop the
-     * computation
-     * @param logFile poiter to the log file
-     * @return A list of indices, which represent the selected keyframes.
-     */
-    std::vector<uint> sampleImages(const std::vector<uint> &imageList,
-                                   Progressable *receiver,
-                                   volatile bool *stopped, bool useCuda,
-                                   LogFileParent *logFile) override;
-
-    /**
-     * @brief getName Returns a name for displaying this algorithm to the user.
-     * @return the name as QString.
-     */
+    // IBase
+    PLUG::SettingsWidgetResult getSettingsWidget() override;
     QString getName() const override;
+    QMap<QString, QVariant> getSettings() const override;
+    PLUG::ApplySettingsResult applySettings(
+        const QMap<QString, QVariant>& settings) override;
+    PLUG::InputLoadedResult onInputLoaded(
+        const PLUG::InputData& input) override;
+    void onCudaChanged(bool enabled) override;
 
-    /**
-     * @brief initialize Sets up the default value which is corresponding to
-     * video information
-     * @param reader is used to get video or image information
-     * @param buffer QVariant with the buffered data form last call to
-     * sampleImages
-     * @param sigObj provides signals from the core application
-     */
-    void initialize(Reader *reader, QMap<QString, QVariant> buffer,
-                    signalObject *sigObj) override;
+    // ISelection
+    PLUG::SelectionResult selectImages(const PLUG::SelectionData& data,
+                                       volatile bool& cancelFlag) override;
 
-    /**
-     * @brief setter for plugin's settings
-     * settings structure:
-     *  <QMap> settings (all settings)
-     *      <QVariant> selector_threshold
-     *  </QMap>
-     * @param QMap with the settings
-     */
-    void setSettings(QMap<QString, QVariant> settings) override;
+   signals:
+    void syncSettingsWidget(double selectorThreshold);
 
-    /**
-     * @brief generateSettings tries to generate the best settings for the
-     * current input
-     * @param receiver is a progressable, which displays the already made
-     * progress
-     * @param useCuda @a true if cv::cuda can be used
-     * @param stopped is set if the algorithm should abort
-     * @return QMap with the settings
-     */
-    QMap<QString, QVariant> generateSettings(Progressable *receiver,
-                                             bool useCuda,
-                                             volatile bool *stopped) override;
-
-    /**
-     * @brief getter for plugin's settings
-     * @return QMap with the settings
-     */
-    QMap<QString, QVariant> getSettings() override;
+   private slots:
+    void slot_selectorThresholdChanged(double value);
 
    private:
-    // member variables
+    std::unique_ptr<QWidget> createSettingsWidget();
+    void reportProgress(const QString& op, int progress);
+
+   private:
     double m_selectorThreshold = 2.0;
-    Reader *m_reader = nullptr;
+    bool m_useCuda = false;
+    Reader* m_reader = nullptr;
     QPoint m_inputResolution = QPoint(0, 0);
     cv::SparseMat m_bufferMat;
-    signalObject *m_sigObj = nullptr;
-    //      widget elements
-    QWidget *m_settingsWidget = nullptr;
-    QDoubleSpinBox *m_selectorThresholdSpinBox = nullptr;
-    // timing variables
-    long m_durationFarnebackMs = 0;
-    long m_durationComputationFlowMs = 0;
 
-    // functions
-    void reportProgress(QString op, int progress, Progressable *receiver);
-    void displayMessage(QString txt, Progressable *receiver);
-    void createSettingsWidget(QWidget *parent);
-    /**
-     * @brief sendBuffer Sends all buffered values for storeing previously
-     * calculated Infos
-     * @return the buffer as a QVariant (empty)
-     */
-    QMap<QString, QVariant> sendBuffer();
-    /**
-     * @brief recreateBufferMatrix initalizes the buffer matix whith the new
-     * values from nBuffer
-     * @param buffer holds the new movement values which should be stored in the
-     * buffer matrix
-     */
-    void recreateBufferMatrix(QMap<QString, QVariant> buffer);
-    /**
-     * @brief recreateMovementFromString is used to extract the movement value
-     * from a string and write it in the buffer
-     * @param string that holds the two compared images indices and the movement
-     * value (most likeyl from settings.json)
-     */
-    void stringToBufferMat(QString string);
-    QVariant bufferMatToVariant(cv::SparseMat bufferMat);
-   signals:
-    void changeUIParameter(QVariant nValue, QString paramName,
-                           QString selectorName);
+    QDoubleSpinBox* m_selectorThresholdSpinBox = nullptr;
 };
 
 #endif  // CONTROLLER_H

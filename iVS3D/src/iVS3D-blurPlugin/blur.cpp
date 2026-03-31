@@ -1,5 +1,25 @@
 #include "blur.h"
 
+#include <QHBoxLayout>
+#include <QSignalBlocker>
+#include <QVBoxLayout>
+
+using PLUG::ApplySettingsResult;
+using PLUG::Error;
+using PLUG::ErrorCode;
+using PLUG::InputData;
+using PLUG::InputLoadedResult;
+using PLUG::PreviewData;
+using PLUG::SelectionData;
+using PLUG::SelectionResult;
+using PLUG::SettingsWidgetResult;
+using VIS::ImageOverlay;
+using VIS::TextAnchor;
+using VIS::TextOverlay;
+using VIS::ViewportType;
+using VIS::Visualization;
+using VIS::VisualizationResult;
+
 // Global CUDA switch shared with algorithms
 extern bool g_useCuda;
 
@@ -19,126 +39,30 @@ static double medianOf(std::vector<double> v) {
 
 Blur::Blur() {
     QLocale locale = qApp->property("translation").toLocale();
-    QTranslator *translator = new QTranslator();
+    QTranslator* translator = new QTranslator();
     translator->load(locale, "blur", "_", ":/translations", ".qm");
     qApp->installTranslator(translator);
-    m_settingsWidget = nullptr;
+
     m_blurAlgorithms.push_back(new BlurLaplacian());
     m_blurAlgorithms.push_back(new BlurSobel());
     m_blurAlgorithms.push_back(new BlurTenengrad());
     m_usedBlur = m_blurAlgorithms[0];
-
-    m_localDeviation = 95;  // keep >= 95% of local median
-    m_windowSize = 30;      // images on each side for the local window
 }
 
-QWidget *Blur::getSettingsWidget(QWidget *parent) {
-    if (!m_settingsWidget) {
-        createSettingsWidget(parent);
+Blur::~Blur() {
+    for (BlurAlgorithm* algo : m_blurAlgorithms) {
+        delete algo;
     }
-    return m_settingsWidget;
+    m_blurAlgorithms.clear();
 }
 
-std::vector<uint> Blur::sampleImages(const std::vector<unsigned int> &imageList,
-                                     Progressable *receiver,
-                                     volatile bool *stopped, bool useCuda,
-                                     LogFileParent *logFile) {
-    g_useCuda = useCuda;
-
-    m_logFile = logFile;
-    m_logFile->startTimer("complete");
-    m_blurValues.clear();
-
-    if (m_buffer.size() != 0) {
-        QMapIterator<QString, QVariant> mapIt(m_buffer);
-        while (mapIt.hasNext()) {
-            mapIt.next();
-            if (mapIt.key().compare(m_usedBlur->getName()) == 0) {
-                m_blurValues = splitDoubleString(mapIt.value().toString());
-                break;
-            }
-        }
-    }
-    if (m_blurValues.empty()) {
-        m_blurValues = std::vector<double>(m_reader->getPicCount());
-    }
-
-    std::vector<uint> sampledImages =
-        sampleKeyframes(m_reader, receiver, stopped, imageList);
-
-    m_logFile->stopTimer();
-    computeBuffer();
-    return sampledImages;
+SettingsWidgetResult Blur::getSettingsWidget() {
+    return createSettingsWidget();
 }
 
 QString Blur::getName() const { return tr("Blur detection"); }
 
-void Blur::computeBuffer() {
-    std::stringstream bufferStream;
-    for (uint i = 0; i < m_blurValues.size(); i++) {
-        if (i != 0) bufferStream << ",";
-        bufferStream << m_blurValues[i];
-    }
-    std::string buffer = bufferStream.str();
-    QVariant blurValues(QString::fromStdString(buffer));
-    m_buffer.insert(m_usedBlur->getName(), blurValues);
-    emit updateBuffer(m_buffer);
-}
-
-void Blur::initialize(Reader *reader, QMap<QString, QVariant> buffer,
-                      signalObject *sig_obj) {
-    m_reader = reader;
-    m_buffer = buffer;
-    m_sigObj = sig_obj;
-    if (m_settingsWidget) {
-        if (m_buffer.contains(m_usedBlur->getName())) {
-            QVariant currentBuffer = m_buffer[m_usedBlur->getName()];
-            double currentBlurValue =
-                splitDoubleString(currentBuffer.toString())[0];
-            QString info = currentBlurValue == 0
-                               ? tr("not calculated")
-                               : QString::number(currentBlurValue);
-            m_infoLabel->setText(tr("Blur value for the current image is ") +
-                                 info);
-        } else {
-            m_infoLabel->setText(
-                tr("Blur value for the current image is not calculated"));
-        }
-    }
-    if (m_sigObj)
-        connect(m_sigObj, SIGNAL(sig_selectedImageIndex(uint)), this,
-                SLOT(slot_selectedImageIndex(uint)));
-}
-
-void Blur::setSettings(QMap<QString, QVariant> settings) {
-    m_windowSize = settings.find(WINDOW_SIZE).value().toInt();
-    m_localDeviation = settings.find(LOCAL_DEVIATION).value().toDouble();
-    QString usedAlgo = settings.find(USED_BLUR).value().toString();
-    int blurIndex = 0;
-    for (BlurAlgorithm *algo : m_blurAlgorithms) {
-        if (usedAlgo.compare(algo->getName()) == 0) {
-            m_usedBlur = algo;
-            break;
-        }
-        blurIndex++;
-    }
-    if (m_settingsWidget) {
-        m_spinBoxLD->setValue(static_cast<int>(m_localDeviation));
-        m_spinBoxWS->setValue(m_windowSize);
-        m_comboBoxBlur->setCurrentIndex(blurIndex);
-    }
-}
-
-QMap<QString, QVariant> Blur::generateSettings(Progressable *receiver,
-                                               bool useCuda,
-                                               volatile bool *stopped) {
-    (void)receiver;
-    (void)useCuda;
-    (void)stopped;
-    return getSettings();
-}
-
-QMap<QString, QVariant> Blur::getSettings() {
+QMap<QString, QVariant> Blur::getSettings() const {
     QMap<QString, QVariant> settings;
     settings.insert(USED_BLUR, m_usedBlur->getName());
     settings.insert(LOCAL_DEVIATION, m_localDeviation);
@@ -146,165 +70,361 @@ QMap<QString, QVariant> Blur::getSettings() {
     return settings;
 }
 
-void Blur::slot_blurAlgoChanged(const QString &name) {
-    for (BlurAlgorithm *b : m_blurAlgorithms) {
-        if (b->getName().compare(name) == 0) {
+ApplySettingsResult Blur::applySettings(
+    const QMap<QString, QVariant>& settings) {
+    int windowSize = settings.value(WINDOW_SIZE, m_windowSize).toInt();
+    double localDeviation =
+        settings.value(LOCAL_DEVIATION, m_localDeviation).toDouble();
+    QString usedAlgo =
+        settings.value(USED_BLUR, m_usedBlur->getName()).toString();
+
+    if (windowSize < 1 || localDeviation < 0.0 || localDeviation > 200.0) {
+        return tl::make_unexpected(
+            Error(ErrorCode::InvalidInput, tr("Invalid blur settings")));
+    }
+
+    bool algoChanged = (usedAlgo != m_usedBlur->getName());
+    for (BlurAlgorithm* algo : m_blurAlgorithms) {
+        if (usedAlgo == algo->getName()) {
+            m_usedBlur = algo;
+            break;
+        }
+    }
+
+    m_windowSize = windowSize;
+    m_localDeviation = localDeviation;
+
+    if (algoChanged) {
+        invalidateCache();
+    }
+
+    emit syncSettingsWidget(m_usedBlur->getName(), m_windowSize,
+                            m_localDeviation, currentInfoText());
+    emit updatePreview(true);
+    return {};
+}
+
+void Blur::activate() {}
+
+void Blur::deactivate() {}
+
+void Blur::onCudaChanged(bool enabled) {
+    m_useCuda = enabled;
+    g_useCuda = enabled;
+    invalidateCache();
+    emit updatePreview(true);
+}
+
+InputLoadedResult Blur::onInputLoaded(const InputData& input) {
+    if (!input.reader) {
+        return {};
+    }
+
+    m_reader = input.reader;
+    m_currentIndex = 0;
+    invalidateCache();
+    emit syncSettingsWidget(m_usedBlur->getName(), m_windowSize,
+                            m_localDeviation, currentInfoText());
+    return {};
+}
+
+void Blur::onIndexChanged(uint index) {
+    m_currentIndex = index;
+    emit syncSettingsWidget(m_usedBlur->getName(), m_windowSize,
+                            m_localDeviation, currentInfoText());
+}
+
+VisualizationResult Blur::generatePreview(const PreviewData& data) {
+    cv::Mat debugImage;
+    auto blur = m_usedBlur->calcOneBluriness(data.image, &debugImage);
+    
+    // Process the debug image to create a visualization overlay
+    // 1. find minimum and maximum value for normalization
+    // 2. convert to heatmap
+    // 3. scale to 0..255 and convert to 8-bit
+    double minVal = 0.0, maxVal = 0.0;
+    cv::minMaxLoc(debugImage, &minVal, &maxVal);
+    if (maxVal > 0.0) {
+        double range = maxVal - minVal;
+        if (range > 0.0) {
+            debugImage = (debugImage - minVal) / range;  // normalize to 0..1
+        }
+        debugImage.convertTo(debugImage, CV_8U, 255.0);  // scale to 0..255
+        cv::applyColorMap(debugImage, debugImage, cv::COLORMAP_INFERNO);
+    } else {
+        debugImage.setTo(cv::Scalar(0, 0, 255));  // red for invalid frames
+    }
+
+    cv::Mat colormap(cv::Size(20, data.image.rows-20), CV_8U, cv::Scalar(0));
+    // visualize the INFERNO colormap as a legend on the left side of the preview
+    for (int y = 0; y < colormap.rows; ++y) {
+        double value = 1.0 - static_cast<double>(y) / colormap.rows;  // invert for better visibility
+        uint8_t colorValue = static_cast<uint8_t>(value * 255.0);
+        colormap.row(y).setTo(colorValue);
+    }
+    cv::applyColorMap(colormap, colormap, cv::COLORMAP_INFERNO);
+
+    Visualization vis;
+    {
+        auto& view = vis.views.emplace_back();
+        view.title = tr("Source Image");
+        view.style.backgroundColor = Qt::transparent;
+        view.style.viewport = ViewportType::FullImage;
+    }
+    {
+        auto& view = vis.views.emplace_back();
+        view.title = tr("Edge Detection (sharpness: %1)").arg(blur, 0, 'f', 2);
+        view.style.backgroundColor = Qt::transparent;
+        view.style.viewport = ViewportType::RegionOfInterest;
+        ImageOverlay overlay;
+        overlay.image = std::move(debugImage);
+        view.overlays.push_back(overlay);
+    }
+
+    {
+        auto& view = vis.views.emplace_back();
+        view.title = tr("Legend");
+        view.style.backgroundColor = Qt::transparent;
+        view.style.viewport = ViewportType::FullImage;
+        view.style.relativeSize = QPointF(0.2, 1.0);
+
+        ImageOverlay overlay;
+        overlay.image = colormap;
+        overlay.style.position = QRectF(0.05, 0.15, 0.2, 0.8); // position on the left with some padding
+        view.overlays.push_back(overlay);
+
+        TextOverlay textOverlayMax;
+        textOverlayMax.text = tr("Edge");
+        textOverlayMax.position = QPointF(0.3, 0.15);
+        textOverlayMax.anchor = TextAnchor::TopLeft;
+        view.overlays.push_back(textOverlayMax);
+        
+
+        TextOverlay textOverlayMin;
+        textOverlayMin.text = tr("Smooth");
+        textOverlayMin.position = QPointF(0.3, 0.95);
+        textOverlayMin.anchor = TextAnchor::BottomLeft;
+        view.overlays.push_back(textOverlayMin);
+    }
+    return vis;
+}
+
+SelectionResult Blur::selectImages(const SelectionData& data,
+                                   volatile bool& cancelFlag) {
+    g_useCuda = m_useCuda;
+
+    Reader* reader = data.reader ? data.reader : m_reader;
+    if (!reader) {
+        return tl::make_unexpected(
+            Error(ErrorCode::InvalidInput, tr("No reader available")));
+    }
+
+    const bool inputChanged = (m_cachedPicCount != reader->getPicCount()) ||
+                              (m_cachedAlgoName != m_usedBlur->getName());
+    if (inputChanged) {
+        m_cachedPicCount = reader->getPicCount();
+        m_cachedAlgoName = m_usedBlur->getName();
+        m_cachedBlurValues.assign(m_cachedPicCount, 0.0);
+    }
+
+    auto sampledImages =
+        sampleKeyframes(reader, cancelFlag, data.selectedIndices);
+
+    emit syncSettingsWidget(m_usedBlur->getName(), m_windowSize,
+                            m_localDeviation, currentInfoText());
+    return sampledImages;
+}
+
+void Blur::slot_blurAlgoChanged(const QString& name) {
+    if (m_usedBlur && m_usedBlur->getName() == name) {
+        return;
+    }
+    for (BlurAlgorithm* b : m_blurAlgorithms) {
+        if (b->getName() == name) {
             m_usedBlur = b;
             break;
         }
     }
+    invalidateCache();
+    emit syncSettingsWidget(m_usedBlur->getName(), m_windowSize,
+                            m_localDeviation, currentInfoText());
+    emit updatePreview(true);
 }
 
-void Blur::slot_wsChanged(int ws) { m_windowSize = ws; }
-
-void Blur::slot_ldChanged(int ld) { m_localDeviation = ld; }
-
-void Blur::slot_selectedImageIndex(uint index) {
-    if (m_buffer.contains(m_usedBlur->getName())) {
-        QVariant currentBuffer = m_buffer[m_usedBlur->getName()];
-        double currentBlurValue =
-            splitDoubleString(currentBuffer.toString())[index];
-        QString info = currentBlurValue == 0
-                           ? tr("not calculated")
-                           : QString::number(currentBlurValue);
-        if (m_settingsWidget) {
-            m_infoLabel->setText(tr("Blur value for the current image is ") +
-                                 info);
-        }
-    }
+void Blur::slot_wsChanged(int ws) {
+    m_windowSize = std::max(1, ws);
+    emit syncSettingsWidget(m_usedBlur->getName(), m_windowSize,
+                            m_localDeviation, currentInfoText());
+    emit updatePreview(true);
 }
 
-void Blur::createSettingsWidget(QWidget *parent) {
-    m_settingsWidget = new QWidget(parent);
-    m_settingsWidget->setLayout(new QVBoxLayout());
-    m_settingsWidget->layout()->setSpacing(0);
-    m_settingsWidget->layout()->setMargin(0);
+void Blur::slot_ldChanged(double ld) {
+    m_localDeviation = std::clamp(ld, 0.0, 200.0);
+    emit syncSettingsWidget(m_usedBlur->getName(), m_windowSize,
+                            m_localDeviation, currentInfoText());
+    emit updatePreview(true);
+}
 
-    QWidget *w = new QWidget(parent);
-    w->setLayout(new QHBoxLayout(parent));
+std::unique_ptr<QWidget> Blur::createSettingsWidget() {
+    auto settingsWidget = std::make_unique<QWidget>(nullptr);
+    settingsWidget->setLayout(new QVBoxLayout());
+    settingsWidget->layout()->setSpacing(0);
+    settingsWidget->layout()->setContentsMargins(0, 0, 0, 0);
+
+    QWidget* w = new QWidget(settingsWidget.get());
+    w->setLayout(new QHBoxLayout());
     w->layout()->setSpacing(0);
-    w->layout()->setMargin(0);
-    w->layout()->addWidget(new QLabel(tr("Select filter "), parent));
+    w->layout()->setContentsMargins(0, 0, 0, 0);
+    w->layout()->addWidget(
+        new QLabel(tr("Select filter "), settingsWidget.get()));
 
-    m_comboBoxBlur = new QComboBox(parent);
-    for (BlurAlgorithm *b : m_blurAlgorithms) {
+    m_comboBoxBlur = new QComboBox(settingsWidget.get());
+    for (BlurAlgorithm* b : m_blurAlgorithms) {
         m_comboBoxBlur->addItem(b->getName());
     }
     w->layout()->addWidget(m_comboBoxBlur);
-    QObject::connect(
-        m_comboBoxBlur,
-        QOverload<const QString &>::of(&QComboBox::currentTextChanged), this,
-        &Blur::slot_blurAlgoChanged);
+    connect(m_comboBoxBlur,
+            QOverload<const QString&>::of(&QComboBox::currentTextChanged), this,
+            &Blur::slot_blurAlgoChanged);
+    settingsWidget->layout()->addWidget(w);
 
-    m_settingsWidget->layout()->addWidget(w);
+    QLabel* labelBlur =
+        new QLabel(tr("Blur algorithm to be used"), settingsWidget.get());
+    labelBlur->setStyleSheet(DESCRIPTION_STYLE);
+    labelBlur->setWordWrap(true);
+    settingsWidget->layout()->addWidget(labelBlur);
 
-    QLabel *LabelBlur = new QLabel(tr("Blur algorithm to be used"));
-    LabelBlur->setStyleSheet(DESCRIPTION_STYLE);
-    LabelBlur->setWordWrap(true);
-    m_settingsWidget->layout()->addWidget(LabelBlur);
-
-    QWidget *ws = new QWidget(parent);
-    ws->setLayout(new QHBoxLayout(parent));
+    QWidget* ws = new QWidget(settingsWidget.get());
+    ws->setLayout(new QHBoxLayout());
     ws->layout()->setSpacing(0);
-    ws->layout()->setMargin(0);
-    ws->layout()->addWidget(new QLabel(tr("Set window size"), parent));
+    ws->layout()->setContentsMargins(0, 0, 0, 0);
+    ws->layout()->addWidget(
+        new QLabel(tr("Set window size"), settingsWidget.get()));
 
-    m_spinBoxWS = new QSpinBox(parent);
+    m_spinBoxWS = new QSpinBox(settingsWidget.get());
     m_spinBoxWS->setMinimum(1);
     m_spinBoxWS->setMaximum(9999);
-    m_spinBoxWS->setValue(m_windowSize);
     m_spinBoxWS->setAlignment(Qt::AlignRight);
     ws->layout()->addWidget(m_spinBoxWS);
-    QObject::connect(m_spinBoxWS, QOverload<int>::of(&QSpinBox::valueChanged),
-                     this, &Blur::slot_wsChanged);
+    connect(m_spinBoxWS, QOverload<int>::of(&QSpinBox::valueChanged), this,
+            &Blur::slot_wsChanged);
+    settingsWidget->layout()->addWidget(ws);
 
-    m_settingsWidget->layout()->addWidget(ws);
-
-    QLabel *windowSize = new QLabel(
-        tr("Number of images used on each side for the local window"));
+    QLabel* windowSize = new QLabel(
+        tr("Number of images used on each side for the local window"),
+        settingsWidget.get());
     windowSize->setStyleSheet(DESCRIPTION_STYLE);
     windowSize->setWordWrap(true);
-    m_settingsWidget->layout()->addWidget(windowSize);
+    settingsWidget->layout()->addWidget(windowSize);
 
-    QWidget *ld = new QWidget(parent);
-    ld->setLayout(new QHBoxLayout(parent));
+    QWidget* ld = new QWidget(settingsWidget.get());
+    ld->setLayout(new QHBoxLayout());
     ld->layout()->setSpacing(0);
-    ld->layout()->setMargin(0);
-    ld->layout()->addWidget(new QLabel(tr("Local threshold (%)"), parent));
+    ld->layout()->setContentsMargins(0, 0, 0, 0);
+    ld->layout()->addWidget(
+        new QLabel(tr("Sharpness deviation (%)"), settingsWidget.get()));
 
-    m_spinBoxLD = new QSpinBox(parent);
-    m_spinBoxLD->setMinimum(1);
-    m_spinBoxLD->setMaximum(200);
-    m_spinBoxLD->setValue(static_cast<int>(m_localDeviation));
+    m_spinBoxLD = new QDoubleSpinBox(settingsWidget.get());
+    m_spinBoxLD->setMinimum(0.0);
+    m_spinBoxLD->setMaximum(200.0);
+    m_spinBoxLD->setSingleStep(0.1);
+    m_spinBoxLD->setDecimals(1);
     m_spinBoxLD->setAlignment(Qt::AlignRight);
     ld->layout()->addWidget(m_spinBoxLD);
-    QObject::connect(m_spinBoxLD, QOverload<int>::of(&QSpinBox::valueChanged),
-                     this, &Blur::slot_ldChanged);
+    connect(m_spinBoxLD, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this,
+            &Blur::slot_ldChanged);
+    settingsWidget->layout()->addWidget(ld);
 
-    m_settingsWidget->layout()->addWidget(ld);
-
-    QLabel *localDeviation =
-        new QLabel(tr("Keep images whose sharpness is at least this percent of "
-                      "the local median."));
+    QLabel* localDeviation =
+        new QLabel(tr("Sharpness deviation relative to the local median "
+                      "(Higher values will remove more images)."),
+                   settingsWidget.get());
     localDeviation->setStyleSheet(DESCRIPTION_STYLE);
     localDeviation->setWordWrap(true);
-    m_settingsWidget->layout()->addWidget(localDeviation);
+    settingsWidget->layout()->addWidget(localDeviation);
 
     m_infoLabel =
-        new QLabel(tr("Blur value for the current image is not calculated"));
+        new QLabel(tr("Blur value for the current image is not calculated"),
+                   settingsWidget.get());
     m_infoLabel->setWordWrap(true);
-    m_settingsWidget->layout()->addWidget(m_infoLabel);
+    settingsWidget->layout()->addWidget(m_infoLabel);
 
-    m_settingsWidget->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
-    m_settingsWidget->adjustSize();
+    connect(
+        this, &Blur::syncSettingsWidget, settingsWidget.get(),
+        [this](const QString& algorithmName, int windowSize, double localDeviation,
+               const QString& infoText) {
+            if (!m_comboBoxBlur || !m_spinBoxWS || !m_spinBoxLD ||
+                !m_infoLabel) {
+                return;
+            }
+            const QSignalBlocker b1(m_comboBoxBlur);
+            const QSignalBlocker b2(m_spinBoxWS);
+            const QSignalBlocker b3(m_spinBoxLD);
+
+            int idx = m_comboBoxBlur->findText(algorithmName);
+            if (idx >= 0) {
+                m_comboBoxBlur->setCurrentIndex(idx);
+            }
+            m_spinBoxWS->setValue(windowSize);
+            m_spinBoxLD->setValue(std::clamp(localDeviation, 0.0, 200.0));
+            m_infoLabel->setText(infoText);
+        },
+        Qt::QueuedConnection);
+
+    settingsWidget->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+    settingsWidget->adjustSize();
+
+    emit syncSettingsWidget(m_usedBlur->getName(), m_windowSize,
+                            m_localDeviation, currentInfoText());
+    return settingsWidget;
 }
 
-std::vector<double> Blur::splitDoubleString(QString string) {
-    std::vector<double> returnVector;
-    QStringList values = string.split(",");
-    for (const QString &val : qAsConst(values)) {
-        if (!val.isEmpty()) {
-            returnVector.push_back(val.toDouble());
-        }
+QString Blur::currentInfoText() const {
+    if (!m_reader || m_cachedBlurValues.empty() ||
+        m_currentIndex >= m_cachedBlurValues.size()) {
+        return tr("Blur value for the current image is not calculated");
     }
-    return returnVector;
+
+    double currentBlurValue = m_cachedBlurValues[m_currentIndex];
+    QString info = currentBlurValue == 0.0 ? tr("not calculated")
+                                           : QString::number(currentBlurValue);
+    return tr("Blur value for the current image is ") + info;
 }
 
-// Percent-of-median local threshold for provided indices
-std::vector<uint> Blur::sampleKeyframes(Reader *reader, Progressable *receiver,
-                                        volatile bool *stopped,
-                                        std::vector<uint> indices) {
+std::vector<uint> Blur::sampleKeyframes(Reader* reader,
+                                        volatile bool& cancelFlag,
+                                        const std::vector<uint>& indices) {
     std::vector<uint> sampledImages;
     int picCount = static_cast<int>(indices.size());
 
+    if (picCount == 0) {
+        emit updateProgress(100, tr("Blur progress"));
+        return sampledImages;
+    }
+
     for (int i = 0; i < picCount; i++) {
-        if (*stopped) return {};
-
-        uint idx = indices[i];
-
-        if (receiver != nullptr) {
-            int progress = (i * 100 / picCount);
-            QString currentProgress = progressMessage(i, picCount);
-            QMetaObject::invokeMethod(
-                receiver, "slot_makeProgress", Qt::DirectConnection,
-                Q_ARG(int, progress), Q_ARG(QString, currentProgress));
+        if (cancelFlag) {
+            return sampledImages;
         }
 
+        const uint idx = indices[i];
+        emit updateProgress((i * 100) / picCount, progressMessage(i, picCount));
+
         int ws = m_windowSize;
-        int wStart = (idx > (uint)ws) ? int(idx) - ws : 0;
-        int wEnd = std::min<int>(int(idx) + ws, m_reader->getPicCount() - 1);
+        int wStart = (idx > static_cast<uint>(ws)) ? int(idx) - ws : 0;
+        int wEnd = std::min<int>(int(idx) + ws, reader->getPicCount() - 1);
 
         std::vector<double> windowVals;
         windowVals.reserve(wEnd - wStart + 1);
         for (int w = wStart; w <= wEnd; ++w) {
-            if (m_blurValues[w] == 0) {
-                m_blurValues[w] = m_usedBlur->calcOneBluriness(reader, w);
+            if (m_cachedBlurValues[w] == 0.0) {
+                m_cachedBlurValues[w] = m_usedBlur->calcOneBluriness(reader->getPic(w), nullptr);
             }
-            windowVals.push_back(m_blurValues[w]);
+            windowVals.push_back(m_cachedBlurValues[w]);
         }
 
-        if (m_blurValues[idx] == 0) {
-            m_blurValues[idx] = m_usedBlur->calcOneBluriness(reader, idx);
+        if (m_cachedBlurValues[idx] == 0.0) {
+            m_cachedBlurValues[idx] = m_usedBlur->calcOneBluriness(reader->getPic(idx), nullptr);
         }
 
         double med = medianOf(windowVals);
@@ -313,19 +433,23 @@ std::vector<uint> Blur::sampleKeyframes(Reader *reader, Progressable *receiver,
             continue;
         }
 
-        double ratio = m_localDeviation / 100.0;
-        if (m_blurValues[idx] >= med * ratio) {
+        const double ratio = m_localDeviation / 100.0;
+        if (m_cachedBlurValues[idx] >= med * ratio) {
             sampledImages.push_back(idx);
         }
     }
 
-    QMetaObject::invokeMethod(receiver, "slot_makeProgress",
-                              Qt::DirectConnection, Q_ARG(int, 100),
-                              Q_ARG(QString, tr("Blur progress")));
+    emit updateProgress(100, tr("Blur progress"));
     return sampledImages;
 }
 
-QString Blur::progressMessage(int curr, int total) {
+QString Blur::progressMessage(int curr, int total) const {
     return tr("Calculate blur value for image ") + QString::number(curr) +
            tr(" of ") + QString::number(total);
+}
+
+void Blur::invalidateCache() {
+    m_cachedBlurValues.clear();
+    m_cachedPicCount = 0;
+    m_cachedAlgoName.clear();
 }

@@ -2,7 +2,10 @@
 
 ExportController::ExportController(OutputWidget *outputWidget,
                                    DataManager *dataManager,
-                                   lib3d::ots::ColmapWrapper *colmap) {
+                                   lib3d::ots::ColmapWrapper *colmap,
+                                   std::shared_ptr<PluginThread> pluginThread,
+                                   std::shared_ptr<MaskStack> maskStack
+                                ) {
     m_exportExec = nullptr;
     m_reconstructDialog = nullptr;
     m_currentExports.clear();
@@ -10,6 +13,17 @@ ExportController::ExportController(OutputWidget *outputWidget,
     m_outputWidget = outputWidget;
     m_dataManager = dataManager;
     m_colmap = colmap;
+    m_maskStack = maskStack;
+    m_pluginThread = pluginThread;
+
+    connect(m_maskStack.get(), &MaskStack::sig_stackChanged, this,
+            &ExportController::slot_onMaskStackChanged);
+
+    auto maskStackView = m_outputWidget->getMaskStackView();
+    connect(maskStackView.get(), &MaskStackView::sig_removeRecord,
+            m_maskStack.get(), &MaskStack::removeRecordById);
+    connect(maskStackView.get(), &MaskStackView::sig_clearAll,
+            m_maskStack.get(), &MaskStack::clear);
 
     m_altitude_original = 0.0;
     m_altitude_current = 0.0;
@@ -55,10 +69,10 @@ ExportController::ExportController(OutputWidget *outputWidget,
     // set the default output format depending on the input type (images /
     // video)
     if (m_dataManager->getModelInputPictures()->getReader()->isDir()) {
-        m_outputWidget->enableFormat(EXPORT_FORMAT_SAME_AS_INPUT, true);
-        m_outputWidget->setOutputFormat(EXPORT_FORMAT_SAME_AS_INPUT);
+        m_outputWidget->enableFormat(ExportFormat::SameAsInput, true);
+        m_outputWidget->setOutputFormat(ExportFormat::SameAsInput);
     } else {
-        m_outputWidget->enableFormat(EXPORT_FORMAT_SAME_AS_INPUT, false);
+        m_outputWidget->enableFormat(ExportFormat::SameAsInput, false);
         m_outputWidget->setOutputFormat("png");
     }
 }
@@ -87,19 +101,6 @@ QMap<QString, QVariant> ExportController::getOutputSettings() {
 
     if (use_roi) settings.insert(stringContainer::ROI, m_roi->toQRectF());
 
-    std::vector<bool> useItransform =
-        m_outputWidget->getSelectedITransformMasks();
-    QList<QVariant> iTransformSettings;
-    QList<QVariant> useItransformVariant;
-    int idx = 0;
-    for (bool use : useItransform) {
-        useItransformVariant.append(use);
-        iTransformSettings.append(
-            TransformManager::instance().getSettings(idx));
-    }
-    settings.insert(stringContainer::UseITransform, useItransformVariant);
-    settings.insert(stringContainer::ITransformSettings, iTransformSettings);
-
     settings.insert(stringContainer::OutputFormat,
                     m_outputWidget->getExportFormat());
     return settings;
@@ -110,14 +111,6 @@ void ExportController::setOutputSettings(QMap<QString, QVariant> settings) {
         m_path = settings.find(stringContainer::OutputPath).value().toString();
         m_outputWidget->setOutputPath(m_path);
     }
-
-    QList<QVariant> useItransformVariant =
-        settings.find(stringContainer::UseITransform).value().toList();
-    std::vector<bool> selection;
-    for (QVariant useItransform : useItransformVariant) {
-        selection.push_back(useItransform.toBool());
-    }
-    m_outputWidget->setSelectedITransformMasks(selection);
 
     if (settings.contains(stringContainer::Resolution)) {
         QString resolution =
@@ -145,15 +138,6 @@ void ExportController::setOutputSettings(QMap<QString, QVariant> settings) {
             settings.find(stringContainer::OutputFormat).value().toString();
         m_outputWidget->setOutputFormat(format);
     }
-
-    QList<QVariant> iTransformSettingsList =
-        settings.find(stringContainer::ITransformSettings).value().toList();
-    int idx = 0;
-    for (QVariant var : iTransformSettingsList) {
-        QMap<QString, QVariant> iTransformSettings = var.toMap();
-        TransformManager::instance().setSettings(iTransformSettings, idx);
-        idx++;
-    }
     updateFormatOptions();
 }
 
@@ -161,10 +145,11 @@ void ExportController::setOriginalAltitude(double altitude) {
     m_altitude_original = altitude;
     m_altitude_current = m_altitude_original;
     updateFormatOptions();
-    m_outputWidget->setOutputFormat(
-        m_dataManager->getModelInputPictures()->getReader()->isDir()
-            ? EXPORT_FORMAT_SAME_AS_INPUT
-            : "png");
+    if (m_dataManager->getModelInputPictures()->getReader()->isDir()) {
+        m_outputWidget->setOutputFormat(ExportFormat::SameAsInput);
+    } else {
+        m_outputWidget->setOutputFormat("png");
+    }
 }
 
 void ExportController::slot_reconstruct() {
@@ -209,7 +194,9 @@ void ExportController::slot_export() {
     }
 
     m_lfExport = LogManager::instance().createLogFile("Export", false);
-    m_lfExport->setSettings(getOutputSettings());
+    if (m_lfExport) {
+        m_lfExport->setSettings(getOutputSettings());
+    }
 
     if (m_path.endsWith("/")) {
         m_path.chop(1);
@@ -269,10 +256,6 @@ void ExportController::slot_export() {
         }
     }
 
-    // prepare iTransformNames
-    QStringList iTransformNames =
-        TransformManager::instance().getTransformList();
-
     if (wipeDir) {
         EmptyFolderDialog *emptyFolderD =
             new EmptyFolderDialog(m_outputWidget, pathWOimages);
@@ -308,29 +291,16 @@ void ExportController::slot_export() {
         }
     }
 
-    // add Itransform folders
-    std::vector<bool> iTransformUsed =
-        m_outputWidget->getSelectedITransformMasks();
-    if (iTransformNames.length() != (int)iTransformUsed.size()) {
-        // this shouldn't happen!
-        qDebug()
-            << "count of iTransformNames doesn't match iTransformUsed list";
-        return;
-    }
-    std::vector<ITransform *> iTransformCopies;
-    for (uint i = 0; i < unsigned(iTransformNames.length()); ++i) {
-        // check if itransform has been selected to export
-        if (!iTransformUsed[i]) {
-            continue;
-        }
-        iTransformCopies.push_back(
-            TransformManager::instance().getTransform(i)->copy());
+    printf("[ExportController] Masks to create:\n");
+    for (const auto &rec : m_maskStack->getAllRecords()) {
+        printf("%s\n",
+               rec.getDisplayName().toStdString().c_str());
     }
 
     if (m_exportExec != nullptr) {
         delete m_exportExec;
     }
-    m_exportExec = new ExportExecutor(this, m_dataManager);
+    m_exportExec = new ExportExecutor(this, m_dataManager, m_pluginThread);
     // connect GUI to export executor to display progress and result or to abort
     // export
     connect(m_exportExec, &ExportExecutor::sig_exportAborted, this,
@@ -339,6 +309,10 @@ void ExportController::slot_export() {
             &ExportController::slot_exportFinished);
     connect(m_exportExec, &ExportExecutor::sig_progress, m_outputWidget,
             &OutputWidget::slot_displayProgress);
+        connect(m_exportExec, &ExportExecutor::sig_message, m_outputWidget,
+            &OutputWidget::slot_displayMessage);
+        connect(m_exportExec, &ExportExecutor::sig_warning, m_outputWidget,
+            &OutputWidget::slot_displayWarning);
     connect(m_outputWidget, &OutputWidget::sig_abort, m_exportExec,
             &ExportExecutor::slot_abort);
     m_outputWidget->showProgress();  // swap OutputWidget to display progress
@@ -354,10 +328,10 @@ void ExportController::slot_export() {
     config.working_resolution = m_workingResolution;
     config.export_resolution = m_exportResolution;
     config.roi = m_roi;
-    config.transformations = iTransformCopies;
     config.copy_images =
         canCopyImages() &&
-        (m_outputWidget->getExportFormat() == EXPORT_FORMAT_SAME_AS_INPUT);
+        (m_outputWidget->getExportFormatEnum() == ExportFormat::SameAsInput);
+    config.maskStack = m_maskStack.get();
 
     // start export
     m_exportExec->startExport(config, m_lfExport);
@@ -385,6 +359,10 @@ void ExportController::slot_exportAborted() {
                &ExportController::slot_exportFinished);
     disconnect(m_exportExec, &ExportExecutor::sig_progress, m_outputWidget,
                &OutputWidget::slot_displayProgress);
+    disconnect(m_exportExec, &ExportExecutor::sig_message, m_outputWidget,
+               &OutputWidget::slot_displayMessage);
+    disconnect(m_exportExec, &ExportExecutor::sig_warning, m_outputWidget,
+               &OutputWidget::slot_displayWarning);
     disconnect(m_outputWidget, &OutputWidget::sig_abort, m_exportExec,
                &ExportExecutor::slot_abort);
     m_outputWidget->showExportOptions();  // swap OutputWidget to display result
@@ -399,6 +377,10 @@ void ExportController::slot_exportFinished(ExportResult result) {
                &ExportController::slot_exportFinished);
     disconnect(m_exportExec, &ExportExecutor::sig_progress, m_outputWidget,
                &OutputWidget::slot_displayProgress);
+    disconnect(m_exportExec, &ExportExecutor::sig_message, m_outputWidget,
+               &OutputWidget::slot_displayMessage);
+    disconnect(m_exportExec, &ExportExecutor::sig_warning, m_outputWidget,
+               &OutputWidget::slot_displayWarning);
     disconnect(m_outputWidget, &OutputWidget::sig_abort, m_exportExec,
                &ExportExecutor::slot_abort);
     m_outputWidget->showExportOptions();  // swap OutputWidget to display result
@@ -466,25 +448,9 @@ bool ExportController::startReconstruct() {
     QString exportPath = m_currentExports.find(exportName).value();
     qDebug() << "ExportPath:" << exportPath;
 
-    // get Itransforms and create maskPath
-    QStringList iTransformNames =
-        TransformManager::instance().getTransformList();
-    std::vector<ITransform *> iTransformCopies;
     QString maskPath = exportPath;
-    // mask path in project.ini file (for COLMAP) is set for the first
-    // iTransform that has a masks folder
-    bool maskPathIsSet = false;
-    std::vector<bool> iTransformUsed =
-        m_outputWidget->getSelectedITransformMasks();
-    if (iTransformUsed.size() != iTransformNames.length()) {
-        // this shouldn't happen
-        qDebug() << "start reconstruct failed, because .getTransformList() and "
-                    "getSelectedITransformMasks() didn't return Lists with the "
-                    "same size";
-    }
-
     maskPath.append("/masks");
-    maskPathIsSet = QDir(maskPath).exists();
+    bool maskPathIsSet = QDir(maskPath).exists();
 
     // boolean for whether it starts colmap gui or explorer
     bool colmapGUI = false;
@@ -651,7 +617,7 @@ bool ExportController::canCopyImages() {
 }
 
 void ExportController::updateFormatOptions() {
-    m_outputWidget->enableFormat(EXPORT_FORMAT_SAME_AS_INPUT, canCopyImages());
+    m_outputWidget->enableFormat(ExportFormat::SameAsInput, canCopyImages());
 }
 
 bool ExportController::createShortcutplusBatch(QString reconstructDir,
@@ -768,4 +734,10 @@ void ExportController::slot_exportResolutionChanged(QString resolution) {
         m_outputWidget->enableExport(valid);
     }
     updateFormatOptions();
+}
+
+void ExportController::slot_onMaskStackChanged() {
+    printf("Mask stack changed, updating UI options\n");
+    m_outputWidget->getMaskStackView()->setRecords(
+        m_maskStack->getAllRecords());
 }

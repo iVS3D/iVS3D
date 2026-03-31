@@ -162,6 +162,9 @@ public:
      */
     bool setLocale(QLocale locale);
 
+    QString getDefaultPluginName();
+    void setDefaultPluginName(const QString& pluginName);
+
 
 
 private:
@@ -176,6 +179,7 @@ private:
     void loadSettings();
     void saveSettings();
     QLocale m_locale;
+    QString m_defaultPluginName;
 };
 
 

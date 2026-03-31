@@ -7,8 +7,7 @@ bool g_useCuda = false;
 #include <opencv2/core/cuda.hpp>
 #endif
 
-double BlurAlgorithm::calcOneBluriness(Reader *images, int index) {
-    cv::Mat mat = images->getPic(index);
+double BlurAlgorithm::calcOneBluriness(const cv::Mat& img, cv::Mat* debugImage) {
 
 #if defined(WITH_CUDA)
     if (g_useCuda) {
@@ -24,5 +23,5 @@ double BlurAlgorithm::calcOneBluriness(Reader *images, int index) {
     }
 #endif
 
-    return singleCalculation(mat);
+    return singleCalculation(img, debugImage);
 }

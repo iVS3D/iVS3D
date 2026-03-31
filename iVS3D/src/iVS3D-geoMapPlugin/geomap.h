@@ -3,27 +3,27 @@
 
 // Std
 #include <cmath>
-#include <memory>
 #include <algorithm>
+#include <memory>
 
 // Qt
-#include <QCheckBox>
+#include <QCoreApplication>
 #include <QLabel>
 #include <QLayout>
 #include <QMap>
 #include <QObject>
+#include <QPointer>
 #include <QPushButton>
-#include <QSpinBox>
+#include <QTranslator>
+#include <QVBoxLayout>
 #include <QWidget>
-#include <QTabWidget>
 
 // iVS3D-core
-#include "../iVS3D-core/model/progressable.h"
-#include "../iVS3D-core/model/reader/reader.h"
-#include "../iVS3D-core/plugin/signalobject.h"
+#include "metadata.h"
 
 // iVS3D-pluginInterface
-#include "../iVS3D-pluginInterface/ialgorithm.h"
+#include "ibase.h"
+#include "iselection.h"
 
 #include "maphandler.h"
 
@@ -48,15 +48,15 @@
  * @author Daniel Brommer
  * @author Boitumelo Ruf
  */
-class GeoMap : public IAlgorithm
+class GeoMap : public PLUG::IBase, public PLUG::ISelection
 {
     Q_OBJECT
 
     // implement interface as plugin, use the iid as identifier
-    Q_PLUGIN_METADATA(IID "iVS3D.IAlgorithm")
+    Q_PLUGIN_METADATA(IID "iVS3D.IBase")
 
-    // declare this as implementation of IAlgorithm interface
-    Q_INTERFACES(IAlgorithm)
+    // declare this as implementation of IBase and ISelection interfaces
+    Q_INTERFACES(PLUG::IBase PLUG::ISelection)
 
     //--- METHOD DECLARATION ---//
 
@@ -71,17 +71,16 @@ class GeoMap : public IAlgorithm
     /**
      * @brief Destroy object of GeoMapPlugin.
      */
-    virtual ~GeoMap();
+    ~GeoMap() override = default;
 
     /**
      * @brief getSettingsWidget is provides an QWidget to display plugin specific settings to the
      * user. The Widget is not deleted by the core application, so storage management is duty of the
      * plugin.
      *
-     * @param parent The parent for the QWidget
      * @return The QWidget with the plugin settings
      */
-    QWidget* getSettingsWidget(QWidget* parent) override;
+    PLUG::SettingsWidgetResult getSettingsWidget() override;
 
     /**
      * @brief getName returns the display name for the plugin. This name is presented to the user.
@@ -89,54 +88,26 @@ class GeoMap : public IAlgorithm
      */
     QString getName() const override;
 
-    /**
-     * @brief sampleImages selects the keyframes from the given images. The computation is based on
-     * the images provided by the given Reader. The imageList provides indices for the currently
-     * selected keyframes.
-     *
-     * @param imageList Index list of images to compute, but indices in between can be used for
-     * computation
-     * @param receiver The Progressable to invoke to report progress
-     * @param stopped Flag @a true if the computation should abort, @a false if it should continue
-     * @param useCuda @a true if cv::cuda can be used
-     * @param logFile can be used to protocol progress or problems
-     * @return The indices of the selected keyframes
-     */
-    std::vector<uint> sampleImages(const std::vector<uint>& imageList,
-                                   Progressable* receiver, volatile bool* stopped,
-                                   bool useCuda, LogFileParent* logFile) override;
+    QMap<QString, QVariant> getSettings() const override;
+    PLUG::ApplySettingsResult applySettings(
+        const QMap<QString, QVariant>& settings) override;
+    PLUG::InputLoadedResult onInputLoaded(const PLUG::InputData& input) override;
+    PLUG::MetaDataLoadedResult onMetaDataLoaded(
+      const PLUG::InputMetaData& inputMetaData) override;
+    void onSelectedImagesChanged(
+        const std::vector<uint>& selectedImages) override;
+    void onIndexChanged(uint index) override;
 
-    /**
-     * @brief initialize the the IAlgorithm and the settings widget with plausible values from the
-     * Reader.
-     * @param reader The reader with the images
-     * @param buffer QVariant with the buffered data form last call to sampleImages
-     * @param sigObj provides signals from the core application
-     */
-    void initialize(Reader* reader, QMap<QString, QVariant> buffer, signalObject* sigObj) override;
+    PLUG::SelectionResult selectImages(const PLUG::SelectionData& data,
+                                 volatile bool& cancelFlag) override;
 
-    /**
-     * @brief setter for plugin's settings
-     * @param QMap with the settings
-     */
-    void setSettings(QMap<QString, QVariant> settings) override;
-
-    /**
-     * @brief getter for plugin's settings
-     * @return QMap with the settings
-     */
-    QMap<QString, QVariant> getSettings() override;
-
-    /**
-     * @brief generateSettings tries to generate the best settings for the current input
-     * @param receiver is a progressable, which displays the already made progress
-     * @param buffer QVariant with the buffered data form last call to sampleImages
-     * @param useCuda @a true if cv::cuda can be used
-     * @param stopped is set if the algorithm should abort
-     * @return QMap with the settings
-     */
-    QMap<QString, QVariant> generateSettings(Progressable* receiver, bool useCuda,
-                                             volatile bool* stopped) override;
+  signals:
+    void syncMapData(const GpsDataList& gpsData, const QPolygonF& polygon);
+    void syncMapPointUpdates(const GpsPointStateList& changedGpsData,
+                             const QPolygonF& polygon);
+    void syncMapPolygon(const QPolygonF& polygon);
+    void syncCurrentIndex(uint index);
+    void syncPartialSelectionMode(bool enabled);
 
   public slots:
 
@@ -148,16 +119,6 @@ class GeoMap : public IAlgorithm
     void onGpsClicked(QPointF gpsPoint, bool used);
 
     /**
-     * @brief onNewMetaData Slot is triggerd if the core loads new meta data
-     */
-    void onNewMetaData();
-    /**
-     * @brief onKeyframesChanged Slot is triggerd if the core emtis new keyframes
-     * @param keyframes Keyframe vector
-     */
-    void onKeyframesChanged(std::vector<uint> keyframes);
-
-    /**
      * @brief onGpsSelected Slot is triggered when a new user selcted polyogn is created
      * @param polyF Perimeter of the polyogn
      */
@@ -165,42 +126,25 @@ class GeoMap : public IAlgorithm
 
 
   private:
-    void createSettingsWidget(QWidget* parent);
+    std::unique_ptr<QWidget> createSettingsWidget();
+    void loadPersistentSettings();
+    void savePersistentSettings() const;
 
-    void readMetaData();
+    void readMetaData(MetaData* metaData);
     /// these are the localy stored keyframes
-    std::vector<unsigned int> getKeyframesFromGps();
+    std::vector<unsigned int> getKeyframesFromGps() const;
     /// these are all frames inside the user created polygon
-    std::vector<unsigned int> getFramesInsidePolygon();
+    std::vector<unsigned int> getFramesInsidePolygon() const;
 
-    QPointF gpsHashToLatLong(QVariant hash);
-    QGeoCoordinate gpsHashtoGeoCo(QVariant hash);
+    QPointF gpsHashToLatLong(const QVariant& hash, bool* ok = nullptr) const;
+    QGeoCoordinate gpsHashtoGeoCo(const QVariant& hash) const;
 
-    void initializeQmlMap();
-    void reinitializeQmlMap();
-
-    double distanceBetweenPoints(int first, int second);
-    double greatCircleDistance(QPointF first, QPointF second);
+    double distanceBetweenPoints(int first, int second) const;
+    double greatCircleDistance(QPointF first, QPointF second) const;
     //--- MEMBER DECLARATION ---//
 
   private:
-    /// Pointer to signal object of iVS3D-core
-    signalObject* mpSigObj;
-
-    /// Pointer to reader object of iVS3D-core
-    Reader* mpReader;
-
-    /// Pointer to QML container widget
-    QWidget* mpQuickViewContainerWidget;
-
-    /// Pointer to the map widget
-    QWidget* mpMapWidget;
-
-    /// Pointer to map handler
-    std::shared_ptr<MapHandler> mpMapHandler;
-
-    /// Buffered data form last call to sampleImages
-    QMap<QString, QVariant> mBuffer;
+    Reader* mReader = nullptr;
 
     /// List of available meta data
     QList<QVariant> mMetaData;
@@ -210,11 +154,9 @@ class GeoMap : public IAlgorithm
 
     QPolygonF mPolygon;
 
-    bool mIsQmlMapInitialized;
-
     /// Flag indicating if GPS data is available
-    bool mIsGpsAvailable;
-
+    bool mIsGpsAvailable = false;
+    bool mPartialSelectionEnabled = GEOMAP_ENABLE_PARTIAL_SELECTION != 0;
 };
 
 #endif // IVS3D_GEOMAPPLUGIN_H
