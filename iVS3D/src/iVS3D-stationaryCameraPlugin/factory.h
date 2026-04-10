@@ -35,7 +35,7 @@
  */
 class Factory {
    public:
-    static Factory &instance() {
+    static Factory& instance() {
         static Factory INSTANCE = Factory();
         return INSTANCE;
     }
@@ -54,15 +54,15 @@ class Factory {
      * @return as an std::tuple containing one of each components
      * {ImageGatherer, FlowCalculator, KeyframeSelector}
      */
-    std::tuple<ImageGatherer *, FlowCalculator *, KeyframeSelector *>
-    createComponents(std::vector<uint> futureFrames, Reader *reader,
+    std::tuple<ImageGatherer*, FlowCalculator*, KeyframeSelector*>
+    createComponents(std::vector<uint> futureFrames, iReader* reader,
                      bool useCuda, double threshold);
 
    private:
     Factory();
-    ImageGatherer *createImageGatherer(std::vector<uint> futureFrames,
-                                       Reader *reader, bool useCuda);
-    FlowCalculator *createFlowCalculator(bool useCuda);
+    ImageGatherer* createImageGatherer(std::vector<uint> futureFrames,
+                                       iReader* reader, bool useCuda);
+    FlowCalculator* createFlowCalculator(bool useCuda);
 };
 
 #endif  // FACTORY_H

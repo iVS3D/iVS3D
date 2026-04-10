@@ -105,7 +105,7 @@ class SmoothController : public IAlgorithm {
      * @return a settingWidget, which can be used to change the algorithm
      * parameters
      */
-    QWidget *getSettingsWidget(QWidget *parent) override;
+    QWidget* getSettingsWidget(QWidget* parent) override;
 
     /**
      * @brief sampleImages selects keyframe if the camera is currently not
@@ -120,10 +120,10 @@ class SmoothController : public IAlgorithm {
      * @param logFile poiter to the log file
      * @return A list of indices, which represent the selected keyframes.
      */
-    std::vector<uint> sampleImages(const std::vector<uint> &imageList,
-                                   Progressable *receiver,
-                                   volatile bool *stopped, bool useCuda,
-                                   LogFileParent *logFile) override;
+    std::vector<uint> sampleImages(const std::vector<uint>& imageList,
+                                   Progressable* receiver,
+                                   volatile bool* stopped, bool useCuda,
+                                   LogFileParent* logFile) override;
 
     /**
      * @brief getName Returns a name for displaying this algorithm to the user.
@@ -139,8 +139,8 @@ class SmoothController : public IAlgorithm {
      * sampleImages
      * @param sigObj provides signals from the core application
      */
-    void initialize(Reader *reader, QMap<QString, QVariant> buffer,
-                    signalObject *sigObj) override;
+    void initialize(iReader* reader, QMap<QString, QVariant> buffer,
+                    signalObject* sigObj) override;
 
     /**
      * @brief setter for plugin's settings
@@ -161,9 +161,9 @@ class SmoothController : public IAlgorithm {
      * @param stopped is set if the algorithm should abort
      * @return QMap with the settings
      */
-    QMap<QString, QVariant> generateSettings(Progressable *receiver,
+    QMap<QString, QVariant> generateSettings(Progressable* receiver,
                                              bool useCuda,
-                                             volatile bool *stopped) override;
+                                             volatile bool* stopped) override;
 
     /**
      * @brief getter for plugin's settings
@@ -174,21 +174,21 @@ class SmoothController : public IAlgorithm {
    private:
     // member variables
     double m_selectorThreshold = 2.0;
-    Reader *m_reader = nullptr;
+    iReader* m_reader = nullptr;
     QPoint m_inputResolution = QPoint(0, 0);
     cv::SparseMat m_bufferMat;
-    signalObject *m_sigObj = nullptr;
+    signalObject* m_sigObj = nullptr;
     //      widget elements
-    QWidget *m_settingsWidget = nullptr;
-    QDoubleSpinBox *m_selectorThresholdSpinBox = nullptr;
+    QWidget* m_settingsWidget = nullptr;
+    QDoubleSpinBox* m_selectorThresholdSpinBox = nullptr;
     // timing variables
     long m_durationFarnebackMs = 0;
     long m_durationComputationFlowMs = 0;
 
     // functions
-    void reportProgress(QString op, int progress, Progressable *receiver);
-    void displayMessage(QString txt, Progressable *receiver);
-    void createSettingsWidget(QWidget *parent);
+    void reportProgress(QString op, int progress, Progressable* receiver);
+    void displayMessage(QString txt, Progressable* receiver);
+    void createSettingsWidget(QWidget* parent);
     /**
      * @brief sendBuffer Sends all buffered values for storeing previously
      * calculated Infos

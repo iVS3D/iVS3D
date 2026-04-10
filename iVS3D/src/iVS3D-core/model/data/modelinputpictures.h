@@ -1,55 +1,54 @@
 #ifndef MODELINPUTPICTURES_H
 #define MODELINPUTPICTURES_H
 
-#include "reader.h"
-#include "readerfactory.h"
-#include "ISerializable.h"
-#include "stringcontainer.h"
-#include "concurrentreader.h"
-#include "metadatamanager.h"
-#include "algorithmmanager.h"
-#include "readerparams.h"
+#include <qresultstore.h>
 
+#include <QByteArray>
+#include <QJsonObject>
 #include <QObject>
 #include <QPoint>
-#include <opencv2/core.hpp>
-#include <opencv2/videoio.hpp>
-#include <opencv2/imgcodecs.hpp>
-#include <opencv2/core/utils/filesystem.hpp>
-#include <QByteArray>
-#include <QVector>
-#include <QVariant>
-#include <QJsonObject>
-#include <QVector>
 #include <QStringList>
+#include <QVariant>
+#include <QVector>
+#include <memory>
+#include <opencv2/core.hpp>
+#include <opencv2/core/utils/filesystem.hpp>
+#include <opencv2/imgcodecs.hpp>
+#include <opencv2/videoio.hpp>
 
+#include "ISerializable.h"
+#include "algorithmmanager.h"
+#include "metadatamanager.h"
+#include "reader.h"
+#include "readerfactory.h"
+#include "resolution.h"
+#include "stringcontainer.h"
 
 /**
  * @class ModelInputPictures
  *
  * @ingroup Model
  *
- * @brief The ModelInputPictures class is responsible for saving all the Data regarding the input. It implements the interface ISerializable to
- * be able to save all its current Data
+ * @brief The ModelInputPictures class is responsible for saving all the Data
+ * regarding the input. It implements the interface ISerializable to be able to
+ * save all its current Data
  *
  * @author Daniel Brommer
  *
  * @date 2021/01/28
  */
 
-class ModelInputPictures: public QObject, public ISerializable
-{
-Q_OBJECT
+class ModelInputPictures : public QObject, public ISerializable {
+    Q_OBJECT
 
-
-
-public:
+   public:
     /**
      * @class Memento
      *
      * @ingroup Model
      *
-     * @brief The Memento class is used to store and restore the keyframe list of mip for undo and redo.
+     * @brief The Memento class is used to store and restore the keyframe list
+     * of mip for undo and redo.
      *
      * @author Dominik Wuest
      *
@@ -58,13 +57,15 @@ public:
     class Memento {
         friend class ModelInputPictures;
 
-    public:
+       public:
         /**
-         * @brief getSnapshotDate returns the QDateTime object with the exact creation time and date of the memento
+         * @brief getSnapshotDate returns the QDateTime object with the exact
+         * creation time and date of the memento
          * @return The date and time of creation
          */
         QDateTime getSnapshotDate();
-    private:
+
+       private:
         Memento(std::vector<uint> state);
         std::vector<uint> getState();
 
@@ -73,13 +74,15 @@ public:
     };
 
     /**
-     * @brief ModelInputPictures Constructor, which uses inputPath to import the frames.
+     * @brief ModelInputPictures Constructor, which uses inputPath to import the
+     * frames.
      *
      * @param inputPath Path to the file or directory to be opend
      */
     explicit ModelInputPictures(QString inputPath);
     /**
-     * @brief ModelInputPictures Constructor, which creates an empty class. toText can be used on this instance.
+     * @brief ModelInputPictures Constructor, which creates an empty class.
+     * toText can be used on this instance.
      */
     explicit ModelInputPictures();
 
@@ -102,7 +105,7 @@ public:
      *
      * @param keyframes Index vector with the indices of the keyframes
      */
-    void updateMIP(const std::vector<unsigned int> &keyframes);
+    void updateKeyframes(const std::vector<unsigned int>& keyframes);
     /**
      * @brief Removes the keyframe with the given index
      *
@@ -110,46 +113,30 @@ public:
      */
     void removeKeyframe(unsigned int index);
     /**
-     * @brief Returns the frame with the given index
-     *
-     * @param index Index of the frame
-     * @return Mat pointer to the frame
-     */
-    const cv::Mat* getPic(unsigned int index, Reader::PictureProcessingFlags flags = Reader::APPLY_NONE);
-    /**
      * @brief Returns the number of keyframes
      *
-     * @param inBound   true: returns only the amount of keyframes between the currently set boundaries
-     *                  false: returns the total amount of keyframes
+     * @param inBound   true: returns only the amount of keyframes between the
+     * currently set boundaries false: returns the total amount of keyframes
      * @return Number of keyframes
      */
     unsigned int getKeyframeCount(bool inBound);
-    /**
-     * @brief Returns the number of frames
-     *
-     * @return Number of frames
-     */
-    unsigned int getPicCount();
+
     /**
      * @brief Returns the index vector containing the keyframes
      *
-     * @param inBound   true: returns only the keyframes that are between the currently set boundaries
-     *                  false: returns all keyframes
+     * @param inBound   true: returns only the keyframes that are between the
+     * currently set boundaries false: returns all keyframes
      * @return Keyframe vector
      */
     std::vector<unsigned int> getAllKeyframes(bool inBound);
 
     /**
-     * @brief getReaderParams returns the parameters (working resolution, crop, etc.) used by the readers.
-     * @return
-     */
-    std::shared_ptr<ReaderParams> getReaderParams();
-    /**
      * @brief Returns the stepsize-next keyframe to a given index
      *
      * @param index Index of the current frame
      * @param stepsize Number of keyframes to be skipped
-     * @return The index of the stepsize-next keyframe if it exists, otherwise it will return the last keyframe
+     * @return The index of the stepsize-next keyframe if it exists, otherwise
+     * it will return the last keyframe
      */
     unsigned int getNextKeyframe(unsigned int index, unsigned int stepsize);
     /**
@@ -157,27 +144,78 @@ public:
      *
      * @param index Index of the current frame
      * @param stepsize Number of keyframes to be skipped
-     * @return The index of the stepsize-next keyframe if it exists, otherwise it will return the first keyframe
+     * @return The index of the stepsize-next keyframe if it exists, otherwise
+     * it will return the first keyframe
      */
     unsigned int getPreviousKeyframe(unsigned int index, unsigned int stepsize);
+    /**
+     * @brief Returns the current boundaries
+     *
+     * @return The current boundaries
+     */
+    QPoint getBoundaries();
+    /**
+     * @brief Set the current boundaries
+     *
+     * @param boundaries The new boundaries
+     */
+    void setBoundaries(QPoint boundaries);
+
+    /**
+     * @brief Returns the number of frames
+     *
+     * @return Number of frames
+     */
+    unsigned int getImageCount();
+    /**
+     * @brief Returns the resolution as in form (width, height).
+     * This is the resolution of the first image. If the resolution changes
+     * during the data no gurantee is given.
+     *
+     * @return resolution (width,height) of the first image
+     */
+    Resolution getResolution();
+    /**
+     * @brief Setter for working resolution
+     * The working resolution is used to for sampling in plugins and masks are
+     * resized to this during export. This resolution needs to be smaller or the
+     * same as the (original) resolution.
+     *
+     * @param new working resolution
+     *
+     * @return true on success
+     */
+    bool setWorkingResolution(Resolution r);
+    /**
+     * @brief Setter for working resolution
+     * The working resolution is used to for sampling in plugins and masks are
+     * resized to this during export. This resolution needs to be smaller or the
+     * same as the (original) resolution.
+     *
+     * This version validates the string and uses the version with individual
+     * inputs underneath.
+     *
+     * @return working resolution (width,height)
+     */
+    bool setWorkingResolution(QString resStr);
+    /**
+     * @brief Getter for working resolution
+     * The working resolution is used to for sampling in plugins and masks
+     * are resized to this during export.
+     *
+     * This version validates the string and uses the version with individual
+     * inputs underneath.
+     *
+     * @return working resolution (width,height)
+     */
+    Resolution getWorkingResolution();
+
     /**
      * @brief Returns the input Path
      *
      * @return QString with the inputPath
      */
     QString getPath();
-    /**
-     * @brief Returns the current Reader as a DelayedCopyReader
-     *
-     * @return A DelayedCopyReader
-     */
-    Reader *getReader();
-    /**
-     * @brief createConcurrentReader creates an object from the class ConcurrentReader which can be used to access pictures in a parallel way
-     *
-     * @return object of the class ConcurrentReader
-     */
-    ConcurrentReader *createConcurrentReader();
     // ISerializable interface
     /**
      * @brief Saves this class to a QVariant
@@ -191,56 +229,51 @@ public:
      * @param data QVariant containing this class data
      */
     void fromText(QVariant data) override;
-    /**
-     * @brief Returns the current boundaries
-     *
-     * @return The current boundaries
-     */
-    QPoint getBoundaries();
-    /**
-     * @brief Set the current boundaries
-     *
-     * @param boundaries The new boundaries
-     */
-    void setBoundaries(QPoint boundaries);
+
     /**
      * @brief loadMetaData Loads the given meta data for the imported Video
      * @param path Paths the the meta data to load
      * @return how many MetaDataReader have succesfully loaded the meta data
      */
-    int loadMetaData(QStringList paths);    
+    int loadMetaData(QStringList paths);
     /**
-     * @brief loadMetaDataImages Tries to extract meta data from the imported images
+     * @brief loadMetaDataImages Tries to extract meta data from the
+     * imported images
      * @return how many MetaDataReader have succesfully loaded meta data
      */
     int loadMetaDataImages();
-    Memento *save();
-    void restore(Memento *m);
+    Memento* save();
+    void restore(Memento* m);
 
     void setAltitude(double altitude);
     double getAltitude();
 
+    std::unique_ptr<iReader> createNewReader();
 
-
-signals:
+   signals:
     /**
      * @brief Signal, which is emitted, when the keyframe vector changes
      *
      */
     void sig_mipChanged();
 
+   private:
+    // Keyframe Data
+    std::vector<unsigned int> m_keyframes = {};
+    QPoint m_boundaries = {-1, -1};
 
-private:
-    Reader* m_reader = nullptr;
-    std::vector<unsigned int> m_keyframes;
-    QString m_inputPath;
-    cv::Mat m_currentMat;
-    QPoint m_boundaries;
+    // Image Data
+    QString m_inputPath = "";
+    Resolution m_resolution = {0, 0};
+    Resolution m_workResolution = {0, 0};
+    uint m_imageCount = 0;
+
+    // Meta Data Management
     MetaDataManager* m_metaDataManager = nullptr;
-    std::shared_ptr<ReaderParams> m_readerParams;
-    double m_altitude;
+    double m_altitude = 0;
 
+    // helper functions
     std::vector<unsigned int> splitString(QString string);
 };
 
-#endif // MODELINPUTPICTURES_H
+#endif  // MODELINPUTPICTURES_H

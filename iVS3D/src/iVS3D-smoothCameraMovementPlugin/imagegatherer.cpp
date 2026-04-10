@@ -1,6 +1,6 @@
 #include "imagegatherer.h"
 
-ImageGatherer::ImageGatherer(Reader *reader, std::vector<uint> futureFrames) {
+ImageGatherer::ImageGatherer(iReader* reader, std::vector<uint> futureFrames) {
     m_reader = reader;
 }
 
@@ -32,7 +32,7 @@ QPair<cv::Mat, cv::Mat> ImageGatherer::gatherImagePair(uint from, uint to) {
     return QPair<cv::Mat, cv::Mat>(fromMat, toMat);
 }
 
-bool ImageGatherer::checkStoredImages(uint idx, cv::Mat *out) {
+bool ImageGatherer::checkStoredImages(uint idx, cv::Mat* out) {
     // check if image was already computed
     if (m_bufferedImages.contains(idx)) {
         *out = m_bufferedImages.value(idx);
@@ -45,6 +45,6 @@ bool ImageGatherer::checkStoredImages(uint idx, cv::Mat *out) {
 }
 
 cv::Mat ImageGatherer::gatherSingleImageStatic(uint frameIdx,
-                                               ImageGatherer *imgg) {
+                                               ImageGatherer* imgg) {
     return imgg->gatherSingleImage(frameIdx);
 }

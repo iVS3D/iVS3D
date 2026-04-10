@@ -1,36 +1,16 @@
-#ifndef READERFACTORY_H
-#define READERFACTORY_H
-
+#pragma once
 #include "reader.h"
-#include "readerparams.h"
 
-typedef std::function<Reader *(QString path, std::shared_ptr<ReaderParams> params)> AbstractReader;
-
-class ReaderFactory
-{
-public:
-
-    static ReaderFactory &instance(){
+class ReaderFactory {
+   public:
+    static ReaderFactory& instance() {
         static ReaderFactory INSTANCE;
         return INSTANCE;
     }
 
-    Reader* createReader(QString path, std::shared_ptr<ReaderParams> params);
+    std::pair<ReaderResult, std::unique_ptr<iReader>> createReader(
+        const std::string& path);
 
-    bool reg(std::string name, AbstractReader builder);
-
-private:
-    std::map<std::string, AbstractReader> m_availablerReader;
+   private:
     ReaderFactory();
-
 };
-
-template<typename Implementation>
-Reader *builder(QString path, std::shared_ptr<ReaderParams> params){
-    return new Implementation(path, params);
-}
-
-#define REGISTER_READER(name, impl) const bool res = ReaderFactory::instance().reg(name, builder<impl>);
-
-
-#endif // READERFACTORY_H

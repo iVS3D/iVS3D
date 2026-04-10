@@ -1,85 +1,86 @@
 #include "modelinputpictures.h"
 
+#include <qfileinfo.h>
 
-ModelInputPictures::ModelInputPictures(QString inputPath)
-{
+#include <memory>
+#include <utility>
+#include <vector>
+
+#include "imagereader.h"
+#include "readererror.h"
+#include "resolution.h"
+
+ModelInputPictures::ModelInputPictures(QString inputPath) {
+    // image data from a reader
+    m_inputPath = inputPath;
+    auto reader = createNewReader();
+    if (!reader) return;
+    m_resolution = reader->getResolution(false);
+    m_imageCount = reader->getImageCount();
+
+    // fill keyframes
+    m_boundaries = QPoint(0, m_imageCount - 1);
+    m_keyframes = std::vector<uint>(m_imageCount);
+    std::iota(m_keyframes.begin(), m_keyframes.end(), 0);
+
+    // MetaData
     m_metaDataManager = &MetaDataManager::instance();
     m_metaDataManager->resetData();
-    m_readerParams = std::make_shared<ReaderParams>();
-    m_reader = ReaderFactory::instance().createReader(inputPath, m_readerParams);
 
-    if (m_reader == nullptr) {
-        return;
-    }
-
-    if(m_reader->getPicCount() > 0) {
-        m_inputPath = inputPath;
-        cv::Mat img = m_reader->getPic(0, Reader::PictureProcessingFlags::APPLY_NONE);
-        m_readerParams->initialize(Resolution(img));
-    }
-
-    if (m_reader->isDir()) {
+    QFileInfo fileInfo(m_inputPath);
+    if (fileInfo.isDir()) {
+        // try to load Meta Data from images
         loadMetaDataImages();
-    }
-    else {
-        //if a video is loaded, search for a srt file with the same name and try to loadMetaData from it
-        QFileInfo info = QFileInfo (inputPath);
-        QDir dir = info.dir();
-        for(auto gps_file: MetaDataManager::supportedFileExtensions()){
-            QString metaName = info.baseName().append(gps_file);
+    } else {
+        // if a video is loaded, search for a srt file with the same name and
+        // try to loadMetaData from it
+        QDir dir = fileInfo.dir();
+        for (auto gps_file : MetaDataManager::supportedFileExtensions()) {
+            QString metaName = fileInfo.baseName().append(gps_file);
             if (dir.exists(metaName)) {
                 loadMetaData(QStringList(dir.filePath(metaName)));
                 break;
             }
         }
     }
-
-    m_boundaries = QPoint(0,m_reader->getPicCount()-1);
-    m_keyframes.reserve(m_reader->getPicCount());
-    for(uint i = 0; i < m_reader->getPicCount(); i++){
-        m_keyframes.push_back(i);
-    }
 }
 
+std::unique_ptr<iReader> ModelInputPictures::createNewReader() {
+    std::pair<ReaderResult, std::unique_ptr<iReader>> res =
+        ReaderFactory::instance().createReader(m_inputPath.toStdString());
+    if (res.first != ReaderResult::Success) return nullptr;
 
-ModelInputPictures::ModelInputPictures()
-{
-    m_boundaries = QPoint(0,0);
+    res.second->addMetaData(m_metaDataManager);
+    return std::move(res.second);
 }
 
-ModelInputPictures::~ModelInputPictures()
-{
-    delete m_reader;
-}
+ModelInputPictures::ModelInputPictures() { m_boundaries = QPoint(0, 0); }
+
+ModelInputPictures::~ModelInputPictures() {}
 
 bool ModelInputPictures::isKeyframe(unsigned int index) {
-    return std::binary_search(this->m_keyframes.begin(), this->m_keyframes.end(), index);
+    return std::binary_search(this->m_keyframes.begin(),
+                              this->m_keyframes.end(), index);
 }
 
-
-void ModelInputPictures::updateMIP(const std::vector<unsigned int> &keyframes)
-{
-    // TODO!!! optimization possible: no need to copy lists, just count keyframes
-    // inside / outside boundries and create iterator that filters
+void ModelInputPictures::updateKeyframes(
+    const std::vector<unsigned int>& keyframes) {
+    // TODO!!! optimization possible: no need to copy lists, just count
+    // keyframes inside / outside boundries and create iterator that filters
 
     auto inBoundaries = [=](uint i) {
         return i >= (uint)m_boundaries.x() && i <= (uint)m_boundaries.y();
     };
     // keep old keyframes outside the boundaries
     std::vector<uint> old_frames;
-    std::copy_if(
-                this->m_keyframes.begin(),
-                this->m_keyframes.end(),
-                std::back_inserter(old_frames),
-                [=](uint i){ return !inBoundaries(i); });
+    std::copy_if(this->m_keyframes.begin(), this->m_keyframes.end(),
+                 std::back_inserter(old_frames),
+                 [=](uint i) { return !inBoundaries(i); });
 
     // only take new keyframes inside the boundaries
     std::vector<uint> new_frames;
-    std::copy_if(
-                keyframes.begin(),
-                keyframes.end(),
-                std::back_inserter(new_frames),
-                inBoundaries);
+    std::copy_if(keyframes.begin(), keyframes.end(),
+                 std::back_inserter(new_frames), inBoundaries);
 
     // frames to keep are stored in old_frames
     // allocate space for new keyframes
@@ -87,24 +88,20 @@ void ModelInputPictures::updateMIP(const std::vector<unsigned int> &keyframes)
     m_keyframes.resize(old_frames.size() + new_frames.size());
 
     // merge old frames outside boundaries with new keyframes
-    std::merge(
-                old_frames.begin(),
-                old_frames.end(),
-                new_frames.begin(),
-                new_frames.end(),
-                this->m_keyframes.begin());
+    std::merge(old_frames.begin(), old_frames.end(), new_frames.begin(),
+               new_frames.end(), this->m_keyframes.begin());
 
     AlgorithmManager::instance().notifyKeyframesChanged(m_keyframes);
     emit sig_mipChanged();
 }
 
-
-void ModelInputPictures::addKeyframe(unsigned int index)
-{
+void ModelInputPictures::addKeyframe(unsigned int index) {
     if (isKeyframe(index)) {
         return;
     }
-    this->m_keyframes.insert(std::upper_bound(this->m_keyframes.begin(), this->m_keyframes.end(), index), index);
+    this->m_keyframes.insert(std::upper_bound(this->m_keyframes.begin(),
+                                              this->m_keyframes.end(), index),
+                             index);
     AlgorithmManager::instance().notifyKeyframesChanged(m_keyframes);
     emit sig_mipChanged();
     return;
@@ -112,7 +109,8 @@ void ModelInputPictures::addKeyframe(unsigned int index)
 
 void ModelInputPictures::removeKeyframe(unsigned int index) {
     if (isKeyframe(index)) {
-        std::vector<unsigned int>::iterator it = std::find(this->m_keyframes.begin(), this->m_keyframes.end(), index);
+        std::vector<unsigned int>::iterator it = std::find(
+            this->m_keyframes.begin(), this->m_keyframes.end(), index);
         this->m_keyframes.erase(it);
         AlgorithmManager::instance().notifyKeyframesChanged(m_keyframes);
         emit sig_mipChanged();
@@ -120,77 +118,77 @@ void ModelInputPictures::removeKeyframe(unsigned int index) {
     return;
 }
 
-
-const cv::Mat* ModelInputPictures::getPic(unsigned int index, Reader::PictureProcessingFlags flags){
-    m_currentMat = m_reader->getPic(index, flags);
-    return &m_currentMat;
-}
-
-
-unsigned int ModelInputPictures::getKeyframeCount(bool inBound){
+unsigned int ModelInputPictures::getKeyframeCount(bool inBound) {
     return static_cast<unsigned int>(getAllKeyframes(inBound).size());
 }
 
-unsigned int ModelInputPictures::getPicCount(){
-    if (m_reader == nullptr) {
-        return 0;
-    }
-    return m_reader->getPicCount();
+unsigned int ModelInputPictures::getImageCount() { return m_imageCount; }
+
+Resolution ModelInputPictures::getResolution() { return m_resolution; }
+
+Resolution ModelInputPictures::getWorkingResolution() {
+    return m_workResolution;
 }
 
-unsigned int ModelInputPictures::getNextKeyframe(unsigned int index, unsigned int stepsize){
-    if(m_keyframes.size() == 0){
-        return index;
-    }
-   std::vector<unsigned int>::iterator it = std::upper_bound(this->m_keyframes.begin(), this->m_keyframes.end()-1, index);
+bool ModelInputPictures::setWorkingResolution(QString resStr) {
+    Resolution nWorkRes;
+    if (!nWorkRes.fromString(resStr)) return false;
+    nWorkRes.fromString(resStr);
 
-   stepsize--;
-   while(stepsize > 0 && it != m_keyframes.end()-1){
-       ++it;
-       stepsize--;
-   }
-   return *it;
+    return setWorkingResolution(nWorkRes);
 }
 
-unsigned int ModelInputPictures::getPreviousKeyframe(unsigned int index, unsigned int stepsize)
-{
-    if(m_keyframes.size() == 0){
+bool ModelInputPictures::setWorkingResolution(Resolution r) {
+    bool valid = true;
+    valid &= 0 < r.getWidth() && r.getWidth() <= m_resolution.getWidth();
+    valid &= 0 < r.getHeight() && r.getHeight() <= m_resolution.getHeight();
+
+    if (valid) m_workResolution = r;
+    return valid;
+}
+
+unsigned int ModelInputPictures::getNextKeyframe(unsigned int index,
+                                                 unsigned int stepsize) {
+    if (m_keyframes.size() == 0) {
+        return index;
+    }
+    std::vector<unsigned int>::iterator it = std::upper_bound(
+        this->m_keyframes.begin(), this->m_keyframes.end() - 1, index);
+
+    stepsize--;
+    while (stepsize > 0 && it != m_keyframes.end() - 1) {
+        ++it;
+        stepsize--;
+    }
+    return *it;
+}
+
+unsigned int ModelInputPictures::getPreviousKeyframe(unsigned int index,
+                                                     unsigned int stepsize) {
+    if (m_keyframes.size() == 0) {
         return index;
     }
 
-    for(int i = 0; i<(int)m_keyframes.size();i++){
-        if(m_keyframes[i] >= index){
-            return m_keyframes[(i>=(int)stepsize) ? i-stepsize : 0];
+    for (int i = 0; i < (int)m_keyframes.size(); i++) {
+        if (m_keyframes[i] >= index) {
+            return m_keyframes[(i >= (int)stepsize) ? i - stepsize : 0];
         }
     }
-    return m_keyframes[(m_keyframes.size()>stepsize) ? m_keyframes.size()-stepsize : 0];
+    return m_keyframes[(m_keyframes.size() > stepsize)
+                           ? m_keyframes.size() - stepsize
+                           : 0];
 }
 
-QString ModelInputPictures::getPath()
-{
-    return m_inputPath;
-}
+QString ModelInputPictures::getPath() { return m_inputPath; }
 
-Reader *ModelInputPictures::getReader()
-{
-    return m_reader;
-}
-
-ConcurrentReader *ModelInputPictures::createConcurrentReader()
-{
-    return new ConcurrentReader(m_reader);
-}
-
-
-QVariant ModelInputPictures::toText()
-{
+QVariant ModelInputPictures::toText() {
     QVariant inputPath(m_inputPath);
 
-    //Keyframe vector to Variant
+    // Keyframe vector to Variant
     std::stringstream keyStream;
     for (uint i = 0; i < m_keyframes.size(); i++) {
         if (i != 0) {
-           keyStream << stringContainer::jsonDelimiter.toStdString();
+            keyStream << stringContainer::jsonDelimiter.toStdString();
         }
         keyStream << m_keyframes[i];
     }
@@ -202,20 +200,22 @@ QVariant ModelInputPictures::toText()
 
     QJsonObject jsonObject;
     QJsonValue::fromVariant(inputPath);
-    jsonObject.insert(stringContainer::keyframesIdentifier, QJsonValue::fromVariant(keyframes));
-    jsonObject.insert(stringContainer::inputPathIdentifier, QJsonValue::fromVariant(inputPath));
-    jsonObject.insert(stringContainer::boundariesIdentifier, QJsonValue::fromVariant(varBoundaries));
-    jsonObject.insert("readerparams", QJsonValue::fromVariant(m_readerParams->toText()));
+    jsonObject.insert(stringContainer::keyframesIdentifier,
+                      QJsonValue::fromVariant(keyframes));
+    jsonObject.insert(stringContainer::inputPathIdentifier,
+                      QJsonValue::fromVariant(inputPath));
+    jsonObject.insert(stringContainer::boundariesIdentifier,
+                      QJsonValue::fromVariant(varBoundaries));
 
     // if we have metadata, store related infos too!
     {
         QJsonObject json;
 
         // we want to store the metadata files (if any)...
-        if (!m_metaDataManager->getPaths().empty()){
+        if (!m_metaDataManager->getPaths().empty()) {
             QJsonArray metaDataPaths;
             for (auto path : m_metaDataManager->getPaths()) {
-               metaDataPaths.append(path);
+                metaDataPaths.append(path);
             }
             json["files"] = metaDataPaths;
         }
@@ -223,47 +223,45 @@ QVariant ModelInputPictures::toText()
         // ... and the gps altitude offset (if available)
         for (MetaDataReader* reader : m_metaDataManager->loadAllMetaData()) {
             if (reader->getName().startsWith("GPS")) {
-               json["gps_altitude"] = m_altitude;
-               break;
+                json["gps_altitude"] = m_altitude;
+                break;
             }
         }
 
         // only add this section if any infos to store!
-        if(!json.isEmpty()) jsonObject["metadata"] = json;
+        if (!json.isEmpty()) jsonObject["metadata"] = json;
     }
 
     return QVariant(jsonObject);
 }
 
-void ModelInputPictures::fromText(QVariant data)
-{
+void ModelInputPictures::fromText(QVariant data) {
     m_metaDataManager = &MetaDataManager::instance();
     m_metaDataManager->resetData();
 
     QJsonObject jsonData = data.toJsonObject();
-    //get import part, create new reader and set resolution
-    QJsonObject::Iterator inputPath = jsonData.find(stringContainer::inputPathIdentifier);
+    // get import part, create new reader and set resolution
+    QJsonObject::Iterator inputPath =
+        jsonData.find(stringContainer::inputPathIdentifier);
     m_inputPath = inputPath.value().toString();
-    m_readerParams = std::make_shared<ReaderParams>();
-    m_reader = ReaderFactory::instance().createReader(m_inputPath, m_readerParams);
 
-    if (m_reader->getPicCount() != 0) {
-        m_boundaries = QPoint(0,m_reader->getPicCount() -1);
+    // get image data from reader
+    auto reader = createNewReader();
+    if (!reader) return;
+    m_resolution = reader->getResolution(false);
+    m_imageCount = reader->getImageCount();
 
-        m_readerParams->initialize(Resolution(m_reader->getPic(0, Reader::PictureProcessingFlags::APPLY_NONE)));
-
-        auto readerParams = jsonData.find("readerparams");
-
-        if(!readerParams->isNull() && !readerParams->isUndefined()){
-           m_readerParams->fromText(readerParams.value().toVariant());
-        }
-    }
-    //get keyframes
-    QString keyframes = jsonData.find(stringContainer::keyframesIdentifier).value().toString();
+    // get keyframes
+    QString keyframes =
+        jsonData.find(stringContainer::keyframesIdentifier).value().toString();
     m_keyframes = splitString(keyframes);
 
     // get boundaries
-    QVariantList varBoundaries = jsonData.find(stringContainer::boundariesIdentifier).value().toVariant().toList();
+    QVariantList varBoundaries =
+        jsonData.find(stringContainer::boundariesIdentifier)
+            .value()
+            .toVariant()
+            .toList();
     if (varBoundaries.size() == 2) {
         QPoint boundaries;
         boundaries.setX(varBoundaries.at(0).toInt());
@@ -272,86 +270,78 @@ void ModelInputPictures::fromText(QVariant data)
     }
 
     // get metadata
-    if(jsonData.contains("metadata")) {
+    if (jsonData.contains("metadata")) {
         QJsonObject json = jsonData["metadata"].toObject();
 
         // metadata files
-        if (m_reader->isDir()) {
-           loadMetaDataImages();
-        } else if(json.contains("files")) {
-           QStringList files;
-           for (auto file : json["files"].toArray()) {
-               files.push_back(file.toString());
-           }
-           loadMetaData(files);
+        if (QFileInfo(m_inputPath).isDir()) {
+            loadMetaDataImages();
+        } else if (json.contains("files")) {
+            QStringList files;
+            for (auto file : json["files"].toArray()) {
+                files.push_back(file.toString());
+            }
+            loadMetaData(files);
         }
 
         // altitude offset
-        if(json.contains("gps_altitude")) {
-           setAltitude(json["gps_altitude"].toDouble());
+        if (json.contains("gps_altitude")) {
+            setAltitude(json["gps_altitude"].toDouble());
         }
     }
 }
 
-QPoint ModelInputPictures::getBoundaries()
-{
-    return m_boundaries;
-}
+QPoint ModelInputPictures::getBoundaries() { return m_boundaries; }
 
-void ModelInputPictures::setBoundaries(QPoint boundaries)
-{
-
+void ModelInputPictures::setBoundaries(QPoint boundaries) {
     m_boundaries = boundaries;
 }
 
-int ModelInputPictures::loadMetaData(QStringList paths)
-{
+int ModelInputPictures::loadMetaData(QStringList paths) {
     int oldMetaCount = m_metaDataManager->availableMetaData().size();
-    m_metaDataManager->initMetaDataVideo(paths, m_reader->getPicCount(), m_reader->getFPS());
-    m_reader->addMetaData(m_metaDataManager);
-    int metaDataLoaded =  m_metaDataManager->availableMetaData().size() - oldMetaCount;
+    auto reader = createNewReader();
+    if (!reader) return -1;
+    m_metaDataManager->initMetaDataVideo(paths, m_imageCount,
+                                         reader->getAvgFps());
+    int metaDataLoaded =
+        m_metaDataManager->availableMetaData().size() - oldMetaCount;
     return metaDataLoaded;
 }
 
-int ModelInputPictures::loadMetaDataImages()
-{
-    m_metaDataManager->initMetaDataImages(m_reader->getFileVector());
-    m_reader->addMetaData(m_metaDataManager);
+int ModelInputPictures::loadMetaDataImages() {
+    std::unique_ptr<iReader> reader = createNewReader();
+    ImageReader* imageReader = dynamic_cast<ImageReader*>(reader.get());
+    if (!imageReader) return -1;
+    m_metaDataManager->initMetaDataImages(imageReader->getFileVector());
+    delete imageReader;
     int metaDataLoaded = m_metaDataManager->availableMetaData().size();
     return metaDataLoaded;
 }
 
-ModelInputPictures::Memento *ModelInputPictures::save()
-{
+ModelInputPictures::Memento* ModelInputPictures::save() {
     return new Memento(m_keyframes);
 }
 
-void ModelInputPictures::restore(ModelInputPictures::Memento *m)
-{
+void ModelInputPictures::restore(ModelInputPictures::Memento* m) {
     m_keyframes = m->getState();
     AlgorithmManager::instance().notifyKeyframesChanged(m_keyframes);
     emit sig_mipChanged();
 }
 
-void ModelInputPictures::setAltitude(double altitude)
-{
+void ModelInputPictures::setAltitude(double altitude) {
     m_altitude = altitude;
     QList<MetaDataReader*> metaReader = m_metaDataManager->loadAllMetaData();
     for (MetaDataReader* reader : metaReader) {
         if (reader->getName().startsWith("GPS")) {
-           GPSReader* gps = dynamic_cast<GPSReader*>(reader);
-           gps->setAltitudeDiff(altitude);
+            GPSReader* gps = dynamic_cast<GPSReader*>(reader);
+            gps->setAltitudeDiff(altitude);
         }
     }
 }
 
-double ModelInputPictures::getAltitude()
-{
-    return m_altitude;
-}
+double ModelInputPictures::getAltitude() { return m_altitude; }
 
-std::vector<unsigned int> ModelInputPictures::getAllKeyframes(bool inBound)
-{   
+std::vector<unsigned int> ModelInputPictures::getAllKeyframes(bool inBound) {
     if (!inBound) {
         // all keyframes
         return m_keyframes;
@@ -371,9 +361,9 @@ std::vector<unsigned int> ModelInputPictures::getAllKeyframes(bool inBound)
     uint startFrame = m_boundaries.x();
     uint endFrame = m_boundaries.y();
 
-
     for (uint currKeyframe : m_keyframes) {
-        // breaks when an the keyframe is greater than startFrame (front boundary)
+        // breaks when an the keyframe is greater than startFrame (front
+        // boundary)
         if (startFrame <= currKeyframe && currKeyframe <= endFrame) {
             croppedKeyframes.push_back(currKeyframe);
         }
@@ -381,32 +371,21 @@ std::vector<unsigned int> ModelInputPictures::getAllKeyframes(bool inBound)
     return croppedKeyframes;
 }
 
-std::shared_ptr<ReaderParams> ModelInputPictures::getReaderParams()
-{
-    return m_readerParams;
-}
-
 std::vector<unsigned int> ModelInputPictures::splitString(QString string) {
-
     std::vector<unsigned int> returnVector;
     QStringList values = string.split(stringContainer::jsonDelimiter);
     for (QString& val : values) {
         if (!val.isEmpty()) {
-          returnVector.push_back(val.toUInt());
+            returnVector.push_back(val.toUInt());
         }
     }
     return returnVector;
 }
 
+QDateTime ModelInputPictures::Memento::getSnapshotDate() { return m_dateTime; }
 
-QDateTime ModelInputPictures::Memento::getSnapshotDate()
-{
-    return m_dateTime;
+ModelInputPictures::Memento::Memento(std::vector<uint> state) : m_state(state) {
+    m_dateTime = QDateTime::currentDateTime();
 }
 
-ModelInputPictures::Memento::Memento(std::vector<uint> state) : m_state(state) { m_dateTime = QDateTime::currentDateTime(); }
-
-std::vector<uint> ModelInputPictures::Memento::getState()
-{
-    return m_state;
-}
+std::vector<uint> ModelInputPictures::Memento::getState() { return m_state; }

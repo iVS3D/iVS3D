@@ -3,12 +3,13 @@
 
 #include <QObject>
 #include <tl/expected.hpp>
-#include "opencv2/core.hpp"
+
 #include "cvmat_qmetadata.h"
-#include "resolution.h"
-#include "roi.h"
 #include "iVS3D-pluginInterface_global.h"
 #include "ierror.h"
+#include "opencv2/core.hpp"
+#include "resolution.h"
+#include "roi.h"
 
 using TransformResult = tl::expected<cv::Mat, Error>;
 Q_DECLARE_METATYPE(TransformResult)
@@ -18,16 +19,20 @@ Q_DECLARE_METATYPE(TransformResult)
  *
  * @ingroup Plugin
  *
- * @brief The ITransform interface is used for algorithms to create additional image files from the source images. Plugins for this
- * interface are dynamically loaded from the plugins folder. Each ITransform needs to provide an QWidget for user interaction and a
- * display name. Using the transform method, the plugin can create additional images such as semantic maps for the given source image.
+ * @brief The ITransform interface is used for algorithms to create additional
+ * image files from the source images. Plugins for this interface are
+ * dynamically loaded from the plugins folder. Each ITransform needs to provide
+ * an QWidget for user interaction and a display name. Using the transform
+ * method, the plugin can create additional images such as semantic maps for the
+ * given source image.
  *
- * Since calculation on images can be computationally expensive, the ITransform instance is moved to a worker thread. Previews for the
- * gui can be sent to the gui thread using the sendToGui signal.
+ * Since calculation on images can be computationally expensive, the ITransform
+ * instance is moved to a worker thread. Previews for the gui can be sent to the
+ * gui thread using the sendToGui signal.
  *
  * Keep in mind that the QWidget provided by getSettingsWidget will run
- * in the gui thread while the ITransform instance itself is moved to a worker thread. Intraction between the QWidget and ITransform
- * has to be threadsafe!
+ * in the gui thread while the ITransform instance itself is moved to a worker
+ * thread. Intraction between the QWidget and ITransform has to be threadsafe!
  *
  * @see SemanticSegmentation
  *
@@ -35,7 +40,8 @@ Q_DECLARE_METATYPE(TransformResult)
  *
  * @author Dominik Wüst
  *
- * This example shows how to create a ITransform plugin and a settings widget with a button:
+ * This example shows how to create a ITransform plugin and a settings widget
+ * with a button:
  *
  * @code
  *  class Plugin : public ITransform {
@@ -64,7 +70,8 @@ Q_DECLARE_METATYPE(TransformResult)
  *          settingsWidget = new QWidget(parent);
  *          settingsWidget->layout()->addWidget(button);
  *          // connect button to Plugin using Qt DirectConnection
- *          connect(button, &QPushButton::pressed, this, &Plugin::onButtonPressed, Qt::DirectConnection);
+ *          connect(button, &QPushButton::pressed, this,
+ * &Plugin::onButtonPressed, Qt::DirectConnection);
  *      }
  *
  *      ImageList transform(uint idx, const cv::Mat &img){
@@ -80,21 +87,22 @@ Q_DECLARE_METATYPE(TransformResult)
  *  };
  * @endcode
  *
- * The Button on the settingsWidget is connected to the plugin using the threadsafe DirectConnection. This allows
- * to calculate computationally expensive previews in the worker thread and update the gui after calculation has
- * finished.
+ * The Button on the settingsWidget is connected to the plugin using the
+ * threadsafe DirectConnection. This allows to calculate computationally
+ * expensive previews in the worker thread and update the gui after calculation
+ * has finished.
  */
-class IVS3DPLUGININTERFACE_EXPORT ITransform : public QObject
-{
+class IVS3DPLUGININTERFACE_EXPORT ITransform : public QObject {
     Q_OBJECT
 
-public:
-
+   public:
     virtual ~ITransform() {}
     /**
-     * @brief getSettingsWidget is provides an QWidget to display plugin specific settings to the user. Keep in mind that the widget
-     * will run in gui thread while this ITransform instance is moved to a worker thread! Use DirectConnection for signals between the
-     * widget and this instance or ensure thread safety for interaction.
+     * @brief getSettingsWidget is provides an QWidget to display plugin
+     * specific settings to the user. Keep in mind that the widget will run in
+     * gui thread while this ITransform instance is moved to a worker thread!
+     * Use DirectConnection for signals between the widget and this instance or
+     * ensure thread safety for interaction.
      * @param parent The parent for the QWidget
      * @return The QWidget with the plugin settings
      */
@@ -110,16 +118,18 @@ public:
      * @brief copy creates a new ITransform instance which is a deep copy.
      * @return The copy
      */
-    virtual ITransform *copy() = 0;
+    virtual ITransform* copy() = 0;
 
     /**
-     * @brief transform generates additional images from the given image. The signal sendToGui can be used to
-     * update the preview for the user.
+     * @brief transform generates additional images from the given image. The
+     * signal sendToGui can be used to update the preview for the user.
      * @param idx The index of the image to transform
      * @param img The image to transform
      * @return Pointers to the transformed images
      */
-    virtual TransformResult transform(uint idx, const cv::Mat &img, const Resolution &resolution, const ROI &roi) = 0;
+    virtual TransformResult transform(uint idx, const cv::Mat& img,
+                                      const Resolution& resolution,
+                                      const ROI& roi) = 0;
 
     /**
      * @brief enableCuda enables use of the CUDA api to accelerate computations.
@@ -140,28 +150,28 @@ public:
     virtual QMap<QString, QVariant> getSettings() = 0;
 
     /**
-     * @brief activate will be called before the plugin is used, 
+     * @brief activate will be called before the plugin is used,
      * i.e. when the user selects it in the seampling window or when exporting.
      */
     virtual void activate() {}
 
     /**
      * @brief deactivate will be called when the plugin is no longer used,
-     * i.e. when the user deselects it in the sampling window or when exporting finishes.
-     * This should be used to free resources such as gpu memory.
+     * i.e. when the user deselects it in the sampling window or when exporting
+     * finishes. This should be used to free resources such as gpu memory.
      */
     virtual void deactivate() {}
 
-
-signals:
+   signals:
     /**
-     * @brief [signal] sendToGui is emitted if the ITransform instance has an image to display to the user.
+     * @brief [signal] sendToGui is emitted if the ITransform instance has an
+     * image to display to the user.
      * @param idx The index of the image in transformation
      * @param img The image to display to the user
      */
-    void sendToGui(uint idx, const cv::Mat &img);
+    void sendToGui(uint idx, const cv::Mat& img);
 };
 
 Q_DECLARE_INTERFACE(ITransform, "iVS3D.ITransform")
 
-#endif // ITRANSFORM_H
+#endif  // ITRANSFORM_H

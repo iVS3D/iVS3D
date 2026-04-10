@@ -7,90 +7,98 @@
  * @date May 2025
  */
 
-#include "Tensor.h"
-#include "NeuralError.h"
-
-#include <tl/expected.hpp>
-#include <string>
-#include <vector>
 #include <memory>
+#include <string>
+#include <tl/expected.hpp>
+#include <vector>
 
-namespace NN
-{
-    /**
-     * @ingroup NeuralNet
-     * @class NeuralNet
-     * @brief Abstract base class for neural networks.
-     * 
-     * @details
-     * This class defines the interface for neural networks, including methods for inference,
-     * input/output shape queries, and operator overloading for convenience.
-     * 
-     * @see NeuralNetPtr for a smart pointer alias to this class.
-     */
-    class NeuralNet {
-    public:
-        virtual ~NeuralNet() = default;
+#include "NeuralError.h"
+#include "Tensor.h"
 
-        /**
-         * @brief Perform inference on the given input tensor.
-         * 
-         * @param input The input tensor to the neural network. This tensor must have the correct shape and data type expected by the model.
-         * @return tl::expected<Tensor, NeuralError> The output tensor or an error object.
-         * 
-         * @details
-         * This method takes an input tensor, processes it through the neural network, and returns the output tensor.
-         * The input tensor must match the expected input shape of the model.
-         * If the input tensor is invalid or the inference fails, an error object is returned.
-         */
-        virtual tl::expected<Tensor, NeuralError> infer(const Tensor& input) = 0;
-
-        /**
-         * @brief Call the infer method with the given input tensor.
-         * 
-         * @param input The input tensor to the neural network.
-         * @return tl::expected<Tensor, NeuralError> The output tensor or an error object.
-         * 
-         * @see infer(const Tensor& input) for more details.
-         */
-        tl::expected<Tensor, NeuralError> operator()(const Tensor& input) {
-            return infer(input);
-        }
-
-        /**
-         * @brief Get the input shape of the neural network. This might contain dynamic dimensions (e.g., -1 for batch size).
-         * 
-         * @return Shape The input shape of the neural network.
-         */
-        virtual Shape inputShape() const = 0;
-
-        /**
-         * @brief Get the output shape of the neural network. This might contain dynamic dimensions (e.g., -1 for batch size).
-         * 
-         * @return Shape The output shape of the neural network.
-         */
-        virtual Shape outputShape() const = 0;
-
-        /**
-         * @brief Get the GPU ID used by the neural network if it is configured to use GPU.
-         * 
-         * @return int The GPU ID, or -1 if the neural network does not use GPU.
-         * 
-         * @details
-         * This method returns the ID of the GPU that the neural network uses for inference.
-         * If the neural network is not using GPU, it returns -1.
-         */
-        virtual int gpuId() const = 0;
-    };
+namespace NN {
+/**
+ * @ingroup NeuralNet
+ * @interface NeuralNet
+ * @brief Abstract base class for neural networks.
+ *
+ * @details
+ * This class defines the interface for neural networks, including methods for
+ * inference, input/output shape queries, and operator overloading for
+ * convenience.
+ *
+ * @see NeuralNetPtr for a smart pointer alias to this class.
+ */
+class NeuralNet {
+   public:
+    virtual ~NeuralNet() = default;
 
     /**
-     * @ingroup NeuralNet
-     * 
-     * @brief Smart pointer type for managing NeuralNet instances.
-     * 
+     * @brief Perform inference on the given input tensor.
+     *
+     * @param input The input tensor to the neural network. This tensor must
+     * have the correct shape and data type expected by the model.
+     * @return tl::expected<Tensor, NeuralError> The output tensor or an error
+     * object.
+     *
      * @details
-     * This is a shared pointer type that allows for easy management of NeuralNet instances.
-     * It is used to avoid memory leaks and ensure proper cleanup of resources.
+     * This method takes an input tensor, processes it through the neural
+     * network, and returns the output tensor. The input tensor must match the
+     * expected input shape of the model. If the input tensor is invalid or the
+     * inference fails, an error object is returned.
      */
-    using NeuralNetPtr = std::shared_ptr<NeuralNet>;
-}
+    virtual tl::expected<Tensor, NeuralError> infer(const Tensor& input) = 0;
+
+    /**
+     * @brief Call the infer method with the given input tensor.
+     *
+     * @param input The input tensor to the neural network.
+     * @return tl::expected<Tensor, NeuralError> The output tensor or an error
+     * object.
+     *
+     * @see infer(const Tensor& input) for more details.
+     */
+    tl::expected<Tensor, NeuralError> operator()(const Tensor& input) {
+        return infer(input);
+    }
+
+    /**
+     * @brief Get the input shape of the neural network. This might contain
+     * dynamic dimensions (e.g., -1 for batch size).
+     *
+     * @return Shape The input shape of the neural network.
+     */
+    virtual Shape inputShape() const = 0;
+
+    /**
+     * @brief Get the output shape of the neural network. This might contain
+     * dynamic dimensions (e.g., -1 for batch size).
+     *
+     * @return Shape The output shape of the neural network.
+     */
+    virtual Shape outputShape() const = 0;
+
+    /**
+     * @brief Get the GPU ID used by the neural network if it is configured to
+     * use GPU.
+     *
+     * @return int The GPU ID, or -1 if the neural network does not use GPU.
+     *
+     * @details
+     * This method returns the ID of the GPU that the neural network uses for
+     * inference. If the neural network is not using GPU, it returns -1.
+     */
+    virtual int gpuId() const = 0;
+};
+
+/**
+ * @ingroup NeuralNet
+ *
+ * @brief Smart pointer type for managing NeuralNet instances.
+ *
+ * @details
+ * This is a shared pointer type that allows for easy management of NeuralNet
+ * instances. It is used to avoid memory leaks and ensure proper cleanup of
+ * resources.
+ */
+using NeuralNetPtr = std::shared_ptr<NeuralNet>;
+}  // namespace NN

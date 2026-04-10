@@ -22,15 +22,14 @@
 #include <algorithm>
 #include <opencv2/video.hpp>
 
-#include "ialgorithm.h"
-#include "reader.h"
-#include "sequentialreader.h"
-#include "logfile.h"
-
 #include "BlurAlgorithm.h"
 #include "blurlaplacian.h"
 #include "blursobel.h"
 #include "blurtenengrad.h"
+#include "ialgorithm.h"
+#include "logfile.h"
+#include "reader.h"
+#include "sequentialreader.h"
 
 #define DESCRIPTION_STYLE                                               \
     "color: rgb(58, 58, 58); border-left: 6px solid  rgb(58, 58, 58); " \
@@ -73,7 +72,7 @@ class Blur : public IAlgorithm {
      * @param parent Parent of the created QWidget
      * @return The Settings Widget
      */
-    QWidget *getSettingsWidget(QWidget *parent) override;
+    QWidget* getSettingsWidget(QWidget* parent) override;
     /**
      * @brief sampleImages selects keyframes based on their bluriness. It
      * differs between a calulation on all images and a caculation only on
@@ -100,10 +99,10 @@ class Blur : public IAlgorithm {
      * @param logFile can be used to protocoll progress or problems
      * @return A list of indices, which represent the selected keyframes.
      */
-    std::vector<uint> sampleImages(const std::vector<unsigned int> &imageList,
-                                   Progressable *receiver,
-                                   volatile bool *stopped, bool useCuda,
-                                   LogFileParent *logFile) override;
+    std::vector<uint> sampleImages(const std::vector<unsigned int>& imageList,
+                                   Progressable* receiver,
+                                   volatile bool* stopped, bool useCuda,
+                                   LogFileParent* logFile) override;
     /**
      * @brief getName Returns the plugin Name
      * @return "Blur"
@@ -116,8 +115,8 @@ class Blur : public IAlgorithm {
      * be usefull for the next selection
      * @param sigObj provides signals from the core
      */
-    void initialize(Reader *reader, QMap<QString, QVariant> buffer,
-                    signalObject *sigObj) override;
+    void initialize(iReader* reader, QMap<QString, QVariant> buffer,
+                    signalObject* sigObj) override;
     /**
      * @brief setter for plugin's settings
      * @param QMap with the settings
@@ -134,9 +133,9 @@ class Blur : public IAlgorithm {
      * @param stopped is set if the algorithm should abort
      * @return QMap with the settings
      */
-    QMap<QString, QVariant> generateSettings(Progressable *receiver,
+    QMap<QString, QVariant> generateSettings(Progressable* receiver,
                                              bool useCuda,
-                                             volatile bool *stopped) override;
+                                             volatile bool* stopped) override;
     /**
      * @brief getter for plugin's settings
      * @return QMap with the settings
@@ -145,10 +144,11 @@ class Blur : public IAlgorithm {
 
    public slots:
     /**
-     * @brief [slot] slot_blurAlgoChanged selects the algorithm identified by name.
+     * @brief [slot] slot_blurAlgoChanged selects the algorithm identified by
+     * name.
      * @param name The algorithm name
      */
-    void slot_blurAlgoChanged(const QString &name);
+    void slot_blurAlgoChanged(const QString& name);
     /**
      * @brief [slot] slot_wsChanged updates the windowsize.
      * @param ws The new windowsize
@@ -167,25 +167,25 @@ class Blur : public IAlgorithm {
     void slot_selectedImageIndex(uint index);
 
    private:
-        Reader *m_reader = nullptr;
+    iReader* m_reader = nullptr;
     QMap<QString, QVariant> m_buffer;
-    signalObject *m_sigObj = nullptr;
-    QWidget *m_settingsWidget = nullptr;
-    QComboBox *m_comboBoxBlur = nullptr;
-    QSpinBox *m_spinBoxWS = nullptr;
-    QSpinBox *m_spinBoxLD = nullptr;
-    QLabel *m_infoLabel = nullptr;
-    BlurAlgorithm *m_usedBlur = nullptr;
+    signalObject* m_sigObj = nullptr;
+    QWidget* m_settingsWidget = nullptr;
+    QComboBox* m_comboBoxBlur = nullptr;
+    QSpinBox* m_spinBoxWS = nullptr;
+    QSpinBox* m_spinBoxLD = nullptr;
+    QLabel* m_infoLabel = nullptr;
+    BlurAlgorithm* m_usedBlur = nullptr;
     int m_windowSize;
     double m_localDeviation;
-    std::vector<BlurAlgorithm *> m_blurAlgorithms = {};
+    std::vector<BlurAlgorithm*> m_blurAlgorithms = {};
     std::vector<double> m_blurValues = {};
-    LogFileParent *m_logFile = nullptr;
+    LogFileParent* m_logFile = nullptr;
 
-    void createSettingsWidget(QWidget *parent);
+    void createSettingsWidget(QWidget* parent);
     std::vector<double> splitDoubleString(QString string);
-    std::vector<uint> sampleKeyframes(Reader *reader, Progressable *receiver,
-                                      volatile bool *stopped,
+    std::vector<uint> sampleKeyframes(iReader* reader, Progressable* receiver,
+                                      volatile bool* stopped,
                                       std::vector<uint> sharpImages);
     QString progressMessage(int curr, int total);
     void computeBuffer();

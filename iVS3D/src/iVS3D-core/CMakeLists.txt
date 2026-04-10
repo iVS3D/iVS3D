@@ -25,12 +25,12 @@ include_directories(
     "${CMAKE_CURRENT_LIST_DIR}/../iVS3D-pluginInterface"
 )
 foreach(file ${SRC_FILES})
-    get_filename_component(file_dir ${file} DIRECTORY)
-    include_directories(${file_dir})
+  get_filename_component(file_dir ${file} DIRECTORY)
+  include_directories(${file_dir})
 endforeach()
 
 # add ressources
-qt5_add_resources(QRC_SRC_FILES 
+qt5_add_resources(QRC_SRC_FILES
     "${CMAKE_CURRENT_LIST_DIR}/darkstyle.qrc"
     "${CMAKE_CURRENT_LIST_DIR}/resources.qrc"
 )
@@ -58,7 +58,7 @@ add_custom_command(
 )
 
 if(WIN32)
-    set(APP_ICON_RESOURCE_WINDOWS "${CMAKE_CURRENT_SOURCE_DIR}/iVS3D-icon.rc")
+  set(APP_ICON_RESOURCE_WINDOWS "${CMAKE_CURRENT_SOURCE_DIR}/iVS3D-icon.rc")
 endif()
 
 # define executable
@@ -72,6 +72,7 @@ add_executable(${TARGET_NAME} WIN32
     ${APP_ICON_RESOURCE_WINDOWS}
 )
 target_link_libraries(${TARGET_NAME}
+    tl-expected
     iVS3D-pluginInterface
     ${OpenCV_LIBRARIES}
     iVS3D::Ffmpeg
@@ -84,7 +85,7 @@ target_link_libraries(${TARGET_NAME}
 )
 
 # add defines
-target_compile_definitions(${TARGET_NAME} PRIVATE 
+target_compile_definitions(${TARGET_NAME} PRIVATE
     ${COMMON_COMPILE_DEFINITIONS}
 )
 
@@ -99,17 +100,17 @@ add_dependencies(${TARGET_NAME}
 )
 
 # install
-install(TARGETS ${TARGET_NAME} 
+install(TARGETS ${TARGET_NAME}
     DESTINATION bin
 )
 
 if(Update_Translations)
-    # if Update_Translations flag is set to ON, we want to override existing .ts files with new Strings from the src files.
-    # this is done using Qt's tool "lupdate", which searches all src files (.cpp and .h) in the given folder (in this case
-    # ${CMAKE_CURRENT_LIST_DIR}) and outputs the updated .ts files
-    # IMPORTANT: We want this command to execute, even if the ts files already exist, to make sure they are updated! This is
-    # achieved by adding an OUTPUT (placeholder.out) which is never created and thus forces the command to run on every build.
-    add_custom_command(
+  # if Update_Translations flag is set to ON, we want to override existing .ts files with new Strings from the src files.
+  # this is done using Qt's tool "lupdate", which searches all src files (.cpp and .h) in the given folder (in this case
+  # ${CMAKE_CURRENT_LIST_DIR}) and outputs the updated .ts files
+  # IMPORTANT: We want this command to execute, even if the ts files already exist, to make sure they are updated! This is
+  # achieved by adding an OUTPUT (placeholder.out) which is never created and thus forces the command to run on every build.
+  add_custom_command(
         OUTPUT ${TS_FILES} placeholder.out
         COMMAND lupdate ${CMAKE_CURRENT_LIST_DIR} -ts ${TS_FILES} -no-obsolete
         DEPENDS ${HEADER_FILES} ${SRC_FILES}

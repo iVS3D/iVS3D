@@ -2,12 +2,12 @@
 
 SmoothController::SmoothController() {
     QLocale locale = qApp->property("translation").toLocale();
-    QTranslator *translator = new QTranslator();
+    QTranslator* translator = new QTranslator();
     translator->load(locale, "stationary", "_", ":/translations", ".qm");
     qApp->installTranslator(translator);
 }
 
-QWidget *SmoothController::getSettingsWidget(QWidget *parent) {
+QWidget* SmoothController::getSettingsWidget(QWidget* parent) {
     if (!m_settingsWidget) {
         createSettingsWidget(parent);
     }
@@ -15,14 +15,14 @@ QWidget *SmoothController::getSettingsWidget(QWidget *parent) {
 }
 
 std::vector<uint> SmoothController::sampleImages(
-    const std::vector<uint> &imageList, Progressable *receiver,
-    volatile bool *stopped, bool useCuda, LogFileParent *logFile) {
+    const std::vector<uint>& imageList, Progressable* receiver,
+    volatile bool* stopped, bool useCuda, LogFileParent* logFile) {
     if (imageList.size() == 1) {
         return imageList;
     }
 
     // invalidate buffer if working resolution changed
-    cv::Mat tstImg = m_reader->getPic(0);
+    cv::Mat tstImg = m_reader->getImage(0);
     if (m_inputResolution.x() != tstImg.cols ||
         m_inputResolution.y() != tstImg.rows) {
         m_bufferMat.clear();
@@ -49,12 +49,12 @@ std::vector<uint> SmoothController::sampleImages(
     futureFrames.erase(std::unique(futureFrames.begin(), futureFrames.end()),
                        futureFrames.end());  // remove duplicates
     reportProgress(tr("Creating calculation units"), 0, receiver);
-    std::tuple<ImageGatherer *, FlowCalculator *, KeyframeSelector *>
-        components = Factory::instance().createComponents(
-            futureFrames, m_reader, useCuda, m_selectorThreshold);
-    ImageGatherer *imageGatherer = std::get<0>(components);
-    FlowCalculator *flowCalculator = std::get<1>(components);
-    KeyframeSelector *keyframeSelector = std::get<2>(components);
+    std::tuple<ImageGatherer*, FlowCalculator*, KeyframeSelector*> components =
+        Factory::instance().createComponents(futureFrames, m_reader, useCuda,
+                                             m_selectorThreshold);
+    ImageGatherer* imageGatherer = std::get<0>(components);
+    FlowCalculator* flowCalculator = std::get<1>(components);
+    KeyframeSelector* keyframeSelector = std::get<2>(components);
 
     std::vector<double> flowValues = {};
     auto fromIter = imageList.begin();
@@ -169,9 +169,9 @@ QMap<QString, QVariant> SmoothController::sendBuffer() {
     return bufferMap;
 }
 
-void SmoothController::initialize(Reader *reader,
+void SmoothController::initialize(iReader* reader,
                                   QMap<QString, QVariant> buffer,
-                                  signalObject *sigObj) {
+                                  signalObject* sigObj) {
     if (m_settingsWidget) {
         m_settingsWidget->deleteLater();
         m_settingsWidget = nullptr;
@@ -180,11 +180,11 @@ void SmoothController::initialize(Reader *reader,
     m_sigObj = sigObj;
 
     m_reader = reader;
-    cv::Mat testPic = reader->getPic(0);
+    cv::Mat testPic = reader->getImage(0);
     m_inputResolution.setX(testPic.cols);
     m_inputResolution.setY(testPic.rows);
 
-    int picCount = reader->getPicCount();
+    int picCount = reader->getImageCount();
     int size[2] = {picCount, picCount};
     m_bufferMat = cv::SparseMat(2, size, CV_32F);
     recreateBufferMatrix(buffer);
@@ -198,7 +198,7 @@ void SmoothController::setSettings(QMap<QString, QVariant> settings) {
 }
 
 QMap<QString, QVariant> SmoothController::generateSettings(
-    Progressable *receiver, bool useCuda, volatile bool *stopped) {
+    Progressable* receiver, bool useCuda, volatile bool* stopped) {
     (void)receiver;
     (void)useCuda;
     (void)stopped;
@@ -212,20 +212,20 @@ QMap<QString, QVariant> SmoothController::getSettings() {
 }
 
 void SmoothController::reportProgress(QString op, int progress,
-                                      Progressable *receiver) {
+                                      Progressable* receiver) {
     QMetaObject::invokeMethod(receiver, "slot_makeProgress",
                               Qt::DirectConnection, Q_ARG(int, progress),
                               Q_ARG(QString, op));
 }
 
-void SmoothController::displayMessage(QString txt, Progressable *receiver) {
+void SmoothController::displayMessage(QString txt, Progressable* receiver) {
     QMetaObject::invokeMethod(receiver, "slot_displayMessage",
                               Qt::DirectConnection, Q_ARG(QString, txt));
 }
 
-void SmoothController::createSettingsWidget(QWidget *parent) {
+void SmoothController::createSettingsWidget(QWidget* parent) {
     // selector layout
-    QWidget *selectorLayout = new QWidget(parent);
+    QWidget* selectorLayout = new QWidget(parent);
     selectorLayout->setLayout(new QHBoxLayout(parent));
     selectorLayout->layout()->addWidget(new QLabel(SELECTOR_LABEL_TEXT));
     selectorLayout->layout()->setMargin(0);
@@ -244,7 +244,7 @@ void SmoothController::createSettingsWidget(QWidget *parent) {
                      [this](double v) { m_selectorThreshold = v / 100.0; });
     selectorLayout->layout()->addWidget(m_selectorThresholdSpinBox);
     // selector description
-    QLabel *selectorLabel = new QLabel(SELECTOR_DESCRIPTION);
+    QLabel* selectorLabel = new QLabel(SELECTOR_DESCRIPTION);
     selectorLabel->setStyleSheet(DESCRIPTION_STYLE);
     selectorLabel->setWordWrap(true);
 
@@ -308,11 +308,11 @@ void SmoothController::stringToBufferMat(QString string) {
 
 QVariant SmoothController::bufferMatToVariant(cv::SparseMat bufferMat) {
     std::stringstream matStream;
-    const int *size = bufferMat.size();
+    const int* size = bufferMat.size();
 
     for (cv::SparseMatConstIterator it = bufferMat.begin();
          it != bufferMat.end(); it++) {
-        const cv::SparseMat::Node *node = it.node();
+        const cv::SparseMat::Node* node = it.node();
         uint x = node->idx[0];
         uint y = node->idx[1];
         double value = bufferMat.value<double>(x, y);

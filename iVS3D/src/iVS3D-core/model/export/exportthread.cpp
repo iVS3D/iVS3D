@@ -43,17 +43,16 @@ void ExportThread::run() {
     m_receiver->slot_makeProgress(0, tr("Exporting images"));
 
     // We use image index 0 to get the size of our input images
-    cv::Mat originalMat = m_reader->getPic(0);
+    cv::Mat originalMat = m_reader->getImage(0);
     QPoint imageSize = QPoint(originalMat.cols, originalMat.rows);
 
     // ROI is used if it's enabled and it's not the entire image (which would be
     // default)
-    bool usesRoi = m_config.roi.has_value() &&
-                   !m_config.roi->isDefault();
+    bool usesRoi = m_config.roi.has_value() && !m_config.roi->isDefault();
 
     // Resize if the working resolution differs from the input resolution
-    bool usesResize = !(m_config.original_resolution ==
-                        m_config.export_resolution);
+    bool usesResize =
+        !(m_config.original_resolution == m_config.export_resolution);
 
     // We need to export gps meta data if available
     bool useExif = false;
@@ -75,8 +74,8 @@ void ExportThread::run() {
         processor.addCommand(std::make_unique<ResizeCommand>(
             m_config.export_resolution.toQPoint()));
     if (usesRoi)
-        processor.addCommand(
-            std::make_unique<CropCommand>(m_config.roi->cropAsQRect(m_config.export_resolution)));
+        processor.addCommand(std::make_unique<CropCommand>(
+            m_config.roi->cropAsQRect(m_config.export_resolution)));
 
     // setup writing to disk or copying input image
 
@@ -101,7 +100,7 @@ void ExportThread::run() {
 
     // run the processor to export images
     SequentialReader* seq_reader =
-        m_reader->createSequentialReader(m_keyframes, Reader::APPLY_NONE);
+        m_reader->createSequentialReader(m_keyframes, iReader::APPLY_NONE);
 
     // Shared variables for error handling
     std::atomic<bool> errorOccurred(false);

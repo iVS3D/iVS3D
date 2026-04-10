@@ -40,7 +40,7 @@ class BlurAlgorithm : public QObject {
      * @param index The image index
      * @return The blur value (-1.0 if the frame is corrupted)
      */
-    double calcOneBluriness(Reader *images, int index);
+    double calcOneBluriness(iReader* images, int index);
     /**
      * @brief calcFullBluriness calculates blur meassures for all images within
      * the given range.
@@ -53,17 +53,17 @@ class BlurAlgorithm : public QObject {
      * empty, but has the correct size)
      * @return The blur values for all images
      */
-    std::vector<double> calcFullBluriness(Reader *images,
-                                          Progressable *reciever,
-                                          volatile bool *stopped,
+    std::vector<double> calcFullBluriness(iReader* images,
+                                          Progressable* reciever,
+                                          volatile bool* stopped,
                                           std::vector<uint> idxList,
                                           std::vector<double> blurValues);
 
    protected:
-    double parallelCalculation(const cv::Mat &image,
-                               const std::vector<double> &blurValues,
-                               const uint &idx, const int &progress,
-                               Progressable *receiver);
+    double parallelCalculation(const cv::Mat& image,
+                               const std::vector<double>& blurValues,
+                               const uint& idx, const int& progress,
+                               Progressable* receiver);
     /**
      * @brief singleCalculation This functions implements the actual blur
      * algortihm
@@ -71,7 +71,7 @@ class BlurAlgorithm : public QObject {
      * @return Double represeting the blur of the image (higher value -> sharper
      * image)
      */
-    virtual double singleCalculation(const cv::Mat &image) = 0;
+    virtual double singleCalculation(const cv::Mat& image) = 0;
 
    private:
     volatile int m_lastProgress = 0;

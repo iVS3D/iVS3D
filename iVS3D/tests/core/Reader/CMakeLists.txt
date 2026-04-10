@@ -10,7 +10,7 @@ set(HEADER_FILES
     ${PLUGIN_HEADER_FILES}
     ${RESOURCE_HEADER_FILES}
 )
-set(SRC_FILES 
+set(SRC_FILES
     ${CORE_SRC_FILES}
     ${PLUGIN_SRC_FILES}
     "${CMAKE_CURRENT_LIST_DIR}/tst_reader.cpp"
@@ -39,14 +39,15 @@ add_test(${TARGET_NAME} ${TARGET_NAME})
 target_link_libraries(${TARGET_NAME}
     iVS3D-pluginInterface
     iVS3D::Ffmpeg
-    ${OpenCV_LIBRARIES} 
+    tl-expected
+    ${OpenCV_LIBRARIES}
     Qt${QT_VERSION_MAJOR}::Test
     Qt${QT_VERSION_MAJOR}::Widgets
     Qt${QT_VERSION_MAJOR}::Concurrent
     Qt${QT_VERSION_MAJOR}::Positioning
     Qt${QT_VERSION_MAJOR}::Svg
 )
-target_compile_definitions(${TARGET_NAME} PRIVATE 
+target_compile_definitions(${TARGET_NAME} PRIVATE
     ${COMMON_COMPILE_DEFINITIONS}
     -DTEST_RESOURCES="${TEST_RESOURCES_PATH}"
 )
@@ -55,8 +56,8 @@ set_target_properties(${TARGET_NAME} PROPERTIES
 )
 add_dependencies(${TARGET_NAME}
     iVS3D-pluginInterface
-    PullResources-${TARGET_NAME} 
+    PullResources-${TARGET_NAME}
 )
-install(TARGETS ${TARGET_NAME} 
+install(TARGETS ${TARGET_NAME}
     DESTINATION tests
 )
