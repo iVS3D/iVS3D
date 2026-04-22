@@ -1,17 +1,18 @@
 #include "DataManager.h"
 
-DataManager::DataManager()
-{
+#include "applicationsettings.h"
+#include "logmanager.h"
+
+DataManager::DataManager() {
     m_projectManager = new ProjectManager();
     m_ma = nullptr;
     m_mip = nullptr;
     m_history = nullptr;
 }
 
-DataManager::~DataManager()
-{
+DataManager::~DataManager() {
     delete m_projectManager;
-    if(m_mip){
+    if (m_mip) {
         delete m_mip;
     }
     if (m_ma) {
@@ -22,26 +23,27 @@ DataManager::~DataManager()
     }
 }
 
-int DataManager::open(QString path)
-{
+int DataManager::open(QString path) {
     LogManager::instance().resetLog();
     delete m_projectManager;
     m_projectManager = new ProjectManager;
-    if(m_history){
+    if (m_history) {
         delete m_history;
     }
-    if(m_mip){
+    if (m_mip) {
         delete m_mip;
     }
-    if(m_ma) {
+    if (m_ma) {
         delete m_ma;
     }
 
-    auto lf = LogManager::instance().createLogFile(stringContainer::lfImportProcess, false);
+    auto lf = LogManager::instance().createLogFile(
+        stringContainer::lfImportProcess, false);
     if (lf) {
         lf->startTimer(stringContainer::lfImportMip);
     }
-    m_mip = new ModelInputPictures(path);
+    m_mip = new ModelInputPictures(
+        path, ApplicationSettings::instance().get_forceBackupVideoReader());
     if (lf) {
         lf->stopTimer();
     }
@@ -56,25 +58,25 @@ int DataManager::open(QString path)
     return m_mip->getPicCount();
 }
 
-int DataManager::openProject(QString path)
-{
+int DataManager::openProject(QString path) {
     LogManager::instance().resetLog();
     delete m_projectManager;
     m_projectManager = new ProjectManager;
-    if(m_mip){
+    if (m_mip) {
         delete m_mip;
     }
-    if(m_ma){
+    if (m_ma) {
         delete m_ma;
     }
-    if(m_history){
+    if (m_history) {
         delete m_history;
     }
 
     m_mip = new ModelInputPictures();
     m_ma = new ModelAlgorithm();
 
-    auto lf = LogManager::instance().createLogFile(stringContainer::lfImportProcess, false);
+    auto lf = LogManager::instance().createLogFile(
+        stringContainer::lfImportProcess, false);
     if (lf) {
         lf->startTimer(stringContainer::lfImportProject);
     }
@@ -88,61 +90,38 @@ int DataManager::openProject(QString path)
         lf->setSettings(settingsInput);
     }
 
-    if (success)
-    {
+    if (success) {
         m_history = new History(m_mip);
         return m_mip->getPicCount();
-    }
-    else
-    {
+    } else {
         return 0;
     }
 }
 
-ModelAlgorithm* DataManager::getModelAlgorithm()
-{
-    return m_ma;
-}
+ModelAlgorithm* DataManager::getModelAlgorithm() { return m_ma; }
 
-ModelInputPictures* DataManager::getModelInputPictures()
-{
-    return m_mip;
-}
+ModelInputPictures* DataManager::getModelInputPictures() { return m_mip; }
 
-History *DataManager::getHistory()
-{
-    return m_history;
-}
+History* DataManager::getHistory() { return m_history; }
 
+void DataManager::saveProject() { m_projectManager->saveProject(m_mip, m_ma); }
 
-void DataManager::saveProject()
-{
-    m_projectManager->saveProject(m_mip, m_ma);
-}
-
-void DataManager::saveProjectAs(QString projectName, QString projectPath)
-{
+void DataManager::saveProjectAs(QString projectName, QString projectPath) {
     m_projectManager->saveProjectAs(m_mip, m_ma, projectPath, projectName);
 }
 
-void DataManager::createProject(QString projectName, QString projectPath)
-{
+void DataManager::createProject(QString projectName, QString projectPath) {
     m_projectManager->createProject(m_mip, m_ma, projectPath, projectName);
 }
 
-bool DataManager::isProjectLoaded()
-{
+bool DataManager::isProjectLoaded() {
     return m_projectManager->isProjectLoaded();
 }
 
-QString DataManager::getProjectName()
-{
+QString DataManager::getProjectName() {
     return m_projectManager->getProjectName();
 }
 
-QString DataManager::getProjectPath()
-{
+QString DataManager::getProjectPath() {
     return m_projectManager->getProjectPath();
 }
-
-

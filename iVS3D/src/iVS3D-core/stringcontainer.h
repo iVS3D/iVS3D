@@ -13,8 +13,7 @@
  * @date 2021/07/21
  */
 
-struct stringContainer
-{
+struct stringContainer {
     // config settings (QSettings)
     static const QString settingsCompany;
     static const QString settingsProgramm;
@@ -51,19 +50,19 @@ struct stringContainer
     // Identifier for project inforamtion
     static const QString projectNameIdentifier;
     static const QString jsonDelimiter;
-    //Identifier for mip member
+    // Identifier for mip member
     static const QString mipIdentifier;
     static const QString inputPathIdentifier;
     static const QString keyframesIdentifier;
     static const QString boundariesIdentifier;
-    //Identifier for ma
+    // Identifier for ma
     static const QString maIdentifier;
-    //Identifier for exportData
+    // Identifier for exportData
     static const QString exportDataIdentifier;
     static const QString keyframeCountIdentifier;
     static const QString exportResolutionIdentifier;
     static const QString exportPathIdentifier;
-    //Identifier for ApplicationSettings
+    // Identifier for ApplicationSettings
     static const QString applicationSettingsIdentifier;
     static const QString reconstructSoftwareIdentifier;
     static const QString standardInputPathIdentifier;
@@ -74,6 +73,7 @@ struct stringContainer
     static const QString interpolateIdentifier;
     static const QString localeIdentifier;
     static const QString defaultPluginIdentifier;
+    static const QString forceBackupVideoReader;
     // Identifier for LogFile
     static const QString logNameIdentifier;
     static const QString logIsPluginIdentifier;
@@ -109,4 +109,4 @@ struct stringContainer
     static const QString altitudeBelowSea;
 };
 
-#endif // STRINGCONTAINER_H
+#endif  // STRINGCONTAINER_H

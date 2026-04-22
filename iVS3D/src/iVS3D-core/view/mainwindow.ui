@@ -49,7 +49,7 @@
      <x>0</x>
      <y>0</y>
      <width>1024</width>
-     <height>23</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -74,6 +74,7 @@
     <addaction name="actionUse_CUDA"/>
     <addaction name="actionCreate_log_file"/>
     <addaction name="actionInterpolate_missing_meta_data"/>
+    <addaction name="actionForce_Backup_Video_Reader"/>
    </widget>
    <widget class="QMenu" name="menuAbout">
     <property name="title">
@@ -265,6 +266,20 @@
    </property>
    <property name="text">
     <string>Interpolate missing meta data</string>
+   </property>
+  </action>
+  <action name="actionForce_Backup_Video_Reader">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Force Backup Video Reader</string>
+   </property>
+   <property name="toolTip">
+    <string>Force the usage of the more robust but not frame precise OpenCV video reader instead of the custom frame perfect ffmpeg based video reader.</string>
    </property>
   </action>
  </widget>

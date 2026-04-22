@@ -8,26 +8,25 @@
  * @brief Manages image and project data and holds logic for exporting.
  */
 
+#include "history.h"
 #include "modelalgorithm.h"
 #include "modelinputpictures.h"
 #include "projectmanager.h"
-#include "logmanager.h"
-#include "history.h"
 
 /**
  * @class DataManager
  *
  * @ingroup Model
  *
- * @brief The DataManager class is a Facade for the data holding classes in the model. It delegates most of it's tasks to model classes
+ * @brief The DataManager class is a Facade for the data holding classes in the
+ * model. It delegates most of it's tasks to model classes
  *
  * @author Patrick Binder
  *
  * @date 2021/02/01
  */
-class DataManager
-{
-public:
+class DataManager {
+   public:
     /**
      * @brief DataManager Constructor it will create a new ProjektManager
      */
@@ -41,7 +40,8 @@ public:
      */
     int open(QString path);
     /**
-     * @brief openProject Opens the project by creating an empty ModelInputPictures and ModelAlgorithm and calling the ProjectManager
+     * @brief openProject Opens the project by creating an empty
+     * ModelInputPictures and ModelAlgorithm and calling the ProjectManager
      *
      * @param path Path of the project
      */
@@ -71,12 +71,14 @@ public:
      */
     bool isProjectLoaded();
     /**
-     * @brief getProjectName Returns the current project name from the ProjectManager
+     * @brief getProjectName Returns the current project name from the
+     * ProjectManager
      * @return current project name
      */
     QString getProjectName();
     /**
-     * @brief getProjectPath Returns the current project path from the ProjectManager
+     * @brief getProjectPath Returns the current project path from the
+     * ProjectManager
      * @return current project path
      */
     QString getProjectPath();
@@ -92,13 +94,11 @@ public:
     ModelInputPictures* getModelInputPictures();
     History* getHistory();
 
-private:
+   private:
     ModelAlgorithm* m_ma = nullptr;
     ModelInputPictures* m_mip = nullptr;
     ProjectManager* m_projectManager;
     History* m_history;
 };
 
-
-
-#endif // DATAMANAGER_H
+#endif  // DATAMANAGER_H

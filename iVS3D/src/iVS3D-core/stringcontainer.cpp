@@ -49,10 +49,13 @@ const QString stringContainer::keyframeCountIdentifier = "keyframeCount";
 const QString stringContainer::exportResolutionIdentifier = "exportResolution";
 const QString stringContainer::exportPathIdentifier = "exportPath";
 
-//Identifier for ApplicationSettings
-const QString stringContainer::applicationSettingsIdentifier = "ApplicationSettings";
-const QString stringContainer::reconstructSoftwareIdentifier = "reconstructSoftware";
-const QString stringContainer::standardInputPathIdentifier = "standardInputPath";
+// Identifier for ApplicationSettings
+const QString stringContainer::applicationSettingsIdentifier =
+    "ApplicationSettings";
+const QString stringContainer::reconstructSoftwareIdentifier =
+    "reconstructSoftware";
+const QString stringContainer::standardInputPathIdentifier =
+    "standardInputPath";
 const QString stringContainer::disableChecksIdentifier = "disableChecks";
 const QString stringContainer::colorThemeIdentifier = "colorTheme";
 const QString stringContainer::useCudaIdentifier = "useCuda";
@@ -60,7 +63,8 @@ const QString stringContainer::createLogsIdentifier = "create logs";
 const QString stringContainer::interpolateIdentifier = "interpolateMetaData";
 const QString stringContainer::localeIdentifier = "locale";
 const QString stringContainer::defaultPluginIdentifier = "defaultPlugin";
-
+const QString stringContainer::forceBackupVideoReader =
+    "forceBackupVideoReader";
 
 // Identifier for LfogFile
 const QString stringContainer::logNameIdentifier = "Name";

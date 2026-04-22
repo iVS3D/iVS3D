@@ -1,13 +1,17 @@
 #include "videoreader.h"
+
 #include <libavcodec/packet.h>
 #include <libavutil/error.h>
 #include <libavutil/pixfmt.h>
 #include <libswscale/swscale.h>
+
 #include <cstdint>
 #include <string>
 #include <vector>
 
-VideoReader::VideoReader(const QString &path,
+#include "reader.h"
+
+VideoReader::VideoReader(const QString& path,
                          std::shared_ptr<ReaderParams> readerParams)
     : m_path(path.toUtf8().constData()), m_readerParams(readerParams) {
     QFileInfo info(path);
@@ -34,20 +38,22 @@ VideoReader::VideoReader(const QString &path,
         return;
     }
 
-    m_isValid = true;
-
     // reduce framecount when frames are corrupted at the end
-    for (; m_frameCount > 0; m_frameCount--) {
+    while (m_frameCount > 0) {
         cv::Mat img = getPic(m_frameCount - 1, APPLY_NONE);
-        if (!img.empty()) break; // found functional frame
-        std::cout << m_frameCount << std::endl;
+
+        bool correctSize = (img.rows == h) && (img.cols == w);
+        if (!img.empty() && correctSize) {
+            m_isValid = true;
+            break;  // found functional frame
+        }
+        --m_frameCount;
     }
 }
 
 VideoReader::~VideoReader() {
-
     // 1) free buffered frames
-    for (auto &kv : m_buffer) {
+    for (auto& kv : m_buffer) {
         if (kv.second) {
             av_frame_free(&kv.second);
         }
@@ -62,22 +68,22 @@ VideoReader::~VideoReader() {
 
     // 3) free decoder
     if (m_codecContext) {
-        avcodec_free_context(&m_codecContext); // sets to nullptr
+        avcodec_free_context(&m_codecContext);  // sets to nullptr
     }
 
     // 4) CLOSE input (this releases the Windows file lock)
     if (m_formatContext) {
-        avformat_close_input(&m_formatContext); // sets to nullptr
+        avformat_close_input(&m_formatContext);  // sets to nullptr
     }
 
     // DO NOT call avformat_free_context() after avformat_close_input().
 }
 
-
 int VideoReader::openFormatContext() {
     m_formatContext = avformat_alloc_context();
     if (!m_formatContext) return -1;
-    int input_res = avformat_open_input(&m_formatContext, m_path.c_str(), NULL, NULL);
+    int input_res =
+        avformat_open_input(&m_formatContext, m_path.c_str(), NULL, NULL);
     if (input_res < 0) return input_res;
     printf("Format %s, duration %ld us\n", m_formatContext->iformat->long_name,
            m_formatContext->duration);
@@ -90,11 +96,11 @@ int VideoReader::openFormatContext() {
 int VideoReader::selectVideoStream() {
     for (m_streamId = 0; m_streamId < m_formatContext->nb_streams;
          m_streamId++) {
-        AVStream *stream = m_formatContext->streams[m_streamId];
+        AVStream* stream = m_formatContext->streams[m_streamId];
         if (!stream) continue;
-        AVCodecParameters *codecParams = stream->codecpar;
+        AVCodecParameters* codecParams = stream->codecpar;
         if (!codecParams) continue;
-        const AVCodec *codec = avcodec_find_decoder(codecParams->codec_id);
+        const AVCodec* codec = avcodec_find_decoder(codecParams->codec_id);
         if (!codec) continue;
         AVMediaType codecType = codecParams->codec_type;
         if (codecType == AVMEDIA_TYPE_VIDEO) {
@@ -110,17 +116,17 @@ int VideoReader::selectVideoStream() {
 }
 
 int VideoReader::openCodec() {
-    AVCodecParameters *codecParams =
+    AVCodecParameters* codecParams =
         m_formatContext->streams[m_streamId]->codecpar;
     if (!codecParams) return -1;
-    const AVCodec *codec = avcodec_find_decoder(codecParams->codec_id);
+    const AVCodec* codec = avcodec_find_decoder(codecParams->codec_id);
     if (!codec) return -1;
     m_codecContext = avcodec_alloc_context3(codec);
     if (!m_codecContext) return -1;
     printf("Codec: %s\n", codec->name);
     int param_res = avcodec_parameters_to_context(m_codecContext, codecParams);
     if (param_res < 0) return param_res;
-    AVDictionary *notFoundOptions = nullptr;
+    AVDictionary* notFoundOptions = nullptr;
     int open_res = avcodec_open2(m_codecContext, codec, &notFoundOptions);
     if (open_res < 0) return open_res;
 
@@ -130,32 +136,24 @@ int VideoReader::openCodec() {
 int VideoReader::updateSWSContext(const int width, const int height,
                                   AVPixelFormat pixFormat) {
     m_swsContext = sws_getCachedContext(
-        m_swsContext,
-        width,
-        height,
-        pixFormat,
-        width,
-        height,
-        AVPixelFormat::AV_PIX_FMT_BGR24,
-        SWS_BICUBIC,
-        NULL, NULL, NULL);
+        m_swsContext, width, height, pixFormat, width, height,
+        AVPixelFormat::AV_PIX_FMT_BGR24, SWS_BICUBIC, NULL, NULL, NULL);
 
     return !m_swsContext;
 }
 
-void VideoReader::addMetaData(MetaData *md) { m_md = md; }
+void VideoReader::addMetaData(MetaData* md) { m_md = md; }
 
-MetaData *VideoReader::getMetaData() { return m_md; }
+MetaData* VideoReader::getMetaData() { return m_md; }
 
 bool VideoReader::isValid() { return m_isValid; }
 
 cv::Mat VideoReader::getPic(unsigned int index, PictureProcessingFlags flags) {
     QMutexLocker locker(&m_mutex);
 
-    if (index >= m_frameCount)
-        return cv::Mat();
+    if (index >= m_frameCount) return cv::Mat();
 
-    std::map<uint, AVFrame *>::iterator iter = m_buffer.find(index);
+    std::map<uint, AVFrame*>::iterator iter = m_buffer.find(index);
     const bool backwardsSeek = (int)index < m_lastFrameIdx;
     const bool inBuffer = iter != m_buffer.end();
     const bool longRangeSeek = abs((int)(m_lastFrameIdx - index)) >
@@ -167,22 +165,18 @@ cv::Mat VideoReader::getPic(unsigned int index, PictureProcessingFlags flags) {
             av_rescale_q(index,
                          AVRational{m_avgVideoFPS.den, m_avgVideoFPS.num},
                          m_streamTimeBase);
-        int seek_res = av_seek_frame(
-            m_formatContext,
-            m_streamId,
-            timeStampInStreamTime,
-            AVSEEK_FLAG_BACKWARD);
-        if (seek_res < 0)
-            return cv::Mat();
+        int seek_res =
+            av_seek_frame(m_formatContext, m_streamId, timeStampInStreamTime,
+                          AVSEEK_FLAG_BACKWARD);
+        if (seek_res < 0) return cv::Mat();
     }
 
     // sequential read until index is reached
     uint seqReadFrames = 0;
     while (iter == m_buffer.end()) {
         if (m_buffer.size() > m_avgVideoFPS.num / m_avgVideoFPS.den) {
-            for (auto &d_iter : m_buffer) {
-                if (d_iter.second)
-                    av_frame_free(&d_iter.second);
+            for (auto& d_iter : m_buffer) {
+                if (d_iter.second) av_frame_free(&d_iter.second);
             }
             m_buffer.clear();
         }
@@ -216,11 +210,9 @@ cv::Mat VideoReader::getPic(unsigned int index, PictureProcessingFlags flags) {
             // frame will be found
             return cv::Mat();
         }
-
     }
     cv::Mat img = avFrame2CvMat(iter->second);
-    if (img.empty())
-        return cv::Mat();
+    if (img.empty()) return cv::Mat();
 
     // apply processing
     if (flags & PictureProcessingFlags::APPLY_RESIZING) {
@@ -233,8 +225,8 @@ cv::Mat VideoReader::getPic(unsigned int index, PictureProcessingFlags flags) {
     return img;
 }
 
-int VideoReader::decodeNextPkg(std::vector<int> &decodedIdx) {
-    AVPacket *packet = av_packet_alloc();
+int VideoReader::decodeNextPkg(std::vector<int>& decodedIdx) {
+    AVPacket* packet = av_packet_alloc();
     int read_res = av_read_frame(m_formatContext, packet);
     if (read_res == AVERROR_EOF) {
         packet = nullptr;  // send flush packet
@@ -254,7 +246,7 @@ int VideoReader::decodeNextPkg(std::vector<int> &decodedIdx) {
 
     int receive_res = 0;
     while (receive_res == 0) {
-        AVFrame *av_frame = nullptr;
+        AVFrame* av_frame = nullptr;
         av_frame = av_frame_alloc();
         receive_res = avcodec_receive_frame(m_codecContext, av_frame);
         if (receive_res == AVERROR(EAGAIN)) {
@@ -294,14 +286,13 @@ double VideoReader::getVideoDuration() {
 
 bool VideoReader::isDir() { return false; }
 
-VideoReader *VideoReader::copy(std::shared_ptr<ReaderParams> params)
-{
+VideoReader* VideoReader::copy(std::shared_ptr<ReaderParams> params) {
     std::shared_ptr<ReaderParams> p = params;
-    if (!p) { // if no params are provided, copy the old ones
+    if (!p) {  // if no params are provided, copy the old ones
         p = std::make_shared<ReaderParams>(*m_readerParams);
     }
     // copy cv::VideoCapture crashes, so create new instead of copy
-    VideoReader* reader =  new VideoReader(QString::fromStdString(m_path), p);
+    VideoReader* reader = new VideoReader(QString::fromStdString(m_path), p);
     reader->addMetaData(m_md);
     return reader;
 }
@@ -310,36 +301,28 @@ std::vector<std::string> VideoReader::getFileVector() {
     return std::vector<std::string>();
 }
 
-SequentialReader *VideoReader::createSequentialReader(
+SequentialReader* VideoReader::createSequentialReader(
     std::vector<uint> indices, PictureProcessingFlags flags) {
     return new SequentialReaderImpl(this, indices, true, flags);
 }
 
-cv::Mat VideoReader::avFrame2CvMat(const AVFrame *av_f) {
+cv::Mat VideoReader::avFrame2CvMat(const AVFrame* av_f) {
+    if (!av_f) return cv::Mat();
     const int h = av_f->height;
     const int w = av_f->width;
-    if (av_f->format < 0)
-        return cv::Mat();
+    if (av_f->format < 0) return cv::Mat();
 
     const AVPixelFormat pixFormat = static_cast<AVPixelFormat>(av_f->format);
 
-    if (updateSWSContext(w, h, pixFormat) < 0)
-        return cv::Mat();
+    if (updateSWSContext(w, h, pixFormat) < 0) return cv::Mat();
 
     cv::Mat cv_f(h, w, CV_8UC3);
     // uint8_t* cv_data[] = {cv_f.data};
     // int cv_lineSize[] = {static_cast<int>(cv_f.step[0])};
     int cv_linesizes[1] = {(int)cv_f.step1()};
-    const int out_h = sws_scale(
-        m_swsContext,
-        av_f->data,
-        av_f->linesize,
-        0,
-        h,
-        &cv_f.data,
-        cv_linesizes);
+    const int out_h = sws_scale(m_swsContext, av_f->data, av_f->linesize, 0, h,
+                                &cv_f.data, cv_linesizes);
 
-    if (out_h != h)
-        return cv::Mat();
+    if (out_h != h) return cv::Mat();
     return cv_f;
 }

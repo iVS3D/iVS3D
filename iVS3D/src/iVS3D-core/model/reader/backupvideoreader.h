@@ -1,41 +1,29 @@
-#ifndef VIDEOREADER_H
-#define VIDEOREADER_H
+#pragma once
 
-#include <QFileInfo>
 #include <QMutex>
 #include <QMutexLocker>
 #include <QObject>
-#include <opencv2/imgcodecs.hpp>
-#include <opencv2/imgproc.hpp>
+#include <memory>
 #include <opencv2/videoio.hpp>
 
 #include "reader.h"
 #include "readerparams.h"
 #include "sequentialreaderimpl.h"
 
-extern "C" {
-#include <libavcodec/avcodec.h>
-#include <libavformat/avformat.h>
-#include <libavutil/pixfmt.h>
-#include <libavutil/rational.h>
-#include <libswscale/swscale.h>
-}
-
 /**
- * @class VideoReader
+ * @class BackupVideoReader
  *
  * @ingroup Model
  *
- * @brief The VideoReader class is used to import video files and implement the
- * Reader interface. It utilizes the FFMPEG libaries to enable frame perfect
- * random access inside a video stream.
+ * @brief The BackupVideoReader class is used to import video files. Implements
+ * the Reader interface
  *
- * @author Dominic Zahn
+ * @author Daniel Brommer
  *
- * @date 2025/08/01
+ * @date 2021/02/05
  */
 
-class VideoReader : public Reader
+class BackupVideoReader : public Reader
 
 {
    public:
@@ -46,13 +34,13 @@ class VideoReader : public Reader
      * @param path Path to the video. Video can be the types, which
      * cv::VideoCapture can handle
      */
-    explicit VideoReader(const QString& path,
-                         std::shared_ptr<ReaderParams> readerParams);
+    explicit BackupVideoReader(const QString& path,
+                               std::shared_ptr<ReaderParams> readerParams);
     /**
      * @brief VideoReader destructor
      *
      */
-    ~VideoReader();
+    ~BackupVideoReader();
     /**
      * @brief Returns the frame to a given index
      *
@@ -96,8 +84,7 @@ class VideoReader : public Reader
      *
      * @return New instance of this reader
      */
-    VideoReader* copy(std::shared_ptr<ReaderParams> params) override;
-
+    BackupVideoReader* copy(std::shared_ptr<ReaderParams> params) override;
     /**
      * @brief Returns a empty vector
      *
@@ -133,36 +120,14 @@ class VideoReader : public Reader
     bool isValid() override;
 
    private:
-    // getter exposed members
-    int m_currentIndex = -1;
-    std::string m_path = "";
-    size_t m_frameCount = -1;
+    int m_currentIndex = 0;
+    std::string m_path;
+    std::shared_ptr<ReaderParams> m_readerParams = nullptr;
+    unsigned int m_numImages;
+    cv::VideoCapture m_cap;
     bool m_isValid = false;
-    AVRational m_avgVideoFPS;
+    double m_fps;
     MetaData* m_md = nullptr;
-    //
 
     QMutex m_mutex;
-    std::shared_ptr<ReaderParams> m_readerParams;
-    int64_t m_startTimestamp = AV_NOPTS_VALUE;
-    std::map<uint, AVFrame*> m_buffer;
-    AVRational m_streamTimeBase = AV_TIME_BASE_Q;
-    int m_streamId = -1;
-    int m_lastFrameIdx = -1;
-    // AV/SWS-Objects
-    AVFormatContext* m_formatContext = nullptr;
-    AVCodecContext* m_codecContext = nullptr;
-    const AVCodec* m_codec = nullptr;
-    struct SwsContext* m_swsContext = nullptr;
-
-    // private helper functions
-    cv::Mat avFrame2CvMat(const AVFrame* av_f);
-    int openFormatContext();
-    int selectVideoStream();
-    int openCodec();
-    int updateSWSContext(const int width, const int height,
-                         AVPixelFormat pixFormat);
-    int decodeNextPkg(std::vector<int>& decodedIdx);
 };
-
-#endif  // VIDEOREADER_H

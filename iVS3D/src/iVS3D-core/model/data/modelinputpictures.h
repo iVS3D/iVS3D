@@ -1,60 +1,52 @@
 #ifndef MODELINPUTPICTURES_H
 #define MODELINPUTPICTURES_H
 
-#include "reader.h"
-#include "readerfactory.h"
-#include "ISerializable.h"
-#include "stringcontainer.h"
-#include "concurrentreader.h"
-#include "metadatamanager.h"
-#include "readerparams.h"
-
+#include <QByteArray>
+#include <QDir>
+#include <QFileInfo>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QObject>
 #include <QPoint>
-#include <opencv2/core.hpp>
-#include <opencv2/videoio.hpp>
-#include <opencv2/imgcodecs.hpp>
-#include <opencv2/core/utils/filesystem.hpp>
-#include <QByteArray>
-#include <QVariant>
-#include <QJsonObject>
-#include <QJsonDocument>
-#include <QJsonArray>
-#include <QVector>
-#include <QVariant>
-#include <QJsonObject>
-#include <QVector>
 #include <QStringList>
-#include <QFileInfo>
-#include <QDir>
+#include <QVariant>
+#include <QVector>
+#include <opencv2/core.hpp>
+#include <opencv2/core/utils/filesystem.hpp>
+#include <opencv2/imgcodecs.hpp>
+#include <opencv2/videoio.hpp>
 
+#include "ISerializable.h"
+#include "metadatamanager.h"
+#include "reader.h"
+#include "readerparams.h"
 
 /**
  * @class ModelInputPictures
  *
  * @ingroup Model
  *
- * @brief The ModelInputPictures class is responsible for saving all the Data regarding the input. It implements the interface ISerializable to
- * be able to save all its current Data
+ * @brief The ModelInputPictures class is responsible for saving all the Data
+ * regarding the input. It implements the interface ISerializable to be able to
+ * save all its current Data
  *
  * @author Daniel Brommer
  *
  * @date 2021/01/28
  */
 
-class ModelInputPictures: public QObject, public ISerializable
-{
-Q_OBJECT
+class ModelInputPictures : public QObject, public ISerializable {
+    Q_OBJECT
 
-
-
-public:
+   public:
     /**
      * @class Memento
      *
      * @ingroup Model
      *
-     * @brief The Memento class is used to store and restore the keyframe list of mip for undo and redo.
+     * @brief The Memento class is used to store and restore the keyframe list
+     * of mip for undo and redo.
      *
      * @author Dominik Wuest
      *
@@ -63,13 +55,15 @@ public:
     class Memento {
         friend class ModelInputPictures;
 
-    public:
+       public:
         /**
-         * @brief getSnapshotDate returns the QDateTime object with the exact creation time and date of the memento
+         * @brief getSnapshotDate returns the QDateTime object with the exact
+         * creation time and date of the memento
          * @return The date and time of creation
          */
         QDateTime getSnapshotDate();
-    private:
+
+       private:
         Memento(std::vector<uint> state);
         std::vector<uint> getState();
 
@@ -78,13 +72,17 @@ public:
     };
 
     /**
-     * @brief ModelInputPictures Constructor, which uses inputPath to import the frames.
+     * @brief ModelInputPictures Constructor, which uses inputPath to import the
+     * frames.
      *
      * @param inputPath Path to the file or directory to be opend
+     * @param forceBackupVideoReader If reader should explicitly not use custom
+     * video reader
      */
-    explicit ModelInputPictures(QString inputPath);
+    explicit ModelInputPictures(QString inputPath, bool forceBackupVideoReader);
     /**
-     * @brief ModelInputPictures Constructor, which creates an empty class. toText can be used on this instance.
+     * @brief ModelInputPictures Constructor, which creates an empty class.
+     * toText can be used on this instance.
      */
     explicit ModelInputPictures();
 
@@ -107,7 +105,7 @@ public:
      *
      * @param keyframes Index vector with the indices of the keyframes
      */
-    void updateMIP(const std::vector<unsigned int> &keyframes);
+    void updateMIP(const std::vector<unsigned int>& keyframes);
     /**
      * @brief Removes the keyframe with the given index
      *
@@ -115,17 +113,10 @@ public:
      */
     void removeKeyframe(unsigned int index);
     /**
-     * @brief Returns the frame with the given index
-     *
-     * @param index Index of the frame
-     * @return Mat pointer to the frame
-     */
-    const cv::Mat* getPic(unsigned int index, Reader::PictureProcessingFlags flags = Reader::APPLY_NONE);
-    /**
      * @brief Returns the number of keyframes
      *
-     * @param inBound   true: returns only the amount of keyframes between the currently set boundaries
-     *                  false: returns the total amount of keyframes
+     * @param inBound   true: returns only the amount of keyframes between the
+     * currently set boundaries false: returns the total amount of keyframes
      * @return Number of keyframes
      */
     unsigned int getKeyframeCount(bool inBound);
@@ -138,14 +129,15 @@ public:
     /**
      * @brief Returns the index vector containing the keyframes
      *
-     * @param inBound   true: returns only the keyframes that are between the currently set boundaries
-     *                  false: returns all keyframes
+     * @param inBound   true: returns only the keyframes that are between the
+     * currently set boundaries false: returns all keyframes
      * @return Keyframe vector
      */
     std::vector<unsigned int> getAllKeyframes(bool inBound);
 
     /**
-     * @brief getReaderParams returns the parameters (working resolution, crop, etc.) used by the readers.
+     * @brief getReaderParams returns the parameters (working resolution, crop,
+     * etc.) used by the readers.
      * @return
      */
     std::shared_ptr<ReaderParams> getReaderParams();
@@ -154,7 +146,8 @@ public:
      *
      * @param index Index of the current frame
      * @param stepsize Number of keyframes to be skipped
-     * @return The index of the stepsize-next keyframe if it exists, otherwise it will return the last keyframe
+     * @return The index of the stepsize-next keyframe if it exists, otherwise
+     * it will return the last keyframe
      */
     unsigned int getNextKeyframe(unsigned int index, unsigned int stepsize);
     /**
@@ -162,7 +155,8 @@ public:
      *
      * @param index Index of the current frame
      * @param stepsize Number of keyframes to be skipped
-     * @return The index of the stepsize-next keyframe if it exists, otherwise it will return the first keyframe
+     * @return The index of the stepsize-next keyframe if it exists, otherwise
+     * it will return the first keyframe
      */
     unsigned int getPreviousKeyframe(unsigned int index, unsigned int stepsize);
     /**
@@ -176,13 +170,7 @@ public:
      *
      * @return A DelayedCopyReader
      */
-    Reader *getReader();
-    /**
-     * @brief createConcurrentReader creates an object from the class ConcurrentReader which can be used to access pictures in a parallel way
-     *
-     * @return object of the class ConcurrentReader
-     */
-    ConcurrentReader *createConcurrentReader();
+    Reader* getReader();
     // ISerializable interface
     /**
      * @brief Saves this class to a QVariant
@@ -213,29 +201,27 @@ public:
      * @param path Paths the the meta data to load
      * @return how many MetaDataReader have succesfully loaded the meta data
      */
-    int loadMetaData(QStringList paths);    
+    int loadMetaData(QStringList paths);
     /**
-     * @brief loadMetaDataImages Tries to extract meta data from the imported images
+     * @brief loadMetaDataImages Tries to extract meta data from the imported
+     * images
      * @return how many MetaDataReader have succesfully loaded meta data
      */
     int loadMetaDataImages();
-    Memento *save();
-    void restore(Memento *m);
+    Memento* save();
+    void restore(Memento* m);
 
     void setAltitude(double altitude);
     double getAltitude();
 
-
-
-signals:
+   signals:
     /**
      * @brief Signal, which is emitted, when the keyframe vector changes
      *
      */
     void sig_mipChanged();
 
-
-private:
+   private:
     Reader* m_reader = nullptr;
     std::vector<unsigned int> m_keyframes;
     QString m_inputPath;
@@ -248,4 +234,4 @@ private:
     std::vector<unsigned int> splitString(QString string);
 };
 
-#endif // MODELINPUTPICTURES_H
+#endif  // MODELINPUTPICTURES_H

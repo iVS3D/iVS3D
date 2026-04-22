@@ -3,30 +3,31 @@
 
 #include <QObject>
 #include <opencv2/core.hpp>
+
 #include "metadata.h"
-#include "sequentialreader.h"
 #include "readerparams.h"
+#include "sequentialreader.h"
 
 /**
  * @interface Reader
  *
  * @ingroup Model
  *
- * @brief The Reader interface defines functions which are used for reading and parsing the import
+ * @brief The Reader interface defines functions which are used for reading and
+ * parsing the import
  *
  * @author Daniel Brommer
  *
  * @date 2021/02/05
  */
 
-class Reader
-{
-public:
+class Reader {
+   public:
     virtual ~Reader() {};
 
-    enum PictureProcessingFlags{
-        APPLY_CROPPING = 1<<0,
-        APPLY_RESIZING = 1<<1,
+    enum PictureProcessingFlags {
+        APPLY_CROPPING = 1 << 0,
+        APPLY_RESIZING = 1 << 1,
         APPLY_ALL = APPLY_CROPPING | APPLY_RESIZING,
         APPLY_NONE = 0
     };
@@ -35,10 +36,12 @@ public:
      * @brief Returns the frame to a given index
      *
      * @param index Index of the frame to be returned
-     * @param useMultipleAccess optinal paramter, if multipleAccess should be used (set to false by default)
+     * @param useMultipleAccess optinal paramter, if multipleAccess should be
+     * used (set to false by default)
      * @return cv::Mat of the selected frame
      */
-    virtual cv::Mat getPic(unsigned int index, PictureProcessingFlags flags = APPLY_ALL) = 0;
+    virtual cv::Mat getPic(unsigned int index,
+                           PictureProcessingFlags flags = APPLY_ALL) = 0;
     /**
      * @brief Returns the number of frame
      *
@@ -70,23 +73,29 @@ public:
      */
     virtual bool isDir() = 0;
     /**
-     * @brief Creates this reader again and returns it. Optionally, one can provide a shared ptr to a different set of parameters.
-     * @param params The new parameters to use. Uses the same as the original reader if nullptr is provided.
+     * @brief Creates this reader again and returns it. Optionally, one can
+     * provide a shared ptr to a different set of parameters.
+     * @param params The new parameters to use. Uses the same as the original
+     * reader if nullptr is provided.
      *
      * @return New instance of this reader
      */
-    virtual Reader *copy(std::shared_ptr<ReaderParams> params = nullptr) = 0;
+    virtual Reader* copy(std::shared_ptr<ReaderParams> params = nullptr) = 0;
     /**
-     * @brief Returns a vector with filepaths (only valid, if the reader is a imagereader)
+     * @brief Returns a vector with filepaths (only valid, if the reader is a
+     * imagereader)
      *
      * @return Vector with filepaths
      */
     virtual std::vector<std::string> getFileVector() = 0;
 
-    virtual SequentialReader *createSequentialReader(std::vector<uint> indices, PictureProcessingFlags flags = APPLY_ALL) = 0;
+    virtual SequentialReader* createSequentialReader(
+        std::vector<uint> indices,
+        PictureProcessingFlags flags = APPLY_ALL) = 0;
 
     /**
-     * @brief enableMultithreading This method has to be called once in the plugins to use the reader while multithreading
+     * @brief enableMultithreading This method has to be called once in the
+     * plugins to use the reader while multithreading
      */
     virtual void enableMultithreading() {}
     /**
@@ -106,4 +115,4 @@ public:
     virtual bool isValid() = 0;
 };
 
-#endif // READER_H
+#endif  // READER_H

@@ -1,29 +1,26 @@
 #ifndef IMAGEREADER_H
 #define IMAGEREADER_H
 
-#include "readerfactory.h"
-#include "reader.h"
-#include "sequentialreaderimpl.h"
-#include "readerparams.h"
-
+#include <QCollator>
+#include <QDir>
+#include <QFileInfo>
 #include <QObject>
 #include <opencv2/core.hpp>
-
-
 #include <opencv2/core/utils/filesystem.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 
-#include <QDir>
-#include <QFileInfo>
-#include <QCollator>
+#include "reader.h"
+#include "readerparams.h"
+#include "sequentialreaderimpl.h"
 
 /**
  * @class ImageReader
  *
  * @ingroup Model
  *
- * @brief The ImageReader class provides input metadata aswell as on demand image reading/loading
+ * @brief The ImageReader class provides input metadata aswell as on demand
+ * image reading/loading
  *
  * @author Daniel Brommer
  *
@@ -32,35 +29,42 @@
 class ImageReader : public Reader
 
 {
-public:
+   public:
     /**
-     * @brief ImageReader constructor that will set up member variables to provide on demand reading images and read the input metadata
+     * @brief ImageReader constructor that will set up member variables to
+     * provide on demand reading images and read the input metadata
      * @param path directory/path of input images
      */
-    explicit ImageReader(QString path, std::shared_ptr<ReaderParams> readerParams);
+    explicit ImageReader(QString path,
+                         std::shared_ptr<ReaderParams> readerParams);
 
     ~ImageReader() override {}
     /**
      * @brief Returns the frame to a given index
      *
      * @param index Index of the frame to be returned
-     * @param useMultipleAccess optinal paramter, if multipleAccess should be used (set to false by default)
+     * @param useMultipleAccess optinal paramter, if multipleAccess should be
+     * used (set to false by default)
      * @return cv::Mat of the selected frame
      */
-    cv::Mat getPic(unsigned int index, PictureProcessingFlags flags = APPLY_ALL) override;
+    cv::Mat getPic(unsigned int index,
+                   PictureProcessingFlags flags = APPLY_ALL) override;
     /**
      * @brief getPicCount returns count of images in input
      * @return returns image count
      */
     unsigned int getPicCount() override;
     /**
-     * @brief getFPS method from interface Reader, that doesn't make sense for this class
+     * @brief getFPS method from interface Reader, that doesn't make sense for
+     * this class
      * @return code "-1" to signal, that an image folder doesn't have fps
      */
     double getFPS() override;
     /**
-     * @brief getVideoDurationmethod from interface Reader, that doesn't make sense for this class
-     * @return code "-1" to signal, that an image folder doesn't have video duration
+     * @brief getVideoDurationmethod from interface Reader, that doesn't make
+     * sense for this class
+     * @return code "-1" to signal, that an image folder doesn't have video
+     * duration
      */
     double getVideoDuration() override;
     /**
@@ -79,10 +83,11 @@ public:
      */
     std::vector<std::string> getFileVector() override;
     /**
-     * @brief copy creates a new instance of ImageReader that is a copy of itself
+     * @brief copy creates a new instance of ImageReader that is a copy of
+     * itself
      * @return ImageReader that is an exact copy
      */
-    ImageReader *copy(std::shared_ptr<ReaderParams> params) override;
+    ImageReader* copy(std::shared_ptr<ReaderParams> params) override;
     /**
      * @brief addMetaData Used to add MetaData to the reader
      * @param md The MetaData to be saved
@@ -99,9 +104,11 @@ public:
      */
     bool isValid() override;
 
-    SequentialReader *createSequentialReader(std::vector<uint> indices, PictureProcessingFlags flags = APPLY_ALL) override;
+    SequentialReader* createSequentialReader(
+        std::vector<uint> indices,
+        PictureProcessingFlags flags = APPLY_ALL) override;
 
-private:
+   private:
     ImageReader();
     std::vector<std::string> m_filePaths;
     unsigned int m_numImages = 0;
@@ -112,5 +119,4 @@ private:
     std::shared_ptr<ReaderParams> m_readerParams;
 };
 
-REGISTER_READER("ImageReader", ImageReader)
-#endif // IMAGEREADER_H
+#endif  // IMAGEREADER_H
