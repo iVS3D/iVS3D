@@ -1,7 +1,9 @@
 #include "applicationsettings.h"
 
-#include <string>
-
+#include "stringcontainer.h"
+#ifdef WITH_CUDA
+#include "opencv2/core/cuda.hpp"
+#endif
 #include "stringcontainer.h"
 #ifdef WITH_CUDA
 #include "opencv2/core/cuda.hpp"
@@ -99,6 +101,7 @@ void ApplicationSettings::loadSettings() {
             .value(stringContainer::forceBackupVideoReader,
                    m_forceBackupVideoReader)
             .toBool();
+    saveSettings();
 }
 
 void ApplicationSettings::saveSettings() {

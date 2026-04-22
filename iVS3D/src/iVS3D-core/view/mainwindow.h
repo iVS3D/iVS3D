@@ -276,6 +276,8 @@ class MainWindow : public QMainWindow {
 
     void sig_selectLanguage(QLocale locale);
 
+    void sig_forceBackupVideoReader(bool v);
+
     void sig_restart();
 
    public slots:

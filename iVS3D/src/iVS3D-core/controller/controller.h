@@ -161,6 +161,7 @@ class Controller : public QObject {
     void slot_redo();
     void slot_historyChanged();
     void slot_selectLanguage(QLocale language);
+    void slot_forceBackupVideoReader(bool v);
     void slot_restart();
     void slot_workingResolutionChanged(QString resolution);
     void slot_editCrop();

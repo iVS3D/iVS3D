@@ -3,6 +3,7 @@
 #include <iostream>
 
 #include "applicationsettings.h"
+#include "mainwindow.h"
 #include "reader.h"
 #include "readerparams.h"
 #include "reconstructiontoolsdialog.h"
@@ -106,6 +107,8 @@ Controller::Controller(QString inputPath, QString settingsPath,
     connect(m_mainWindow, &MainWindow::sig_redo, this, &Controller::slot_redo);
     connect(m_mainWindow, &MainWindow::sig_selectLanguage, this,
             &Controller::slot_selectLanguage);
+    connect(m_mainWindow, &MainWindow::sig_forceBackupVideoReader, this,
+            &Controller::slot_forceBackupVideoReader);
     connect(m_mainWindow, &MainWindow::sig_restart, this,
             &Controller::slot_restart);
 
@@ -450,6 +453,10 @@ void Controller::slot_historyChanged() {
 
 void Controller::slot_selectLanguage(QLocale language) {
     ApplicationSettings::instance().setLocale(language);
+}
+
+void Controller::slot_forceBackupVideoReader(bool v) {
+    ApplicationSettings::instance().set_forceBackupVideoReader(v);
 }
 
 void Controller::slot_restart() {

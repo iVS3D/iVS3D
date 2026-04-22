@@ -9,9 +9,7 @@
 #include <QMimeData>
 #include <QSplitter>
 #include <QWindow>
-#include <iostream>
 
-#include "applicationsettings.h"
 #include "stringcontainer.h"
 #include "ui_mainwindow.h"
 #include "view/about.h"
@@ -509,7 +507,7 @@ void MainWindow::on_changeLanguage() {
 
 void MainWindow::on_actionForce_Backup_Video_Reader() {
     bool v = ui->actionForce_Backup_Video_Reader->isChecked();
-    ApplicationSettings::instance().set_forceBackupVideoReader(v);
+    emit sig_forceBackupVideoReader(v);
 
     // Otherwise ask the user to restart the application
     QMessageBox msgBox(this);

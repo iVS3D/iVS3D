@@ -16,41 +16,33 @@ using PLUG::SelectionData;
 using PLUG::SelectionResult;
 using PLUG::SettingsWidgetResult;
 
-StationaryCamera::StationaryCamera()
-    : IBase()
-{
+StationaryCamera::StationaryCamera() : IBase() {
     QLocale locale = qApp->property("translation").toLocale();
     QTranslator* translator = new QTranslator();
     translator->load(locale, "stationary", "_", ":/translations", ".qm");
     qApp->installTranslator(translator);
 }
 
-SettingsWidgetResult StationaryCamera::getSettingsWidget()
-{
+SettingsWidgetResult StationaryCamera::getSettingsWidget() {
     auto widget = createSettingsWidget();
     if (!widget) {
-        return tl::make_unexpected(Error(
-            ErrorCode::ResourceUnavailable,
-            tr("Failed to create StationaryCamera settings widget.")));
+        return tl::make_unexpected(
+            Error(ErrorCode::ResourceUnavailable,
+                  tr("Failed to create StationaryCamera settings widget.")));
     }
     return widget;
 }
 
-QString StationaryCamera::getName() const
-{
-    return PLUGIN_NAME;
-}
+QString StationaryCamera::getName() const { return PLUGIN_NAME; }
 
-QMap<QString, QVariant> StationaryCamera::getSettings() const
-{
+QMap<QString, QVariant> StationaryCamera::getSettings() const {
     QMap<QString, QVariant> settings;
     settings.insert(SETTINGS_SELECTOR_THRESHOLD, m_selectorThreshold);
     return settings;
 }
 
 ApplySettingsResult StationaryCamera::applySettings(
-    const QMap<QString, QVariant>& settings)
-{
+    const QMap<QString, QVariant>& settings) {
     bool ok = true;
     const double threshold =
         settings.value(SETTINGS_SELECTOR_THRESHOLD, m_selectorThreshold)
@@ -67,8 +59,7 @@ ApplySettingsResult StationaryCamera::applySettings(
     return {};
 }
 
-InputLoadedResult StationaryCamera::onInputLoaded(const InputData& input)
-{
+InputLoadedResult StationaryCamera::onInputLoaded(const InputData& input) {
     if (!input.reader) {
         return tl::make_unexpected(
             Error(ErrorCode::InvalidInput, tr("Reader is null.")));
@@ -78,8 +69,8 @@ InputLoadedResult StationaryCamera::onInputLoaded(const InputData& input)
 
     const cv::Mat testPic = m_reader->getPic(0);
     if (testPic.empty()) {
-        return tl::make_unexpected(
-            Error(ErrorCode::InvalidInput, tr("Input contains no readable frame.")));
+        return tl::make_unexpected(Error(
+            ErrorCode::InvalidInput, tr("Input contains no readable frame.")));
     }
 
     m_inputResolution.setX(testPic.cols);
@@ -94,15 +85,10 @@ InputLoadedResult StationaryCamera::onInputLoaded(const InputData& input)
     return {};
 }
 
-void StationaryCamera::onCudaChanged(bool enabled)
-{
-    m_useCuda = enabled;
-}
+void StationaryCamera::onCudaChanged(bool enabled) { m_useCuda = enabled; }
 
-SelectionResult StationaryCamera::selectImages(
-    const SelectionData& data,
-    volatile bool& cancelFlag)
-{
+SelectionResult StationaryCamera::selectImages(const SelectionData& data,
+                                               volatile bool& cancelFlag) {
     const std::vector<uint>& imageList = data.selectedIndices;
 
     if (imageList.empty()) {
@@ -124,8 +110,8 @@ SelectionResult StationaryCamera::selectImages(
     // invalidate buffer if working resolution changed
     cv::Mat tstImg = m_reader->getPic(0);
     if (tstImg.empty()) {
-        return tl::make_unexpected(
-            Error(ErrorCode::InvalidInput, tr("Input contains no readable frame.")));
+        return tl::make_unexpected(Error(
+            ErrorCode::InvalidInput, tr("Input contains no readable frame.")));
     }
     if (m_inputResolution.x() != tstImg.cols ||
         m_inputResolution.y() != tstImg.rows) {
@@ -152,9 +138,9 @@ SelectionResult StationaryCamera::selectImages(
     futureFrames.erase(std::unique(futureFrames.begin(), futureFrames.end()),
                        futureFrames.end());  // remove duplicates
     reportProgress(tr("Creating calculation units"), 0);
-    std::tuple<ImageGatherer *, FlowCalculator *, KeyframeSelector *>
-        components = Factory::instance().createComponents(
-            futureFrames, m_reader, m_useCuda, m_selectorThreshold);
+    std::tuple<ImageGatherer*, FlowCalculator*, KeyframeSelector*> components =
+        Factory::instance().createComponents(futureFrames, m_reader, m_useCuda,
+                                             m_selectorThreshold);
     std::unique_ptr<ImageGatherer> imageGatherer(std::get<0>(components));
     std::unique_ptr<FlowCalculator> flowCalculator(std::get<1>(components));
     std::unique_ptr<KeyframeSelector> keyframeSelector(std::get<2>(components));
@@ -185,7 +171,8 @@ SelectionResult StationaryCamera::selectImages(
 
     // flow calculation
     std::function<void(cv::Mat, cv::Mat)> calcFlowStatic =
-        [fc = flowCalculator.get(), &flowValues](cv::Mat fromMat, cv::Mat toMat) {
+        [fc = flowCalculator.get(), &flowValues](cv::Mat fromMat,
+                                                 cv::Mat toMat) {
             QElapsedTimer timer;
             timer.start();
             // muliplication with down sample factor corrects the reduced
@@ -238,7 +225,8 @@ SelectionResult StationaryCamera::selectImages(
     if (flowCalcHandler.valid()) flowCalcHandler.wait();
     if (data.logFile) {
         data.logFile->stopTimer();
-        data.logFile->addCustomEntry(LF_CE_VALUE_USED_BUFFERED, usedBufferedValues,
+        data.logFile->addCustomEntry(LF_CE_VALUE_USED_BUFFERED,
+                                     usedBufferedValues,
                                      LF_CE_TYPE_ADDITIONAL_INFO);
     }
 
@@ -259,8 +247,8 @@ SelectionResult StationaryCamera::selectImages(
     if (data.logFile) {
         data.logFile->startTimer(LF_TIMER_BUFFER);
     }
-    for (uint flowValuesIdx = 0;
-         flowValuesIdx + 1 < flowValues.size() && flowValuesIdx + 1 < imageList.size();
+    for (uint flowValuesIdx = 0; flowValuesIdx + 1 < flowValues.size() &&
+                                 flowValuesIdx + 1 < imageList.size();
          flowValuesIdx++) {
         int progress = (100.0f * flowValues.size()) / (flowValuesIdx + 1);
         reportProgress(tr("Buffering values"), progress);
@@ -281,18 +269,15 @@ SelectionResult StationaryCamera::selectImages(
     return keyframes;
 }
 
-void StationaryCamera::reportProgress(const QString& op, int progress)
-{
+void StationaryCamera::reportProgress(const QString& op, int progress) {
     emit updateProgress(progress, op);
 }
 
-void StationaryCamera::slot_selectorThresholdChanged(double value)
-{
+void StationaryCamera::slot_selectorThresholdChanged(double value) {
     m_selectorThreshold = value / 100.0;
 }
 
-std::unique_ptr<QWidget> StationaryCamera::createSettingsWidget()
-{
+std::unique_ptr<QWidget> StationaryCamera::createSettingsWidget() {
     // selector layout
     auto settingsWidget = std::make_unique<QWidget>(nullptr);
     settingsWidget->setLayout(new QVBoxLayout(settingsWidget.get()));
@@ -301,7 +286,8 @@ std::unique_ptr<QWidget> StationaryCamera::createSettingsWidget()
 
     QWidget* selectorLayout = new QWidget(settingsWidget.get());
     selectorLayout->setLayout(new QHBoxLayout(selectorLayout));
-    selectorLayout->layout()->addWidget(new QLabel(SELECTOR_LABEL_TEXT, settingsWidget.get()));
+    selectorLayout->layout()->addWidget(
+        new QLabel(SELECTOR_LABEL_TEXT, settingsWidget.get()));
     selectorLayout->layout()->setContentsMargins(0, 0, 0, 0);
     selectorLayout->layout()->setSpacing(0);
 
@@ -315,13 +301,13 @@ std::unique_ptr<QWidget> StationaryCamera::createSettingsWidget()
     m_selectorThresholdSpinBox->setSingleStep(1.0);
     m_selectorThresholdSpinBox->setAlignment(Qt::AlignRight);
     QObject::connect(m_selectorThresholdSpinBox,
-                     QOverload<double>::of(&QDoubleSpinBox::valueChanged),
-                     this,
+                     QOverload<double>::of(&QDoubleSpinBox::valueChanged), this,
                      &StationaryCamera::slot_selectorThresholdChanged);
     selectorLayout->layout()->addWidget(m_selectorThresholdSpinBox);
 
     // selector description
-    QLabel* selectorLabel = new QLabel(SELECTOR_DESCRIPTION, settingsWidget.get());
+    QLabel* selectorLabel =
+        new QLabel(SELECTOR_DESCRIPTION, settingsWidget.get());
     selectorLabel->setStyleSheet(DESCRIPTION_STYLE);
     selectorLabel->setWordWrap(true);
 
@@ -329,18 +315,18 @@ std::unique_ptr<QWidget> StationaryCamera::createSettingsWidget()
     settingsWidget->layout()->addWidget(selectorLayout);
     settingsWidget->layout()->addWidget(selectorLabel);
 
-    QObject::connect(this, &StationaryCamera::syncSettingsWidget, settingsWidget.get(),
-                     [this](double selectorThresholdPercent) {
-                         if (m_selectorThresholdSpinBox) {
-                             QSignalBlocker blocker(m_selectorThresholdSpinBox);
-                             m_selectorThresholdSpinBox->setValue(selectorThresholdPercent);
-                         }
-                     },
-                     Qt::QueuedConnection);
+    QObject::connect(
+        this, &StationaryCamera::syncSettingsWidget, settingsWidget.get(),
+        [this](double selectorThresholdPercent) {
+            if (m_selectorThresholdSpinBox) {
+                QSignalBlocker blocker(m_selectorThresholdSpinBox);
+                m_selectorThresholdSpinBox->setValue(selectorThresholdPercent);
+            }
+        },
+        Qt::QueuedConnection);
 
-    QObject::connect(settingsWidget.get(), &QObject::destroyed, this, [this]() {
-        m_selectorThresholdSpinBox = nullptr;
-    });
+    QObject::connect(settingsWidget.get(), &QObject::destroyed, this,
+                     [this]() { m_selectorThresholdSpinBox = nullptr; });
 
     emit syncSettingsWidget(m_selectorThreshold * 100.0);
 
