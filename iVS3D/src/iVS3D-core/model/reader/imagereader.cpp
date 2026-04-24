@@ -55,8 +55,7 @@ ImageReader::ImageReader(QString path,
 
 cv::Mat ImageReader::getPic(unsigned int index, PictureProcessingFlags flags) {
     if (index > getPicCount()) {
-        cv::Mat empty;
-        return empty;
+        return cv::Mat();
     }
 
     cv::Mat img = cv::imread(m_filePaths.at(index));

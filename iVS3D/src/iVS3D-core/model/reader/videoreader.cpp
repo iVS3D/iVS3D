@@ -3,15 +3,17 @@
 #include <libavcodec/packet.h>
 #include <libavutil/error.h>
 #include <libavutil/pixfmt.h>
+#include <libavutil/rational.h>
 #include <libswscale/swscale.h>
 
 #include <cstdint>
-#include <iostream>
 #include <string>
 #include <vector>
 
 #include "reader.h"
 #include "sequentialreaderimpl.h"
+
+#define FPS_OFFSET 0.01
 
 VideoReader::VideoReader(const QString& path,
                          std::shared_ptr<ReaderParams> readerParams)
@@ -20,9 +22,9 @@ VideoReader::VideoReader(const QString& path,
     m_isValid = false;
     if (!info.isFile()) return;
 
-    if (openFormatContext() > 0) return;
-    if (selectVideoStream() > 0) return;
-    if (openCodec() > 0) return;
+    if (openFormatContext() != 0) return;
+    if (selectVideoStream() != 0) return;
+    if (openCodec() != 0) return;
 
     // validate the given readerParams, initialize if necessary!
     uint w = m_codecContext->width;
@@ -100,15 +102,23 @@ int VideoReader::selectVideoStream() {
          m_streamId++) {
         AVStream* stream = m_formatContext->streams[m_streamId];
         if (!stream) continue;
+
         AVCodecParameters* codecParams = stream->codecpar;
         if (!codecParams) continue;
+
         const AVCodec* codec = avcodec_find_decoder(codecParams->codec_id);
         if (!codec) continue;
+
         AVMediaType codecType = codecParams->codec_type;
         if (codecType == AVMEDIA_TYPE_VIDEO) {
             m_frameCount = stream->nb_frames;
             if (m_frameCount == 0) return -1;
+
+            // no fps variation
             m_avgVideoFPS = stream->avg_frame_rate;
+            AVRational real_fps = stream->r_frame_rate;
+            if (av_cmp_q(m_avgVideoFPS, stream->r_frame_rate) != 0) return -1;
+
             m_startTimestamp = stream->start_time;
             m_streamTimeBase = stream->time_base;
             return 0;
@@ -151,7 +161,6 @@ MetaData* VideoReader::getMetaData() { return m_md; }
 bool VideoReader::isValid() { return m_isValid; }
 
 cv::Mat VideoReader::getPic(unsigned int index, PictureProcessingFlags flags) {
-    std::cout << "[DEBUG] " << index << " " << std::endl;
     QMutexLocker locker(&m_mutex);
 
     if (index >= m_frameCount) return cv::Mat();
@@ -226,7 +235,6 @@ cv::Mat VideoReader::getPic(unsigned int index, PictureProcessingFlags flags) {
         m_readerParams->getUseRoi()) {
         m_readerParams->getRoi().crop(img);
     }
-    std::cout << "[DEBUG] " << img.size << std::endl;
     return img;
 }
 
@@ -317,13 +325,15 @@ cv::Mat VideoReader::avFrame2CvMat(const AVFrame* av_f) {
     const int w = av_f->width;
     if (av_f->format < 0) return cv::Mat();
 
+    const AVRational timeBase = av_f->time_base;
+    // frame needs to be escatly one 1/fps
+    if (timeBase.num != 0 || timeBase.den != 1) return cv::Mat();
+
     const AVPixelFormat pixFormat = static_cast<AVPixelFormat>(av_f->format);
 
     if (updateSWSContext(w, h, pixFormat) < 0) return cv::Mat();
 
     cv::Mat cv_f(h, w, CV_8UC3);
-    // uint8_t* cv_data[] = {cv_f.data};
-    // int cv_lineSize[] = {static_cast<int>(cv_f.step[0])};
     int cv_linesizes[1] = {(int)cv_f.step1()};
     const int out_h = sws_scale(m_swsContext, av_f->data, av_f->linesize, 0, h,
                                 &cv_f.data, cv_linesizes);

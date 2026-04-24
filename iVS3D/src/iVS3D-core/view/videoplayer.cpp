@@ -93,8 +93,7 @@ VideoPlayer::~VideoPlayer() {
 }
 
 void VideoPlayer::showVisualization(const VIS::Visualization& vis) {
-    
-    assert(m_imageItem != nullptr); // must have an image to overlay on!
+    assert(m_imageItem != nullptr);  // must have an image to overlay on!
 
     clearVisualization();
 
@@ -105,25 +104,28 @@ void VideoPlayer::showVisualization(const VIS::Visualization& vis) {
         roi_viewport = m_imageItem->boundingRect();
     }
     QRectF image_viewport = m_imageItem->boundingRect();
-    image_viewport.moveTo(0, 0); // ensure image viewport is at (0,0) for easier calculations
+    image_viewport.moveTo(
+        0, 0);  // ensure image viewport is at (0,0) for easier calculations
 
     m_visItemGroup = new QGraphicsItemGroup(m_imageItem);
-    m_visItemGroup->setZValue(2); // on top of image and ROI
-    
+    m_visItemGroup->setZValue(2);  // on top of image and ROI
+
     int width = 0;
     int height = 0;
     for (const auto& view : vis.views) {
         if (view.style.showTitle && !view.title.isEmpty()) {
             auto view_root = new QGraphicsItemGroup(m_visItemGroup);
             view_root->setZValue(3);
-            
-            view_root->setTransform(
-                QTransform::fromTranslate(width, 0)
-                    .scale(image_viewport.width() * view.style.relativeSize.x(), image_viewport.height() * view.style.relativeSize.y())); // scale from [0,1] to viewport size
-            
+
+            view_root->setTransform(QTransform::fromTranslate(width, 0).scale(
+                image_viewport.width() * view.style.relativeSize.x(),
+                image_viewport.height() *
+                    view.style.relativeSize
+                        .y()));  // scale from [0,1] to viewport size
+
             VIS::TextOverlay titleOverlay;
             titleOverlay.text = view.title;
-            titleOverlay.position = QPointF(0.5, 0.02); // top center
+            titleOverlay.position = QPointF(0.5, 0.02);  // top center
             titleOverlay.anchor = VIS::TextAnchor::TopCenter;
             titleOverlay.style.fontSize = 16;
             titleOverlay.style.textColor = Qt::white;
@@ -132,17 +134,25 @@ void VideoPlayer::showVisualization(const VIS::Visualization& vis) {
         }
 
         // create a root element correctly scaled and translated for this view
-        auto *view_root = new QGraphicsItemGroup(m_visItemGroup);
-        auto &viewport = (view.style.viewport == VIS::ViewportType::RegionOfInterest) ? roi_viewport : image_viewport;
+        auto* view_root = new QGraphicsItemGroup(m_visItemGroup);
+        auto& viewport =
+            (view.style.viewport == VIS::ViewportType::RegionOfInterest)
+                ? roi_viewport
+                : image_viewport;
 
         view_root->setTransform(
             QTransform::fromTranslate(viewport.x() + width, viewport.y())
-                .scale(viewport.width() * view.style.relativeSize.x(), viewport.height() * view.style.relativeSize.y())); // scale from [0,1] to viewport size
-        
+                .scale(viewport.width() * view.style.relativeSize.x(),
+                       viewport.height() *
+                           view.style.relativeSize
+                               .y()));  // scale from [0,1] to viewport size
+
         // keep track of overall scene size to append next view
-        //auto rect = (view.style.viewport == ViewportType::RegionOfInterest) ? viewport : m_imageItem->boundingRect();
+        // auto rect = (view.style.viewport == ViewportType::RegionOfInterest) ?
+        // viewport : m_imageItem->boundingRect();
         width += image_viewport.width() * view.style.relativeSize.x();
-        height = std::max(height, int(image_viewport.height() * view.style.relativeSize.y()));
+        height = std::max(
+            height, int(image_viewport.height() * view.style.relativeSize.y()));
 
         // draw all overlays for this view. They are in local [0,1] space.
         // Scaling is handled by the view_root transform.
@@ -166,14 +176,14 @@ void VideoPlayer::showVisualization(const VIS::Visualization& vis) {
 }
 
 void VideoPlayer::clearVisualization() {
-    if(m_visItemGroup) {
+    if (m_visItemGroup) {
         ui->graphicsView->scene()->removeItem(m_visItemGroup);
         delete m_visItemGroup;
         m_visItemGroup = nullptr;
     }
 }
 
-void VideoPlayer::showImage(const cv::Mat& image) {
+void VideoPlayer::showImage(const cv::Mat image) {
     if (image.empty()) {
         return;
     }
@@ -186,16 +196,15 @@ void VideoPlayer::showImage(const cv::Mat& image) {
         m_imageItem = nullptr;
         m_visItemGroup = nullptr;
     }
-    auto pixmap =
-        QPixmap::fromImage(qImageFromCvMat(image, true));
+    auto pixmap = QPixmap::fromImage(qImageFromCvMat(image, true));
     m_imageItem = ui->graphicsView->scene()->addPixmap(pixmap);
 
     if (w != pixmap.width() || h != pixmap.height()) {
         // chnaged resolution, need to update scene rect
-        ui->graphicsView->scene()->setSceneRect(
-            0, 0, pixmap.width(), pixmap.height());
+        ui->graphicsView->scene()->setSceneRect(0, 0, pixmap.width(),
+                                                pixmap.height());
     }
-    
+
     ui->graphicsView->fitInView(ui->graphicsView->scene()->sceneRect(),
                                 Qt::KeepAspectRatio);
     ui->graphicsView->show();
@@ -303,7 +312,7 @@ void VideoPlayer::on_pushButton_resetKeyframes_clicked() {
     emit sig_deleteAllKeyframes();
 }
 
-QImage VideoPlayer::qImageFromCvMat(const cv::Mat& input, bool bgr) {
+QImage VideoPlayer::qImageFromCvMat(cv::Mat input, bool bgr) {
     cv::Mat rgb;
     if (input.channels() == 4) {
         if (bgr) {
@@ -326,17 +335,17 @@ QImage VideoPlayer::qImageFromCvMat(const cv::Mat& input, bool bgr) {
                       QImage::Format_RGB888)
             .copy();
     } else if (input.channels() == 1) {
-        return QImage(input.data, input.cols, input.rows, static_cast<int>(input.step),
-                      QImage::Format_Grayscale8)
+        return QImage(input.data, input.cols, input.rows,
+                      static_cast<int>(input.step), QImage::Format_Grayscale8)
             .copy();
     }
 
     return QImage();
 }
 
-void VideoPlayer::alphaBlend(cv::Mat* foreground, cv::Mat* background,
+void VideoPlayer::alphaBlend(cv::Mat foreground, cv::Mat background,
                              float alpha, cv::Mat& output) {
-    output = alpha * (*foreground) + (1 - alpha) * (*background);
+    output = alpha * foreground + (1 - alpha) * background;
 }
 
 void VideoPlayer::updateOverlay() {
@@ -490,7 +499,7 @@ void VideoPlayer::displayDragNDropIcon() {
         textItem->boundingRect().width() / 2.0,
         0);  // Center the origin in horizontal direction
 
-    textItem->setPos(0,0.15);  // top middle
+    textItem->setPos(0, 0.15);  // top middle
 
     // Add the text item to the scene
     ui->graphicsView->scene()->addItem(textItem);
@@ -501,10 +510,9 @@ void VideoPlayer::displayDragNDropIcon() {
 
     svgItem->setScale(0.5);  // Adjust scale as needed
 
-    svgItem->setTransformOriginPoint(
-        svgItem->boundingRect().width() / 2.0,
-        0);  // Center the origin top middle
-    
+    svgItem->setTransformOriginPoint(svgItem->boundingRect().width() / 2.0,
+                                     0);  // Center the origin top middle
+
     svgItem->setPos(0, 0.4);  // Position at the top-middle
 
     // Add the item to the scene

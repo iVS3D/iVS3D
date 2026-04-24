@@ -1,17 +1,17 @@
 #ifndef VIDEOPLAYER_H
 #define VIDEOPLAYER_H
 
-#include <QWidget>
-#include <QShortcut>
-#include <QKeySequence>
-#include <QGraphicsTextItem>
 #include <QGraphicsOpacityEffect>
+#include <QGraphicsTextItem>
+#include <QKeySequence>
+#include <QShortcut>
+#include <QWidget>
 
-#include "opencv2/core.hpp"
-#include "opencv2/imgproc.hpp"
-#include "opencv2/imgcodecs.hpp"
-#include "ui_videoplayer.h"
 #include "cvmat_qmetadata.h"
+#include "opencv2/core.hpp"
+#include "opencv2/imgcodecs.hpp"
+#include "opencv2/imgproc.hpp"
+#include "ui_videoplayer.h"
 #include "visualization.h"
 
 #define OVERLAY_PADDING 13
@@ -26,42 +26,44 @@ class VideoPlayer;
  *
  * @ingroup View
  *
- * @brief The VideoPlayer class provides a view to display images and holds buttons to interact with image sequences. \n
- * These buttons are:
- * <table>
+ * @brief The VideoPlayer class provides a view to display images and holds
+ * buttons to interact with image sequences. \n These buttons are: <table>
  * <tr><th>Button       <th>Function                        <th> Emitted signal
- * <tr><td>@a |<<       <td>display first image             <td> VideoPlayer::sig_showFirstImage()
- * <tr><td>@a >>|       <td>display last image              <td> VideoPlayer::sig_showLastImage()
- * <tr><td>@a |<        <td>display previous image          <td> VideoPlayer::sig_showPreviousImage()
- * <tr><td>@a >|        <td>display next image              <td> VideoPlayer::sig_showNextImage()
- * <tr><td>@a > / @a || <td>play / pause image sequence     <td> VideoPlayer::sig_play()
+ * <tr><td>@a |<<       <td>display first image             <td>
+ * VideoPlayer::sig_showFirstImage() <tr><td>@a >>|       <td>display last image
+ * <td> VideoPlayer::sig_showLastImage() <tr><td>@a |<        <td>display
+ * previous image          <td> VideoPlayer::sig_showPreviousImage() <tr><td>@a
+ * >|        <td>display next image              <td>
+ * VideoPlayer::sig_showNextImage() <tr><td>@a > / @a || <td>play / pause image
+ * sequence     <td> VideoPlayer::sig_play()
  * </table>
- * Depending on the selected image, these buttons can be disabled. The state of the play / pause button can be changed using
- * VideoPlayer::setPlaying(). The stepsize for playing the image sequence can be changed as well.
+ * Depending on the selected image, these buttons can be disabled. The state of
+ * the play / pause button can be changed using VideoPlayer::setPlaying(). The
+ * stepsize for playing the image sequence can be changed as well.
  *
- * Images are displayed using VideoPlayer::showPixmap() and can be highlighted using VideoPlayer::setKeyframe(). Keyframes can be added
- * and removed one by one or all at once. The VideoPlayer handles resizing of the images.
+ * Images are displayed using VideoPlayer::showPixmap() and can be highlighted
+ * using VideoPlayer::setKeyframe(). Keyframes can be added and removed one by
+ * one or all at once. The VideoPlayer handles resizing of the images.
  *
  * @author Dominik Wüst
  *
  * @date 2021/03/02
  */
-class VideoPlayer : public QWidget
-{
+class VideoPlayer : public QWidget {
     Q_OBJECT
 
-public:
-
+   public:
     /**
-     * @brief Create a VideoPlayer and set the Gui to dark mode, if dark is @a true.
+     * @brief Create a VideoPlayer and set the Gui to dark mode, if dark is @a
+     * true.
      * @param parent Parent for the QWidget
      * @param dark Gui is dark if @a true, light otherwise
      */
-    explicit VideoPlayer(QWidget *parent = nullptr, ColorTheme theme = DARK);
+    explicit VideoPlayer(QWidget* parent = nullptr, ColorTheme theme = DARK);
 
     ~VideoPlayer();
 
-    void showVisualization(const VIS::Visualization &vis);
+    void showVisualization(const VIS::Visualization& vis);
 
     void clearVisualization();
 
@@ -69,10 +71,11 @@ public:
      * @brief showImage displays the given image.
      * @param image The image as cv:Mat
      */
-    void showImage(const cv::Mat &image);
+    void showImage(const cv::Mat image);
 
     /**
-     * @brief setKeyframe highlights the displayed image if isKeyframe is @a true.
+     * @brief setKeyframe highlights the displayed image if isKeyframe is @a
+     * true.
      * @param isKeyframe Highlights the image if @a true
      */
     void setKeyframe(bool isKeyframe);
@@ -84,13 +87,15 @@ public:
     void setKeyframeCount(unsigned int keyframeCount);
 
     /**
-     * @brief setEnabledBackBtns enables or disables the @a |<< and @a |< buttons.
+     * @brief setEnabledBackBtns enables or disables the @a |<< and @a |<
+     * buttons.
      * @param enabled Enable the buttons if @a true, disable otherwise
      */
     void setEnabledBackBtns(bool enabled);
 
     /**
-     * @brief setEnabledForwardBtns enables or disables the @a >| and @a >>| buttons.
+     * @brief setEnabledForwardBtns enables or disables the @a >| and @a >>|
+     * buttons.
      * @param enabled Enable the buttons if @a true, disable otherwise
      */
     void setEnabledForwardBtns(bool enabled);
@@ -114,19 +119,22 @@ public:
     void setKeyframesOnly(bool checked);
 
     /**
-     * @brief addWidgetToLayout adds the given QWidget to the VideoPlayer between the displayed image and the interaction buttons.
+     * @brief addWidgetToLayout adds the given QWidget to the VideoPlayer
+     * between the displayed image and the interaction buttons.
      * @param widget The QWidget to add
      */
-    void addWidgetToLayout(QWidget *widget);
+    void addWidgetToLayout(QWidget* widget);
 
     /**
-     * @brief removeWidgetFromLayout removes the given QWidget from the VideoPlayer.
+     * @brief removeWidgetFromLayout removes the given QWidget from the
+     * VideoPlayer.
      * @param widget The QWidget to remove
      */
-    void removeWidgetFromLayout(QWidget *widget);
+    void removeWidgetFromLayout(QWidget* widget);
 
     /**
-     * @brief setColorTheme updates text and icon colors according to a given theme
+     * @brief setColorTheme updates text and icon colors according to a given
+     * theme
      * @param theme
      */
     void setColorTheme(ColorTheme theme);
@@ -140,12 +148,12 @@ public:
         Qt::TextElideMode elidMode = Qt::ElideRight;
     };
 
-    void updateOverlayText(const QList<OverlayEntry> &content);
+    void updateOverlayText(const QList<OverlayEntry>& content);
 
     void updateRoi(const QRect& roi = QRect());
     void clear();
 
-signals:
+   signals:
 
     /**
      * @brief [signal] sig_play() is emitted on play / pause button press.
@@ -158,12 +166,14 @@ signals:
     void sig_showNextImage();
 
     /**
-     * @brief [signal] sig_showPreviousImage() is emitted on show previous button press.
+     * @brief [signal] sig_showPreviousImage() is emitted on show previous
+     * button press.
      */
     void sig_showPreviousImage();
 
     /**
-     * @brief [signal] sig_showFirstImage() is emitted on show first button press.
+     * @brief [signal] sig_showFirstImage() is emitted on show first button
+     * press.
      */
     void sig_showFirstImage();
 
@@ -173,12 +183,14 @@ signals:
     void sig_showLastImage();
 
     /**
-     * @brief [signal] sig_toggleKeyframes() is emitted on set keyframe / remove keyframe button press.
+     * @brief [signal] sig_toggleKeyframes() is emitted on set keyframe / remove
+     * keyframe button press.
      */
     void sig_toggleKeyframes();
 
     /**
-     * @brief [signal] sig_toggleKeyframesOnly(...) is emitted if the keyframes only checkbox is checked/unchecked.
+     * @brief [signal] sig_toggleKeyframesOnly(...) is emitted if the keyframes
+     * only checkbox is checked/unchecked.
      * @param checked Is @a true if the scheckbox is checked, @a false otherwise
      */
     void sig_toggleKeyframesOnly(bool checked);
@@ -190,7 +202,8 @@ signals:
     void sig_changeStepsize(unsigned int stepsize);
 
     /**
-     * @brief [signal] sig_deleteAllKeyframes() is emitted on delete all button press.
+     * @brief [signal] sig_deleteAllKeyframes() is emitted on delete all button
+     * press.
      */
     void sig_deleteAllKeyframes();
 
@@ -201,10 +214,10 @@ signals:
 
     void sig_useCropChanged(bool useCrop);
 
-protected:
-    void resizeEvent(QResizeEvent *e); // used to resize displayed image
+   protected:
+    void resizeEvent(QResizeEvent* e);  // used to resize displayed image
 
-private slots:
+   private slots:
     void on_pushButton_firstPic_clicked();
     void on_pushButton_prevPic_clicked();
     void on_pushButton_playPause_clicked();
@@ -215,27 +228,28 @@ private slots:
     void on_spinBox_stepsize_valueChanged(int arg1);
     void on_pushButton_resetKeyframes_clicked();
 
-private:
-    Ui::VideoPlayer *ui;
+   private:
+    Ui::VideoPlayer* ui;
     ColorTheme m_colorTheme;
-    QShortcut *m_prevSC;
-    QShortcut *m_nextSC;
+    QShortcut* m_prevSC;
+    QShortcut* m_nextSC;
 
     // This is the image item displayed in the graphics view
-    QGraphicsItem *m_imageItem;
-    QGraphicsRectItem *m_roiItem;
-    QGraphicsItemGroup *m_visItemGroup;
+    QGraphicsItem* m_imageItem;
+    QGraphicsRectItem* m_roiItem;
+    QGraphicsItemGroup* m_visItemGroup;
 
     // Input Info Overlay
     QList<OverlayEntry> m_overlayEntries;
-    QLabel *m_overlayLabel;
-    QGraphicsOpacityEffect *m_overlayOpacityEffect;
+    QLabel* m_overlayLabel;
+    QGraphicsOpacityEffect* m_overlayOpacityEffect;
 
-    QImage qImageFromCvMat(const cv::Mat &input, bool bgr = true);
-    void alphaBlend(cv::Mat *foreground, cv::Mat *background, float alpha, cv::Mat &output);
+    QImage qImageFromCvMat(cv::Mat input, bool bgr = true);
+    void alphaBlend(cv::Mat foreground, cv::Mat background, float alpha,
+                    cv::Mat& output);
     void updateOverlay();
     bool checkOverlap();
     void displayDragNDropIcon();
 };
 
-#endif // VIDEOPLAYER_H
+#endif  // VIDEOPLAYER_H
