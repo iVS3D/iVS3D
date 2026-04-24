@@ -11,7 +11,6 @@
 
 #include "reader.h"
 #include "readerparams.h"
-#include "sequentialreaderimpl.h"
 
 extern "C" {
 #include <libavcodec/avcodec.h>

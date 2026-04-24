@@ -1,22 +1,24 @@
 #ifndef SEQUENTIALREADERIMPL_H
 #define SEQUENTIALREADERIMPL_H
 
-#include "sequentialreader.h"
 #include "reader.h"
+#include "sequentialreader.h"
 
-class SequentialReaderImpl : public SequentialReader
-{
-public:
-    SequentialReaderImpl(Reader *reader, std::vector<uint> indices, bool lockConcurrentAccess=true, Reader::PictureProcessingFlags flags = Reader::APPLY_ALL);
-    SequentialReaderImpl(SequentialReaderImpl &other);
+class SequentialReaderImpl : public SequentialReader {
+   public:
+    SequentialReaderImpl(
+        Reader* reader, std::vector<uint> indices,
+        bool lockConcurrentAccess = true,
+        Reader::PictureProcessingFlags flags = Reader::APPLY_ALL);
+    SequentialReaderImpl(SequentialReaderImpl& other);
 
-    virtual bool getNext(cv::Mat &image, uint &idx, int &progress) override;
+    virtual bool getNext(cv::Mat image, uint& idx, int progress) override;
 
     virtual uint getImageCount() override;
     virtual uint getCurrentIndex() override;
 
-private:
-    Reader *m_reader;
+   private:
+    Reader* m_reader;
     std::vector<uint> m_indices;
     Reader::PictureProcessingFlags m_flags;
     uint m_idx;
@@ -24,4 +26,4 @@ private:
     bool m_lockConcurrentAccess;
 };
 
-#endif // SEQUENTIALREADERIMPL_H
+#endif  // SEQUENTIALREADERIMPL_H

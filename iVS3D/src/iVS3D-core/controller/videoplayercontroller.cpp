@@ -1,10 +1,8 @@
 ﻿#include "videoplayercontroller.h"
 
-VideoPlayerController::VideoPlayerController(QObject* parent,
-                                             VideoPlayer* player,
-                                             Timeline* timeline,
-                                             DataManager* dataManager,
-                                             std::shared_ptr<PluginThread> pluginThread)
+VideoPlayerController::VideoPlayerController(
+    QObject* parent, VideoPlayer* player, Timeline* timeline,
+    DataManager* dataManager, std::shared_ptr<PluginThread> pluginThread)
     : QObject(parent), m_pluginThread(std::move(pluginThread)) {
     m_videoPlayer = player;
     m_timeline = timeline;
@@ -132,7 +130,7 @@ unsigned int VideoPlayerController::getImageIndexOnScreen() {
     return m_imageIndexOnScreen;
 }
 
-void VideoPlayerController::resetLayout() { 
+void VideoPlayerController::resetLayout() {
     m_videoPlayer->clear();
     m_currentImage = cv::Mat();
 }
@@ -356,7 +354,7 @@ void VideoPlayerController::slot_redraw() {
 }
 
 void VideoPlayerController::slot_receiveImage(const ImageRequest& request,
-                                              const ImageResult& result) {
+                                              const ImageResult result) {
     // update status bar with info about corrupted images
     if (result.img.empty()) {
         m_foundCorruptedFrames.insert(result.idx);
@@ -414,14 +412,14 @@ void VideoPlayerController::slot_receiveImage(const ImageRequest& request,
     if (m_pluginThread && m_currentPreviewPlugin &&
         (m_imageIndexOnScreen == result.idx)) {
         m_pluginThread->requestPreview(*m_currentPreviewPlugin,
-                                      {m_imageIndexOnScreen, croppedImage});
+                                       {m_imageIndexOnScreen, croppedImage});
     }
 }
 
 void VideoPlayerController::slot_receiveVisualization(
     const PreviewResult& result) {
     if (m_imageIndexOnScreen != result.idx) {
-        //return;  // discard outdated visualization
+        // return;  // discard outdated visualization
     }
     if (!result.visualization) {
         QMessageBox::warning(

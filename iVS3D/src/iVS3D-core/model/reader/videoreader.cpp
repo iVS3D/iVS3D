@@ -6,10 +6,12 @@
 #include <libswscale/swscale.h>
 
 #include <cstdint>
+#include <iostream>
 #include <string>
 #include <vector>
 
 #include "reader.h"
+#include "sequentialreaderimpl.h"
 
 VideoReader::VideoReader(const QString& path,
                          std::shared_ptr<ReaderParams> readerParams)
@@ -149,6 +151,7 @@ MetaData* VideoReader::getMetaData() { return m_md; }
 bool VideoReader::isValid() { return m_isValid; }
 
 cv::Mat VideoReader::getPic(unsigned int index, PictureProcessingFlags flags) {
+    std::cout << "[DEBUG] " << index << " " << std::endl;
     QMutexLocker locker(&m_mutex);
 
     if (index >= m_frameCount) return cv::Mat();
@@ -211,6 +214,7 @@ cv::Mat VideoReader::getPic(unsigned int index, PictureProcessingFlags flags) {
             return cv::Mat();
         }
     }
+
     cv::Mat img = avFrame2CvMat(iter->second);
     if (img.empty()) return cv::Mat();
 
@@ -222,6 +226,7 @@ cv::Mat VideoReader::getPic(unsigned int index, PictureProcessingFlags flags) {
         m_readerParams->getUseRoi()) {
         m_readerParams->getRoi().crop(img);
     }
+    std::cout << "[DEBUG] " << img.size << std::endl;
     return img;
 }
 

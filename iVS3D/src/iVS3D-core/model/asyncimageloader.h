@@ -22,7 +22,7 @@ Q_DECLARE_METATYPE(ImageResult)
 class AsyncImageLoader : public QObject {
     Q_OBJECT
    public:
-    using WorkFunction = std::function<ImageResult(const ImageRequest&)>;
+    using WorkFunction = std::function<ImageResult(ImageRequest)>;
 
     AsyncImageLoader(WorkFunction fn, QObject* parent = nullptr)
         : QObject(parent), m_fn(fn) {

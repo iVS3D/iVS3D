@@ -101,7 +101,6 @@ void ApplicationSettings::loadSettings() {
             .value(stringContainer::forceBackupVideoReader,
                    m_forceBackupVideoReader)
             .toBool();
-    saveSettings();
 }
 
 void ApplicationSettings::saveSettings() {
@@ -259,4 +258,5 @@ bool ApplicationSettings::get_forceBackupVideoReader() {
 
 void ApplicationSettings::set_forceBackupVideoReader(bool v) {
     m_forceBackupVideoReader = v;
+    saveSettings();
 }
