@@ -23,8 +23,8 @@ Reader* ReaderFactory::createReader(QString path,
         // ffmpeg video reader
         reader = new VideoReader(path, params);
     }
-    bool enableBackupVidReader = !reader->isValid() && allowBackupReader();
-    if (info.isFile() && (forceBackupVideoReader || enableBackupVidReader)) {
+    if (info.isFile() && (forceBackupVideoReader ||
+                          (!reader->isValid() && allowBackupReader()))) {
         // backup video reader
         reader = new BackupVideoReader(path, params);
     }
