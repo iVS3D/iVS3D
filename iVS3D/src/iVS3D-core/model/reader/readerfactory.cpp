@@ -1,7 +1,10 @@
 #include "readerfactory.h"
 
+#include <qapplication.h>
 #include <qfileinfo.h>
 #include <qmessagebox.h>
+#include <qobject.h>
+#include <qthread.h>
 
 #include "backupvideoreader.h"
 #include "imagereader.h"
@@ -35,10 +38,8 @@ Reader* ReaderFactory::createReader(QString path,
 }
 
 bool ReaderFactory::allowBackupReader() {
-    QMessageBox::StandardButton confirmBt = QMessageBox::Yes;
-    QMessageBox::StandardButton declineBt = QMessageBox::Abort;
-
     QMessageBox msgBox;
+    msgBox.setModal(true);
     msgBox.setIcon(QMessageBox::Warning);
     msgBox.setText(tr("Do you want to use the backup video reader?"));
     msgBox.setDetailedText(
@@ -46,9 +47,16 @@ bool ReaderFactory::allowBackupReader() {
            "video. If you do not need frame perfect selection you can use "
            "the backup video reader, which is based on OpenCV. If you "
            "abort this the video can not be loaded."));
-    msgBox.setStandardButtons(confirmBt | declineBt);
-    msgBox.setDefaultButton(confirmBt);
-    int ret = msgBox.exec();
+    msgBox.setStandardButtons(CONFIRM_BT | DECLINE_BT);
+    msgBox.setDefaultButton(CONFIRM_BT);
 
-    return ret == confirmBt;
+    msgBox.show();
+    int res = -1;
+    while (res != CONFIRM_BT && res != DECLINE_BT) {
+        QApplication::processEvents();
+        res = msgBox.result();
+        QThread::msleep(100);
+    }
+
+    return res == CONFIRM_BT;
 }
