@@ -17,15 +17,9 @@ int AlgorithmExecutor::startSampling(int pluginIdx)
     }
 
     m_sampleThread = new SampleThread(this, preparedData.images, &m_stopped, m_pluginIndex, preparedData.useCuda);
-    //Use a direct Connection when no ui is used
-    if (qApp->property(stringContainer::UIIdentifier).toBool()) {
-        QObject::connect(m_sampleThread, &QThread::finished, this, &AlgorithmExecutor::slot_pluginFinished);
-    }
-    else {
-        QObject::connect(m_sampleThread, &QThread::finished, this, &AlgorithmExecutor::slot_pluginFinished, Qt::DirectConnection);
-    }
-    m_sampleThread->start();
     m_currentThread = m_sampleThread;
+    QObject::connect(m_sampleThread, &QThread::finished, this, &AlgorithmExecutor::slot_pluginFinished);
+    m_sampleThread->start();
     return 0;
 }
 
@@ -35,15 +29,9 @@ int AlgorithmExecutor::startGenerateSettings(int pluginIdx)
     ALGO_DATA preparedData = prepareAlgoStart(pluginIdx);
     m_settingsThread = new SettingsThread(this, preparedData.images, &m_stopped, m_pluginIndex, preparedData.useCuda);
 
-    //Use a direct Connection when no ui is used
-    if (qApp->property(stringContainer::UIIdentifier).toBool()) {
-        QObject::connect(m_settingsThread, &QThread::finished, this, &AlgorithmExecutor::slot_pluginFinished);
-    }
-    else {
-        QObject::connect(m_settingsThread, &QThread::finished, this, &AlgorithmExecutor::slot_pluginFinished, Qt::DirectConnection);
-    }
-    m_settingsThread->start();
     m_currentThread = m_settingsThread;
+    QObject::connect(m_settingsThread, &QThread::finished, this, &AlgorithmExecutor::slot_pluginFinished);
+    m_settingsThread->start();
     return 0;
 }
 
@@ -58,6 +46,8 @@ void AlgorithmExecutor::slot_abort()
     m_currentThread->wait();
     delete m_currentThread;
     m_currentThread = nullptr;
+    m_sampleThread = nullptr;
+    m_settingsThread = nullptr;
     emit sig_algorithmAborted();
 }
 
@@ -65,6 +55,9 @@ void AlgorithmExecutor::slot_abort()
 
 void AlgorithmExecutor::slot_pluginFinished()
 {
+    const int finishedPluginIndex = m_pluginIndex;
+    QThread *finishedThread = m_currentThread;
+
     if (m_currentThread == m_sampleThread) {
         // if sampling finished set new parameters in DataManager
         std::vector<uint> keyframes = m_sampleThread->getOutput();
@@ -89,7 +82,18 @@ void AlgorithmExecutor::slot_pluginFinished()
         AlgorithmManager::instance().setSettings(m_pluginIndex, generatedSettings);
     }
 
-    emit sig_pluginFinished(m_pluginIndex);
+    if (finishedThread) {
+        finishedThread->deleteLater();
+    }
+    if (finishedThread == m_sampleThread) {
+        m_sampleThread = nullptr;
+    }
+    if (finishedThread == m_settingsThread) {
+        m_settingsThread = nullptr;
+    }
+    m_currentThread = nullptr;
+
+    emit sig_pluginFinished(finishedPluginIndex);
 }
 
 ALGO_DATA AlgorithmExecutor::prepareAlgoStart(int pluginIdx)

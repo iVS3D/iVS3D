@@ -98,13 +98,13 @@ private:
     int stepToPluginIndex(int step);
     void executeSampling();
     void executeExport(QMap<QString, QVariant> settings);
-    DataManager *m_dm;
-    AlgorithmExecutor* m_algoExec;
+    DataManager *m_dm = nullptr;
+    AlgorithmExecutor* m_algoExec = nullptr;
     int m_step = 0;
     int m_stepCount;
     QList<QPair<QString, QMap<QString, QVariant>>> m_pluginOrder;
-    AutomaticExecSettings *m_autoSettings;
-    ExportController *m_exportController;
+    AutomaticExecSettings *m_autoSettings = nullptr;
+    ExportController *m_exportController = nullptr;
     bool m_isFinished = false;
     noUIExport *m_exportRunner = nullptr;
 

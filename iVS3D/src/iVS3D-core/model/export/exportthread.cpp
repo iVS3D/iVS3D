@@ -142,8 +142,10 @@ void ExportThread::run() {
 
     // start the computation in multiple worker threads
     QFutureSynchronizer<void> synchronizer;
-    // use all available threads for now
-    int n_threads = QThread::idealThreadCount();
+    // ITransform plugins are stateful and may wrap non-thread-safe inference
+    // engines. Keep transformed exports serialized instead of sharing a
+    // transform instance across concurrent workers.
+    int n_threads = m_config.transformations.empty() ? QThread::idealThreadCount() : 1;
     std::vector<int> n_imgs_exported(n_threads, 0);
 
     for (int i = 0; i < n_threads; i++) {

@@ -101,10 +101,10 @@ void noUIExport::runExport()
 
 
     m_exportExec = new ExportExecutor(this, m_dataManager);
-    connect(m_exportExec, &ExportExecutor::sig_exportFinished, this, &noUIExport::slot_exportFinished, Qt::DirectConnection);
+    connect(m_exportExec, &ExportExecutor::sig_exportFinished, this, &noUIExport::slot_exportFinished);
 
-    connect(m_exportExec,&ExportExecutor::sig_progress, this, &noUIExport::slot_displayProgress, Qt::DirectConnection);
-    connect(m_exportExec, &ExportExecutor::sig_message, this, &noUIExport::slot_displayMessage, Qt::DirectConnection);
+    connect(m_exportExec,&ExportExecutor::sig_progress, this, &noUIExport::slot_displayProgress);
+    connect(m_exportExec, &ExportExecutor::sig_message, this, &noUIExport::slot_displayMessage);
 
     m_dataManager->createProject(outputName, pathWOimages + "/" + outputName + "-project.json");
 

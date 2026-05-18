@@ -35,7 +35,7 @@ void AutomaticExecutor::startMultipleAlgo(QList<QPair<QString, QMap<QString, QVa
     //Set settings of the current plugin
     QMap<QString, QVariant> settings = algoList[step].second;
     if (settings.isEmpty()) {
-        connect(m_algoExec, &AlgorithmExecutor::sig_pluginFinished, this, &AutomaticExecutor::slot_settingsFinished, Qt::DirectConnection);
+        connect(m_algoExec, &AlgorithmExecutor::sig_pluginFinished, this, &AutomaticExecutor::slot_settingsFinished);
         m_algoExec->startGenerateSettings(idx);
     }
     else {
@@ -78,7 +78,9 @@ void AutomaticExecutor::slot_samplingFinished()
     // disconnect so that for example generateSettings can use them
     QObject::disconnect(m_algoExec, &AlgorithmExecutor::sig_pluginFinished, this, &AutomaticExecutor::slot_samplingFinished);
     QObject::disconnect(m_algoExec, &AlgorithmExecutor::sig_algorithmAborted, this, &AutomaticExecutor::slot_algoAbort);
-    QObject::disconnect(m_exportController, &ExportController::sig_exportFinished, this, &AutomaticExecutor::slot_samplingFinished);
+    if (m_exportController) {
+        QObject::disconnect(m_exportController, &ExportController::sig_exportFinished, this, &AutomaticExecutor::slot_samplingFinished);
+    }
 
     if (m_step < m_stepCount) {
        startMultipleAlgo(m_pluginOrder, m_step);
@@ -123,7 +125,7 @@ int AutomaticExecutor::stepToPluginIndex(int step)
 void AutomaticExecutor::executeSampling()
 {
     // connecting the AlgorithmExecuter for sampling usage
-    connect(m_algoExec, &AlgorithmExecutor::sig_pluginFinished, this, &AutomaticExecutor::slot_samplingFinished, Qt::DirectConnection);
+    connect(m_algoExec, &AlgorithmExecutor::sig_pluginFinished, this, &AutomaticExecutor::slot_samplingFinished);
     connect(m_algoExec, &AlgorithmExecutor::sig_algorithmAborted, this, &AutomaticExecutor::slot_algoAbort);
 
     //start the plugin using keyframes, only the first plugin uses all images
@@ -150,7 +152,7 @@ void AutomaticExecutor::executeExport(QMap<QString, QVariant> settings)
         m_exportRunner = new noUIExport(exportProgress, settings, m_dm);
         connect(exportProgress, &Progressable::sig_message, m_terminal, &TerminalInteraction::slot_displayMessage);
         connect(exportProgress, &Progressable::sig_progress, m_terminal, &TerminalInteraction::slot_displayProgress);
-        connect(m_exportRunner, &noUIExport::sig_exportFinished, this, &AutomaticExecutor::slot_samplingFinished, Qt::DirectConnection);
+        connect(m_exportRunner, &noUIExport::sig_exportFinished, this, &AutomaticExecutor::slot_samplingFinished);
         m_exportRunner->runExport();
     }
     m_step++;
