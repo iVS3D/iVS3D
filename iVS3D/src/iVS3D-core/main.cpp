@@ -9,6 +9,7 @@
 
 #include "controller.h"
 #include "cvmat_qmetadata.h"
+#include "headlesscontroller.h"
 #include "stringcontainer.h"
 #include "view/darkstyle/DarkStyle.h"
 #include "view/mainwindow.h"
@@ -63,6 +64,11 @@ int main(int argc, char* argv[]) {
     QCommandLineOption logPath(
         QStringList() << "l" << "log",
         "Log resulsts and process information to <path>.", "path");
+    QCommandLineOption metadataPath(
+        QStringList() << "m" << "metadata",
+        "Load additional metadata from <path> in headless mode.", "path");
+    QCommandLineOption noGui(QStringList() << "nogui",
+                             "Run the configured pipeline without showing the GUI.");
 
     parser.setApplicationDescription(
         "intelligent video sampler 3d is designed to process image sequences "
@@ -81,6 +87,8 @@ int main(int argc, char* argv[]) {
     parser.addOption(inputPath);
     parser.addOption(outputPath);
     parser.addOption(logPath);
+    parser.addOption(metadataPath);
+    parser.addOption(noGui);
 
     QStringList arguments;
     for (int i = 0; i < argc; ++i) {
@@ -92,9 +100,11 @@ int main(int argc, char* argv[]) {
     a.setApplicationName("iVS3D");
     a.setApplicationVersion(QString(QUOTE(IVS3D_VER)));
     parser.process(a);
-    qApp->setProperty(stringContainer::UIIdentifier, true);
+    const bool headless = parser.isSet(noGui);
+    qApp->setProperty(stringContainer::UIIdentifier, !headless);
     qApp->setProperty("translation",
-                      ApplicationSettings::instance().getLocale());
+                      headless ? QLocale(QLocale::English)
+                               : ApplicationSettings::instance().getLocale());
     qDebug() << "Locale: " << qApp->property("translation").toLocale();
     QTranslator* translator = new QTranslator();
     translator->load(qApp->property("translation").toLocale(), "core", "_",
@@ -115,9 +125,17 @@ int main(int argc, char* argv[]) {
     }
     qDebug() << "Library search paths: " << QApplication::libraryPaths();
 #endif
-    Controller* mainController =
-        new Controller(parser.value(inputPath), parser.value(autoPath),
-                       parser.value(outputPath), parser.value(logPath));
+    QObject* mainController = nullptr;
+    if (headless) {
+        mainController = new HeadlessController(
+            parser.value(inputPath), parser.value(autoPath),
+            parser.value(outputPath), parser.value(logPath),
+            parser.values(metadataPath));
+    } else {
+        mainController =
+            new Controller(parser.value(inputPath), parser.value(autoPath),
+                           parser.value(outputPath), parser.value(logPath));
+    }
 
     auto res = a.exec();
     delete mainController;

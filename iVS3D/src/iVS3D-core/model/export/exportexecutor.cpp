@@ -38,12 +38,7 @@ void ExportExecutor::startExport(const ExportConfig& config, std::shared_ptr<Log
     // cause mip loses its boundary attribute in a magical and unkown way
     mip->setBoundaries(m_boundaries);
     m_exportThread = new ExportThread(this, mip, config, &m_stopped, logFile, m_pluginThread.get());
-    if (qApp->property(stringContainer::UIIdentifier).toBool()) {
-        connect(m_exportThread, &ExportThread::finished, this, &ExportExecutor::slot_finished);
-    }
-    else {
-        connect(m_exportThread, &ExportThread::finished, this, &ExportExecutor::slot_finished, Qt::DirectConnection);
-    }
+    connect(m_exportThread, &ExportThread::finished, this, &ExportExecutor::slot_finished);
     m_exportThread->start();
     emit sig_exportStarted();
 }

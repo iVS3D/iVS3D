@@ -41,6 +41,8 @@ https://github.com/user-attachments/assets/1f0c93f8-5e52-4436-a95e-5b9e3b7ea11d
 
 To get started quickly, download a [prebuilt binary](#-ready-to-use-builds) from our releases and follow our [tutorial](doc/tutorial.md).
 
+For batch processing without opening the GUI, see the [headless CLI automation guide](doc/headless_cli.md).
+
 ## 🔍 Plugins 🧮
 
 There are currently 8 plugins implemented:
