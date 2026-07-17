@@ -12,7 +12,7 @@ class SequentialReaderImpl : public SequentialReader {
         Reader::PictureProcessingFlags flags = Reader::APPLY_ALL);
     SequentialReaderImpl(SequentialReaderImpl& other);
 
-    virtual bool getNext(cv::Mat image, uint& idx, int progress) override;
+    virtual bool getNext(cv::Mat& image, uint& idx, int& progress) override;
 
     virtual uint getImageCount() override;
     virtual uint getCurrentIndex() override;

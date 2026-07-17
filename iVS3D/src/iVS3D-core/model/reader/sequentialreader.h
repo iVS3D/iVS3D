@@ -11,8 +11,8 @@
 class SequentialReader {
    public:
     virtual ~SequentialReader() {}
-    virtual bool getNext(cv::Mat image, uint& idx, int progress) = 0;
-    bool getNext(cv::Mat image, uint& idx) {
+    virtual bool getNext(cv::Mat& image, uint& idx, int& progress) = 0;
+    bool getNext(cv::Mat& image, uint& idx) {
         int progress;
         return getNext(image, idx, progress);
     }

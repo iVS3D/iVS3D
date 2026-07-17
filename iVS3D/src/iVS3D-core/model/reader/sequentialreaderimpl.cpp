@@ -17,7 +17,7 @@ SequentialReaderImpl::SequentialReaderImpl(SequentialReaderImpl& other)
       m_lockConcurrentAccess(other.m_lockConcurrentAccess),
       m_flags(other.m_flags) {}
 
-bool SequentialReaderImpl::getNext(cv::Mat image, uint& idx, int progress) {
+bool SequentialReaderImpl::getNext(cv::Mat& image, uint& idx, int& progress) {
     {
         // this part is protected by the mutex
         QMutexLocker locker(&m_mutex);
