@@ -1,6 +1,8 @@
 #include "backupvideoreader.h"
 
 #include <QFileInfo>
+#include <iostream>
+#include <memory>
 #include <opencv2/core.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
@@ -13,18 +15,23 @@ BackupVideoReader::BackupVideoReader(const QString& path,
         m_isValid = false;
         return;
     }
-    cv::VideoCapture prev(m_path, cv::CAP_FFMPEG);
-    m_numImages = prev.get(cv::CAP_PROP_FRAME_COUNT) - 1;
-    m_fps = prev.get(cv::CAP_PROP_FPS);
-    m_cap = prev;
+    m_cap = cv::VideoCapture(m_path, cv::CAP_FFMPEG);
+    m_numImages = m_cap.get(cv::CAP_PROP_FRAME_COUNT) - 1;
+    m_fps = m_cap.get(cv::CAP_PROP_FPS);
     if (m_numImages > 0) {
         m_isValid = true;
     } else {
         m_isValid = false;
+        m_cap.release();
     }
+
+    std::cout << "\nDEBUG: create\n" << std::endl;
 }
 
-BackupVideoReader::~BackupVideoReader() { m_cap.release(); }
+BackupVideoReader::~BackupVideoReader() {
+    m_cap.release();
+    std::cout << "\nDEBUG: release\n" << std::endl;
+}
 
 void BackupVideoReader::addMetaData(MetaData* md) { m_md = md; }
 

@@ -6,6 +6,8 @@
 #include <qobject.h>
 #include <qthread.h>
 
+#include <memory>
+
 #include "backupvideoreader.h"
 #include "imagereader.h"
 #include "videoreader.h"
@@ -16,25 +18,34 @@ Reader* ReaderFactory::createReader(QString path,
                                     std::shared_ptr<ReaderParams> params,
                                     bool forceBackupVideoReader) {
     QFileInfo info(path);
-    Reader* reader;
+    std::unique_ptr<Reader> reader;
     if (!info.exists()) return nullptr;
     if (info.isDir()) {
         // image reader
-        reader = new ImageReader(path, params);
+        reader = std::make_unique<ImageReader>(path, params);
+    } else {
+        // video reader
+        bool useBackupReader = forceBackupVideoReader;
+        // ffmpeg reader
+        if (!useBackupReader) {
+            reader = std::make_unique<VideoReader>(path, params);
+        }
+        // switch to backup reader if video could not be read
+        if (!reader->isValid()) {
+            useBackupReader = allowBackupReader();
+        }
+        // backup reader
+        if (useBackupReader) {
+            reader = std::make_unique<BackupVideoReader>(path, params);
+        }
     }
-    if (info.isFile()) {
-        // ffmpeg video reader
-        reader = new VideoReader(path, params);
-    }
-    if (info.isFile() && (forceBackupVideoReader ||
-                          (!reader->isValid() && allowBackupReader()))) {
-        // backup video reader
-        reader = new BackupVideoReader(path, params);
+    if (!reader) return nullptr;
+
+    if (!reader->isValid()) {
+        return nullptr;
     }
 
-    if (!reader->isValid()) return nullptr;
-
-    return reader;
+    return reader.release();
 }
 
 bool ReaderFactory::allowBackupReader() {
