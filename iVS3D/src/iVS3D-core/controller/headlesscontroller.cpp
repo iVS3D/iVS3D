@@ -41,11 +41,6 @@ void HeadlessController::start() {
         return;
     }
 
-    if (m_outputPath.isEmpty()) {
-        exitWithFail("Missing output path. Use -o/--out in headless mode.");
-        return;
-    }
-
     for (const QString& metadataPath : m_metadataPaths) {
         const QString metadataError = requirePath(metadataPath, "metadata");
         if (!metadataError.isEmpty()) {
@@ -61,6 +56,11 @@ void HeadlessController::start() {
     QString error;
     if (!loadSettings(&error)) {
         exitWithFail(error);
+        return;
+    }
+
+    if (m_outputPath.isEmpty() && !m_outputPathInSteps) {
+        exitWithFail("Missing output path. Use -o/--out in headless mode.");
         return;
     }
 
@@ -158,7 +158,7 @@ bool HeadlessController::loadExplicitMetadata(QString* error) {
 }
 
 bool HeadlessController::parseStep(const QJsonObject& object, Step* step,
-                                   QString* error) const {
+                                   QString* error) {
     const QString type = object.value("type").toString().toLower();
     if (type == "selection") {
         step->type = StepType::Selection;
@@ -187,6 +187,7 @@ bool HeadlessController::parseStep(const QJsonObject& object, Step* step,
     if (type == "export") {
         step->type = StepType::Export;
         step->exportSettings = object.value("settings").toObject();
+        m_outputPathInSteps = step->exportSettings.contains("path");
         return true;
     }
 

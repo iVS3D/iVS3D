@@ -1,7 +1,5 @@
 #pragma once
 
-#include <memory>
-
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QObject>
@@ -16,17 +14,17 @@
 class HeadlessController : public QObject {
     Q_OBJECT
 
-public:
+   public:
     HeadlessController(QString inputPath, QString settingsPath,
                        QString outputPath, QString logPath,
                        QStringList metadataPaths = {},
                        QObject* parent = nullptr);
 
-private slots:
+   private slots:
     void onSelectionFinished(const SelectionResultData& result);
     void onExportFinished(ExportResult result);
 
-private:
+   private:
     enum class StepType { Selection, Mask, Export };
 
     struct Step {
@@ -39,7 +37,7 @@ private:
     void start();
     bool loadSettings(QString* error);
     bool loadExplicitMetadata(QString* error);
-    bool parseStep(const QJsonObject& object, Step* step, QString* error) const;
+    bool parseStep(const QJsonObject& object, Step* step, QString* error);
     void runNextStep();
     void runSelectionStep(const Step& step);
     void runMaskStep(const Step& step);
@@ -54,6 +52,7 @@ private:
     QString m_outputPath;
     QString m_logPath;
     QStringList m_metadataPaths;
+    bool m_outputPathInSteps = false;
 
     DataManager m_dataManager;
     std::shared_ptr<PluginThread> m_pluginThread;
