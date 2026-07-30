@@ -64,7 +64,8 @@ void HeadlessController::start() {
         return;
     }
 
-    PluginManager::instance().enableCuda(ApplicationSettings::instance().getUseCuda());
+    PluginManager::instance().enableCuda(
+        ApplicationSettings::instance().getUseCuda());
     m_pluginThread = PluginManager::instance().getPluginThread();
     m_maskStack = std::make_shared<MaskStack>();
 
@@ -95,14 +96,17 @@ void HeadlessController::start() {
 bool HeadlessController::loadSettings(QString* error) {
     QFile file(m_settingsPath);
     if (!file.open(QFile::ReadOnly | QFile::Text)) {
-        *error = QString("Failed to open settings file: %1").arg(m_settingsPath);
+        *error =
+            QString("Failed to open settings file: %1").arg(m_settingsPath);
         return false;
     }
 
     QJsonParseError parseError;
-    const QJsonDocument doc = QJsonDocument::fromJson(file.readAll(), &parseError);
+    const QJsonDocument doc =
+        QJsonDocument::fromJson(file.readAll(), &parseError);
     if (parseError.error != QJsonParseError::NoError || !doc.isObject()) {
-        *error = QString("Invalid settings JSON: %1").arg(parseError.errorString());
+        *error =
+            QString("Invalid settings JSON: %1").arg(parseError.errorString());
         return false;
     }
 
@@ -142,7 +146,9 @@ bool HeadlessController::loadExplicitMetadata(QString* error) {
     const int metadataCount =
         m_dataManager.getModelInputPictures()->loadMetaData(m_metadataPaths);
     if (metadataCount <= 0) {
-        *error = "No metadata features were detected in the provided metadata files.";
+        *error =
+            "No metadata features were detected in the provided metadata "
+            "files.";
         return false;
     }
 
@@ -161,7 +167,8 @@ bool HeadlessController::parseStep(const QJsonObject& object, Step* step,
             *error = "Selection step requires a plugin name.";
             return false;
         }
-        step->settings = objectToVariantMap(object.value("settings").toObject());
+        step->settings =
+            objectToVariantMap(object.value("settings").toObject());
         return true;
     }
 
@@ -172,7 +179,8 @@ bool HeadlessController::parseStep(const QJsonObject& object, Step* step,
             *error = "Mask step requires a plugin name.";
             return false;
         }
-        step->settings = objectToVariantMap(object.value("settings").toObject());
+        step->settings =
+            objectToVariantMap(object.value("settings").toObject());
         return true;
     }
 
@@ -208,15 +216,24 @@ void HeadlessController::runNextStep() {
 
 void HeadlessController::runSelectionStep(const Step& step) {
     if (!PluginManager::instance().hasSelectionPlugin(step.pluginName)) {
-        exitWithFail(QString("Plugin does not support selection: %1").arg(step.pluginName));
+        QString msg = QString(
+                          "Plugin does not support selection: %1 \n Choose one "
+                          "of the following:")
+                          .arg(step.pluginName);
+        for (QString name : PluginManager::instance().getPluginNames()) {
+            if (!PluginManager::instance().hasSelectionPlugin(name)) continue;
+            msg += QString("\n- %1").arg(name);
+        }
+
+        exitWithFail(msg);
         return;
     }
 
-    const auto applyResult =
-        PluginManager::instance().applyPluginSettings(step.pluginName, step.settings);
+    const auto applyResult = PluginManager::instance().applyPluginSettings(
+        step.pluginName, step.settings);
     if (!applyResult) {
         exitWithFail(QString("Failed to apply settings for %1: %2")
-                 .arg(step.pluginName, applyResult.error().message));
+                         .arg(step.pluginName, applyResult.error().message));
         return;
     }
 
@@ -227,9 +244,11 @@ void HeadlessController::runSelectionStep(const Step& step) {
     data.workingResolution = mip->getReaderParams()->getWorkingResolution();
     data.reader = mip->getReader();
 
-    auto selectionLog = LogManager::instance().createLogFile(step.pluginName, true);
+    auto selectionLog =
+        LogManager::instance().createLogFile(step.pluginName, true);
     if (selectionLog) {
-        selectionLog->setSettings(PluginManager::instance().getPluginSettings(step.pluginName));
+        selectionLog->setSettings(
+            PluginManager::instance().getPluginSettings(step.pluginName));
         selectionLog->setInputInfo(data.selectedIndices);
         data.logFile = selectionLog;
     }
@@ -240,7 +259,8 @@ void HeadlessController::runSelectionStep(const Step& step) {
     m_pluginThread->requestSelection(step.pluginName, data);
 }
 
-void HeadlessController::onSelectionFinished(const SelectionResultData& result) {
+void HeadlessController::onSelectionFinished(
+    const SelectionResultData& result) {
     if (result.pluginName != m_currentSelectionPlugin) {
         return;
     }
@@ -255,7 +275,7 @@ void HeadlessController::onSelectionFinished(const SelectionResultData& result) 
 
     if (!result.success) {
         exitWithFail(QString("Selection failed for %1: %2")
-                 .arg(result.pluginName, result.errorMessage));
+                         .arg(result.pluginName, result.errorMessage));
         return;
     }
 
@@ -265,22 +285,24 @@ void HeadlessController::onSelectionFinished(const SelectionResultData& result) 
 
 void HeadlessController::runMaskStep(const Step& step) {
     if (!PluginManager::instance().hasMaskPlugin(step.pluginName)) {
-        exitWithFail(QString("Plugin does not support mask generation: %1").arg(step.pluginName));
+        exitWithFail(QString("Plugin does not support mask generation: %1")
+                         .arg(step.pluginName));
         return;
     }
 
-    const auto applyResult =
-        PluginManager::instance().applyPluginSettings(step.pluginName, step.settings);
+    const auto applyResult = PluginManager::instance().applyPluginSettings(
+        step.pluginName, step.settings);
     if (!applyResult) {
         exitWithFail(QString("Failed to apply settings for %1: %2")
-                 .arg(step.pluginName, applyResult.error().message));
+                         .arg(step.pluginName, applyResult.error().message));
         return;
     }
 
     auto* mip = m_dataManager.getModelInputPictures();
     MaskRecord record;
     record.pluginName = step.pluginName;
-    record.pluginSettings = PluginManager::instance().getPluginSettings(step.pluginName);
+    record.pluginSettings =
+        PluginManager::instance().getPluginSettings(step.pluginName);
     record.pluginSettingsString =
         PluginManager::instance().getPluginSettingsString(step.pluginName);
     record.workingResolution = mip->getReaderParams()->getWorkingResolution();
@@ -302,7 +324,8 @@ void HeadlessController::runExportStep(const Step& step) {
         path.chop(1);
     }
     if (!exportDir.mkpath(path)) {
-        exitWithFail(QString("Failed to create output directory: %1").arg(path));
+        exitWithFail(
+            QString("Failed to create output directory: %1").arg(path));
         return;
     }
 
@@ -322,11 +345,13 @@ void HeadlessController::runExportStep(const Step& step) {
     auto* mip = m_dataManager.getModelInputPictures();
     auto readerParams = mip->getReaderParams();
     Resolution exportResolution = readerParams->getOriginalResolution();
-    const QString resolutionString = step.exportSettings.value("resolution").toString();
+    const QString resolutionString =
+        step.exportSettings.value("resolution").toString();
     if (!resolutionString.isEmpty()) {
         Resolution requested;
         if (!requested.fromString(resolutionString)) {
-            exitWithFail(QString("Invalid export resolution: %1").arg(resolutionString));
+            exitWithFail(
+                QString("Invalid export resolution: %1").arg(resolutionString));
             return;
         }
         exportResolution = requested;
@@ -345,13 +370,15 @@ void HeadlessController::runExportStep(const Step& step) {
         config.roi = readerParams->getRoi();
     }
 
-    m_dataManager.createProject(outputName, path + "/" + outputName + "-project.json");
+    m_dataManager.createProject(outputName,
+                                path + "/" + outputName + "-project.json");
 
     m_exportLog = LogManager::instance().createLogFile("Export", false);
     if (m_exportLog) {
         QMap<QString, QVariant> settings;
         settings.insert(stringContainer::OutputPath, path);
-        settings.insert(stringContainer::Resolution, exportResolution.toString());
+        settings.insert(stringContainer::Resolution,
+                        exportResolution.toString());
         settings.insert(stringContainer::OutputFormat, config.format);
         settings.insert(stringContainer::UseROI, config.roi.has_value());
         m_exportLog->setSettings(settings);
@@ -361,9 +388,13 @@ void HeadlessController::runExportStep(const Step& step) {
     connect(m_exportExecutor, &ExportExecutor::sig_exportFinished, this,
             &HeadlessController::onExportFinished);
     connect(m_exportExecutor, &ExportExecutor::sig_message, this,
-            [](const QString& message) { std::cout << message.toStdString() << std::endl; });
+            [](const QString& message) {
+                std::cout << message.toStdString() << std::endl;
+            });
     connect(m_exportExecutor, &ExportExecutor::sig_warning, this,
-            [](const QString& warning) { std::cerr << warning.toStdString() << std::endl; });
+            [](const QString& warning) {
+                std::cerr << warning.toStdString() << std::endl;
+            });
     m_exportExecutor->startExport(config, m_exportLog);
 }
 
@@ -391,12 +422,14 @@ void HeadlessController::exitWithFail(const QString& message) {
 }
 
 void HeadlessController::finish(int exitCode) {
-    QMetaObject::invokeMethod(QCoreApplication::instance(),
-                              [exitCode]() { QCoreApplication::exit(exitCode); },
-                              Qt::QueuedConnection);
+    QMetaObject::invokeMethod(
+        QCoreApplication::instance(),
+        [exitCode]() { QCoreApplication::exit(exitCode); },
+        Qt::QueuedConnection);
 }
 
-QString HeadlessController::requirePath(const QString& path, const QString& name) const {
+QString HeadlessController::requirePath(const QString& path,
+                                        const QString& name) const {
     if (path.isEmpty()) {
         return QString("Missing %1 path.").arg(name);
     }
