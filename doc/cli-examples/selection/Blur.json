@@ -1,0 +1,21 @@
+{
+  "steps": [
+    {
+      "type": "selection",
+      "plugin": "Blur detection",
+      "settings": {
+        "Blur": "Laplacian Filter",
+        "Window size": "30",
+        "Local deviation": "95.0"
+      }
+    },
+    {
+      "type": "export",
+      "settings": {
+        "path": "outputFolder",
+        "resolution": "1920x1080",
+        "format": "png"
+      }
+    }
+  ]
+}

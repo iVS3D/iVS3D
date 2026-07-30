@@ -1,0 +1,19 @@
+{
+  "steps": [
+    {
+      "type": "selection",
+      "plugin": "Stationary camera removal",
+      "settings": {
+        "Selector threshold": "0.3"
+      }
+    },
+    {
+      "type": "export",
+      "settings": {
+        "path": "outputFolder",
+        "resolution": "1920x1080",
+        "format": "png"
+      }
+    }
+  ]
+}

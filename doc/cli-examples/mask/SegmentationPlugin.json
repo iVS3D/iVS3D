@@ -1,0 +1,47 @@
+{
+  "steps": [
+    {
+      "type": "mask",
+      "plugin": "Segmentation Masks",
+      "settings": {
+        "selectedModel": {
+          "name": "Segmentation_BiseNetV2_Aerial",
+          "classes": [
+            {
+              "id": 0,
+              "selected": false
+            },
+            {
+              "id": 1,
+              "selected": false
+            },
+            {
+              "id": 2,
+              "selected": false
+            },
+            {
+              "id": 3,
+              "selected": false
+            },
+            {
+              "id": 4,
+              "selected": true
+            },
+            {
+              "id": 5,
+              "selected": true
+            }
+          ]
+        }
+      }
+    },
+    {
+      "type": "export",
+      "settings": {
+        "path": "outputFolder",
+        "resolution": "1920x1080",
+        "format": "png"
+      }
+    }
+  ]
+}

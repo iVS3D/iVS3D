@@ -1,0 +1,20 @@
+{
+  "steps": [
+    {
+      "type": "selection",
+      "plugin": "Nth image selection",
+      "settings": {
+        "N": 10,
+        "KeepIsolated": false
+      }
+    },
+    {
+      "type": "export",
+      "settings": {
+        "path": "outputFolder",
+        "resolution": "1920x1080",
+        "format": "png"
+      }
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "steps": [
+    {
+      "type": "selection",
+      "plugin": "Geo Distance",
+      "settings": {
+        "Distance": "1.0",
+        "Altitude": "false"
+      }
+    },
+    {
+      "type": "export",
+      "settings": {
+        "path": "outputFolder",
+        "resolution": "1920x1080",
+        "format": "png"
+      }
+    }
+  ]
+}

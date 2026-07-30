@@ -1,0 +1,20 @@
+{
+  "steps": [
+    {
+      "type": "selection",
+      "plugin": "Deep Visual Similarity",
+      "settings": {
+        "K": 30,
+        "NN-Name": "ImageEmbedding_EigenPlace_ResNet18_512.onnx"
+      }
+    },
+    {
+      "type": "export",
+      "settings": {
+        "path": "outputFolder",
+        "resolution": "1920x1080",
+        "format": "png"
+      }
+    }
+  ]
+}

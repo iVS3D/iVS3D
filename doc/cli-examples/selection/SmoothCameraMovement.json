@@ -1,0 +1,19 @@
+{
+  "steps": [
+    {
+      "type": "selection",
+      "plugin": "Smooth camera movement",
+      "settings": {
+        "Selector threshold": "2.0"
+      }
+    },
+    {
+      "type": "export",
+      "settings": {
+        "path": "outputFolder",
+        "resolution": "1920x1080",
+        "format": "png"
+      }
+    }
+  ]
+}

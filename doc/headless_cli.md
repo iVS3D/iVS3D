@@ -81,6 +81,8 @@ with the plugin result.
 The `plugin` value must match a plugin that supports image selection. The
 `settings` object is passed to the plugin by key.
 
+Examples for the currently supported plugins can be found in [cli-examples](doc/cli-examples/selection/).
+
 ### Mask
 
 Mask steps add a mask-generation plugin to the export mask stack.
@@ -100,6 +102,8 @@ Mask steps add a mask-generation plugin to the export mask stack.
 
 The exact settings depend on the selected plugin. For segmentation, provide a
 model configuration that is available on the machine running iVS3D.
+
+Examples for the currently supported plugins can be found in [cli-examples](doc/cli-examples/mask/).
 
 ### Export
 
