@@ -3,8 +3,8 @@
 #include <QCoreApplication>
 #include <QDir>
 #include <QFileInfo>
-#include <QSet>
 #include <QJsonArray>
+#include <QSet>
 
 namespace MCFG {
 
@@ -25,12 +25,9 @@ void ModelManager::setNameFilter(const QString& pattern) {
     refresh();
 }
 
-QString ModelManager::nameFilter() const noexcept {
-    return nameFilter_;
-}
+QString ModelManager::nameFilter() const noexcept { return nameFilter_; }
 
-const QVector<ModelManager::ModelEntry>&
-ModelManager::models() const noexcept {
+const QVector<ModelManager::ModelEntry>& ModelManager::models() const noexcept {
     return models_;
 }
 
@@ -45,8 +42,8 @@ QStringList ModelManager::availableModelNames() const {
     return names;
 }
 
-const ModelManager::ModelEntry*
-ModelManager::findEntry(const QString& name) const noexcept {
+const ModelManager::ModelEntry* ModelManager::findEntry(
+    const QString& name) const noexcept {
     auto it = indexByName_.find(name);
     if (it == indexByName_.end()) {
         return nullptr;
@@ -54,8 +51,8 @@ ModelManager::findEntry(const QString& name) const noexcept {
     return &models_[it.value()];
 }
 
-ModelManager::ModelState
-ModelManager::modelState(const QString& name) const noexcept {
+ModelManager::ModelState ModelManager::modelState(
+    const QString& name) const noexcept {
     const auto* entry = findEntry(name);
     if (!entry) {
         return ModelState::MissingConfig;
@@ -109,32 +106,32 @@ void ModelManager::refresh() {
 
         if (!QFileInfo::exists(entry.jsonPath)) {
             entry.state = ModelState::MissingConfig;
-            entry.error = QString("Config file not found: %1")
-                              .arg(entry.jsonPath);
+            entry.error =
+                QString("Config file not found: %1").arg(entry.jsonPath);
         } else {
             auto cfgExp = ModelConfig::loadFromFile(entry.jsonPath);
             if (!cfgExp) {
-                switch (cfgExp.error().code)
-                {
-                case ModelConfig::ErrorCode::ConfigFileNotFound:
-                    entry.state = ModelState::MissingConfig;
-                    break;
-                case ModelConfig::ErrorCode::ModelFileNotFound:
-                    entry.state = ModelState::MissingModel;
-                    break;
-                case ModelConfig::ErrorCode::IoError:
-                case ModelConfig::ErrorCode::DuplicateClassIds:
-                case ModelConfig::ErrorCode::ConfigParseError:
-                default:
-                    entry.state = ModelState::InvalidConfig;
-                    break;
+                switch (cfgExp.error().code) {
+                    case ModelConfig::ErrorCode::ConfigFileNotFound:
+                        entry.state = ModelState::MissingConfig;
+                        break;
+                    case ModelConfig::ErrorCode::ModelFileNotFound:
+                        entry.state = ModelState::MissingModel;
+                        break;
+                    case ModelConfig::ErrorCode::IoError:
+                    case ModelConfig::ErrorCode::DuplicateClassIds:
+                    case ModelConfig::ErrorCode::ConfigParseError:
+                    default:
+                        entry.state = ModelState::InvalidConfig;
+                        break;
                 }
                 entry.error = cfgExp.error().message;
             } else {
                 // All validation is now done by ModelConfig::loadFromFile
                 entry.state = ModelState::Ready;
                 entry.onnxPath = QString::fromStdString(cfgExp->getModelPath());
-                entry.config = std::make_shared<ModelConfig>(std::move(*cfgExp));
+                entry.config =
+                    std::make_shared<ModelConfig>(std::move(*cfgExp));
             }
         }
 
@@ -143,16 +140,15 @@ void ModelManager::refresh() {
     }
 }
 
-std::optional<ModelManager::ModelEntry>
-ModelManager::activateModel(const QString& name) {
+std::optional<ModelManager::ModelEntry> ModelManager::activateModel(
+    const QString& name) {
     if (name != activeModelName_) {
         activeModelName_.clear();
     }
 
     const ModelEntry* entry = findEntry(name);
     if (!entry) {
-        emit modelActivated(name, ModelState::MissingConfig,
-                            "Model not found");
+        emit modelActivated(name, ModelState::MissingConfig, "Model not found");
         return std::nullopt;
     }
 
@@ -174,8 +170,8 @@ ModelManager::activateModel(const QString& name) {
     return *entry;
 }
 
-std::optional<ModelManager::ModelEntry>
-ModelManager::activeModel() const noexcept {
+std::optional<ModelManager::ModelEntry> ModelManager::activeModel()
+    const noexcept {
     const ModelEntry* entry = findEntry(activeModelName_);
     if (!entry) {
         return std::nullopt;
@@ -188,8 +184,7 @@ const QString& ModelManager::activeModelName() const noexcept {
 }
 
 bool ModelManager::setClassSelected(const QString& modelName,
-                                                   ModelConfig::ClassId id,
-                                                   bool selected) {
+                                    ModelConfig::ClassId id, bool selected) {
     const ModelEntry* entry = findEntry(modelName);
     if (!entry || !entry->config) {
         return false;
@@ -199,7 +194,7 @@ bool ModelManager::setClassSelected(const QString& modelName,
 }
 
 void ModelManager::markModelIncompatible(const QString& name,
-                                                        const QString& reason) {
+                                         const QString& reason) {
     auto it = indexByName_.find(name);
     if (it == indexByName_.end()) {
         return;
@@ -224,8 +219,7 @@ QString ModelManager::modelToString(const QString& name) const noexcept {
             selectedClassNames.append(cls.name);
         }
     }
-    desc << QString("Selected Classes: %1")
-                .arg(selectedClassNames.join(", "));
+    desc << QString("Selected Classes: %1").arg(selectedClassNames.join(", "));
     return desc.join(" | ");
 }
 
@@ -259,7 +253,8 @@ std::optional<ModelManager::ModelEntry> ModelManager::modelFromJson(
             for (const auto& clsValue : classesArray) {
                 if (clsValue.isObject()) {
                     QJsonObject clsObj = clsValue.toObject();
-                    ModelConfig::ClassId id = static_cast<ModelConfig::ClassId>(clsObj["id"].toInt());
+                    ModelConfig::ClassId id =
+                        static_cast<ModelConfig::ClassId>(clsObj["id"].toInt());
                     bool selected = clsObj["selected"].toBool();
                     entry.config->setClassSelected(id, selected);
                 }
@@ -273,7 +268,8 @@ void ModelManager::onModelActivationRequested(const QString& modelName) {
     (void)activateModel(modelName);
 }
 
-void ModelManager::onClassSelectionRequested(const QString& modelName, uint classId, bool selected) {
+void ModelManager::onClassSelectionRequested(const QString& modelName,
+                                             uint classId, bool selected) {
     setClassSelected(modelName, classId, selected);
 }
 
@@ -282,7 +278,8 @@ void ModelManager::onModelsRefreshRequested() {
     emit modelsListUpdated(models_);
 }
 
-void ModelManager::onApplyMeanStdRequested(const QString& modelName, bool apply) {
+void ModelManager::onApplyMeanStdRequested(const QString& modelName,
+                                           bool apply) {
     auto it = indexByName_.find(modelName);
     if (it != indexByName_.end()) {
         const auto& entry = models_[it.value()];
@@ -292,7 +289,8 @@ void ModelManager::onApplyMeanStdRequested(const QString& modelName, bool apply)
     }
 }
 
-void ModelManager::onNormalizeTo01Requested(const QString& modelName, bool normalize) {
+void ModelManager::onNormalizeTo01Requested(const QString& modelName,
+                                            bool normalize) {
     auto it = indexByName_.find(modelName);
     if (it != indexByName_.end()) {
         const auto& entry = models_[it.value()];
@@ -302,7 +300,8 @@ void ModelManager::onNormalizeTo01Requested(const QString& modelName, bool norma
     }
 }
 
-void ModelManager::onInputAlignmentRequested(const QString& modelName, uint alignment) {
+void ModelManager::onInputAlignmentRequested(const QString& modelName,
+                                             uint alignment) {
     auto it = indexByName_.find(modelName);
     if (it != indexByName_.end()) {
         const auto& entry = models_[it.value()];
@@ -312,4 +311,4 @@ void ModelManager::onInputAlignmentRequested(const QString& modelName, uint alig
     }
 }
 
-} // namespace MCFG
+}  // namespace MCFG
