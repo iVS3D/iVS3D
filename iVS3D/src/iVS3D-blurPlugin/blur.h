@@ -21,14 +21,13 @@
 #include <QWidget>
 #include <algorithm>
 
-#include "ibase.h"
-#include "iselection.h"
-#include "ipreview.h"
-
 #include "BlurAlgorithm.h"
 #include "blurlaplacian.h"
 #include "blursobel.h"
 #include "blurtenengrad.h"
+#include "ibase.h"
+#include "ipreview.h"
+#include "iselection.h"
 
 #define DESCRIPTION_STYLE                                               \
     "color: rgb(58, 58, 58); border-left: 6px solid  rgb(58, 58, 58); " \
@@ -51,7 +50,9 @@
  * @date 2021/02/19
  */
 
-class Blur : public PLUG::IBase, public PLUG::ISelection, public PLUG::IPreview {
+class Blur : public PLUG::IBase,
+             public PLUG::ISelection,
+             public PLUG::IPreview {
     Q_OBJECT
     Q_PLUGIN_METADATA(IID "iVS3D.IBase")
     Q_INTERFACES(PLUG::IBase PLUG::ISelection PLUG::IPreview)
@@ -72,35 +73,35 @@ class Blur : public PLUG::IBase, public PLUG::ISelection, public PLUG::IPreview 
      */
     QString getName() const override;
     QMap<QString, QVariant> getSettings() const override;
-    PLUG::ApplySettingsResult applySettings(const QMap<QString, QVariant>& settings) override;
+    PLUG::ApplySettingsResult applySettings(
+        const QMap<QString, QVariant>& settings) override;
     void activate() override;
     void deactivate() override;
     void onCudaChanged(bool enabled) override;
-    PLUG::InputLoadedResult onInputLoaded(const PLUG::InputData& input) override;
+    PLUG::InputLoadedResult onInputLoaded(
+        const PLUG::InputData& input) override;
     void onIndexChanged(uint index) override;
 
     // IPreview interface
-    VIS::VisualizationResult generatePreview(const PLUG::PreviewData& data) override;
+    VIS::VisualizationResult generatePreview(
+        const PLUG::PreviewData& data) override;
 
     // ISelection interface
     PLUG::SelectionResult selectImages(const PLUG::SelectionData& data,
-                                 volatile bool& cancelFlag) override;
+                                       volatile bool& cancelFlag) override;
 
-signals:
-    void syncSettingsWidget(const QString& algorithmName,
-                            int windowSize,
-                            double localDeviation,
-                            const QString& infoText);
+   signals:
+    void syncSettingsWidget(const QString& algorithmName, int windowSize,
+                            double localDeviation, const QString& infoText);
 
-private slots:
+   private slots:
     void slot_blurAlgoChanged(const QString& name);
     void slot_wsChanged(int ws);
     void slot_ldChanged(double ld);
 
-private:
+   private:
     std::unique_ptr<QWidget> createSettingsWidget();
-    std::vector<uint> sampleKeyframes(Reader* reader,
-                                      volatile bool& cancelFlag,
+    std::vector<uint> sampleKeyframes(Reader* reader, volatile bool& cancelFlag,
                                       const std::vector<uint>& indices);
     QString progressMessage(int curr, int total) const;
     QString currentInfoText() const;

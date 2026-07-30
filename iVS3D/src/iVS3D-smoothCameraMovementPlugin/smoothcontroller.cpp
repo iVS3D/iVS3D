@@ -16,9 +16,7 @@ using PLUG::SelectionData;
 using PLUG::SelectionResult;
 using PLUG::SettingsWidgetResult;
 
-CameraMovement::CameraMovement()
-    : IBase()
-{
+CameraMovement::CameraMovement() : IBase() {
     QLocale locale = qApp->property("translation").toLocale();
     QTranslator* translator = new QTranslator();
     translator->load(locale, "smoothCameraMovement", "_", ":/translations",
@@ -26,29 +24,26 @@ CameraMovement::CameraMovement()
     qApp->installTranslator(translator);
 }
 
-SettingsWidgetResult CameraMovement::getSettingsWidget()
-{
+SettingsWidgetResult CameraMovement::getSettingsWidget() {
     auto widget = createSettingsWidget();
     if (!widget) {
-        return tl::make_unexpected(Error(
-            ErrorCode::ResourceUnavailable,
-            tr("Failed to create CameraMovement settings widget.")));
+        return tl::make_unexpected(
+            Error(ErrorCode::ResourceUnavailable,
+                  tr("Failed to create CameraMovement settings widget.")));
     }
     return widget;
 }
 
 QString CameraMovement::getName() const { return PLUGIN_NAME; }
 
-QMap<QString, QVariant> CameraMovement::getSettings() const
-{
+QMap<QString, QVariant> CameraMovement::getSettings() const {
     QMap<QString, QVariant> settings;
     settings.insert(SETTINGS_SELECTOR_THRESHOLD, m_selectorThreshold);
     return settings;
 }
 
 ApplySettingsResult CameraMovement::applySettings(
-    const QMap<QString, QVariant>& settings)
-{
+    const QMap<QString, QVariant>& settings) {
     bool ok = true;
     const double threshold =
         settings.value(SETTINGS_SELECTOR_THRESHOLD, m_selectorThreshold)
@@ -65,8 +60,7 @@ ApplySettingsResult CameraMovement::applySettings(
     return {};
 }
 
-InputLoadedResult CameraMovement::onInputLoaded(const InputData& input)
-{
+InputLoadedResult CameraMovement::onInputLoaded(const InputData& input) {
     if (!input.reader) {
         return tl::make_unexpected(
             Error(ErrorCode::InvalidInput, tr("Reader is null.")));
@@ -76,8 +70,8 @@ InputLoadedResult CameraMovement::onInputLoaded(const InputData& input)
 
     const cv::Mat testPic = m_reader->getPic(0);
     if (testPic.empty()) {
-        return tl::make_unexpected(
-            Error(ErrorCode::InvalidInput, tr("Input contains no readable frame.")));
+        return tl::make_unexpected(Error(
+            ErrorCode::InvalidInput, tr("Input contains no readable frame.")));
     }
 
     m_inputResolution.setX(testPic.cols);
@@ -95,8 +89,7 @@ InputLoadedResult CameraMovement::onInputLoaded(const InputData& input)
 void CameraMovement::onCudaChanged(bool enabled) { m_useCuda = enabled; }
 
 SelectionResult CameraMovement::selectImages(const SelectionData& data,
-                                             volatile bool& cancelFlag)
-{
+                                             volatile bool& cancelFlag) {
     const std::vector<uint>& imageList = data.selectedIndices;
 
     if (imageList.empty()) {
@@ -117,8 +110,8 @@ SelectionResult CameraMovement::selectImages(const SelectionData& data,
     // invalidate buffer if working resolution changed
     cv::Mat tstImg = m_reader->getPic(0);
     if (tstImg.empty()) {
-        return tl::make_unexpected(
-            Error(ErrorCode::InvalidInput, tr("Input contains no readable frame.")));
+        return tl::make_unexpected(Error(
+            ErrorCode::InvalidInput, tr("Input contains no readable frame.")));
     }
 
     if (m_inputResolution.x() != tstImg.cols ||
@@ -176,7 +169,8 @@ SelectionResult CameraMovement::selectImages(const SelectionData& data,
         };
 
     std::function<void(cv::Mat, cv::Mat)> calcFlowStatic =
-        [fc = flowCalculator.get(), &flowValues](cv::Mat fromMat, cv::Mat toMat) {
+        [fc = flowCalculator.get(), &flowValues](cv::Mat fromMat,
+                                                 cv::Mat toMat) {
             QElapsedTimer timer;
             timer.start();
             double flowValue = fc->calculateFlow(fromMat, toMat);
@@ -225,7 +219,8 @@ SelectionResult CameraMovement::selectImages(const SelectionData& data,
 
     if (data.logFile) {
         data.logFile->stopTimer();
-        data.logFile->addCustomEntry(LF_CE_VALUE_USED_BUFFERED, usedBufferedValues,
+        data.logFile->addCustomEntry(LF_CE_VALUE_USED_BUFFERED,
+                                     usedBufferedValues,
                                      LF_CE_TYPE_ADDITIONAL_INFO);
     }
 
@@ -248,8 +243,8 @@ SelectionResult CameraMovement::selectImages(const SelectionData& data,
         data.logFile->startTimer(LF_TIMER_BUFFER);
     }
 
-    for (uint flowValuesIdx = 0;
-         flowValuesIdx + 1 < flowValues.size() && flowValuesIdx + 1 < imageList.size();
+    for (uint flowValuesIdx = 0; flowValuesIdx + 1 < flowValues.size() &&
+                                 flowValuesIdx + 1 < imageList.size();
          flowValuesIdx++) {
         int progress = (100.0f * flowValues.size()) / (flowValuesIdx + 1);
         reportProgress(tr("Buffering values"), progress);
@@ -267,18 +262,15 @@ SelectionResult CameraMovement::selectImages(const SelectionData& data,
     return keyframes;
 }
 
-void CameraMovement::reportProgress(const QString& op, int progress)
-{
+void CameraMovement::reportProgress(const QString& op, int progress) {
     emit updateProgress(progress, op);
 }
 
-void CameraMovement::slot_selectorThresholdChanged(double value)
-{
+void CameraMovement::slot_selectorThresholdChanged(double value) {
     m_selectorThreshold = value;
 }
 
-std::unique_ptr<QWidget> CameraMovement::createSettingsWidget()
-{
+std::unique_ptr<QWidget> CameraMovement::createSettingsWidget() {
     auto settingsWidget = std::make_unique<QWidget>(nullptr);
 
     QWidget* selectorLayout = new QWidget(settingsWidget.get());
@@ -309,18 +301,18 @@ std::unique_ptr<QWidget> CameraMovement::createSettingsWidget()
     settingsWidget->layout()->addWidget(selectorLayout);
     settingsWidget->layout()->addWidget(selectorLabel);
 
-    QObject::connect(this, &CameraMovement::syncSettingsWidget, settingsWidget.get(),
-                     [this](double threshold) {
-                         if (m_selectorThresholdSpinBox) {
-                             QSignalBlocker blocker(m_selectorThresholdSpinBox);
-                             m_selectorThresholdSpinBox->setValue(threshold);
-                         }
-                     },
-                     Qt::QueuedConnection);
+    QObject::connect(
+        this, &CameraMovement::syncSettingsWidget, settingsWidget.get(),
+        [this](double threshold) {
+            if (m_selectorThresholdSpinBox) {
+                QSignalBlocker blocker(m_selectorThresholdSpinBox);
+                m_selectorThresholdSpinBox->setValue(threshold);
+            }
+        },
+        Qt::QueuedConnection);
 
-    QObject::connect(settingsWidget.get(), &QObject::destroyed, this, [this]() {
-        m_selectorThresholdSpinBox = nullptr;
-    });
+    QObject::connect(settingsWidget.get(), &QObject::destroyed, this,
+                     [this]() { m_selectorThresholdSpinBox = nullptr; });
 
     emit syncSettingsWidget(m_selectorThreshold);
 

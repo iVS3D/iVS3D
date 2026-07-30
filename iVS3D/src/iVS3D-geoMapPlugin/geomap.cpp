@@ -1,7 +1,7 @@
 #include "geomap.h"
 
-#include <QLocale>
 #include <QCheckBox>
+#include <QLocale>
 #include <QMessageBox>
 #include <QQmlContext>
 #include <QQmlEngine>
@@ -30,7 +30,7 @@ const QString ORG_NAME = "Fraunhofer-IOSB";
 const QString APP_NAME = "iVS3D";
 const QString SETTINGS_GROUP = "geoMapPlugin";
 const QString SETTINGS_PARTIAL_SELECTION_KEY = "partialSelectionEnabled";
-}
+}  // namespace
 
 GeoMap::GeoMap() : IBase() {
     QLocale locale = qApp->property("translation").toLocale();
@@ -48,9 +48,9 @@ GeoMap::GeoMap() : IBase() {
 SettingsWidgetResult GeoMap::getSettingsWidget() {
     auto widget = createSettingsWidget();
     if (!widget) {
-        return tl::make_unexpected(Error(
-            ErrorCode::ResourceUnavailable,
-            tr("Failed to create GeoMap settings widget.")));
+        return tl::make_unexpected(
+            Error(ErrorCode::ResourceUnavailable,
+                  tr("Failed to create GeoMap settings widget.")));
     }
     return widget;
 }
@@ -71,9 +71,9 @@ ApplySettingsResult GeoMap::applySettings(
 
     const QVariant polygonVariant = settings.value(NAME_Polygon);
     if (!polygonVariant.canConvert<QPolygonF>()) {
-        return tl::make_unexpected(Error(
-            ErrorCode::InvalidInput,
-            tr("Invalid polygon setting for GeoMap plugin.")));
+        return tl::make_unexpected(
+            Error(ErrorCode::InvalidInput,
+                  tr("Invalid polygon setting for GeoMap plugin.")));
     }
 
     mPolygon = polygonVariant.value<QPolygonF>();
@@ -105,8 +105,7 @@ MetaDataLoadedResult GeoMap::onMetaDataLoaded(
     return {};
 }
 
-void GeoMap::onSelectedImagesChanged(
-    const std::vector<uint>& selectedImages) {
+void GeoMap::onSelectedImagesChanged(const std::vector<uint>& selectedImages) {
     if (!mIsGpsAvailable || mGpsData.empty()) {
         return;
     }
@@ -223,17 +222,18 @@ SelectionResult GeoMap::selectImages(const SelectionData& data,
     if (!std::is_sorted(selectedIndices.begin(), selectedIndices.end())) {
         std::sort(selectedIndices.begin(), selectedIndices.end());
     }
-    if (!std::is_sorted(framesInsidePolygon.begin(), framesInsidePolygon.end())) {
+    if (!std::is_sorted(framesInsidePolygon.begin(),
+                        framesInsidePolygon.end())) {
         std::sort(framesInsidePolygon.begin(), framesInsidePolygon.end());
     }
 
     std::vector<uint> selected;
     selected.resize(selectedIndices.size());
 
-    auto end = std::set_intersection(
-        selectedIndices.begin(), selectedIndices.end(),
-        framesInsidePolygon.begin(), framesInsidePolygon.end(),
-        selected.begin());
+    auto end =
+        std::set_intersection(selectedIndices.begin(), selectedIndices.end(),
+                              framesInsidePolygon.begin(),
+                              framesInsidePolygon.end(), selected.begin());
     selected.resize(size_t(end - selected.begin()));
 
     mPolygon = QPolygonF();
@@ -268,9 +268,7 @@ void GeoMap::onGpsSelected(QPolygonF polyF) {
     mPolygon = std::move(polyF);
 }
 
-void GeoMap::onIndexChanged(uint index) {
-    emit syncCurrentIndex(index);
-}
+void GeoMap::onIndexChanged(uint index) { emit syncCurrentIndex(index); }
 
 std::unique_ptr<QWidget> GeoMap::createSettingsWidget() {
     auto mapWidget = std::make_unique<QWidget>(nullptr);
@@ -298,29 +296,28 @@ std::unique_ptr<QWidget> GeoMap::createSettingsWidget() {
         return nullptr;
     }
 
-    QObject::connect(qmlRoot, SIGNAL(gpsClicked(QString)),
-                     mapHandler, SLOT(onQmlGpsClicked(QString)));
-    QObject::connect(qmlRoot, SIGNAL(mapClicked(QString)),
-                     mapHandler, SLOT(onQmlMapClicked(QString)));
-    QObject::connect(qmlRoot, SIGNAL(mapItems(QVariant)),
-                     mapHandler, SLOT(onQmlMapItems(QVariant)));
-    QObject::connect(qmlRoot, SIGNAL(deleteSelection()),
-                     mapHandler, SLOT(onQmlDeleteSelection()));
-    QObject::connect(qmlRoot, SIGNAL(selectionBack()),
-                     mapHandler, SLOT(onQmlSelectionBack()));
-    QObject::connect(qmlRoot, SIGNAL(selectionForward()),
-                     mapHandler, SLOT(onQmlSelectionForward()));
+    QObject::connect(qmlRoot, SIGNAL(gpsClicked(QString)), mapHandler,
+                     SLOT(onQmlGpsClicked(QString)));
+    QObject::connect(qmlRoot, SIGNAL(mapClicked(QString)), mapHandler,
+                     SLOT(onQmlMapClicked(QString)));
+    QObject::connect(qmlRoot, SIGNAL(mapItems(QVariant)), mapHandler,
+                     SLOT(onQmlMapItems(QVariant)));
+    QObject::connect(qmlRoot, SIGNAL(deleteSelection()), mapHandler,
+                     SLOT(onQmlDeleteSelection()));
+    QObject::connect(qmlRoot, SIGNAL(selectionBack()), mapHandler,
+                     SLOT(onQmlSelectionBack()));
+    QObject::connect(qmlRoot, SIGNAL(selectionForward()), mapHandler,
+                     SLOT(onQmlSelectionForward()));
 
-    QObject::connect(mapHandler, &MapHandler::gpsClicked,
-                     this, &GeoMap::onGpsClicked, Qt::QueuedConnection);
-    QObject::connect(mapHandler, &MapHandler::gpsSelected,
-                     this, &GeoMap::onGpsSelected, Qt::QueuedConnection);
+    QObject::connect(mapHandler, &MapHandler::gpsClicked, this,
+                     &GeoMap::onGpsClicked, Qt::QueuedConnection);
+    QObject::connect(mapHandler, &MapHandler::gpsSelected, this,
+                     &GeoMap::onGpsSelected, Qt::QueuedConnection);
 
     QObject::connect(this, &GeoMap::syncMapData, mapHandler,
                      &MapHandler::replaceData, Qt::QueuedConnection);
     QObject::connect(this, &GeoMap::syncMapPointUpdates, mapHandler,
-                     &MapHandler::updatePointsAndPolygon,
-                     Qt::QueuedConnection);
+                     &MapHandler::updatePointsAndPolygon, Qt::QueuedConnection);
     QObject::connect(this, &GeoMap::syncMapPolygon, mapHandler,
                      &MapHandler::setPolygon, Qt::QueuedConnection);
     QObject::connect(this, &GeoMap::syncCurrentIndex, mapHandler,
@@ -343,9 +340,8 @@ std::unique_ptr<QWidget> GeoMap::createSettingsWidget() {
 
     QPushButton* helpButton =
         new QPushButton(QObject::tr("Help"), mapWidget.get());
-    QCheckBox* partialSelectionCheckBox =
-        new QCheckBox(QObject::tr("Partial selection visualization"),
-                      mapWidget.get());
+    QCheckBox* partialSelectionCheckBox = new QCheckBox(
+        QObject::tr("Partial selection visualization"), mapWidget.get());
     partialSelectionCheckBox->setChecked(mPartialSelectionEnabled);
     QObject::connect(partialSelectionCheckBox, &QCheckBox::toggled, this,
                      [this](bool enabled) {
@@ -363,23 +359,23 @@ std::unique_ptr<QWidget> GeoMap::createSettingsWidget() {
     buttonLayout->setContentsMargins(3, 3, 3, 3);
     buttonLayout->addWidget(resetButton);
     buttonLayout->addWidget(partialSelectionCheckBox);
-    buttonLayout->addSpacerItem(
-        new QSpacerItem(20, 20, QSizePolicy::MinimumExpanding,
-                        QSizePolicy::Minimum));
+    buttonLayout->addSpacerItem(new QSpacerItem(
+        20, 20, QSizePolicy::MinimumExpanding, QSizePolicy::Minimum));
     buttonLayout->addWidget(helpButton);
     mapWidget->layout()->addItem(buttonLayout);
 
-    QObject::connect(helpButton, &QPushButton::clicked, [mapWidget = mapWidget.get()]() {
-        QMessageBox::about(
-            mapWidget, "GeoMap Plugin",
-            QObject::tr("Select a group of keyframes by using right "
-                        "mouse button to draw an encapsulating polygon."
-                        "\n\n"
-                        "Select or deselect individual keyframes by "
-                        "clicking with the left mouse button "
-                        "on the location markings.\n\n"
-                        "A combination of both is also allowed."));
-    });
+    QObject::connect(
+        helpButton, &QPushButton::clicked, [mapWidget = mapWidget.get()]() {
+            QMessageBox::about(
+                mapWidget, "GeoMap Plugin",
+                QObject::tr("Select a group of keyframes by using right "
+                            "mouse button to draw an encapsulating polygon."
+                            "\n\n"
+                            "Select or deselect individual keyframes by "
+                            "clicking with the left mouse button "
+                            "on the location markings.\n\n"
+                            "A combination of both is also allowed."));
+        });
 
     return mapWidget;
 }
@@ -387,18 +383,17 @@ std::unique_ptr<QWidget> GeoMap::createSettingsWidget() {
 void GeoMap::loadPersistentSettings() {
     QSettings settings(ORG_NAME, APP_NAME);
     settings.beginGroup(SETTINGS_GROUP);
-    mPartialSelectionEnabled =
-        settings.value(SETTINGS_PARTIAL_SELECTION_KEY,
-                       GEOMAP_ENABLE_PARTIAL_SELECTION != 0)
-            .toBool();
+    mPartialSelectionEnabled = settings
+                                   .value(SETTINGS_PARTIAL_SELECTION_KEY,
+                                          GEOMAP_ENABLE_PARTIAL_SELECTION != 0)
+                                   .toBool();
     settings.endGroup();
 }
 
 void GeoMap::savePersistentSettings() const {
     QSettings settings(ORG_NAME, APP_NAME);
     settings.beginGroup(SETTINGS_GROUP);
-    settings.setValue(SETTINGS_PARTIAL_SELECTION_KEY,
-                      mPartialSelectionEnabled);
+    settings.setValue(SETTINGS_PARTIAL_SELECTION_KEY, mPartialSelectionEnabled);
     settings.endGroup();
 }
 
@@ -487,8 +482,7 @@ QPointF GeoMap::gpsHashToLatLong(const QVariant& hash, bool* ok) const {
         return QPointF();
     }
 
-    const double latitude =
-        (latitudeRef == "N") ? latitudeAbs : -latitudeAbs;
+    const double latitude = (latitudeRef == "N") ? latitudeAbs : -latitudeAbs;
     const double longitude =
         (longitudeRef == "E") ? longitudeAbs : -longitudeAbs;
     return QPointF(latitude, longitude);
