@@ -29,12 +29,12 @@ Reader* ReaderFactory::createReader(QString path,
         // ffmpeg reader
         if (!useBackupReader) {
             reader = std::make_unique<VideoReader>(path, params);
+            if (!reader->isValid()) {
+                useBackupReader = allowBackupReader();
+                reader = nullptr;
+            }
         }
-        // switch to backup reader if video could not be read
-        if (!reader->isValid()) {
-            useBackupReader = allowBackupReader();
-        }
-        // backup reader
+        // backup reader (video failed OR forced by user)
         if (useBackupReader) {
             reader = std::make_unique<BackupVideoReader>(path, params);
         }
