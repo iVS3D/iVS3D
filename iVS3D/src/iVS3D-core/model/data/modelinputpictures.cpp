@@ -9,7 +9,6 @@ ModelInputPictures::ModelInputPictures(QString inputPath,
     m_metaDataManager->resetData();
     m_readerParams = std::make_shared<ReaderParams>();
     m_reader = ReaderFactory::instance().createReader(inputPath, m_readerParams,
-
                                                       forceBackupVideoReader);
 
     if (m_reader == nullptr) {

@@ -4,6 +4,7 @@
 
 #include "applicationsettings.h"
 #include "mainwindow.h"
+#include "pluginmanager.h"
 #include "reader.h"
 #include "readerparams.h"
 #include "reconstructiontoolsdialog.h"
@@ -843,6 +844,7 @@ void Controller::onSuccessfulOpen() {
     // --- using the new data (in dataManager) and connect to main window
 
     m_stack = std::make_shared<MaskStack>();
+    m_pluginThread = PluginManager::instance().getPluginThread();
 
     // VideoPlayerControler manages video player and timeline
     m_videoPlayerController = new VideoPlayerController(
