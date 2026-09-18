@@ -67,8 +67,9 @@ int main(int argc, char* argv[]) {
     QCommandLineOption metadataPath(
         QStringList() << "m" << "metadata",
         "Load additional metadata from <path> in headless mode.", "path");
-    QCommandLineOption noGui(QStringList() << "nogui",
-                             "Run the configured pipeline without showing the GUI.");
+    QCommandLineOption noGui(
+        QStringList() << "nogui",
+        "Run the configured pipeline without showing the GUI.");
 
     parser.setApplicationDescription(
         "intelligent video sampler 3d is designed to process image sequences "
@@ -134,7 +135,8 @@ int main(int argc, char* argv[]) {
     } else {
         mainController =
             new Controller(parser.value(inputPath), parser.value(autoPath),
-                           parser.value(outputPath), parser.value(logPath));
+                           parser.value(outputPath), parser.value(logPath),
+                           parser.values(metadataPath));
     }
 
     auto res = a.exec();

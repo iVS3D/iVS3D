@@ -1,5 +1,7 @@
 #include "controller.h"
 
+#include <qlist.h>
+
 #include <iostream>
 
 #include "applicationsettings.h"
@@ -10,7 +12,8 @@
 #include "reconstructiontoolsdialog.h"
 
 Controller::Controller(QString inputPath, QString settingsPath,
-                       QString outputPath, QString logPath)
+                       QString outputPath, QString logPath,
+                       QStringList metaDataPaths)
     : m_colmapWrapper(new lib3d::ots::ColmapWrapper) {
     m_videoPlayerController = nullptr;
     m_pluginController = nullptr;
@@ -141,10 +144,20 @@ Controller::Controller(QString inputPath, QString settingsPath,
     }
 
     if (inputPath != nullptr && !inputPath.isEmpty()) {
-        m_mainWindow->enableInputButtons(false);
+        m_mainWindow->enableInputButtonImageData(false);
         m_timer = QElapsedTimer();
         m_timer.start();
         createOpenMessage(m_dataManager->open(inputPath));
+    }
+
+    if (!metaDataPaths.empty()) {
+        m_mainWindow->enableInputButtonMetaData(false);
+        const int loadedCount =
+            m_dataManager->getModelInputPictures()->loadMetaData(metaDataPaths);
+        auto* md =
+            m_dataManager->getModelInputPictures()->getReader()->getMetaData();
+        PluginManager::instance().getPluginThread()->onMetaDataLoaded(
+            PLUG::InputMetaData{md});
     }
 
     if (outputPath != nullptr && !outputPath.isEmpty()) {

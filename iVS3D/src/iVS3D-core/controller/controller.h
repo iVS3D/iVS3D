@@ -8,6 +8,8 @@
  * @brief manages interaction between model and view.
  */
 
+#include <qlist.h>
+
 #include <QDialog>
 #include <QElapsedTimer>
 #include <QFileDialog>
@@ -54,7 +56,7 @@ class Controller : public QObject {
      * signals
      */
     Controller(QString inputPath, QString settingsPath, QString outputPath,
-               QString logPath);
+               QString logPath, QStringList metaDataPaths);
     ~Controller();
    public slots:
     /**

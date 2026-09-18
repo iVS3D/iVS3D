@@ -176,7 +176,9 @@ class MainWindow : public QMainWindow {
 
     void addSettingsAction(QAction* action);
 
-    void enableInputButtons(bool status);
+    void enableInputButtonImageData(bool status);
+
+    void enableInputButtonMetaData(bool status);
 
     void enableExportPath(bool status);
 
