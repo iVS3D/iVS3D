@@ -144,10 +144,10 @@ class VideoReader : public Reader
     QMutex m_mutex;
     std::shared_ptr<ReaderParams> m_readerParams;
     int64_t m_startTimestamp = AV_NOPTS_VALUE;
-    std::map<uint, AVFrame*> m_buffer;
+    std::map<int64_t, AVFrame*> m_buffer;
     AVRational m_streamTimeBase = AV_TIME_BASE_Q;
     int m_streamId = -1;
-    int m_lastFrameIdx = -1;
+    int64_t m_lastFrameIdx = -1;
     // AV/SWS-Objects
     AVFormatContext* m_formatContext = nullptr;
     AVCodecContext* m_codecContext = nullptr;

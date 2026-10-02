@@ -6,8 +6,6 @@
 #include <libavutil/rational.h>
 #include <libswscale/swscale.h>
 
-#include <cstdint>
-#include <string>
 #include <vector>
 
 #include "reader.h"
@@ -112,14 +110,15 @@ int VideoReader::selectVideoStream() {
         AVMediaType codecType = codecParams->codec_type;
         if (codecType == AVMEDIA_TYPE_VIDEO) {
             m_frameCount = stream->nb_frames;
-            if (m_frameCount == 0) return -1;
+            if (m_frameCount < 1) return -1;
 
             // no fps variation
             m_avgVideoFPS = stream->avg_frame_rate;
             AVRational real_fps = stream->r_frame_rate;
             if (av_cmp_q(m_avgVideoFPS, stream->r_frame_rate) != 0) return -1;
 
-            m_startTimestamp = stream->start_time;
+            m_startTimestamp =
+                (stream->start_time == AV_NOPTS_VALUE) ? 0 : stream->start_time;
             m_streamTimeBase = stream->time_base;
             return 0;
         }
@@ -165,7 +164,7 @@ cv::Mat VideoReader::getPic(unsigned int index, PictureProcessingFlags flags) {
 
     if (index >= m_frameCount) return cv::Mat();
 
-    std::map<uint, AVFrame*>::iterator iter = m_buffer.find(index);
+    std::map<int64_t, AVFrame*>::iterator iter = m_buffer.find(index);
     const bool backwardsSeek = (int)index < m_lastFrameIdx;
     const bool inBuffer = iter != m_buffer.end();
     const bool longRangeSeek = abs((int)(m_lastFrameIdx - index)) >
@@ -177,10 +176,12 @@ cv::Mat VideoReader::getPic(unsigned int index, PictureProcessingFlags flags) {
             av_rescale_q(index,
                          AVRational{m_avgVideoFPS.den, m_avgVideoFPS.num},
                          m_streamTimeBase);
-        int seek_res =
-            av_seek_frame(m_formatContext, m_streamId, timeStampInStreamTime,
-                          AVSEEK_FLAG_BACKWARD);
-        if (seek_res < 0) return cv::Mat();
+
+        if (av_seek_frame(m_formatContext, m_streamId, timeStampInStreamTime,
+                          AVSEEK_FLAG_BACKWARD) < 0)
+            return cv::Mat();
+        avcodec_flush_buffers(m_codecContext);
+        m_lastFrameIdx = index;
     }
 
     // sequential read until index is reached
@@ -207,10 +208,11 @@ cv::Mat VideoReader::getPic(unsigned int index, PictureProcessingFlags flags) {
                 return cv::Mat();
         }
 
+        iter = m_buffer.find(index);
+
         if (decode_res == AVERROR_EOF && iter == m_buffer.end()) {
             return cv::Mat();
         }
-        iter = m_buffer.find(index);
 
         bool longSeqDecode =
             ++seqReadFrames > 2 * m_avgVideoFPS.num / m_avgVideoFPS.den;
@@ -242,13 +244,14 @@ int VideoReader::decodeNextPkg(std::vector<int>& decodedIdx) {
     AVPacket* packet = av_packet_alloc();
     int read_res = av_read_frame(m_formatContext, packet);
     if (read_res == AVERROR_EOF) {
+        av_packet_free(&packet);
         packet = nullptr;  // send flush packet
     } else if (read_res < 0) {
         av_packet_free(&packet);
         return read_res;
     }
 
-    // ignore streams that are not video
+    // ignore packages that are not from selected stream
     if (packet && packet->stream_index != m_streamId) {
         av_packet_free(&packet);
         return 0;
@@ -272,7 +275,12 @@ int VideoReader::decodeNextPkg(std::vector<int>& decodedIdx) {
         int64_t idx =
             av_rescale_q(av_frame->pts - m_startTimestamp, m_streamTimeBase,
                          AVRational{m_avgVideoFPS.den, m_avgVideoFPS.num});
-        m_buffer[idx] = av_frame;
+
+        if (m_buffer.find(idx) == m_buffer.end()) {
+            m_buffer[idx] = av_frame;
+        } else {  // discard when buffered
+            av_frame_free(&av_frame);
+        }
         decodedIdx.push_back(idx);
         m_lastFrameIdx = idx;
     }
@@ -325,13 +333,9 @@ cv::Mat VideoReader::avFrame2CvMat(const AVFrame* av_f) {
     const int w = av_f->width;
     if (av_f->format < 0) return cv::Mat();
 
-    const AVRational timeBase = av_f->time_base;
-    // frame needs to be escatly one 1/fps
-    if (timeBase.num != 0 || timeBase.den != 1) return cv::Mat();
-
     const AVPixelFormat pixFormat = static_cast<AVPixelFormat>(av_f->format);
 
-    if (updateSWSContext(w, h, pixFormat) < 0) return cv::Mat();
+    if (updateSWSContext(w, h, pixFormat) > 0) return cv::Mat();
 
     cv::Mat cv_f(h, w, CV_8UC3);
     int cv_linesizes[1] = {(int)cv_f.step1()};
