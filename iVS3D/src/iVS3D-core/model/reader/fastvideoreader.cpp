@@ -1,4 +1,4 @@
-#include "backupvideoreader.h"
+#include "fastvideoreader.h"
 
 #include <QFileInfo>
 #include <memory>
@@ -6,8 +6,8 @@
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 
-BackupVideoReader::BackupVideoReader(const QString& path,
-                                     std::shared_ptr<ReaderParams> readerParams)
+FastVideoReader::FastVideoReader(const QString& path,
+                                 std::shared_ptr<ReaderParams> readerParams)
     : m_path(path.toUtf8().constData()), m_readerParams(readerParams) {
     QFileInfo info(path);
     if (!info.isFile()) {
@@ -25,16 +25,16 @@ BackupVideoReader::BackupVideoReader(const QString& path,
     }
 }
 
-BackupVideoReader::~BackupVideoReader() { m_cap.release(); }
+FastVideoReader::~FastVideoReader() { m_cap.release(); }
 
-void BackupVideoReader::addMetaData(MetaData* md) { m_md = md; }
+void FastVideoReader::addMetaData(MetaData* md) { m_md = md; }
 
-MetaData* BackupVideoReader::getMetaData() { return m_md; }
+MetaData* FastVideoReader::getMetaData() { return m_md; }
 
-bool BackupVideoReader::isValid() { return m_isValid; }
+bool FastVideoReader::isValid() { return m_isValid; }
 
-cv::Mat BackupVideoReader::getPic(unsigned int index,
-                                  PictureProcessingFlags flags) {
+cv::Mat FastVideoReader::getPic(unsigned int index,
+                                PictureProcessingFlags flags) {
     QMutexLocker locker(&m_mutex);
 
     // minimum distance from the current index in the video to the next index
@@ -82,37 +82,36 @@ cv::Mat BackupVideoReader::getPic(unsigned int index,
     return ret;
 }
 
-unsigned int BackupVideoReader::getPicCount() { return m_numImages; }
+unsigned int FastVideoReader::getPicCount() { return m_numImages; }
 
-QString BackupVideoReader::getInputPath() {
+QString FastVideoReader::getInputPath() {
     return QString::fromStdString(m_path);
 }
 
-double BackupVideoReader::getFPS() { return m_fps; }
+double FastVideoReader::getFPS() { return m_fps; }
 
-double BackupVideoReader::getVideoDuration() {
+double FastVideoReader::getVideoDuration() {
     return (double)m_numImages / m_fps;
 }
 
-bool BackupVideoReader::isDir() { return false; }
+bool FastVideoReader::isDir() { return false; }
 
-BackupVideoReader* BackupVideoReader::copy(
-    std::shared_ptr<ReaderParams> params) {
+FastVideoReader* FastVideoReader::copy(std::shared_ptr<ReaderParams> params) {
     std::shared_ptr<ReaderParams> p = params;
     if (!p) {  // if no params are provided, copy the old ones
         p = std::make_shared<ReaderParams>(*m_readerParams);
     }  // copy cv::VideoCapture crashes, so create new instead of copy
-    BackupVideoReader* reader =
-        new BackupVideoReader(QString::fromStdString(m_path), p);
+    FastVideoReader* reader =
+        new FastVideoReader(QString::fromStdString(m_path), p);
     reader->addMetaData(m_md);
     return reader;
 }
 
-std::vector<std::string> BackupVideoReader::getFileVector() {
+std::vector<std::string> FastVideoReader::getFileVector() {
     return std::vector<std::string>();
 }
 
-SequentialReader* BackupVideoReader::createSequentialReader(
+SequentialReader* FastVideoReader::createSequentialReader(
     std::vector<uint> indices, PictureProcessingFlags flags) {
     return new SequentialReaderImpl(this, indices, true, flags);
 }

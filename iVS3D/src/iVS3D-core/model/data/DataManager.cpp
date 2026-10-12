@@ -43,7 +43,7 @@ int DataManager::open(QString path) {
         lf->startTimer(stringContainer::lfImportMip);
     }
     m_mip = new ModelInputPictures(
-        path, ApplicationSettings::instance().get_forceBackupVideoReader());
+        path, ApplicationSettings::instance().get_videoReaderBackend());
     if (lf) {
         lf->stopTimer();
     }

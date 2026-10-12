@@ -8,9 +8,10 @@
 
 #include "reader.h"
 #include "readerparams.h"
+#include "stringcontainer.h"
 
 #define CONFIRM_BT QMessageBox::Yes
-#define DECLINE_BT QMessageBox::Abort
+#define DECLINE_BT QMessageBox::Cancel
 
 class ReaderFactory : QObject {
    public:
@@ -20,11 +21,11 @@ class ReaderFactory : QObject {
     }
 
     Reader* createReader(QString path, std::shared_ptr<ReaderParams> params,
-                         bool forceBackupVideoReader = false);
+                         QString backend = stringContainer::fastVideoReader);
 
    private:
     ReaderFactory();
-    bool allowBackupReader();
+    QString switchReaderPrompt();
 };
 
 #endif  // READERFACTORY_H

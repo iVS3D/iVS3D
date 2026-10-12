@@ -2,41 +2,42 @@
 
 #include <qapplication.h>
 #include <qfileinfo.h>
+#include <qglobal.h>
 #include <qmessagebox.h>
 #include <qobject.h>
+#include <qtextedit.h>
 #include <qthread.h>
 
 #include <memory>
 
-#include "backupvideoreader.h"
+#include "fastvideoreader.h"
 #include "imagereader.h"
+#include "stringcontainer.h"
 #include "videoreader.h"
 
 ReaderFactory::ReaderFactory() {}
 
 Reader* ReaderFactory::createReader(QString path,
                                     std::shared_ptr<ReaderParams> params,
-                                    bool forceBackupVideoReader) {
+                                    QString backend) {
     QFileInfo info(path);
-    std::unique_ptr<Reader> reader;
+    std::unique_ptr<Reader> reader = nullptr;
+
     if (!info.exists()) return nullptr;
     if (info.isDir()) {
         // image reader
         reader = std::make_unique<ImageReader>(path, params);
     } else {
         // video reader
-        bool useBackupReader = forceBackupVideoReader;
-        // ffmpeg reader
-        if (!useBackupReader) {
+        if (backend == stringContainer::preciseVideoReader) {
             reader = std::make_unique<VideoReader>(path, params);
             if (!reader->isValid()) {
-                useBackupReader = allowBackupReader();
+                backend = switchReaderPrompt();
                 reader = nullptr;
             }
         }
-        // backup reader (video failed OR forced by user)
-        if (useBackupReader) {
-            reader = std::make_unique<BackupVideoReader>(path, params);
+        if (backend == stringContainer::fastVideoReader) {
+            reader = std::make_unique<FastVideoReader>(path, params);
         }
     }
     if (!reader) return nullptr;
@@ -48,20 +49,25 @@ Reader* ReaderFactory::createReader(QString path,
     return reader.release();
 }
 
-bool ReaderFactory::allowBackupReader() {
+QString ReaderFactory::switchReaderPrompt() {
     QMessageBox msgBox;
     msgBox.setModal(true);
     msgBox.setIcon(QMessageBox::Warning);
-    msgBox.setText(tr("Do you want to use the backup video reader?"));
+    msgBox.setText(
+        tr("The PreciseVideoReader backend is not available for this video. "
+           "Do you want to switch the backend?"));
     msgBox.setDetailedText(
-        tr("The frame precise custom video reader could not load the "
+        tr("The frame precise video reader could not load the "
            "video. If you do not need frame perfect selection you can use "
-           "the backup video reader, which is based on OpenCV. If you "
-           "abort this the video can not be loaded."));
+           "the FastVideoReader backend, which is less robust during frame "
+           "jumps. In case frame precise jumps are neccessary we recommend "
+           "reencoding the video with ffmpeg:"
+           "\n\n \"ffmpeg -i VIDEO.mp4 -vf fps=FPS -vsync cfr -c:v libx264 "
+           "-crf 0 -c:an OUTVIDEO.mp4\" "));
     msgBox.setStandardButtons(CONFIRM_BT | DECLINE_BT);
     msgBox.setDefaultButton(CONFIRM_BT);
-
     msgBox.show();
+
     int res = -1;
     while (res != CONFIRM_BT && res != DECLINE_BT) {
         QApplication::processEvents();
@@ -69,5 +75,5 @@ bool ReaderFactory::allowBackupReader() {
         QThread::msleep(100);
     }
 
-    return res == CONFIRM_BT;
+    return res == CONFIRM_BT ? stringContainer::fastVideoReader : "";
 }

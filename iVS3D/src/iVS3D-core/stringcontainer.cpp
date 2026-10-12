@@ -63,8 +63,9 @@ const QString stringContainer::createLogsIdentifier = "create logs";
 const QString stringContainer::interpolateIdentifier = "interpolateMetaData";
 const QString stringContainer::localeIdentifier = "locale";
 const QString stringContainer::defaultPluginIdentifier = "defaultPlugin";
-const QString stringContainer::forceBackupVideoReader =
-    "forceBackupVideoReader";
+const QString stringContainer::videoReader = "videoreader";
+const QString stringContainer::fastVideoReader = "fastVideoReader";
+const QString stringContainer::preciseVideoReader = "preciseVideoReader";
 
 // Identifier for LfogFile
 const QString stringContainer::logNameIdentifier = "Name";

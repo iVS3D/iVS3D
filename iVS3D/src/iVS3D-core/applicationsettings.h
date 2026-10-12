@@ -182,23 +182,17 @@ class ApplicationSettings {
     void setDefaultPluginName(const QString& pluginName);
 
     /**
-     * @brief get_forceBackupVideoReader shows if the backup reader is always
-     used
-     * @return if true the backup OpenCV more robust reader is always used
-     * otherwise it is only used when the ffmpeg frame perfect custom reader
-     * fails
+     * @brief get_forceFastVideoReader returns which video reader backend is in
+     use
 
      */
-    bool get_forceBackupVideoReader();
+    QString get_videoReaderBackend();
     /**
-     * @brief get_forceBackupVideoReader allows the user to not use the default
-     * video reader, which is frame perfect but not as robust as the backup
-     * OpenCV based reader
-     * @param v if true the backup OpenCV more robust reader is always used
-     * otherwise it is only used when the ffmpeg frame perfect custom reader
-     * fails
+     * @brief set_videoReaderBackend allows the user to choose the backend of
+     * the used video reader
+     *
      */
-    void set_forceBackupVideoReader(bool v);
+    void set_videoReaderBackend(QString name);
 
    private:
     ApplicationSettings();
@@ -213,7 +207,7 @@ class ApplicationSettings {
     void saveSettings();
     QLocale m_locale;
     QString m_defaultPluginName;
-    bool m_forceBackupVideoReader;
+    QString m_videoReaderBackend;
 };
 
 #endif  // APPLICATIONSETTINGS_H

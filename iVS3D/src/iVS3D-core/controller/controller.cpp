@@ -55,8 +55,7 @@ Controller::Controller(QString inputPath, QString settingsPath,
         nullptr, ApplicationSettings::instance().getColorTheme(), useCuda,
         ApplicationSettings::instance().getCreateLogs(), interpolateMetaData,
         locales, selectedLocale,
-        ApplicationSettings::instance().get_forceBackupVideoReader(),
-        otsWidget);
+        ApplicationSettings::instance().get_videoReaderBackend(), otsWidget);
 
     m_mainWindow->getSamplingWidget()->setPluginList(
         PluginManager::instance().getPluginNames());
@@ -111,8 +110,8 @@ Controller::Controller(QString inputPath, QString settingsPath,
     connect(m_mainWindow, &MainWindow::sig_redo, this, &Controller::slot_redo);
     connect(m_mainWindow, &MainWindow::sig_selectLanguage, this,
             &Controller::slot_selectLanguage);
-    connect(m_mainWindow, &MainWindow::sig_forceBackupVideoReader, this,
-            &Controller::slot_forceBackupVideoReader);
+    connect(m_mainWindow, &MainWindow::sig_selectVideoReader, this,
+            &Controller::slot_selectVideoReader);
     connect(m_mainWindow, &MainWindow::sig_restart, this,
             &Controller::slot_restart);
 
@@ -469,8 +468,8 @@ void Controller::slot_selectLanguage(QLocale language) {
     ApplicationSettings::instance().setLocale(language);
 }
 
-void Controller::slot_forceBackupVideoReader(bool v) {
-    ApplicationSettings::instance().set_forceBackupVideoReader(v);
+void Controller::slot_selectVideoReader(QString name) {
+    ApplicationSettings::instance().set_videoReaderBackend(name);
 }
 
 void Controller::slot_restart() {

@@ -20,6 +20,7 @@
 #include <QTimer>
 
 #include "operationstack.h"
+#include "stringcontainer.h"
 #include "view/automaticwidget.h"
 #include "view/infowidget.h"
 #include "view/outputwidget.h"
@@ -86,7 +87,7 @@ class MainWindow : public QMainWindow {
                QList<QLocale> locales = {QLocale(QLocale::English),
                                          QLocale(QLocale::German)},
                QLocale selectedLocale = QLocale::system(),
-               bool forceBackupVideoReader = false,
+               QString videoReader = stringContainer::preciseVideoReader,
                QWidget* otsWidget = nullptr);
 
     /**
@@ -278,7 +279,7 @@ class MainWindow : public QMainWindow {
 
     void sig_selectLanguage(QLocale locale);
 
-    void sig_forceBackupVideoReader(bool v);
+    void sig_selectVideoReader(QString videoReader);
 
     void sig_restart();
 
@@ -306,18 +307,13 @@ class MainWindow : public QMainWindow {
     void on_actionCreate_log_file_triggered();
     void on_actionOpen_Meta_Data_triggered();
     void on_actionInterpolate_missing_meta_data_triggered();
-    void on_actionForce_Backup_Video_Reader();
-
     void on_actionUndo_triggered();
-
     void on_actionRedo_triggered();
-
     void on_actionReset_Boundaries_triggered();
-
     void on_actionDelete_All_Keyframes_triggered();
-
     void on_actionDelete_Keyframes_triggered();
     void on_changeLanguage();
+    void on_changeVideoReader();
 
    private:
     QFrame* addFrame(QWidget* w);

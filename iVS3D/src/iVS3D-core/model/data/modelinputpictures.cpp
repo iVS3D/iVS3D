@@ -4,12 +4,12 @@
 #include "readerfactory.h"
 
 ModelInputPictures::ModelInputPictures(QString inputPath,
-                                       bool forceBackupVideoReader) {
+                                       QString videoReaderBackend) {
     m_metaDataManager = &MetaDataManager::instance();
     m_metaDataManager->resetData();
     m_readerParams = std::make_shared<ReaderParams>();
     m_reader = ReaderFactory::instance().createReader(inputPath, m_readerParams,
-                                                      forceBackupVideoReader);
+                                                      videoReaderBackend);
 
     if (m_reader == nullptr) {
         return;

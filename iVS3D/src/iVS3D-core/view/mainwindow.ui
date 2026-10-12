@@ -68,13 +68,39 @@
     <property name="title">
      <string>Settings</string>
     </property>
+    <widget class="QMenu" name="menuVideoReader">
+      <property name="title">
+        <string>Video Reader</string>
+      </property>
+      <property name="enabled">
+        <bool>true</bool>
+      </property>
+      <addaction name="actionPreciseVideoReader"/>
+      <addaction name="actionFastVideoReader"/>
+      <action name="actionPreciseVideoReader">
+        <property name="checkable">
+          <bool>true</bool>
+        </property>
+        <property name="text">
+          <string>Precise Video Reader</string>
+        </property>
+      </action>
+      <action name="actionFastVideoReader">
+        <property name="checkable">
+          <bool>true</bool>
+        </property>
+        <property name="text">
+          <string>Fast Video Reader</string>
+        </property>
+      </action>
+    </widget>
     <addaction name="actionSet_Input_Path"/>
     <addaction name="separator"/>
     <addaction name="actionToggleTheme"/>
     <addaction name="actionUse_CUDA"/>
     <addaction name="actionCreate_log_file"/>
     <addaction name="actionInterpolate_missing_meta_data"/>
-    <addaction name="actionForce_Backup_Video_Reader"/>
+    <addaction name="menuVideoReader"/>
    </widget>
    <widget class="QMenu" name="menuAbout">
     <property name="title">
@@ -266,20 +292,6 @@
    </property>
    <property name="text">
     <string>Interpolate missing meta data</string>
-   </property>
-  </action>
-  <action name="actionForce_Backup_Video_Reader">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="enabled">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Force Backup Video Reader</string>
-   </property>
-   <property name="toolTip">
-    <string>Force the usage of the more robust but not frame precise OpenCV video reader instead of the custom frame perfect ffmpeg based video reader.</string>
    </property>
   </action>
  </widget>

@@ -11,11 +11,11 @@
 #include "sequentialreaderimpl.h"
 
 /**
- * @class BackupVideoReader
+ * @class FastVideoReader
  *
  * @ingroup Model
  *
- * @brief The BackupVideoReader class is used to import video files. Implements
+ * @brief The FastVideoReader class is used to import video files. Implements
  * the Reader interface
  *
  * @author Daniel Brommer
@@ -23,24 +23,24 @@
  * @date 2021/02/05
  */
 
-class BackupVideoReader : public Reader
+class FastVideoReader : public Reader
 
 {
    public:
     /**
-     * @brief VideoReader constructor which reads the given file and creates
+     * @brief FastVideoReader constructor which reads the given file and creates
      * cv::VideoCapture from it.
      *
      * @param path Path to the video. Video can be the types, which
      * cv::VideoCapture can handle
      */
-    explicit BackupVideoReader(const QString& path,
-                               std::shared_ptr<ReaderParams> readerParams);
+    explicit FastVideoReader(const QString& path,
+                             std::shared_ptr<ReaderParams> readerParams);
     /**
-     * @brief VideoReader destructor
+     * @brief FastVideoReader destructor
      *
      */
-    ~BackupVideoReader();
+    ~FastVideoReader();
     /**
      * @brief Returns the frame to a given index
      *
@@ -84,7 +84,7 @@ class BackupVideoReader : public Reader
      *
      * @return New instance of this reader
      */
-    BackupVideoReader* copy(std::shared_ptr<ReaderParams> params) override;
+    FastVideoReader* copy(std::shared_ptr<ReaderParams> params) override;
     /**
      * @brief Returns a empty vector
      *

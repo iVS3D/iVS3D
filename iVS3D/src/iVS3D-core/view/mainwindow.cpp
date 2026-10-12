@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 
 #include <qaction.h>
+#include <qactiongroup.h>
 
 #include <QApplication>
 #include <QDesktopWidget>
@@ -20,11 +21,12 @@
 // for debug
 #include <QDebug>
 #include <opencv2/core.hpp>
+#include <string>
 
 MainWindow::MainWindow(QWidget* parent, ColorTheme theme, int cuda,
                        bool createLog, bool interpolateMetaData,
                        QList<QLocale> locales, QLocale selectedLocale,
-                       bool forceBackupVideoReader, QWidget* otsWidget)
+                       QString videoReader, QWidget* otsWidget)
     : QMainWindow(parent), ui(new Ui::MainWindow) {
     ui->setupUi(this);
 
@@ -156,10 +158,13 @@ MainWindow::MainWindow(QWidget* parent, ColorTheme theme, int cuda,
     ui->actionCreate_log_file->setChecked(createLog);
     // set interpolate meta data
     ui->actionInterpolate_missing_meta_data->setChecked(interpolateMetaData);
-    // set force to backup reader
-    ui->actionForce_Backup_Video_Reader->setChecked(forceBackupVideoReader);
-    connect(ui->actionForce_Backup_Video_Reader, &QAction::triggered, this,
-            &MainWindow::on_actionForce_Backup_Video_Reader);
+    // set videoreader backend
+    if (videoReader == stringContainer::fastVideoReader)
+        ui->actionFastVideoReader->setChecked(true);
+    else
+        ui->actionPreciseVideoReader->setChecked(true);
+    connect(ui->actionPreciseVideoReader, &QAction::toggled, this,
+            &MainWindow::on_changeVideoReader);  // toggle triggers both actions
 
     // enable Drag and Drop
     setAcceptDrops(true);
@@ -176,8 +181,8 @@ MainWindow::MainWindow(QWidget* parent, ColorTheme theme, int cuda,
     QMenu* languageMenu = new QMenu(tr("Language"), this);
 
     // Create an action group for exclusive selection
-    QActionGroup* actionGroup = new QActionGroup(this);
-    actionGroup->setExclusive(true);
+    QActionGroup* actionGroupLanguage = new QActionGroup(this);
+    actionGroupLanguage->setExclusive(true);
 
     // Add actions for each available locale
     for (const QLocale& locale : locales) {
@@ -196,11 +201,17 @@ MainWindow::MainWindow(QWidget* parent, ColorTheme theme, int cuda,
 
         connect(action, &QAction::triggered, this,
                 &MainWindow::on_changeLanguage);
-        actionGroup->addAction(action);
+        actionGroupLanguage->addAction(action);
         languageMenu->addAction(action);
     }
 
     ui->menuSettings->addMenu(languageMenu);
+
+    // Video Reader Backend Selection
+    QActionGroup* actionGroupVideoReader = new QActionGroup(this);
+    actionGroupVideoReader->setExclusive(true);
+    actionGroupVideoReader->addAction(ui->actionPreciseVideoReader);
+    actionGroupVideoReader->addAction(ui->actionFastVideoReader);
 }
 
 MainWindow::~MainWindow() {
@@ -521,13 +532,18 @@ void MainWindow::on_changeLanguage() {
     }
 }
 
-void MainWindow::on_actionForce_Backup_Video_Reader() {
-    bool v = ui->actionForce_Backup_Video_Reader->isChecked();
-    emit sig_forceBackupVideoReader(v);
+void MainWindow::on_changeVideoReader() {
+    QString videoReader = "";
+    if (ui->actionPreciseVideoReader->isChecked()) {
+        videoReader = stringContainer::preciseVideoReader;
+    } else if (ui->actionFastVideoReader->isChecked()) {
+        videoReader = stringContainer::fastVideoReader;
+    }
+    emit sig_selectVideoReader(videoReader);
 
-    // Otherwise ask the user to restart the application
+    // ask the user to restart the application
     QMessageBox msgBox(this);
-    msgBox.setWindowTitle(tr("Force Backup Video Reader"));
+    msgBox.setWindowTitle(tr("Switch Video Reader"));
     msgBox.setText(
         tr("The application needs to be restarted for a new reader to be "
            "loaded. Make sure to save your project before restarting!"));

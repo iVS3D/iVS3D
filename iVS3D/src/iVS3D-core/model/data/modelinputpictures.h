@@ -76,10 +76,9 @@ class ModelInputPictures : public QObject, public ISerializable {
      * frames.
      *
      * @param inputPath Path to the file or directory to be opend
-     * @param forceBackupVideoReader If reader should explicitly not use custom
-     * video reader
+     * @param videoReaderBackend Name of the reader backend used
      */
-    explicit ModelInputPictures(QString inputPath, bool forceBackupVideoReader);
+    explicit ModelInputPictures(QString inputPath, QString videoReaderBackend);
     /**
      * @brief ModelInputPictures Constructor, which creates an empty class.
      * toText can be used on this instance.

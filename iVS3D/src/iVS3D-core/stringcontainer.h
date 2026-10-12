@@ -73,7 +73,9 @@ struct stringContainer {
     static const QString interpolateIdentifier;
     static const QString localeIdentifier;
     static const QString defaultPluginIdentifier;
-    static const QString forceBackupVideoReader;
+    static const QString videoReader;
+    static const QString preciseVideoReader;
+    static const QString fastVideoReader;
     // Identifier for LogFile
     static const QString logNameIdentifier;
     static const QString logIsPluginIdentifier;

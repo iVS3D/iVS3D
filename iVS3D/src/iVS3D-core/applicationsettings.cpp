@@ -96,11 +96,9 @@ void ApplicationSettings::loadSettings() {
                               .value(stringContainer::defaultPluginIdentifier,
                                      m_defaultPluginName)
                               .value<QString>();
-    m_forceBackupVideoReader =
-        settings
-            .value(stringContainer::forceBackupVideoReader,
-                   m_forceBackupVideoReader)
-            .toBool();
+    m_videoReaderBackend =
+        settings.value(stringContainer::videoReader, m_videoReaderBackend)
+            .value<QString>();
 }
 
 void ApplicationSettings::saveSettings() {
@@ -126,8 +124,7 @@ void ApplicationSettings::saveSettings() {
     settings.setValue(stringContainer::localeIdentifier, m_locale);
     settings.setValue(stringContainer::defaultPluginIdentifier,
                       m_defaultPluginName);
-    settings.setValue(stringContainer::forceBackupVideoReader,
-                      m_forceBackupVideoReader);
+    settings.setValue(stringContainer::videoReader, m_videoReaderBackend);
 }
 
 ApplicationSettings& ApplicationSettings::instance() {
@@ -252,11 +249,11 @@ bool ApplicationSettings::getCudaAvailable(CUDA_ERR_CODE* err_code) const {
 
 bool ApplicationSettings::getCreateLogs() { return m_createLogs; }
 
-bool ApplicationSettings::get_forceBackupVideoReader() {
-    return m_forceBackupVideoReader;
+QString ApplicationSettings::get_videoReaderBackend() {
+    return m_videoReaderBackend;
 }
 
-void ApplicationSettings::set_forceBackupVideoReader(bool v) {
-    m_forceBackupVideoReader = v;
+void ApplicationSettings::set_videoReaderBackend(QString name) {
+    m_videoReaderBackend = name;
     saveSettings();
 }
