@@ -14,6 +14,8 @@
 #define DECLINE_BT QMessageBox::Cancel
 
 class ReaderFactory : QObject {
+   Q_OBJECT
+
    public:
     static ReaderFactory& instance() {
         static ReaderFactory INSTANCE;

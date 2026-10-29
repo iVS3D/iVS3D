@@ -1,5 +1,7 @@
 #include "DataManager.h"
 
+#include <qglobal.h>
+
 #include "applicationsettings.h"
 #include "logmanager.h"
 

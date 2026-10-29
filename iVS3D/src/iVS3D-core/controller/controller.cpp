@@ -1,5 +1,6 @@
 #include "controller.h"
 
+#include <qglobal.h>
 #include <qlist.h>
 
 #include <iostream>

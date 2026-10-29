@@ -8,6 +8,8 @@
 #include <qtextedit.h>
 #include <qthread.h>
 
+#include <qdebug>
+
 #include <memory>
 
 #include "fastvideoreader.h"
@@ -32,8 +34,9 @@ Reader* ReaderFactory::createReader(QString path,
         if (backend == stringContainer::preciseVideoReader) {
             reader = std::make_unique<VideoReader>(path, params);
             if (!reader->isValid()) {
-                backend = switchReaderPrompt();
+                reader.release();
                 reader = nullptr;
+                backend = switchReaderPrompt();
             }
         }
         if (backend == stringContainer::fastVideoReader) {
@@ -50,30 +53,28 @@ Reader* ReaderFactory::createReader(QString path,
 }
 
 QString ReaderFactory::switchReaderPrompt() {
-    QMessageBox msgBox;
-    msgBox.setModal(true);
-    msgBox.setIcon(QMessageBox::Warning);
-    msgBox.setText(
-        tr("The PreciseVideoReader backend is not available for this video. "
-           "Do you want to switch the backend?"));
-    msgBox.setDetailedText(
-        tr("The frame precise video reader could not load the "
-           "video. If you do not need frame perfect selection you can use "
-           "the FastVideoReader backend, which is less robust during frame "
-           "jumps. In case frame precise jumps are neccessary we recommend "
-           "reencoding the video with ffmpeg:"
-           "\n\n \"ffmpeg -i VIDEO.mp4 -vf fps=FPS -vsync cfr -c:v libx264 "
-           "-crf 0 -c:an OUTVIDEO.mp4\" "));
-    msgBox.setStandardButtons(CONFIRM_BT | DECLINE_BT);
-    msgBox.setDefaultButton(CONFIRM_BT);
-    msgBox.show();
+    auto f = []() -> QString {
+        QMessageBox msgBox(QApplication::activeWindow());
+        msgBox.setIcon(QMessageBox::Warning);
+        msgBox.setText(
+            tr("The PreciseVideoReader backend is not available for this video. "
+               "Do you want to switch the backend?"));
+        msgBox.setDetailedText(
+            tr("The frame precise video reader could not load the "
+               "video. If you do not need frame perfect selection you can use "
+               "the FastVideoReader backend, which is less robust during frame "
+               "jumps. In case frame precise jumps are necessary we recommend "
+               "reencoding the video with ffmpeg:"
+               "\n\n \"ffmpeg -i VIDEO.mp4 -vf fps=FPS -vsync cfr -c:v libx264 "
+               "-crf 0 -c:an OUTVIDEO.mp4\" "));
+        msgBox.setStandardButtons(CONFIRM_BT | DECLINE_BT);
+        msgBox.setDefaultButton(CONFIRM_BT);
 
-    int res = -1;
-    while (res != CONFIRM_BT && res != DECLINE_BT) {
-        QApplication::processEvents();
-        res = msgBox.result();
-        QThread::msleep(100);
-    }
+        return msgBox.exec() == CONFIRM_BT ? stringContainer::fastVideoReader
+                                           : QString();
+    };
 
-    return res == CONFIRM_BT ? stringContainer::fastVideoReader : "";
+    QString result;
+    QMetaObject::invokeMethod(qApp, f, Qt::BlockingQueuedConnection, &result);
+    return result;
 }
