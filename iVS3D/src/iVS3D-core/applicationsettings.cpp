@@ -16,6 +16,7 @@ ApplicationSettings::ApplicationSettings() {
     m_createLogs = true;
     m_useCuda = true;
     m_colorTheme = DARK;
+    m_videoReaderBackend = stringContainer::preciseVideoReader;
     m_locale = QLocale::system();
     if (!getAvailableLocales().contains(m_locale)) {
         m_locale = getAvailableLocales()[0];
